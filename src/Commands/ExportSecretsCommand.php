@@ -6,13 +6,14 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use STS\Keeper\Commands\Concerns\GathersInput;
 use STS\Keeper\Commands\Concerns\InteractsWithVaults;
+use STS\Keeper\Commands\Concerns\WritesOutputToFile;
 use STS\Keeper\Exceptions\KeeperException;
 use STS\Keeper\Secret;
 use function Laravel\Prompts\confirm;
 
 class ExportSecretsCommand extends Command
 {
-    use GathersInput, InteractsWithVaults;
+    use GathersInput, InteractsWithVaults, WritesOutputToFile;
 
     public $signature = 'keeper:export 
         {--format=env : json|env} 
@@ -39,13 +40,16 @@ class ExportSecretsCommand extends Command
             return self::FAILURE;
         }
 
-        $output = $this->formatOutput($secrets);
-
         if($this->option('output')) {
-            return $this->writeToFile($output);
+            return $this->writeToFile(
+                $this->option('output'),
+                $this->formatOutput($secrets),
+                $this->option('overwrite'),
+                $this->option('append')
+            );
         }
 
-        $this->line($output);
+        $this->line($this->formatOutput($secrets));
 
         return self::SUCCESS;
     }
@@ -59,29 +63,5 @@ class ExportSecretsCommand extends Command
             : $secrets->map(function (Secret $secret) {
                 return sprintf('%s="%s"', $secret->key(), $secret->plainValue());
             })->implode("\n");
-    }
-
-    protected function writeToFile(string $output): bool
-    {
-        $filePath = $this->option('output');
-        $flags = 0;
-
-        if (file_exists($filePath)) {
-            if ($this->option('overwrite')) {
-                $flags = 0; // Overwrite
-            } elseif ($this->option('append')) {
-                $flags = FILE_APPEND; // Append
-            } else if(confirm("Output file already exists. Overwrite?", false)) {
-                $flags = 0; // Overwrite
-            } else {
-                $this->error("File [$filePath] already exists. Use --overwrite or --append option.");
-                return self::FAILURE;
-            }
-        }
-
-        file_put_contents($filePath, $output . PHP_EOL, $flags);
-        $this->info("Secrets exported to [$filePath].");
-
-        return self::SUCCESS;
     }
 }
