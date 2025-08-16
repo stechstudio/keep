@@ -20,7 +20,7 @@ class SetSecretCommand extends Command
     .self::ENV_SIGNATURE
     .self::PLAIN_SIGNATURE;
 
-    public $description = 'Set the value of a secret in the configured vault';
+    public $description = 'Set the value of an environment secret in a specified vault';
 
     public function handle(): int
     {

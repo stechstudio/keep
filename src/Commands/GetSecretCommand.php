@@ -18,7 +18,7 @@ class GetSecretCommand extends Command
     .self::VAULT_SIGNATURE
     .self::ENV_SIGNATURE;
 
-    public $description = 'Get the value of a secret in the configured vault';
+    public $description = 'Get the value of an environment secret in a specified vault';
 
     public function handle(): int
     {

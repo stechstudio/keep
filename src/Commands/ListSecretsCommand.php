@@ -16,7 +16,7 @@ class ListSecretsCommand extends Command
     .self::VAULT_SIGNATURE
     .self::ENV_SIGNATURE;
 
-    public $description = 'Get the list of secrets in the configured vault';
+    public $description = 'Get the list of environment secrets in a specified vault';
 
     public function handle(): int
     {
