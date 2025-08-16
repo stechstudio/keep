@@ -39,9 +39,8 @@ class AwsSsmVault extends AbstractKeeperVault
                 version: $parameter['Version'] ?? 0,
             );
         } catch (SsmException $e) {
-            dd($e->getAwsErrorCode(), $e->getAwsErrorMessage());
             if($e->getAwsErrorCode() === "ParameterNotFound") {
-                throw new SecretNotFoundException($e->getAwsErrorMessage());
+                throw new SecretNotFoundException("Secret not found");
             } elseif($e->getAwsErrorCode() === "AccessDeniedException") {
                 throw new AccessDeniedException($e->getAwsErrorMessage());
             } else {
