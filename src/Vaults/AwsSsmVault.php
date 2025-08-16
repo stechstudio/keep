@@ -5,6 +5,7 @@ namespace STS\Keeper\Vaults;
 use Aws\Result;
 use Aws\Ssm\Exception\SsmException;
 use Aws\Ssm\SsmClient;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use STS\Keeper\Exceptions\AccessDeniedException;
 use STS\Keeper\Exceptions\KeeperException;
@@ -15,6 +16,71 @@ use STS\Keeper\Secret;
 class AwsSsmVault extends AbstractKeeperVault
 {
     protected SsmClient $client;
+
+    public function format(?string $key = null): string
+    {
+        if (is_callable($this->keyFormatter)) {
+            return call_user_func($this->keyFormatter, $key, $this->environment, $this->config);
+        }
+
+        return Str::of($this->config['prefix'] ?? '')
+            ->start('/')->finish('/')
+            ->append(Keeper::namespace() . "/")
+            ->append($this->environment . "/")
+            ->append($key)
+            ->rtrim("/")
+            ->toString();
+    }
+
+    public function list(): Collection
+    {
+        try {
+            $secrets = collect();
+            $nextToken = null;
+
+            do {
+                $params = [
+                    'Path'           => $this->format(),
+                    'Recursive'      => true,
+                    'WithDecryption' => true,
+                    'MaxResults'     => 10,
+                ];
+
+                if ($nextToken) {
+                    $params['NextToken'] = $nextToken;
+                }
+
+                $result = $this->client()->getParametersByPath($params);
+
+                foreach ($result->get('Parameters') as $parameter) {
+                    $key = Str::of($parameter['Name'])
+                        ->replace($this->format(), '')
+                        ->trim('/')
+                        ->toString();
+
+                    $secrets->push(new Secret(
+                        key: $key,
+                        plainValue: $parameter['Value'] ?? null,
+                        encryptedValue: null,
+                        secure: ($parameter['Type'] ?? 'String') === 'SecureString',
+                        environment: $this->environment,
+                        version: $parameter['Version'] ?? 0,
+                        path: $parameter['Name'],
+                        //vault: $this,
+                    ));
+                }
+            } while ($nextToken = $result->get('NextToken'));
+
+        } catch (SsmException $e) {
+            if($e->getAwsErrorCode() === "AccessDeniedException") {
+                throw new AccessDeniedException($e->getAwsErrorMessage());
+            } else {
+                throw new KeeperException($e->getAwsErrorMessage());
+            }
+        }
+
+        return $secrets->sortBy('key')->values();
+    }
 
     public function get(string $key): ?Secret
     {
@@ -81,20 +147,6 @@ class AwsSsmVault extends AbstractKeeperVault
                 throw new KeeperException($e->getAwsErrorMessage());
             }
         }
-    }
-
-    public function format(string $key): string
-    {
-        if (is_callable($this->keyFormatter)) {
-            return call_user_func($this->keyFormatter, $key, $this->environment, $this->config);
-        }
-
-        return Str::of($this->config['prefix'] ?? '')
-            ->start('/')->finish('/')
-            ->append(Keeper::namespace() . "/")
-            ->append($this->environment . "/")
-            ->append($key)
-            ->toString();
     }
 
     protected function client(): SsmClient

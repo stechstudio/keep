@@ -32,7 +32,7 @@ trait GathersInput
     protected function vaultName()
     {
         return $this->vaultName ??= match(true) {
-            $this->option('vault') => $this->option('vault'),
+            !!$this->option('vault') => $this->option('vault'),
             count(Keeper::available()) === 1 => Keeper::getDefaultVault(),
             default => select('Vault', Keeper::available(), Keeper::getDefaultVault()),
         };
@@ -41,7 +41,7 @@ trait GathersInput
     protected function environment()
     {
         return $this->env ??= match(true) {
-            $this->option('env') => $this->option('env'),
+            !!$this->option('env') => $this->option('env'),
             count(Keeper::environments()) === 1 => Keeper::environments()[0],
             default => select('Environment', Keeper::environments(), Keeper::environment()),
         };

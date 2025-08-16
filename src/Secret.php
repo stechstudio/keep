@@ -2,9 +2,10 @@
 
 namespace STS\Keeper;
 
+use Illuminate\Contracts\Support\Arrayable;
 use STS\Keeper\Vaults\AbstractKeeperVault;
 
-class Secret
+class Secret implements Arrayable
 {
     public function __construct(
         protected string $key,
@@ -57,5 +58,19 @@ class Secret
     public function vault(): ?AbstractKeeperVault
     {
         return $this->vault;
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'key' => $this->key,
+            'plainValue' => $this->plainValue,
+            'encryptedValue' => $this->encryptedValue,
+            'secure' => $this->secure,
+            'environment' => $this->environment,
+            'version' => $this->version,
+            'path' => $this->path,
+            'vault' => $this->vault?->name(),
+        ];
     }
 }

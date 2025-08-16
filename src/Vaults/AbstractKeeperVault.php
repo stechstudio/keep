@@ -2,6 +2,7 @@
 
 namespace STS\Keeper\Vaults;
 
+use Illuminate\Support\Collection;
 use STS\Keeper\Facades\Keeper;
 use STS\Keeper\Secret;
 
@@ -31,13 +32,15 @@ abstract class AbstractKeeperVault
         return $this;
     }
 
-    abstract public function save(Secret $secret): Secret;
+    abstract public function list(): Collection;
 
     abstract public function get(string $key);
 
     abstract public function set(string $key, string $value, bool $secure = true);
 
-    abstract public function format(string $key): string;
+    abstract public function save(Secret $secret): Secret;
+
+    abstract public function format(?string $key = null): string;
 
     public function name(): string
     {
