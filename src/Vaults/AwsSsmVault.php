@@ -8,12 +8,47 @@ use Aws\Ssm\SsmClient;
 use Illuminate\Support\Str;
 use STS\Keeper\Exceptions\AccessDeniedException;
 use STS\Keeper\Exceptions\KeeperException;
+use STS\Keeper\Exceptions\SecretNotFoundException;
 use STS\Keeper\Facades\Keeper;
 use STS\Keeper\Secret;
 
 class AwsSsmVault extends AbstractKeeperVault
 {
     protected SsmClient $client;
+
+    public function get(string $key): ?Secret
+    {
+        try {
+            $result = $this->client()->getParameter([
+                'Name'           => $this->format($key),
+                'WithDecryption' => true,
+            ]);
+
+            $parameter = $result->get('Parameter');
+
+            if (!$parameter || !is_array($parameter)) {
+                return null;
+            }
+
+            return new Secret(
+                key: $key,
+                plainValue: $parameter['Value'] ?? null,
+                encryptedValue: null,
+                secure: ($parameter['Type'] ?? 'String') === 'SecureString',
+                environment: $this->environment,
+                version: $parameter['Version'] ?? 0,
+            );
+        } catch (SsmException $e) {
+            dd($e->getAwsErrorCode(), $e->getAwsErrorMessage());
+            if($e->getAwsErrorCode() === "ParameterNotFound") {
+                throw new SecretNotFoundException($e->getAwsErrorMessage());
+            } elseif($e->getAwsErrorCode() === "AccessDeniedException") {
+                throw new AccessDeniedException($e->getAwsErrorMessage());
+            } else {
+                throw new KeeperException($e->getAwsErrorMessage());
+            }
+        }
+    }
 
     public function save(Secret $secret): Secret
     {

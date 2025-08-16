@@ -9,28 +9,24 @@ use STS\Keeper\Exceptions\KeeperException;
 use STS\Keeper\Facades\Keeper;
 use STS\Keeper\Secret;
 
-class SetSecretCommand extends Command
+class GetSecretCommand extends Command
 {
     use GathersInput, InteractsWithVaults;
 
-    public $signature = 'keeper:set '
+    public $signature = 'keeper:get '
     .self::KEY_SIGNATURE
-    .self::VALUE_SIGNATURE
     .self::VAULT_SIGNATURE
-    .self::ENV_SIGNATURE
-    .self::PLAIN_SIGNATURE;
+    .self::ENV_SIGNATURE;
 
-    public $description = 'Set the value of a secret in the configured vault';
+    public $description = 'Get the value of a secret in the configured vault';
 
     public function handle(): int
     {
         try {
-            $secret = $this->vault()->save(
-                new Secret($this->key(), $this->value(), $this->secure())
-            );
+            $secret = $this->vault()->get($this->key());
         } catch (KeeperException $e) {
             $this->error(
-                sprintf("Failed to set secret [%s] in vault [%s]",
+                sprintf("Failed to get secret [%s] in vault [%s]",
                     $this->vault()->format($this->key()),
                     $this->vaultName()
                 )
@@ -40,13 +36,7 @@ class SetSecretCommand extends Command
             return self::FAILURE;
         }
 
-        $this->info(
-            sprintf("Secret [%s] %s in vault [%s].",
-                $secret->path(),
-                $secret->version() === 1 ? 'created' : 'updated',
-                $secret->vault()->name()
-            )
-        );
+        $this->line($secret->plainValue());
 
         return self::SUCCESS;
     }

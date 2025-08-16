@@ -3,6 +3,7 @@
 namespace STS\Keeper;
 
 use Illuminate\Support\ServiceProvider;
+use STS\Keeper\Commands\GetSecretCommand;
 use STS\Keeper\Commands\SetSecretCommand;
 
 class KeeperServiceProvider extends ServiceProvider
@@ -27,6 +28,7 @@ class KeeperServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 SetSecretCommand::class,
+                GetSecretCommand::class,
             ]);
         }
     }

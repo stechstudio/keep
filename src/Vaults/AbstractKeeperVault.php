@@ -33,6 +33,8 @@ abstract class AbstractKeeperVault
 
     abstract public function save(Secret $secret): Secret;
 
+    abstract public function get(string $key);
+
     abstract public function set(string $key, string $value, bool $secure = true);
 
     abstract public function format(string $key): string;
