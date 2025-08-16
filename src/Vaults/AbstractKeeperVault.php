@@ -3,12 +3,13 @@
 namespace STS\Keeper\Vaults;
 
 use STS\Keeper\Facades\Keeper;
+use STS\Keeper\Secret;
 
 abstract class AbstractKeeperVault
 {
     protected $keyFormatter;
 
-    public function __construct(protected array $config, protected ?string $environment = null)
+    public function __construct(protected string $name, protected array $config, protected ?string $environment = null)
     {
         // If none was provided, use the current resolved environment
         if(!$this->environment) {
@@ -30,5 +31,14 @@ abstract class AbstractKeeperVault
         return $this;
     }
 
-    abstract public function set(string $key, string $value, bool $secure = true): static;
+    abstract public function save(Secret $secret): Secret;
+
+    abstract public function set(string $key, string $value, bool $secure = true);
+
+    abstract public function format(string $key): string;
+
+    public function name(): string
+    {
+        return $this->name;
+    }
 }

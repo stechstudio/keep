@@ -4,11 +4,14 @@ namespace STS\Keeper\Commands;
 
 use Illuminate\Console\Command;
 use STS\Keeper\Commands\Concerns\GathersInput;
+use STS\Keeper\Commands\Concerns\InteractsWithVaults;
+use STS\Keeper\Exceptions\KeeperException;
 use STS\Keeper\Facades\Keeper;
+use STS\Keeper\Secret;
 
 class SetSecretCommand extends Command
 {
-    use GathersInput;
+    use GathersInput, InteractsWithVaults;
 
     public $signature = 'keeper:set '
         . self::KEY_SIGNATURE
@@ -21,11 +24,22 @@ class SetSecretCommand extends Command
 
     public function handle(): int
     {
-        Keeper::vault($this->vaultName())
-            ->forEnvironment($this->environment())
-            ->set($this->key(), $this->value(), $this->secure());
+        try {
+            $secret = $this->vault()->save(
+                new Secret($this->key(), $this->value(), $this->secure())
+            );
+        } catch (KeeperException $e) {
+            $this->error("Failed to set secret [{$this->vault()->format($this->key())}] in vault [{$this->vaultName()}]");
+            $this->line($e->getMessage());
 
-        $this->info("Secret [{$this->key()}] set in vault [{$this->vaultName()}].");
+            return self::FAILURE;
+        }
+
+        $this->info(sprintf("Secret [%s] %s in vault [%s].",
+            $secret->path(),
+            $secret->version() === 1 ? 'created' : 'updated',
+            $secret->vault()->name()
+        ));
 
         return self::SUCCESS;
     }

@@ -1,13 +1,16 @@
-laravel: './workbench'
+laravel: '@testbench'
 
 providers:
-  - STS\Keeper\KeeperServiceProvider
+  # - Workbench\App\Providers\WorkbenchServiceProvider
 
 migrations:
   - workbench/database/migrations
 
 seeders:
   - Workbench\Database\Seeders\DatabaseSeeder
+
+env:
+  - APP_NAME=Keeper
 
 workbench:
   start: '/'

@@ -29,7 +29,6 @@ class KeeperManager {
 
     public function available(): array
     {
-        dd("available", config('keeper'));
         return config('keeper.available');
     }
 
@@ -78,7 +77,7 @@ class KeeperManager {
         $driver = $config['driver'];
 
         if (isset($this->customCreators[$driver])) {
-            return $this->customCreators[$driver]($config);
+            return $this->customCreators[$driver]($name, $config);
         }
 
         $driverMethod = 'create' . Str::pascal($driver) . 'Driver';
@@ -87,11 +86,11 @@ class KeeperManager {
             throw new InvalidArgumentException("Driver [{$driver}] is not supported.");
         }
 
-        return $this->{$driverMethod}($config, $name);
+        return $this->{$driverMethod}($name, $config);
     }
 
-    public function createAwsSsmDriver(array $config): AwsSsmVault
+    public function createAwsSsmDriver(string $name, array $config): AwsSsmVault
     {
-        return new AwsSsmVault($config);
+        return new AwsSsmVault($name, $config);
     }
 }
