@@ -6,10 +6,9 @@ use Illuminate\Console\Command;
 use STS\Keeper\Commands\Concerns\GathersInput;
 use STS\Keeper\Commands\Concerns\InteractsWithVaults;
 use STS\Keeper\Exceptions\KeeperException;
-use STS\Keeper\Facades\Keeper;
 use STS\Keeper\Data\Secret;
 
-class SetSecretCommand extends Command
+class SetCommand extends Command
 {
     use GathersInput, InteractsWithVaults;
 

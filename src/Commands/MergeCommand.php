@@ -15,7 +15,7 @@ use STS\Keeper\Data\Secret;
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\text;
 
-class MergeSecretsCommand extends Command
+class MergeCommand extends Command
 {
     use GathersInput, InteractsWithVaults, InteractsWithFilesystem;
 

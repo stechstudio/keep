@@ -6,25 +6,28 @@ use Illuminate\Console\Command;
 use STS\Keeper\Commands\Concerns\GathersInput;
 use STS\Keeper\Commands\Concerns\InteractsWithVaults;
 use STS\Keeper\Exceptions\KeeperException;
+use STS\Keeper\Facades\Keeper;
 use STS\Keeper\Data\Secret;
 
-class ListSecretsCommand extends Command
+class GetCommand extends Command
 {
     use GathersInput, InteractsWithVaults;
 
-    public $signature = 'keeper:list {--format=env : json|env} '
+    public $signature = 'keeper:get '
+    .self::KEY_SIGNATURE
     .self::VAULT_SIGNATURE
     .self::ENV_SIGNATURE;
 
-    public $description = 'Get the list of environment secrets in a specified vault';
+    public $description = 'Get the value of an environment secret in a specified vault';
 
     public function handle(): int
     {
         try {
-            $secrets = $this->vault()->list();
+            $secret = $this->vault()->get($this->key());
         } catch (KeeperException $e) {
             $this->error(
-                sprintf("Failed to get secrets in vault [%s]",
+                sprintf("Failed to get secret [%s] in vault [%s]",
+                    $this->vault()->format($this->key()),
                     $this->vaultName()
                 )
             );
@@ -33,18 +36,7 @@ class ListSecretsCommand extends Command
             return self::FAILURE;
         }
 
-        if ($this->option('format') === 'json') {
-            $this->line(
-                $secrets->toKeyValuePair()->toJson(JSON_PRETTY_PRINT)
-            );
-
-            return self::SUCCESS;
-        }
-
-        $this->table(
-            ['Key', 'Value', 'Version'],
-            $secrets->map->toArray(['key','plainValue','version']),
-        );
+        $this->line($secret->plainValue());
 
         return self::SUCCESS;
     }

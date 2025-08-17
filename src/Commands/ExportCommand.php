@@ -10,7 +10,7 @@ use STS\Keeper\Data\SecretsCollection;
 use STS\Keeper\Exceptions\KeeperException;
 use STS\Keeper\Data\Secret;
 
-class ExportSecretsCommand extends Command
+class ExportCommand extends Command
 {
     use GathersInput, InteractsWithVaults, InteractsWithFilesystem;
 

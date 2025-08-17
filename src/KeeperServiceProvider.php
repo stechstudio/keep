@@ -3,11 +3,12 @@
 namespace STS\Keeper;
 
 use Illuminate\Support\ServiceProvider;
-use STS\Keeper\Commands\ExportSecretsCommand;
-use STS\Keeper\Commands\GetSecretCommand;
-use STS\Keeper\Commands\ListSecretsCommand;
-use STS\Keeper\Commands\MergeSecretsCommand;
-use STS\Keeper\Commands\SetSecretCommand;
+use STS\Keeper\Commands\ExportCommand;
+use STS\Keeper\Commands\GetCommand;
+use STS\Keeper\Commands\ImportCommand;
+use STS\Keeper\Commands\ListCommand;
+use STS\Keeper\Commands\MergeCommand;
+use STS\Keeper\Commands\SetCommand;
 
 class KeeperServiceProvider extends ServiceProvider
 {
@@ -30,11 +31,12 @@ class KeeperServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                SetSecretCommand::class,
-                GetSecretCommand::class,
-                ListSecretsCommand::class,
-                ExportSecretsCommand::class,
-                MergeSecretsCommand::class,
+                SetCommand::class,
+                GetCommand::class,
+                ListCommand::class,
+                MergeCommand::class,
+                ExportCommand::class,
+                ImportCommand::class,
             ]);
         }
     }
