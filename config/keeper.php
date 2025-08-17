@@ -44,6 +44,30 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Template env file
+    |--------------------------------------------------------------------------
+    |
+    | This will be used as the default template file when merging secrets
+    | and generating env files.
+    |
+    */
+    'template' => env('KEEPER_TEMPLATE', base_path('.env.template')),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Overlay environment-specific templates
+    |--------------------------------------------------------------------------
+    |
+    | If set, this will scan for environment-specific template files to
+    | overlay on top of the base template when merging secrets. For example,
+    | if the environment is 'production' and this is set to 'env', it will
+    | look for a file named 'production.env' in the specified directory.
+    |
+    */
+    'environment_templates' => env('KEEPER_ENV_TEMPLATES', 'env'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Default vault name
     |--------------------------------------------------------------------------
     |

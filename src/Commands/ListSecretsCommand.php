@@ -12,7 +12,7 @@ class ListSecretsCommand extends Command
 {
     use GathersInput, InteractsWithVaults;
 
-    public $signature = 'keeper:list '
+    public $signature = 'keeper:list {--format=env : json|env} '
     .self::VAULT_SIGNATURE
     .self::ENV_SIGNATURE;
 
@@ -33,9 +33,17 @@ class ListSecretsCommand extends Command
             return self::FAILURE;
         }
 
+        if ($this->option('format') === 'json') {
+            $this->line(
+                $secrets->toKeyValuePair()->toJson(JSON_PRETTY_PRINT)
+            );
+
+            return self::SUCCESS;
+        }
+
         $this->table(
             ['Key', 'Value', 'Version'],
-            $secrets->map(fn(Secret $secret) => [$secret->key(), $secret->plainValue(), $secret->version()]),
+            $secrets->map->toArray(['key','plainValue','version']),
         );
 
         return self::SUCCESS;

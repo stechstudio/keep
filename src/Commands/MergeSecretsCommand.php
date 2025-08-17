@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use STS\Keeper\Commands\Concerns\GathersInput;
 use STS\Keeper\Commands\Concerns\InteractsWithVaults;
-use STS\Keeper\Commands\Concerns\WritesOutputToFile;
+use STS\Keeper\Commands\Concerns\InteractsWithFilesystem;
 use STS\Keeper\Data\SecretsCollection;
 use STS\Keeper\Data\Template;
 use STS\Keeper\Enums\MissingSecretStrategy;
@@ -17,7 +17,7 @@ use function Laravel\Prompts\text;
 
 class MergeSecretsCommand extends Command
 {
-    use GathersInput, InteractsWithVaults, WritesOutputToFile;
+    use GathersInput, InteractsWithVaults, InteractsWithFilesystem;
 
     public $signature = 'keeper:merge {template? : Template env file with placeholders}
         {--overlay= : Optional env file to overlay on top of the template} 
@@ -75,7 +75,9 @@ class MergeSecretsCommand extends Command
 
     protected function prepareTemplateContents(): bool
     {
-        $template = $this->argument('template') ?? text('Template file with placeholders', required: true);
+        $template = $this->argument('template')
+            ?? config('keeper.template')
+            ?? text('Template file with placeholders', required: true);
 
         if (!file_exists($template) || !is_readable($template)) {
             $this->error("Template file [$template] does not exist or is not readable.");
@@ -85,16 +87,16 @@ class MergeSecretsCommand extends Command
         $this->info("Using base template file [$template].");
         $this->baseTemplate = new Template(file_get_contents($template));
 
-        if ($this->option('overlay')) {
-            $overlay = $this->option('overlay');
+        $overlayTemplate = $this->option('overlay') ?? $this->findEnvironmentOverlayTemplate();
 
-            if (!file_exists($overlay) || !is_readable($overlay)) {
-                $this->error("Overlay file [$overlay] does not exist or is not readable.");
+        if ($overlayTemplate) {
+            if (!file_exists($overlayTemplate) || !is_readable($overlayTemplate)) {
+                $this->error("Overlay file [$overlayTemplate] does not exist or is not readable.");
                 return false;
             }
 
-            $this->info("Using overlay file [$overlay].");
-            $this->overlayTemplate = new Template(file_get_contents($overlay));
+            $this->info("Using overlay file [$overlayTemplate].");
+            $this->overlayTemplate = new Template(file_get_contents($overlayTemplate));
         } else {
             $this->overlayTemplate = new Template('');
         }
@@ -108,17 +110,10 @@ class MergeSecretsCommand extends Command
         $output .= $base->merge($this->vault()->slug(), $secrets, $strategy);
 
         if ($overlay->isNotEmpty()) {
-            $output .= "\n\n# ----- Separator -----\n\n# Overlaying with additional environment variables\n\n";
+            $output .= "\n\n# ----- Separator -----\n\n# Appending additional environment variables\n\n";
             $output .= $overlay->merge($this->vault()->slug(), $secrets, $strategy);
         }
 
         return $output;
-    }
-
-    protected function performMerge(string $contents, SecretsCollection $secrets): string
-    {
-
-
-        return $contents;
     }
 }

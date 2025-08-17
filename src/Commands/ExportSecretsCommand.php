@@ -5,14 +5,14 @@ namespace STS\Keeper\Commands;
 use Illuminate\Console\Command;
 use STS\Keeper\Commands\Concerns\GathersInput;
 use STS\Keeper\Commands\Concerns\InteractsWithVaults;
-use STS\Keeper\Commands\Concerns\WritesOutputToFile;
+use STS\Keeper\Commands\Concerns\InteractsWithFilesystem;
 use STS\Keeper\Data\SecretsCollection;
 use STS\Keeper\Exceptions\KeeperException;
 use STS\Keeper\Data\Secret;
 
 class ExportSecretsCommand extends Command
 {
-    use GathersInput, InteractsWithVaults, WritesOutputToFile;
+    use GathersInput, InteractsWithVaults, InteractsWithFilesystem;
 
     public $signature = 'keeper:export 
         {--format=env : json|env} 
@@ -57,7 +57,7 @@ class ExportSecretsCommand extends Command
     {
         return $this->option('format') === 'json'
             ? $secrets
-                ->mapWithKeys(fn(Secret $secret) => [$secret->key() => $secret->plainValue()])
+                ->toKeyValuePair()
                 ->toJson(JSON_PRETTY_PRINT)
             : $secrets->map(function (Secret $secret) {
                 return sprintf('%s="%s"', $secret->key(), $secret->plainValue());

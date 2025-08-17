@@ -3,6 +3,7 @@
 namespace STS\Keeper\Data;
 
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Support\Arr;
 use STS\Keeper\Vaults\AbstractKeeperVault;
 
 class Secret implements Arrayable
@@ -60,9 +61,9 @@ class Secret implements Arrayable
         return $this->vault;
     }
 
-    public function toArray(): array
+    public function toArray(?array $keys = null): array
     {
-        return [
+        $array = [
             'key' => $this->key,
             'plainValue' => $this->plainValue,
             'encryptedValue' => $this->encryptedValue,
@@ -72,5 +73,9 @@ class Secret implements Arrayable
             'path' => $this->path,
             'vault' => $this->vault?->name(),
         ];
+
+        return $keys
+            ? Arr::only($array, $keys)
+            : $array;
     }
 }

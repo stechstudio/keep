@@ -4,7 +4,7 @@ namespace STS\Keeper\Commands\Concerns;
 
 use function Laravel\Prompts\confirm;
 
-trait WritesOutputToFile
+trait InteractsWithFilesystem
 {
     protected function writeToFile(string $path, string $content, $overwrite = false, $append = false): bool
     {
@@ -30,5 +30,16 @@ trait WritesOutputToFile
         $this->info("Secrets exported to [$filePath].");
 
         return self::SUCCESS;
+    }
+
+    protected function findEnvironmentOverlayTemplate(): string|null
+    {
+        if(!config('keeper.environment_templates')) {
+            return null;
+        }
+
+        $path = config('keeper.environment_templates') . "/" . $this->environment() . '.env';
+
+        return file_exists($path) && is_readable($path) ? $path : null;
     }
 }
