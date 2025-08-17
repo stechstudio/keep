@@ -1,6 +1,6 @@
 <?php
 
-namespace STS\Keeper;
+namespace STS\Keeper\Data;
 
 use Illuminate\Contracts\Support\Arrayable;
 use STS\Keeper\Vaults\AbstractKeeperVault;

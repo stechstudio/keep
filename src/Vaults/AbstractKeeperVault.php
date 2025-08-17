@@ -2,9 +2,10 @@
 
 namespace STS\Keeper\Vaults;
 
-use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
+use STS\Keeper\Data\SecretsCollection;
 use STS\Keeper\Facades\Keeper;
-use STS\Keeper\Secret;
+use STS\Keeper\Data\Secret;
 
 abstract class AbstractKeeperVault
 {
@@ -32,7 +33,7 @@ abstract class AbstractKeeperVault
         return $this;
     }
 
-    abstract public function list(): Collection;
+    abstract public function list(): SecretsCollection;
 
     abstract public function get(string $key);
 
@@ -45,5 +46,10 @@ abstract class AbstractKeeperVault
     public function name(): string
     {
         return $this->name;
+    }
+
+    public function slug(): string
+    {
+        return Str::slug($this->name());
     }
 }

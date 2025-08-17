@@ -5,13 +5,13 @@ namespace STS\Keeper\Vaults;
 use Aws\Result;
 use Aws\Ssm\Exception\SsmException;
 use Aws\Ssm\SsmClient;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use STS\Keeper\Data\SecretsCollection;
 use STS\Keeper\Exceptions\AccessDeniedException;
 use STS\Keeper\Exceptions\KeeperException;
 use STS\Keeper\Exceptions\SecretNotFoundException;
 use STS\Keeper\Facades\Keeper;
-use STS\Keeper\Secret;
+use STS\Keeper\Data\Secret;
 
 class AwsSsmVault extends AbstractKeeperVault
 {
@@ -32,10 +32,10 @@ class AwsSsmVault extends AbstractKeeperVault
             ->toString();
     }
 
-    public function list(): Collection
+    public function list(): SecretsCollection
     {
         try {
-            $secrets = collect();
+            $secrets = new SecretsCollection();
             $nextToken = null;
 
             do {

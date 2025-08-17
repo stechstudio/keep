@@ -7,7 +7,7 @@ use STS\Keeper\Commands\Concerns\GathersInput;
 use STS\Keeper\Commands\Concerns\InteractsWithVaults;
 use STS\Keeper\Exceptions\KeeperException;
 use STS\Keeper\Facades\Keeper;
-use STS\Keeper\Secret;
+use STS\Keeper\Data\Secret;
 
 class GetSecretCommand extends Command
 {

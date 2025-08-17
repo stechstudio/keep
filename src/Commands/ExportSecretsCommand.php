@@ -3,13 +3,12 @@
 namespace STS\Keeper\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Collection;
 use STS\Keeper\Commands\Concerns\GathersInput;
 use STS\Keeper\Commands\Concerns\InteractsWithVaults;
 use STS\Keeper\Commands\Concerns\WritesOutputToFile;
+use STS\Keeper\Data\SecretsCollection;
 use STS\Keeper\Exceptions\KeeperException;
-use STS\Keeper\Secret;
-use function Laravel\Prompts\confirm;
+use STS\Keeper\Data\Secret;
 
 class ExportSecretsCommand extends Command
 {
@@ -54,7 +53,7 @@ class ExportSecretsCommand extends Command
         return self::SUCCESS;
     }
 
-    protected function formatOutput(Collection $secrets): string
+    protected function formatOutput(SecretsCollection $secrets): string
     {
         return $this->option('format') === 'json'
             ? $secrets

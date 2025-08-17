@@ -7,8 +7,11 @@ use Illuminate\Support\Collection;
 use STS\Keeper\Commands\Concerns\GathersInput;
 use STS\Keeper\Commands\Concerns\InteractsWithVaults;
 use STS\Keeper\Commands\Concerns\WritesOutputToFile;
+use STS\Keeper\Data\SecretsCollection;
+use STS\Keeper\Data\Template;
+use STS\Keeper\Enums\MissingSecretStrategy;
 use STS\Keeper\Exceptions\KeeperException;
-use STS\Keeper\Secret;
+use STS\Keeper\Data\Secret;
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\text;
 
@@ -20,18 +23,19 @@ class MergeSecretsCommand extends Command
         {--overlay= : Optional env file to overlay on top of the template} 
         {--output= : File where to save the output (defaults to stdout)} 
         {--overwrite : Overwrite the output file if it exists} 
-        {--append : Append to the output file if it exists} '
+        {--append : Append to the output file if it exists} 
+        {--missing=fail : How to handle missing secrets: fail|remove|blank|skip (default: fail) } '
     .self::VAULT_SIGNATURE
     .self::ENV_SIGNATURE;
 
     public $description = 'Merge environment secrets into a template env file, replacing placeholders with actual secret values from a specified vault';
 
-    protected string $templateContents = '';
-    protected string $overlayContents = '';
+    protected Template $baseTemplate;
+    protected Template $overlayTemplate;
 
     public function handle(): int
     {
-        if(!$this->prepareTemplateContents()) {
+        if (!$this->prepareTemplateContents()) {
             return self::FAILURE;
         }
 
@@ -48,16 +52,23 @@ class MergeSecretsCommand extends Command
             return self::FAILURE;
         }
 
-        if($this->option('output')) {
+        $contents = $this->mergeAndConcat(
+            $this->baseTemplate,
+            $this->overlayTemplate,
+            $secrets,
+            MissingSecretStrategy::from($this->option('missing'))
+        );
+
+        if ($this->option('output')) {
             return $this->writeToFile(
                 $this->option('output'),
-                $this->performMerge($secrets),
+                $contents,
                 $this->option('overwrite'),
                 $this->option('append')
             );
         }
 
-        $this->line($this->performMerge($secrets));
+        $this->line($contents);
 
         return self::SUCCESS;
     }
@@ -72,9 +83,9 @@ class MergeSecretsCommand extends Command
         }
 
         $this->info("Using base template file [$template].");
-        $this->templateContents = file_get_contents($template);
+        $this->baseTemplate = new Template(file_get_contents($template));
 
-        if($this->option('overlay')) {
+        if ($this->option('overlay')) {
             $overlay = $this->option('overlay');
 
             if (!file_exists($overlay) || !is_readable($overlay)) {
@@ -83,16 +94,31 @@ class MergeSecretsCommand extends Command
             }
 
             $this->info("Using overlay file [$overlay].");
-            $this->overlayContents = file_get_contents($overlay);
+            $this->overlayTemplate = new Template(file_get_contents($overlay));
+        } else {
+            $this->overlayTemplate = new Template('');
         }
 
         return true;
     }
 
-    protected function performMerge(Collection $secrets): string
+    protected function mergeAndConcat(Template $base, Template $overlay, SecretsCollection $secrets, MissingSecretStrategy $strategy): string
     {
-        $output = $this->templateContents;
+        $output = "# ----- Base environment variables -----\n\n";
+        $output .= $base->merge($this->vault()->slug(), $secrets, $strategy);
+
+        if ($overlay->isNotEmpty()) {
+            $output .= "\n\n# ----- Separator -----\n\n# Overlaying with additional environment variables\n\n";
+            $output .= $overlay->merge($this->vault()->slug(), $secrets, $strategy);
+        }
 
         return $output;
+    }
+
+    protected function performMerge(string $contents, SecretsCollection $secrets): string
+    {
+
+
+        return $contents;
     }
 }
