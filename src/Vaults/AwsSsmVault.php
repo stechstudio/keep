@@ -64,7 +64,7 @@ class AwsSsmVault extends AbstractVault
                         encryptedValue: null,
                         secure: ($parameter['Type'] ?? 'String') === 'SecureString',
                         environment: $this->environment,
-                        version: $parameter['Version'] ?? 0,
+                        revision: $parameter['Version'] ?? 0,
                         path: $parameter['Name'],
                         vault: $this,
                     ));
@@ -102,7 +102,7 @@ class AwsSsmVault extends AbstractVault
                 encryptedValue: null,
                 secure: ($parameter['Type'] ?? 'String') === 'SecureString',
                 environment: $this->environment,
-                version: $parameter['Version'] ?? 0,
+                revision: $parameter['Version'] ?? 0,
                 path: $parameter['Name'],
                 vault: $this,
             );

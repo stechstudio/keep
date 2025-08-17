@@ -21,8 +21,8 @@ class GetCommand extends AbstractCommand
         $secret = $this->vault()->get($this->key());
 
         match($this->option('format')) {
-            'table' => $this->table(['Key', 'Value', 'Version'], [ $secret->toArray(['key','value','version']) ]),
-            'json'  => $this->line(json_encode($secret->toArray(['key', 'value', 'version']), JSON_PRETTY_PRINT)),
+            'table' => $this->table(['Key', 'Value', 'Rev'], [ $secret->only(['key','value','revision']) ]),
+            'json'  => $this->line(json_encode($secret->only(['key', 'value', 'revision']), JSON_PRETTY_PRINT)),
             'raw'   => $this->line($secret->value()),
             default => $this->error("Invalid format option. Supported formats are: table, json, raw."),
         };

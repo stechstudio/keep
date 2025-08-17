@@ -56,7 +56,7 @@ class ImportCommand extends AbstractCommand
             $imported = $this->runImport($env, $secrets);
         }
 
-        table(['Key', 'Status', 'Version'], $this->resultsTable($env, $secrets, $imported));
+        table(['Key', 'Status', 'Rev'], $this->resultsTable($env, $secrets, $imported));
 
         if ($this->option('dry-run')) {
             $this->info("This was a dry run. No secrets were imported.");
@@ -136,9 +136,9 @@ class ImportCommand extends AbstractCommand
             $rows[] = [
                 'key'     => $entry->getName(),
                 'status'  => $status,
-                'version' => $imported && $imported->hasKey($entry->getName())
-                    ? $imported->getByKey($entry->getName())->version()
-                    : $secrets->getByKey($entry->getName())?->version()
+                'revision' => $imported && $imported->hasKey($entry->getName())
+                    ? $imported->getByKey($entry->getName())->revision()
+                    : $secrets->getByKey($entry->getName())?->revision()
             ];
         }
 

@@ -49,6 +49,6 @@ class SecretsCollection extends Collection
 
     public function toPrettyJson($keys = [])
     {
-        return json_encode($this->map->toArray($keys)->all(), JSON_PRETTY_PRINT);
+        return json_encode($this->map->only($keys)->all(), JSON_PRETTY_PRINT);
     }
 }

@@ -14,7 +14,7 @@ class Secret implements Arrayable
         protected ?string $encryptedValue = null,
         protected bool $secure = true,
         protected ?string $environment = null,
-        protected ?int $version = 0,
+        protected ?int $revision = 0,
         protected ?string $path = null,
         protected ?AbstractVault $vault = null,
     )
@@ -46,9 +46,9 @@ class Secret implements Arrayable
         return $this->environment;
     }
 
-    public function version(): ?int
+    public function revision(): ?int
     {
-        return $this->version;
+        return $this->revision;
     }
 
     public function path(): ?string
@@ -61,21 +61,22 @@ class Secret implements Arrayable
         return $this->vault;
     }
 
-    public function toArray($keys = null): array
+    public function only(array $keys): array
     {
-        $array = [
+        return Arr::only($this->toArray(), $keys);
+    }
+
+    public function toArray(): array
+    {
+        return [
             'key' => $this->key,
             'value' => $this->value,
             'encryptedValue' => $this->encryptedValue,
             'secure' => $this->secure,
             'environment' => $this->environment,
-            'version' => $this->version,
+            'revision' => $this->revision,
             'path' => $this->path,
             'vault' => $this->vault?->name(),
         ];
-
-        return is_array($keys)
-            ? Arr::only($array, $keys)
-            : $array;
     }
 }

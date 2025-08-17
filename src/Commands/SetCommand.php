@@ -28,7 +28,7 @@ class SetCommand extends AbstractCommand
         $this->info(
             sprintf("Secret [%s] %s in vault [%s].",
                 $secret->path(),
-                $secret->version() === 1 ? 'created' : 'updated',
+                $secret->revision() === 1 ? 'created' : 'updated',
                 $secret->vault()->name()
             )
         );

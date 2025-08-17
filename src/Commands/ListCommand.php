@@ -25,9 +25,9 @@ class ListCommand extends AbstractCommand
         );
 
         match($this->option('format')) {
-            'table' => table(['Key', 'Value', 'Version'], $secrets->map->toArray(['key','value','version'])),
+            'table' => table(['Key', 'Value', 'Revision'], $secrets->map->only(['key','value','revision'])),
             'env'   => $this->line($secrets->toEnvString()),
-            'json'  => $this->line($secrets->toPrettyJson(['key', 'value', 'version'])),
+            'json'  => $this->line($secrets->toPrettyJson(['key', 'value', 'revision'])),
             default => $this->error("Invalid format option. Supported formats are: table, json, env."),
         };
 
