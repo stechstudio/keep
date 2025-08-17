@@ -1,5 +1,5 @@
 {
-    "name": "stechstudio/laravel-keeper",
+    "name": "stechstudio/laravel-keep",
     "description": "All-in-one toolkit for managing Laravel application secrets for all environments across your team.",
     "keywords": [
         "laravel",
@@ -40,13 +40,13 @@
     },
     "autoload": {
         "psr-4": {
-            "STS\\Keeper\\": "src/",
-            "STS\\Keeper\\Database\\Factories\\": "database/factories/"
+            "STS\\Keep\\": "src/",
+            "STS\\Keep\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "STS\\Keeper\\Tests\\": "tests/",
+            "STS\\Keep\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/",
             "Workbench\\Database\\Factories\\": "workbench/database/factories/",
             "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
@@ -85,10 +85,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "STS\\Keeper\\KeeperServiceProvider"
+                "STS\\Keep\\KeepServiceProvider"
             ],
             "aliases": {
-                "Keeper": "STS\\Keeper\\Facades\\Keeper"
+                "Keep": "STS\\Keep\\Facades\\Keep"
             }
         }
     },

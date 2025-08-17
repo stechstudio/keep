@@ -1,6 +1,6 @@
 <?php
 
-namespace STS\Keeper\Data;
+namespace STS\Keep\Data;
 
 use Dotenv\Parser\Parser;
 use Dotenv\Store\StoreBuilder;

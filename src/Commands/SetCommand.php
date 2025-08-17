@@ -1,18 +1,18 @@
 <?php
 
-namespace STS\Keeper\Commands;
+namespace STS\Keep\Commands;
 
 use Illuminate\Console\Command;
-use STS\Keeper\Commands\Concerns\GathersInput;
-use STS\Keeper\Commands\Concerns\InteractsWithVaults;
-use STS\Keeper\Exceptions\KeeperException;
-use STS\Keeper\Data\Secret;
+use STS\Keep\Commands\Concerns\GathersInput;
+use STS\Keep\Commands\Concerns\InteractsWithVaults;
+use STS\Keep\Exceptions\KeepException;
+use STS\Keep\Data\Secret;
 
 class SetCommand extends Command
 {
     use GathersInput, InteractsWithVaults;
 
-    public $signature = 'keeper:set '
+    public $signature = 'keep:set '
     .self::KEY_SIGNATURE
     .self::VALUE_SIGNATURE
     .self::VAULT_SIGNATURE
@@ -27,7 +27,7 @@ class SetCommand extends Command
             $secret = $this->vault()->save(
                 new Secret($this->key(), $this->value(), $this->secure())
             );
-        } catch (KeeperException $e) {
+        } catch (KeepException $e) {
             $this->error(
                 sprintf("Failed to set secret [%s] in vault [%s]",
                     $this->vault()->format($this->key()),

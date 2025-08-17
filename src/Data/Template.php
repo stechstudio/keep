@@ -1,10 +1,10 @@
 <?php
 
-namespace STS\Keeper\Data;
+namespace STS\Keep\Data;
 
 use Illuminate\Support\Collection;
-use STS\Keeper\Enums\MissingSecretStrategy;
-use STS\Keeper\Exceptions\SecretNotFoundException;
+use STS\Keep\Enums\MissingSecretStrategy;
+use STS\Keep\Exceptions\SecretNotFoundException;
 
 class Template
 {

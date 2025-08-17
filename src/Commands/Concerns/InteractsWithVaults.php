@@ -1,16 +1,16 @@
 <?php
 
-namespace STS\Keeper\Commands\Concerns;
+namespace STS\Keep\Commands\Concerns;
 
-use STS\Keeper\Facades\Keeper;
-use STS\Keeper\Vaults\AbstractKeeperVault;
+use STS\Keep\Facades\Keep;
+use STS\Keep\Vaults\AbstractVault;
 
 trait InteractsWithVaults
 {
-    protected AbstractKeeperVault $vault;
+    protected AbstractVault $vault;
 
-    public function vault(): AbstractKeeperVault
+    public function vault(): AbstractVault
     {
-        return $this->vault ??= Keeper::vault($this->vaultName())->forEnvironment($this->environment());
+        return $this->vault ??= Keep::vault($this->vaultName())->forEnvironment($this->environment());
     }
 }

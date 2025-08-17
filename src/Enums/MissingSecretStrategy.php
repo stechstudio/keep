@@ -1,6 +1,6 @@
 <?php
 
-namespace STS\Keeper\Enums;
+namespace STS\Keep\Enums;
 
 enum MissingSecretStrategy: string
 {

@@ -1,19 +1,19 @@
 <?php
 
-namespace STS\Keeper\Commands;
+namespace STS\Keep\Commands;
 
 use Illuminate\Console\Command;
-use STS\Keeper\Commands\Concerns\GathersInput;
-use STS\Keeper\Commands\Concerns\InteractsWithVaults;
-use STS\Keeper\Exceptions\KeeperException;
-use STS\Keeper\Facades\Keeper;
-use STS\Keeper\Data\Secret;
+use STS\Keep\Commands\Concerns\GathersInput;
+use STS\Keep\Commands\Concerns\InteractsWithVaults;
+use STS\Keep\Exceptions\KeepException;
+use STS\Keep\Facades\Keep;
+use STS\Keep\Data\Secret;
 
 class GetCommand extends Command
 {
     use GathersInput, InteractsWithVaults;
 
-    public $signature = 'keeper:get '
+    public $signature = 'keep:get '
     .self::KEY_SIGNATURE
     .self::VAULT_SIGNATURE
     .self::ENV_SIGNATURE;
@@ -24,7 +24,7 @@ class GetCommand extends Command
     {
         try {
             $secret = $this->vault()->get($this->key());
-        } catch (KeeperException $e) {
+        } catch (KeepException $e) {
             $this->error(
                 sprintf("Failed to get secret [%s] in vault [%s]",
                     $this->vault()->format($this->key()),

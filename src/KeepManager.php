@@ -1,14 +1,13 @@
 <?php
 
-namespace STS\Keeper;
+namespace STS\Keep;
 
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
-use STS\Keeper\Vaults\AbstractKeeperVault;
-use STS\Keeper\Vaults\AwsSsmVault;
+use STS\Keep\Vaults\AbstractVault;
+use STS\Keep\Vaults\AwsSsmVault;
 
-class KeeperManager {
+class KeepManager {
 
     protected array $vaults = [];
     protected array $customCreators = [];
@@ -24,17 +23,17 @@ class KeeperManager {
 
     public function getDefaultVault()
     {
-        return config('keeper.default');
+        return config('keep.default');
     }
 
     public function available(): array
     {
-        return config('keeper.available');
+        return config('keep.available');
     }
 
     public function environments(): array
     {
-        return config('keeper.environments');
+        return config('keep.environments');
     }
 
     public function environment($name = null): string|bool
@@ -47,28 +46,28 @@ class KeeperManager {
             return call_user_func($this->environmentResolver);
         }
 
-        $environment = config('keeper.environment') ?? app()->environment();
+        $environment = config('keep.environment') ?? app()->environment();
 
         return in_array($environment, $this->environments())
             ? $environment
-            : throw new InvalidArgumentException("Environment [{$environment}] is not supported by Keeper.");
+            : throw new InvalidArgumentException("Environment [{$environment}] is not supported by Keep.");
     }
 
     public function namespace(): string
     {
-        return Str::slug(config('keeper.namespace'));
+        return Str::slug(config('keep.namespace'));
     }
 
-    public function vault($name = null): AbstractKeeperVault
+    public function vault($name = null): AbstractVault
     {
         $name = $name ?: $this->getDefaultVault();
 
         return $this->vaults[$name] ??= $this->resolve($name);
     }
 
-    protected function resolve($name, $config = null): AbstractKeeperVault
+    protected function resolve($name, $config = null): AbstractVault
     {
-        $config ??= config("keeper.vaults.$name", []);
+        $config ??= config("keep.vaults.$name", []);
 
         if (empty($config['driver'])) {
             throw new InvalidArgumentException("Vault [{$name}] does not have a configured driver.");

@@ -1,19 +1,19 @@
 <?php
 
-namespace STS\Keeper\Vaults;
+namespace STS\Keep\Vaults;
 
 use Aws\Result;
 use Aws\Ssm\Exception\SsmException;
 use Aws\Ssm\SsmClient;
 use Illuminate\Support\Str;
-use STS\Keeper\Data\SecretsCollection;
-use STS\Keeper\Exceptions\AccessDeniedException;
-use STS\Keeper\Exceptions\KeeperException;
-use STS\Keeper\Exceptions\SecretNotFoundException;
-use STS\Keeper\Facades\Keeper;
-use STS\Keeper\Data\Secret;
+use STS\Keep\Data\SecretsCollection;
+use STS\Keep\Exceptions\AccessDeniedException;
+use STS\Keep\Exceptions\KeepException;
+use STS\Keep\Exceptions\SecretNotFoundException;
+use STS\Keep\Facades\Keep;
+use STS\Keep\Data\Secret;
 
-class AwsSsmVault extends AbstractKeeperVault
+class AwsSsmVault extends AbstractVault
 {
     protected SsmClient $client;
 
@@ -25,7 +25,7 @@ class AwsSsmVault extends AbstractKeeperVault
 
         return Str::of($this->config['prefix'] ?? '')
             ->start('/')->finish('/')
-            ->append(Keeper::namespace() . "/")
+            ->append(Keep::namespace() . "/")
             ->append($this->environment . "/")
             ->append($key)
             ->rtrim("/")
@@ -75,7 +75,7 @@ class AwsSsmVault extends AbstractKeeperVault
             if($e->getAwsErrorCode() === "AccessDeniedException") {
                 throw new AccessDeniedException($e->getAwsErrorMessage());
             } else {
-                throw new KeeperException($e->getAwsErrorMessage());
+                throw new KeepException($e->getAwsErrorMessage());
             }
         }
 
@@ -110,7 +110,7 @@ class AwsSsmVault extends AbstractKeeperVault
             } elseif($e->getAwsErrorCode() === "AccessDeniedException") {
                 throw new AccessDeniedException($e->getAwsErrorMessage());
             } else {
-                throw new KeeperException($e->getAwsErrorMessage());
+                throw new KeepException($e->getAwsErrorMessage());
             }
         }
     }
@@ -144,7 +144,7 @@ class AwsSsmVault extends AbstractKeeperVault
             if($e->getAwsErrorCode() === "AccessDeniedException") {
                 throw new AccessDeniedException($e->getAwsErrorMessage());
             } else {
-                throw new KeeperException($e->getAwsErrorMessage());
+                throw new KeepException($e->getAwsErrorMessage());
             }
         }
     }
@@ -153,7 +153,7 @@ class AwsSsmVault extends AbstractKeeperVault
     {
         return $this->client ??= new SsmClient([
             'version' => 'latest',
-            'region' => config('keeper.aws.region'),
+            'region' => config('keep.aws.region'),
         ]);
     }
 }

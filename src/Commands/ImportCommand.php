@@ -1,15 +1,15 @@
 <?php
 
-namespace STS\Keeper\Commands;
+namespace STS\Keep\Commands;
 
 use Illuminate\Console\Command;
-use STS\Keeper\Commands\Concerns\GathersInput;
-use STS\Keeper\Commands\Concerns\InteractsWithVaults;
-use STS\Keeper\Commands\Concerns\InteractsWithFilesystem;
-use STS\Keeper\Data\Env;
-use STS\Keeper\Data\SecretsCollection;
-use STS\Keeper\Exceptions\KeeperException;
-use STS\Keeper\Data\Secret;
+use STS\Keep\Commands\Concerns\GathersInput;
+use STS\Keep\Commands\Concerns\InteractsWithVaults;
+use STS\Keep\Commands\Concerns\InteractsWithFilesystem;
+use STS\Keep\Data\Env;
+use STS\Keep\Data\SecretsCollection;
+use STS\Keep\Exceptions\KeepException;
+use STS\Keep\Data\Secret;
 use function Laravel\Prompts\table;
 use function Laravel\Prompts\text;
 
@@ -17,7 +17,7 @@ class ImportCommand extends Command
 {
     use GathersInput, InteractsWithVaults, InteractsWithFilesystem;
 
-    public $signature = 'keeper:import {from? : Env file to import from}
+    public $signature = 'keep:import {from? : Env file to import from}
         {--overwrite : Overwrite existing secrets} 
         {--skip-existing : Skip existing secrets} 
         {--only= : Only import keys matching this pattern (e.g. DB_*)} 
@@ -53,7 +53,7 @@ class ImportCommand extends Command
             } else {
                 $imported = $this->runImport($env, $secrets);
             }
-        } catch (KeeperException $e) {
+        } catch (KeepException $e) {
             $this->error($e->getMessage());
 
             return self::FAILURE;
@@ -116,7 +116,7 @@ class ImportCommand extends Command
 
                 $imported->push($secret);
                 $this->info("Imported key [{$secret->key()}]");
-            } catch (KeeperException $e) {
+            } catch (KeepException $e) {
                 $this->error("Failed to import key [{$entry->getName()}]: " . $e->getMessage());
             }
         }

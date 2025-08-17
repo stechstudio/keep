@@ -1,18 +1,18 @@
 <?php
 
-namespace STS\Keeper\Commands;
+namespace STS\Keep\Commands;
 
 use Illuminate\Console\Command;
-use STS\Keeper\Commands\Concerns\GathersInput;
-use STS\Keeper\Commands\Concerns\InteractsWithVaults;
-use STS\Keeper\Exceptions\KeeperException;
+use STS\Keep\Commands\Concerns\GathersInput;
+use STS\Keep\Commands\Concerns\InteractsWithVaults;
+use STS\Keep\Exceptions\KeepException;
 use function Laravel\Prompts\table;
 
 class ListCommand extends Command
 {
     use GathersInput, InteractsWithVaults;
 
-    public $signature = 'keeper:list {--format=env : json|env} '
+    public $signature = 'keep:list {--format=env : json|env} '
     .self::VAULT_SIGNATURE
     .self::ENV_SIGNATURE;
 
@@ -22,7 +22,7 @@ class ListCommand extends Command
     {
         try {
             $secrets = $this->vault()->list();
-        } catch (KeeperException $e) {
+        } catch (KeepException $e) {
             $this->error(
                 sprintf("Failed to get secrets in vault [%s]",
                     $this->vaultName()

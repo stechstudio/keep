@@ -1,8 +1,8 @@
 <?php
 
-namespace STS\Keeper\Commands\Concerns;
+namespace STS\Keep\Commands\Concerns;
 
-use STS\Keeper\Facades\Keeper;
+use STS\Keep\Facades\Keep;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
 
@@ -32,18 +32,18 @@ trait GathersInput
     protected function vaultName()
     {
         return $this->vaultName ??= match(true) {
-            !!$this->option('vault') => $this->option('vault'),
-            count(Keeper::available()) === 1 => Keeper::getDefaultVault(),
-            default => select('Vault', Keeper::available(), Keeper::getDefaultVault()),
+            !!$this->option('vault')       => $this->option('vault'),
+            count(Keep::available()) === 1 => Keep::getDefaultVault(),
+            default                        => select('Vault', Keep::available(), Keep::getDefaultVault()),
         };
     }
 
     protected function environment()
     {
         return $this->env ??= match(true) {
-            !!$this->option('env') => $this->option('env'),
-            count(Keeper::environments()) === 1 => Keeper::environments()[0],
-            default => select('Environment', Keeper::environments(), Keeper::environment()),
+            !!$this->option('env')            => $this->option('env'),
+            count(Keep::environments()) === 1 => Keep::environments()[0],
+            default                           => select('Environment', Keep::environments(), Keep::environment()),
         };
     }
 

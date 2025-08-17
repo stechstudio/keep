@@ -1,13 +1,13 @@
 <?php
 
-namespace STS\Keeper\Vaults;
+namespace STS\Keep\Vaults;
 
 use Illuminate\Support\Str;
-use STS\Keeper\Data\SecretsCollection;
-use STS\Keeper\Facades\Keeper;
-use STS\Keeper\Data\Secret;
+use STS\Keep\Data\SecretsCollection;
+use STS\Keep\Facades\Keep;
+use STS\Keep\Data\Secret;
 
-abstract class AbstractKeeperVault
+abstract class AbstractVault
 {
     protected $keyFormatter;
 
@@ -15,7 +15,7 @@ abstract class AbstractKeeperVault
     {
         // If none was provided, use the current resolved environment
         if(!$this->environment) {
-            $this->environment = Keeper::environment();
+            $this->environment = Keep::environment();
         }
     }
 
@@ -33,16 +33,6 @@ abstract class AbstractKeeperVault
         return $this;
     }
 
-    abstract public function list(): SecretsCollection;
-
-    abstract public function get(string $key);
-
-    abstract public function set(string $key, string $value, bool $secure = true);
-
-    abstract public function save(Secret $secret): Secret;
-
-    abstract public function format(?string $key = null): string;
-
     public function name(): string
     {
         return $this->name;
@@ -52,4 +42,14 @@ abstract class AbstractKeeperVault
     {
         return Str::slug($this->name());
     }
+
+    abstract public function list(): SecretsCollection;
+
+    abstract public function get(string $key);
+
+    abstract public function set(string $key, string $value, bool $secure = true);
+
+    abstract public function save(Secret $secret): Secret;
+
+    abstract public function format(?string $key = null): string;
 }

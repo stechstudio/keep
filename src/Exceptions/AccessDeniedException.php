@@ -1,8 +1,8 @@
 <?php
 
-namespace STS\Keeper\Exceptions;
+namespace STS\Keep\Exceptions;
 
-class AccessDeniedException extends KeeperException
+class AccessDeniedException extends KeepException
 {
 
 }

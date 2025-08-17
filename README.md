@@ -1,6 +1,6 @@
-# Laravel Keeper
+# Laravel Keep
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/stechstudio/laravel-keeper.svg?style=flat-square)](https://packagist.org/packages/stechstudio/laravel-keeper)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/stechstudio/laravel-keep.svg?style=flat-square)](https://packagist.org/packages/stechstudio/laravel-keep)
 
 All-in-one toolkit for managing application secrets for all environments across your team. 
 
@@ -13,7 +13,7 @@ All-in-one toolkit for managing application secrets for all environments across 
 You can install the package via composer:
 
 ```bash
-composer require stechstudio/laravel-keeper
+composer require stechstudio/laravel-keep
 ```
 
 ## License

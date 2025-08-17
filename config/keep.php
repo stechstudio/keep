@@ -2,34 +2,34 @@
 return [
     /*
     |--------------------------------------------------------------------------
-    | Keeper namespace
+    | Keep namespace
     |--------------------------------------------------------------------------
     |
-    | This is the base namespace (or prefix) that Keeper will use for all
+    | This is the base namespace (or prefix) that Keep will use for all
     | secrets. This helps to avoid key collisions when multiple applications.
     | If not defined, the APP_NAME will be used.
     |
     */
-    'namespace' => env('KEEPER_NAMESPACE', env('APP_NAME', 'keeper')),
+    'namespace' => env('KEEP_NAMESPACE', env('APP_NAME', 'keep')),
 
     /*
     |--------------------------------------------------------------------------
-    | Explicit Keeper environment
+    | Explicit Keep environment
     |--------------------------------------------------------------------------
     |
-    | This option defines the environment that Keeper should consider as current
+    | This option defines the environment that Keep should consider as current
     | no matter what APP_ENV is set to. This can be useful when your secrets
     | use an environment name that differs from your application.
     |
     */
-    'environment' => env('KEEPER_ENV'),
+    'environment' => env('KEEP_ENV'),
 
     /*
     |--------------------------------------------------------------------------
     | Environment list
     |--------------------------------------------------------------------------
     |
-    | This defines all environments that Keeper can interact with when
+    | This defines all environments that Keep can interact with when
     | managing secrets. This should generally match the environments your
     | application supports. However, limiting this list is useful for
     | security to prevent accidental access to the wrong env.
@@ -40,7 +40,7 @@ return [
     | policies restrict access to only the environments needed.
     |
     */
-    'environments' => explode(",", env('KEEPER_ENVS', 'local,staging,production')),
+    'environments' => explode(",", env('KEEP_ENVS', 'local,staging,production')),
 
     /*
     |--------------------------------------------------------------------------
@@ -51,7 +51,7 @@ return [
     | and generating env files.
     |
     */
-    'template' => env('KEEPER_TEMPLATE', base_path('.env.template')),
+    'template' => env('KEEP_TEMPLATE', base_path('.env.template')),
 
     /*
     |--------------------------------------------------------------------------
@@ -64,7 +64,7 @@ return [
     | look for a file named 'production.env' in the specified directory.
     |
     */
-    'environment_templates' => env('KEEPER_ENV_TEMPLATES', 'env'),
+    'environment_templates' => env('KEEP_ENV_TEMPLATES', 'env'),
 
     /*
     |--------------------------------------------------------------------------
@@ -74,7 +74,7 @@ return [
     | This set the default vault used for secrets.
     |
     */
-    'default' => env('KEEPER_VAULT', 'aws_ssm'),
+    'default' => env('KEEP_VAULT', 'aws_ssm'),
 
     /*
     |--------------------------------------------------------------------------
@@ -86,7 +86,7 @@ return [
     | vault. Otherwise, the default vault will be the only available one.
     |
     */
-    'available' => explode(",", env('KEEPER_AVAILABLE_VAULTS', env('KEEPER_VAULT', 'aws_ssm'))),
+    'available' => explode(",", env('KEEP_AVAILABLE_VAULTS', env('KEEP_VAULT', 'aws_ssm'))),
 
     /*
     |--------------------------------------------------------------------------
@@ -101,8 +101,8 @@ return [
     'vaults' => [
         'aws_ssm' => [
             'driver' => 'aws_ssm',
-            'prefix' => env('KEEPER_SSM_PREFIX'),
-            'region' => env('KEEPER_AWS_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
+            'prefix' => env('KEEP_SSM_PREFIX'),
+            'region' => env('KEEP_AWS_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
         ],
     ],
 ];

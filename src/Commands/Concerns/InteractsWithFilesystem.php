@@ -1,6 +1,6 @@
 <?php
 
-namespace STS\Keeper\Commands\Concerns;
+namespace STS\Keep\Commands\Concerns;
 
 use function Laravel\Prompts\confirm;
 
@@ -34,11 +34,11 @@ trait InteractsWithFilesystem
 
     protected function findEnvironmentOverlayTemplate(): string|null
     {
-        if(!config('keeper.environment_templates')) {
+        if(!config('keep.environment_templates')) {
             return null;
         }
 
-        $path = config('keeper.environment_templates') . "/" . $this->environment() . '.env';
+        $path = config('keep.environment_templates') . "/" . $this->environment() . '.env';
 
         return file_exists($path) && is_readable($path) ? $path : null;
     }

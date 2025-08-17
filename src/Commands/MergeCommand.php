@@ -1,17 +1,17 @@
 <?php
 
-namespace STS\Keeper\Commands;
+namespace STS\Keep\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
-use STS\Keeper\Commands\Concerns\GathersInput;
-use STS\Keeper\Commands\Concerns\InteractsWithVaults;
-use STS\Keeper\Commands\Concerns\InteractsWithFilesystem;
-use STS\Keeper\Data\SecretsCollection;
-use STS\Keeper\Data\Template;
-use STS\Keeper\Enums\MissingSecretStrategy;
-use STS\Keeper\Exceptions\KeeperException;
-use STS\Keeper\Data\Secret;
+use STS\Keep\Commands\Concerns\GathersInput;
+use STS\Keep\Commands\Concerns\InteractsWithVaults;
+use STS\Keep\Commands\Concerns\InteractsWithFilesystem;
+use STS\Keep\Data\SecretsCollection;
+use STS\Keep\Data\Template;
+use STS\Keep\Enums\MissingSecretStrategy;
+use STS\Keep\Exceptions\KeepException;
+use STS\Keep\Data\Secret;
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\text;
 
@@ -19,7 +19,7 @@ class MergeCommand extends Command
 {
     use GathersInput, InteractsWithVaults, InteractsWithFilesystem;
 
-    public $signature = 'keeper:merge {template? : Template env file with placeholders}
+    public $signature = 'keep:merge {template? : Template env file with placeholders}
         {--overlay= : Optional env file to overlay on top of the template} 
         {--output= : File where to save the output (defaults to stdout)} 
         {--overwrite : Overwrite the output file if it exists} 
@@ -41,7 +41,7 @@ class MergeCommand extends Command
 
         try {
             $secrets = $this->vault()->list();
-        } catch (KeeperException $e) {
+        } catch (KeepException $e) {
             $this->error(
                 sprintf("Failed to get secrets in vault [%s]",
                     $this->vaultName()
@@ -76,7 +76,7 @@ class MergeCommand extends Command
     protected function prepareTemplateContents(): bool
     {
         $template = $this->argument('template')
-            ?? config('keeper.template')
+            ?? config('keep.template')
             ?? text('Template file with placeholders', required: true);
 
         if (!file_exists($template) || !is_readable($template)) {

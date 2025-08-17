@@ -1,10 +1,10 @@
 <?php
 
-namespace STS\Keeper\Data;
+namespace STS\Keep\Data;
 
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Arr;
-use STS\Keeper\Vaults\AbstractKeeperVault;
+use STS\Keep\Vaults\AbstractVault;
 
 class Secret implements Arrayable
 {
@@ -16,7 +16,7 @@ class Secret implements Arrayable
         protected ?string $environment = null,
         protected ?int $version = 0,
         protected ?string $path = null,
-        protected ?AbstractKeeperVault $vault = null,
+        protected ?AbstractVault $vault = null,
     )
     {
     }
@@ -56,7 +56,7 @@ class Secret implements Arrayable
         return $this->path;
     }
 
-    public function vault(): ?AbstractKeeperVault
+    public function vault(): ?AbstractVault
     {
         return $this->vault;
     }

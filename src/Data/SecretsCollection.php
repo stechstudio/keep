@@ -1,6 +1,6 @@
 <?php
 
-namespace STS\Keeper\Data;
+namespace STS\Keep\Data;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;

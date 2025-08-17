@@ -1,8 +1,8 @@
 <?php
 
-namespace STS\Keeper\Exceptions;
+namespace STS\Keep\Exceptions;
 
-class SecretNotFoundException extends KeeperException
+class SecretNotFoundException extends KeepException
 {
 
 }

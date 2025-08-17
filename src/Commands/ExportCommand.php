@@ -1,20 +1,20 @@
 <?php
 
-namespace STS\Keeper\Commands;
+namespace STS\Keep\Commands;
 
 use Illuminate\Console\Command;
-use STS\Keeper\Commands\Concerns\GathersInput;
-use STS\Keeper\Commands\Concerns\InteractsWithVaults;
-use STS\Keeper\Commands\Concerns\InteractsWithFilesystem;
-use STS\Keeper\Data\SecretsCollection;
-use STS\Keeper\Exceptions\KeeperException;
-use STS\Keeper\Data\Secret;
+use STS\Keep\Commands\Concerns\GathersInput;
+use STS\Keep\Commands\Concerns\InteractsWithVaults;
+use STS\Keep\Commands\Concerns\InteractsWithFilesystem;
+use STS\Keep\Data\SecretsCollection;
+use STS\Keep\Exceptions\KeepException;
+use STS\Keep\Data\Secret;
 
 class ExportCommand extends Command
 {
     use GathersInput, InteractsWithVaults, InteractsWithFilesystem;
 
-    public $signature = 'keeper:export 
+    public $signature = 'keep:export 
         {--format=env : json|env} 
         {--output= : File where to save the output (defaults to stdout)} 
         {--overwrite : Overwrite the output file if it exists} 
@@ -28,7 +28,7 @@ class ExportCommand extends Command
     {
         try {
             $secrets = $this->vault()->list();
-        } catch (KeeperException $e) {
+        } catch (KeepException $e) {
             $this->error(
                 sprintf("Failed to get secrets in vault [%s]",
                     $this->vaultName()
