@@ -9,7 +9,12 @@ class SecretsCollection extends Collection
 {
     public function toKeyValuePair(): static
     {
-        return $this->mapWithKeys(fn(Secret $secret) => [$secret->key() => $secret->plainValue()]);
+        return $this->mapWithKeys(fn(Secret $secret) => [$secret->key() => $secret->value()]);
+    }
+
+    public function toEnvString()
+    {
+        return $this->map(fn(Secret $secret) => $secret->key() . '=' . ($secret->value() !== null ? '"' . addcslashes($secret->value(), '"') . '"' : ''))->implode(PHP_EOL);
     }
 
     public function filterByPatterns(?string $only = null, ?string $except = null): static
@@ -40,5 +45,10 @@ class SecretsCollection extends Collection
     public function getByKey(string $key): ?Secret
     {
         return $this->first(fn(Secret $secret) => $secret->key() === $key) ?: null;
+    }
+
+    public function toPrettyJson($keys = [])
+    {
+        return json_encode($this->map->toArray($keys)->all(), JSON_PRETTY_PRINT);
     }
 }

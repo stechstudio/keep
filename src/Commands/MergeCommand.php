@@ -2,20 +2,15 @@
 
 namespace STS\Keep\Commands;
 
-use Illuminate\Console\Command;
-use Illuminate\Support\Collection;
 use STS\Keep\Commands\Concerns\GathersInput;
 use STS\Keep\Commands\Concerns\InteractsWithVaults;
 use STS\Keep\Commands\Concerns\InteractsWithFilesystem;
 use STS\Keep\Data\SecretsCollection;
 use STS\Keep\Data\Template;
 use STS\Keep\Enums\MissingSecretStrategy;
-use STS\Keep\Exceptions\KeepException;
-use STS\Keep\Data\Secret;
-use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\text;
 
-class MergeCommand extends Command
+class MergeCommand extends AbstractCommand
 {
     use GathersInput, InteractsWithVaults, InteractsWithFilesystem;
 
@@ -33,24 +28,13 @@ class MergeCommand extends Command
     protected Template $baseTemplate;
     protected Template $overlayTemplate;
 
-    public function handle(): int
+    public function process(): int
     {
         if (!$this->prepareTemplateContents()) {
             return self::FAILURE;
         }
 
-        try {
-            $secrets = $this->vault()->list();
-        } catch (KeepException $e) {
-            $this->error(
-                sprintf("Failed to get secrets in vault [%s]",
-                    $this->vaultName()
-                )
-            );
-            $this->line($e->getMessage());
-
-            return self::FAILURE;
-        }
+        $secrets = $this->vault()->list();
 
         $contents = $this->mergeAndConcat(
             $this->baseTemplate,

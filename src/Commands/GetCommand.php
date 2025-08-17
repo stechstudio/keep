@@ -2,41 +2,30 @@
 
 namespace STS\Keep\Commands;
 
-use Illuminate\Console\Command;
 use STS\Keep\Commands\Concerns\GathersInput;
 use STS\Keep\Commands\Concerns\InteractsWithVaults;
-use STS\Keep\Exceptions\KeepException;
-use STS\Keep\Facades\Keep;
-use STS\Keep\Data\Secret;
 
-class GetCommand extends Command
+class GetCommand extends AbstractCommand
 {
     use GathersInput, InteractsWithVaults;
 
-    public $signature = 'keep:get '
+    public $signature = 'keep:get {--format=table : table|json|raw} '
     .self::KEY_SIGNATURE
     .self::VAULT_SIGNATURE
     .self::ENV_SIGNATURE;
 
     public $description = 'Get the value of an environment secret in a specified vault';
 
-    public function handle(): int
+    public function process(): int
     {
-        try {
-            $secret = $this->vault()->get($this->key());
-        } catch (KeepException $e) {
-            $this->error(
-                sprintf("Failed to get secret [%s] in vault [%s]",
-                    $this->vault()->format($this->key()),
-                    $this->vaultName()
-                )
-            );
-            $this->line($e->getMessage());
+        $secret = $this->vault()->get($this->key());
 
-            return self::FAILURE;
-        }
-
-        $this->line($secret->plainValue());
+        match($this->option('format')) {
+            'table' => $this->table(['Key', 'Value', 'Version'], [ $secret->toArray(['key','value','version']) ]),
+            'json'  => $this->line(json_encode($secret->toArray(['key', 'value', 'version']), JSON_PRETTY_PRINT)),
+            'raw'   => $this->line($secret->value()),
+            default => $this->error("Invalid format option. Supported formats are: table, json, raw."),
+        };
 
         return self::SUCCESS;
     }

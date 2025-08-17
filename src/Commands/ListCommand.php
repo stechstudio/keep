@@ -2,49 +2,34 @@
 
 namespace STS\Keep\Commands;
 
-use Illuminate\Console\Command;
 use STS\Keep\Commands\Concerns\GathersInput;
 use STS\Keep\Commands\Concerns\InteractsWithVaults;
-use STS\Keep\Exceptions\KeepException;
 use function Laravel\Prompts\table;
 
-class ListCommand extends Command
+class ListCommand extends AbstractCommand
 {
     use GathersInput, InteractsWithVaults;
 
-    public $signature = 'keep:list {--format=env : json|env} '
+    public $signature = 'keep:list {--format=table : table|json|env} '
+    .self::ONLY_EXCLUDE_SIGNATURE
     .self::VAULT_SIGNATURE
     .self::ENV_SIGNATURE;
 
     public $description = 'Get the list of environment secrets in a specified vault';
 
-    public function handle(): int
+    public function process(): int
     {
-        try {
-            $secrets = $this->vault()->list();
-        } catch (KeepException $e) {
-            $this->error(
-                sprintf("Failed to get secrets in vault [%s]",
-                    $this->vaultName()
-                )
-            );
-            $this->line($e->getMessage());
-
-            return self::FAILURE;
-        }
-
-        if ($this->option('format') === 'json') {
-            $this->line(
-                $secrets->toKeyValuePair()->toJson(JSON_PRETTY_PRINT)
-            );
-
-            return self::SUCCESS;
-        }
-
-        table(
-            ['Key', 'Value', 'Version'],
-            $secrets->map->toArray(['key','plainValue','version']),
+        $secrets = $this->vault()->list()->filterByPatterns(
+            only: $this->option('only'),
+            except: $this->option('except')
         );
+
+        match($this->option('format')) {
+            'table' => table(['Key', 'Value', 'Version'], $secrets->map->toArray(['key','value','version'])),
+            'env'   => $this->line($secrets->toEnvString()),
+            'json'  => $this->line($secrets->toPrettyJson(['key', 'value', 'version'])),
+            default => $this->error("Invalid format option. Supported formats are: table, json, env."),
+        };
 
         return self::SUCCESS;
     }

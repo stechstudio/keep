@@ -2,15 +2,12 @@
 
 namespace STS\Keep\Commands;
 
-use Illuminate\Console\Command;
 use STS\Keep\Commands\Concerns\GathersInput;
 use STS\Keep\Commands\Concerns\InteractsWithVaults;
 use STS\Keep\Commands\Concerns\InteractsWithFilesystem;
 use STS\Keep\Data\SecretsCollection;
-use STS\Keep\Exceptions\KeepException;
-use STS\Keep\Data\Secret;
 
-class ExportCommand extends Command
+class ExportCommand extends AbstractCommand
 {
     use GathersInput, InteractsWithVaults, InteractsWithFilesystem;
 
@@ -24,20 +21,9 @@ class ExportCommand extends Command
 
     public $description = 'Export all environment secrets in a specified vault';
 
-    public function handle(): int
+    public function process(): int
     {
-        try {
-            $secrets = $this->vault()->list();
-        } catch (KeepException $e) {
-            $this->error(
-                sprintf("Failed to get secrets in vault [%s]",
-                    $this->vaultName()
-                )
-            );
-            $this->line($e->getMessage());
-
-            return self::FAILURE;
-        }
+        $secrets = $this->vault()->list();
 
         if($this->option('output')) {
             return $this->writeToFile(
@@ -59,8 +45,6 @@ class ExportCommand extends Command
             ? $secrets
                 ->toKeyValuePair()
                 ->toJson(JSON_PRETTY_PRINT)
-            : $secrets->map(function (Secret $secret) {
-                return sprintf('%s="%s"', $secret->key(), $secret->plainValue());
-            })->implode("\n");
+            : $secrets->toEnvString();
     }
 }

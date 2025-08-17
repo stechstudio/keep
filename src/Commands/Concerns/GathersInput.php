@@ -13,6 +13,8 @@ trait GathersInput
     protected const string VAULT_SIGNATURE = '{--vault= : The vault to use}';
     protected const string ENV_SIGNATURE = '{--env= : The environment to use}';
     protected const string PLAIN_SIGNATURE = '{--plain : Do not encrypt the value}';
+    protected const string ONLY_EXCLUDE_SIGNATURE = '{--only= : Only include keys matching this pattern (e.g. DB_*)} 
+        {--except= : Exclude keys matching this pattern (e.g. MAIL_*)}';
 
     protected string $key;
     protected string $value;

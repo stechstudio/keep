@@ -10,7 +10,7 @@ class Secret implements Arrayable
 {
     public function __construct(
         protected string $key,
-        protected ?string $plainValue = null,
+        protected ?string $value = null,
         protected ?string $encryptedValue = null,
         protected bool $secure = true,
         protected ?string $environment = null,
@@ -26,9 +26,9 @@ class Secret implements Arrayable
         return $this->key;
     }
 
-    public function plainValue(): ?string
+    public function value(): ?string
     {
-        return $this->plainValue;
+        return $this->value;
     }
 
     public function encryptedValue(): ?string
@@ -61,11 +61,11 @@ class Secret implements Arrayable
         return $this->vault;
     }
 
-    public function toArray(?array $keys = null): array
+    public function toArray($keys = null): array
     {
         $array = [
             'key' => $this->key,
-            'plainValue' => $this->plainValue,
+            'value' => $this->value,
             'encryptedValue' => $this->encryptedValue,
             'secure' => $this->secure,
             'environment' => $this->environment,
@@ -74,7 +74,7 @@ class Secret implements Arrayable
             'vault' => $this->vault?->name(),
         ];
 
-        return $keys
+        return is_array($keys)
             ? Arr::only($array, $keys)
             : $array;
     }

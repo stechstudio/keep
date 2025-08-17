@@ -60,13 +60,13 @@ class AwsSsmVault extends AbstractVault
 
                     $secrets->push(new Secret(
                         key: $key,
-                        plainValue: $parameter['Value'] ?? null,
+                        value: $parameter['Value'] ?? null,
                         encryptedValue: null,
                         secure: ($parameter['Type'] ?? 'String') === 'SecureString',
                         environment: $this->environment,
                         version: $parameter['Version'] ?? 0,
                         path: $parameter['Name'],
-                        //vault: $this,
+                        vault: $this,
                     ));
                 }
             } while ($nextToken = $result->get('NextToken'));
@@ -82,7 +82,7 @@ class AwsSsmVault extends AbstractVault
         return $secrets->sortBy('key')->values();
     }
 
-    public function get(string $key): ?Secret
+    public function get(string $key): Secret
     {
         try {
             $result = $this->client()->getParameter([
@@ -93,20 +93,22 @@ class AwsSsmVault extends AbstractVault
             $parameter = $result->get('Parameter');
 
             if (!$parameter || !is_array($parameter)) {
-                return null;
+                throw new SecretNotFoundException("Secret not found [{$this->format($key)}");
             }
 
             return new Secret(
                 key: $key,
-                plainValue: $parameter['Value'] ?? null,
+                value: $parameter['Value'] ?? null,
                 encryptedValue: null,
                 secure: ($parameter['Type'] ?? 'String') === 'SecureString',
                 environment: $this->environment,
                 version: $parameter['Version'] ?? 0,
+                path: $parameter['Name'],
+                vault: $this,
             );
         } catch (SsmException $e) {
             if($e->getAwsErrorCode() === "ParameterNotFound") {
-                throw new SecretNotFoundException("Secret not found");
+                throw new SecretNotFoundException("Secret not found [{$this->format($key)}");
             } elseif($e->getAwsErrorCode() === "AccessDeniedException") {
                 throw new AccessDeniedException($e->getAwsErrorMessage());
             } else {
@@ -117,29 +119,20 @@ class AwsSsmVault extends AbstractVault
 
     public function save(Secret $secret): Secret
     {
-        $result = $this->set($secret->key(), $secret->plainValue(), $secret->isSecure());
-
-        return new Secret(
-            key: $secret->key(),
-            plainValue: $secret->plainValue(),
-            encryptedValue: null,
-            secure: $secret->isSecure(),
-            environment: $this->environment,
-            version: $result->get('Version') ?? 0,
-            path: $this->format($secret->key()),
-            vault: $this,
-        );
+        return $this->set($secret->key(), $secret->value(), $secret->isSecure());
     }
 
-    public function set(string $key, string $value, bool $secure = true): Result
+    public function set(string $key, string $value, bool $secure = true): Secret
     {
         try {
-            return $this->client()->putParameter([
+            $this->client()->putParameter([
                 'Name'      => $this->format($key),
                 'Value'     => $value,
                 'Type'      => $secure ? 'SecureString' : 'String',
                 'Overwrite' => true,
             ]);
+
+            return $this->get($key);
         } catch (SsmException $e) {
             if($e->getAwsErrorCode() === "AccessDeniedException") {
                 throw new AccessDeniedException($e->getAwsErrorMessage());

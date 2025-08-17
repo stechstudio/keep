@@ -2,13 +2,11 @@
 
 namespace STS\Keep\Commands;
 
-use Illuminate\Console\Command;
 use STS\Keep\Commands\Concerns\GathersInput;
 use STS\Keep\Commands\Concerns\InteractsWithVaults;
-use STS\Keep\Exceptions\KeepException;
 use STS\Keep\Data\Secret;
 
-class SetCommand extends Command
+class SetCommand extends AbstractCommand
 {
     use GathersInput, InteractsWithVaults;
 
@@ -21,23 +19,11 @@ class SetCommand extends Command
 
     public $description = 'Set the value of an environment secret in a specified vault';
 
-    public function handle(): int
+    public function process(): int
     {
-        try {
-            $secret = $this->vault()->save(
-                new Secret($this->key(), $this->value(), $this->secure())
-            );
-        } catch (KeepException $e) {
-            $this->error(
-                sprintf("Failed to set secret [%s] in vault [%s]",
-                    $this->vault()->format($this->key()),
-                    $this->vaultName()
-                )
-            );
-            $this->line($e->getMessage());
-
-            return self::FAILURE;
-        }
+        $secret = $this->vault()->save(
+            new Secret($this->key(), $this->value(), $this->secure())
+        );
 
         $this->info(
             sprintf("Secret [%s] %s in vault [%s].",
