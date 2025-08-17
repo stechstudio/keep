@@ -2,14 +2,10 @@
 
 namespace STS\Keep\Commands;
 
-use STS\Keep\Commands\Concerns\GathersInput;
-use STS\Keep\Commands\Concerns\InteractsWithVaults;
 use function Laravel\Prompts\table;
 
 class ListCommand extends AbstractCommand
 {
-    use GathersInput, InteractsWithVaults;
-
     public $signature = 'keep:list {--format=table : table|json|env} '
     .self::ONLY_EXCLUDE_SIGNATURE
     .self::VAULT_SIGNATURE
@@ -27,7 +23,7 @@ class ListCommand extends AbstractCommand
         match($this->option('format')) {
             'table' => table(['Key', 'Value', 'Revision'], $secrets->map->only(['key','value','revision'])),
             'env'   => $this->line($secrets->toEnvString()),
-            'json'  => $this->line($secrets->toPrettyJson(['key', 'value', 'revision'])),
+            'json'  => $this->line($secrets->only(['key', 'value', 'revision'])->toJson(JSON_PRETTY_PRINT)),
             default => $this->error("Invalid format option. Supported formats are: table, json, env."),
         };
 

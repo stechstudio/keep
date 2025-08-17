@@ -2,20 +2,14 @@
 
 namespace STS\Keep\Commands;
 
-use STS\Keep\Commands\Concerns\GathersInput;
-use STS\Keep\Commands\Concerns\InteractsWithVaults;
-use STS\Keep\Commands\Concerns\InteractsWithFilesystem;
 use STS\Keep\Data\Env;
 use STS\Keep\Data\SecretsCollection;
 use STS\Keep\Exceptions\KeepException;
-use STS\Keep\Data\Secret;
 use function Laravel\Prompts\table;
 use function Laravel\Prompts\text;
 
 class ImportCommand extends AbstractCommand
 {
-    use GathersInput, InteractsWithVaults, InteractsWithFilesystem;
-
     public $signature = 'keep:import {from? : Env file to import from}
         {--overwrite : Overwrite existing secrets} 
         {--skip-existing : Skip existing secrets}  
@@ -104,14 +98,9 @@ class ImportCommand extends AbstractCommand
             }
 
             try {
-                $secret = $this->vault()->save(
-                    new Secret(
-                        $entry->getName(),
-                        $entry->getValue()->get()->getChars()
-                    )
+                $imported->push(
+                    $secret = $this->vault()->set($entry->getName(), $entry->getValue()->get()->getChars())
                 );
-
-                $imported->push($secret);
                 $this->info("Imported key [{$secret->key()}]");
             } catch (KeepException $e) {
                 $this->error("Failed to import key [{$entry->getName()}]: ".$e->getMessage());

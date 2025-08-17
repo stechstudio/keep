@@ -2,15 +2,10 @@
 
 namespace STS\Keep\Commands;
 
-use STS\Keep\Commands\Concerns\GathersInput;
-use STS\Keep\Commands\Concerns\InteractsWithVaults;
-use STS\Keep\Commands\Concerns\InteractsWithFilesystem;
 use STS\Keep\Data\SecretsCollection;
 
 class ExportCommand extends AbstractCommand
 {
-    use GathersInput, InteractsWithVaults, InteractsWithFilesystem;
-
     public $signature = 'keep:export 
         {--format=env : json|env} 
         {--output= : File where to save the output (defaults to stdout)} 

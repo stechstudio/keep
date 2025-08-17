@@ -2,13 +2,8 @@
 
 namespace STS\Keep\Commands;
 
-use STS\Keep\Commands\Concerns\GathersInput;
-use STS\Keep\Commands\Concerns\InteractsWithVaults;
-
 class GetCommand extends AbstractCommand
 {
-    use GathersInput, InteractsWithVaults;
-
     public $signature = 'keep:get {--format=table : table|json|raw} '
     .self::KEY_SIGNATURE
     .self::VAULT_SIGNATURE

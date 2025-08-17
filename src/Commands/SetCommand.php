@@ -2,14 +2,8 @@
 
 namespace STS\Keep\Commands;
 
-use STS\Keep\Commands\Concerns\GathersInput;
-use STS\Keep\Commands\Concerns\InteractsWithVaults;
-use STS\Keep\Data\Secret;
-
 class SetCommand extends AbstractCommand
 {
-    use GathersInput, InteractsWithVaults;
-
     public $signature = 'keep:set '
     .self::KEY_SIGNATURE
     .self::VALUE_SIGNATURE
@@ -21,9 +15,7 @@ class SetCommand extends AbstractCommand
 
     public function process(): int
     {
-        $secret = $this->vault()->save(
-            new Secret($this->key(), $this->value(), $this->secure())
-        );
+        $secret = $this->vault()->set($this->key(), $this->value(), $this->secure());
 
         $this->info(
             sprintf("Secret [%s] %s in vault [%s].",

@@ -47,8 +47,8 @@ class SecretsCollection extends Collection
         return $this->first(fn(Secret $secret) => $secret->key() === $key) ?: null;
     }
 
-    public function toPrettyJson($keys = [])
+    public function only($keys = [])
     {
-        return json_encode($this->map->only($keys)->all(), JSON_PRETTY_PRINT);
+        return $this->map->only($keys);
     }
 }

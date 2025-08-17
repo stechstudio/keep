@@ -2,8 +2,6 @@
 
 namespace STS\Keep\Commands;
 
-use STS\Keep\Commands\Concerns\GathersInput;
-use STS\Keep\Commands\Concerns\InteractsWithVaults;
 use STS\Keep\Commands\Concerns\InteractsWithFilesystem;
 use STS\Keep\Data\SecretsCollection;
 use STS\Keep\Data\Template;
@@ -12,8 +10,6 @@ use function Laravel\Prompts\text;
 
 class MergeCommand extends AbstractCommand
 {
-    use GathersInput, InteractsWithVaults, InteractsWithFilesystem;
-
     public $signature = 'keep:merge {template? : Template env file with placeholders}
         {--overlay= : Optional env file to overlay on top of the template} 
         {--output= : File where to save the output (defaults to stdout)} 
