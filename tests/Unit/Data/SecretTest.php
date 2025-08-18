@@ -3,42 +3,23 @@
 use STS\Keep\Data\Secret;
 use STS\Keep\Vaults\AbstractVault;
 
-beforeEach(function () {
-    $this->mockVault = Mockery::mock(AbstractVault::class);
-    $this->mockVault->shouldReceive('name')->andReturn('test-vault');
-});
-
 describe('Secret', function () {
     
     describe('key sanitization', function () {
-        it('trims whitespace from keys', function () {
-            $secret = new Secret('  DB_HOST  ', 'localhost');
-            expect($secret->key())->toBe('DB_HOST');
-        });
-        
-        it('replaces spaces with underscores', function () {
-            $secret = new Secret('DB HOST', 'localhost');
-            expect($secret->key())->toBe('DB_HOST');
-            
-            $secret2 = new Secret('MY API KEY', 'value');
-            expect($secret2->key())->toBe('MY_API_KEY');
-        });
-        
-        it('collapses multiple underscores to single', function () {
-            $secret = new Secret('DB___HOST', 'localhost');
-            expect($secret->key())->toBe('DB_HOST');
-            
-            $secret2 = new Secret('API____KEY', 'value');
-            expect($secret2->key())->toBe('API_KEY');
-        });
-        
-        it('removes leading and trailing underscores', function () {
-            $secret = new Secret('_DB_HOST_', 'localhost');
-            expect($secret->key())->toBe('DB_HOST');
-            
-            $secret2 = new Secret('___API_KEY___', 'value');
-            expect($secret2->key())->toBe('API_KEY');
-        });
+        it('sanitizes keys correctly', function ($input, $expected) {
+            $secret = new Secret($input, 'value');
+            expect($secret->key())->toBe($expected);
+        })->with([
+            'trims whitespace' => ['  DB_HOST  ', 'DB_HOST'],
+            'replaces spaces' => ['DB HOST', 'DB_HOST'],
+            'multiple spaces' => ['MY API KEY', 'MY_API_KEY'],
+            'collapses underscores' => ['DB___HOST', 'DB_HOST'],
+            'many underscores' => ['API____KEY', 'API_KEY'],
+            'removes leading underscore' => ['_DB_HOST', 'DB_HOST'],
+            'removes trailing underscore' => ['DB_HOST_', 'DB_HOST'],
+            'removes both' => ['_DB_HOST_', 'DB_HOST'],
+            'multiple leading/trailing' => ['___API_KEY___', 'API_KEY'],
+        ]);
         
         it('removes control characters and null bytes', function () {
             $secret = new Secret("DB_HOST\x00", 'localhost');
@@ -67,18 +48,16 @@ describe('Secret', function () {
             expect($secret3->key())->toBe('app/config');
         });
         
-        it('throws exception for empty key', function () {
-            expect(fn() => new Secret('', 'value'))
-                ->toThrow(\InvalidArgumentException::class, "Secret key '' is invalid after sanitization");
-        });
-        
-        it('throws exception for key that becomes empty after sanitization', function () {
-            expect(fn() => new Secret('   ', 'value'))
-                ->toThrow(\InvalidArgumentException::class, "Secret key '   ' is invalid after sanitization");
-            
-            expect(fn() => new Secret('___', 'value'))
-                ->toThrow(\InvalidArgumentException::class, "Secret key '___' is invalid after sanitization");
-        });
+        it('throws exception for invalid keys', function ($key) {
+            expect(fn() => new Secret($key, 'value'))
+                ->toThrow(\InvalidArgumentException::class, "Secret key '$key' is invalid after sanitization");
+        })->with([
+            'empty string' => [''],
+            'only spaces' => ['   '],
+            'only underscores' => ['___'],
+            'only dashes' => ['---'],
+            'spaces and underscores' => ['  __  '],
+        ]);
         
         it('handles unicode characters', function () {
             $secret = new Secret('APP_名前', 'value');
@@ -113,6 +92,9 @@ describe('Secret', function () {
     });
     
     it('can be created with all parameters', function () {
+        $mockVault = Mockery::mock(AbstractVault::class);
+        $mockVault->shouldReceive('name')->andReturn('test-vault');
+        
         $secret = new Secret(
             key: 'API_KEY',
             value: 'plaintext',
@@ -121,7 +103,7 @@ describe('Secret', function () {
             environment: 'production',
             revision: 3,
             path: '/app/production/API_KEY',
-            vault: $this->mockVault
+            vault: $mockVault
         );
         
         expect($secret->key())->toBe('API_KEY');
@@ -131,7 +113,7 @@ describe('Secret', function () {
         expect($secret->environment())->toBe('production');
         expect($secret->revision())->toBe(3);
         expect($secret->path())->toBe('/app/production/API_KEY');
-        expect($secret->vault())->toBe($this->mockVault);
+        expect($secret->vault())->toBe($mockVault);
     });
     
     it('handles null values correctly', function () {
@@ -146,6 +128,9 @@ describe('Secret', function () {
     });
     
     it('converts to array correctly', function () {
+        $mockVault = Mockery::mock(AbstractVault::class);
+        $mockVault->shouldReceive('name')->andReturn('test-vault');
+        
         $secret = new Secret(
             key: 'DB_HOST',
             value: 'localhost',
@@ -154,21 +139,21 @@ describe('Secret', function () {
             environment: 'staging',
             revision: 2,
             path: '/app/staging/DB_HOST',
-            vault: $this->mockVault
+            vault: $mockVault
         );
         
         $array = $secret->toArray();
         
-        expect($array)->toBeArray();
-        expect($array)->toHaveKeys(['key', 'value', 'encryptedValue', 'secure', 'environment', 'revision', 'path', 'vault']);
-        expect($array['key'])->toBe('DB_HOST');
-        expect($array['value'])->toBe('localhost');
-        expect($array['encryptedValue'])->toBe('encrypted_localhost');
-        expect($array['secure'])->toBeTrue();
-        expect($array['environment'])->toBe('staging');
-        expect($array['revision'])->toBe(2);
-        expect($array['path'])->toBe('/app/staging/DB_HOST');
-        expect($array['vault'])->toBe('test-vault');
+        expect($array)->toBe([
+            'key' => 'DB_HOST',
+            'value' => 'localhost',
+            'encryptedValue' => 'encrypted_localhost',
+            'secure' => true,
+            'environment' => 'staging',
+            'revision' => 2,
+            'path' => '/app/staging/DB_HOST',
+            'vault' => 'test-vault',
+        ]);
     });
     
     it('converts to array without vault', function () {

@@ -317,6 +317,42 @@ describe('SecretsCollection', function () {
             ]);
         });
         
+        it('uses case-sensitive matching', function () {
+            $secrets = new SecretsCollection([
+                new Secret('DB_HOST', 'localhost'),
+                new Secret('db_host', 'different'),
+                new Secret('Db_Host', 'another'),
+                new Secret('DB_PORT', '3306'),
+                new Secret('db_port', '5432'),
+            ]);
+            
+            // DB_* should only match uppercase DB_
+            $filtered = $secrets->filterByPatterns('DB_*');
+            expect($filtered->allKeys()->toArray())->toBe(['DB_HOST', 'DB_PORT']);
+            
+            // db_* should only match lowercase db_
+            $filtered = $secrets->filterByPatterns('db_*');
+            expect($filtered->allKeys()->toArray())->toBe(['db_host', 'db_port']);
+            
+            // Mixed case pattern
+            $filtered = $secrets->filterByPatterns('Db_*');
+            expect($filtered->allKeys()->toArray())->toBe(['Db_Host']);
+            
+            // Exact match is also case-sensitive
+            $filtered = $secrets->filterByPatterns('DB_HOST');
+            expect($filtered->allKeys()->toArray())->toBe(['DB_HOST']);
+            
+            $filtered = $secrets->filterByPatterns('db_host');
+            expect($filtered->allKeys()->toArray())->toBe(['db_host']);
+            
+            // Except patterns are also case-sensitive
+            $filtered = $secrets->filterByPatterns(null, 'DB_*');
+            expect($filtered->allKeys()->toArray())->toBe(['db_host', 'Db_Host', 'db_port']);
+            
+            $filtered = $secrets->filterByPatterns(null, 'db_*');
+            expect($filtered->allKeys()->toArray())->toBe(['DB_HOST', 'Db_Host', 'DB_PORT']);
+        });
+        
         it('except overrides only when matching', function () {
             $filtered = $this->secrets->filterByPatterns('DB_*', 'DB_PASSWORD');
             

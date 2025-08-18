@@ -210,7 +210,7 @@ describe('Template', function () {
             
             $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::REMOVE);
             
-            expect($result)->toBe('# Removed missing secret: MISSING_KEY={aws-ssm:MISSING_KEY}');
+            expect($result)->toBe('# Removed missing secret: MISSING_KEY');
         });
         
         it('creates blank value with BLANK strategy', function () {
@@ -247,6 +247,27 @@ describe('Template', function () {
             }
         });
         
+        it('does not leak vault details with REMOVE strategy', function () {
+            $template = new Template(
+                "SECRET1={vault-one:path/to/SECRET1|attr=value}\n" .
+                "SECRET2={vault-two:different/path/SECRET2}"
+            );
+            
+            $result1 = $template->merge('vault-one', $this->secrets, MissingSecretStrategy::REMOVE);
+            $result2 = $template->merge('vault-two', $this->secrets, MissingSecretStrategy::REMOVE);
+            
+            // Should only show key names, not vault details or paths
+            expect($result1)->toBe(
+                "# Removed missing secret: SECRET1\n" .
+                "SECRET2={vault-two:different/path/SECRET2}"
+            );
+            
+            expect($result2)->toBe(
+                "SECRET1={vault-one:path/to/SECRET1|attr=value}\n" .
+                "# Removed missing secret: SECRET2"
+            );
+        });
+        
         it('handles multiple missing keys with REMOVE strategy', function () {
             $template = new Template(
                 "DB_PASSWORD={aws-ssm:DB_PASSWORD}\n" .
@@ -259,14 +280,81 @@ describe('Template', function () {
             
             expect($result)->toBe(
                 "DB_PASSWORD=secret123\n" .
-                "# Removed missing secret: MISSING1={aws-ssm:MISSING1}\n" .
+                "# Removed missing secret: MISSING1\n" .
                 "API_KEY=\"api_secret_key\"\n" .
-                "# Removed missing secret: MISSING2={aws-ssm:MISSING2}"
+                "# Removed missing secret: MISSING2"
             );
         });
     });
     
     describe('pattern edge cases', function () {
+        it('handles lowercase and mixed-case env keys', function () {
+            $secrets = new SecretsCollection([
+                new Secret('lowercase_key', 'value1'),
+                new Secret('mixedCaseKey', 'value2'),
+                new Secret('camelCase_with_underscore', 'value3'),
+                new Secret('TRADITIONAL_UPPERCASE', 'value4'),
+            ]);
+            
+            $template = new Template(
+                "lowercase_key={aws-ssm:lowercase_key}\n" .
+                "mixedCaseKey={aws-ssm:mixedCaseKey}\n" .
+                "camelCase_with_underscore={aws-ssm:camelCase_with_underscore}\n" .
+                "TRADITIONAL_UPPERCASE={aws-ssm:TRADITIONAL_UPPERCASE}"
+            );
+            
+            $result = $template->merge('aws-ssm', $secrets, MissingSecretStrategy::FAIL);
+            
+            expect($result)->toBe(
+                "lowercase_key=value1\n" .
+                "mixedCaseKey=value2\n" .
+                "camelCase_with_underscore=value3\n" .
+                "TRADITIONAL_UPPERCASE=value4"
+            );
+        });
+        
+        it('handles keys starting with underscore', function () {
+            // Note: Secret class sanitizes keys and removes leading underscores,
+            // but the template pattern should still match them
+            $secrets = new SecretsCollection([
+                new Secret('MY_underscore_start', 'value1'), // This becomes 'MY_underscore_start' after sanitization
+            ]);
+            
+            $template = new Template(
+                "_STARTS_WITH_UNDERSCORE={aws-ssm:MY_underscore_start}\n" .
+                "NORMAL_KEY={aws-ssm:NORMAL_KEY}"
+            );
+            
+            $result = $template->merge('aws-ssm', $secrets, MissingSecretStrategy::SKIP);
+            
+            // The pattern should match _STARTS_WITH_UNDERSCORE
+            expect($result)->toBe(
+                "_STARTS_WITH_UNDERSCORE=value1\n" .
+                "NORMAL_KEY={aws-ssm:NORMAL_KEY}"
+            );
+        });
+        
+        it('does not match keys starting with numbers', function () {
+            $secrets = new SecretsCollection([
+                new Secret('valid_key', 'replaced'),
+            ]);
+            
+            $template = new Template(
+                "valid_key={aws-ssm:valid_key}\n" .
+                "123_invalid={aws-ssm:123_invalid}\n" .
+                "9starts_with_number={aws-ssm:9starts_with_number}"
+            );
+            
+            $result = $template->merge('aws-ssm', $secrets, MissingSecretStrategy::SKIP);
+            
+            // Keys starting with numbers should not be matched/processed
+            expect($result)->toBe(
+                "valid_key=replaced\n" .
+                "123_invalid={aws-ssm:123_invalid}\n" .
+                "9starts_with_number={aws-ssm:9starts_with_number}"
+            );
+        });
+        
         it('handles paths with dots and slashes', function () {
             $secrets = new SecretsCollection([
                 new Secret('app.production.db.password', 'prod_pass'),

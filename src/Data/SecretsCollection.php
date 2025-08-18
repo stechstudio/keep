@@ -29,8 +29,8 @@ class SecretsCollection extends Collection
         return $this->filter(function (Secret $secret) use ($onlyPatterns, $exceptPatterns) {
             $key = $secret->key();
 
-            $matchesOnly = $onlyPatterns->isEmpty() || $onlyPatterns->contains(fn($pattern) => Str::is($pattern, $key, true));
-            $matchesExcept = $exceptPatterns->isNotEmpty() && $exceptPatterns->contains(fn($pattern) => Str::is($pattern, $key, true));
+            $matchesOnly = $onlyPatterns->isEmpty() || $onlyPatterns->contains(fn($pattern) => Str::is($pattern, $key));
+            $matchesExcept = $exceptPatterns->isNotEmpty() && $exceptPatterns->contains(fn($pattern) => Str::is($pattern, $key));
 
             return $matchesOnly && !$matchesExcept;
         });

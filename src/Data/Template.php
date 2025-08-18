@@ -46,7 +46,7 @@ class Template
                             lineNumber: $lineNumber,
                             suggestion: "Check if this secret exists using 'php artisan keeper:list --vault={$slug}'"
                         ),
-                    MissingSecretStrategy::REMOVE => '# Removed missing secret: ' . $matches[0],
+                    MissingSecretStrategy::REMOVE => '# Removed missing secret: ' . $matches['key'],
                     MissingSecretStrategy::BLANK => $matches['key'] . '=',
                     MissingSecretStrategy::SKIP => $matches[0],
                 };
@@ -77,7 +77,7 @@ class Template
     {
         return '~^
             (?P<lead>\s*)                                  # leading whitespace
-            (?P<key>[A-Z0-9_]+)                            # ENV KEY
+            (?P<key>[A-Za-z_][A-Za-z0-9_]*)                # ENV KEY (cannot start with number)
             (?P<mid>\s*=\s*)                               # equals w/ optional spacing
             (?P<quote>["\'])?                              # optional opening quote
             \{'.$slug.'                                    # {slug  (driver slug)
