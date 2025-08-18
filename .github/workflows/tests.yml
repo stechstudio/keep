@@ -47,8 +47,5 @@ jobs:
       - name: List Installed Dependencies
         run: composer show -D
 
-      - name: Prepare testbench
-        run: composer run prepare
-
       - name: Execute tests
-        run: ./vendor/bin/pest --no-configuration
+        run: ./vendor/bin/pest
