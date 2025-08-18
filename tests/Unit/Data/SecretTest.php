@@ -10,6 +10,93 @@ beforeEach(function () {
 
 describe('Secret', function () {
     
+    describe('key sanitization', function () {
+        it('trims whitespace from keys', function () {
+            $secret = new Secret('  DB_HOST  ', 'localhost');
+            expect($secret->key())->toBe('DB_HOST');
+        });
+        
+        it('replaces spaces with underscores', function () {
+            $secret = new Secret('DB HOST', 'localhost');
+            expect($secret->key())->toBe('DB_HOST');
+            
+            $secret2 = new Secret('MY API KEY', 'value');
+            expect($secret2->key())->toBe('MY_API_KEY');
+        });
+        
+        it('collapses multiple underscores to single', function () {
+            $secret = new Secret('DB___HOST', 'localhost');
+            expect($secret->key())->toBe('DB_HOST');
+            
+            $secret2 = new Secret('API____KEY', 'value');
+            expect($secret2->key())->toBe('API_KEY');
+        });
+        
+        it('removes leading and trailing underscores', function () {
+            $secret = new Secret('_DB_HOST_', 'localhost');
+            expect($secret->key())->toBe('DB_HOST');
+            
+            $secret2 = new Secret('___API_KEY___', 'value');
+            expect($secret2->key())->toBe('API_KEY');
+        });
+        
+        it('removes control characters and null bytes', function () {
+            $secret = new Secret("DB_HOST\x00", 'localhost');
+            expect($secret->key())->toBe('DB_HOST');
+            
+            $secret2 = new Secret("API\x1FKEY", 'value');
+            expect($secret2->key())->toBe('APIKEY');
+        });
+        
+        it('handles complex sanitization', function () {
+            $secret = new Secret('  __DB   HOST__  ', 'localhost');
+            expect($secret->key())->toBe('DB_HOST');
+            
+            $secret2 = new Secret(' MY -- API -- KEY ', 'value');
+            expect($secret2->key())->toBe('MY_API_KEY');
+        });
+        
+        it('preserves valid special characters', function () {
+            $secret = new Secret('my-api-key', 'value');
+            expect($secret->key())->toBe('my-api-key');
+            
+            $secret2 = new Secret('user.email', 'value');
+            expect($secret2->key())->toBe('user.email');
+            
+            $secret3 = new Secret('app/config', 'value');
+            expect($secret3->key())->toBe('app/config');
+        });
+        
+        it('throws exception for empty key', function () {
+            expect(fn() => new Secret('', 'value'))
+                ->toThrow(\InvalidArgumentException::class, "Secret key '' is invalid after sanitization");
+        });
+        
+        it('throws exception for key that becomes empty after sanitization', function () {
+            expect(fn() => new Secret('   ', 'value'))
+                ->toThrow(\InvalidArgumentException::class, "Secret key '   ' is invalid after sanitization");
+            
+            expect(fn() => new Secret('___', 'value'))
+                ->toThrow(\InvalidArgumentException::class, "Secret key '___' is invalid after sanitization");
+        });
+        
+        it('handles unicode characters', function () {
+            $secret = new Secret('APP_名前', 'value');
+            expect($secret->key())->toBe('APP_名前');
+            
+            $secret2 = new Secret('مفتاح_API', 'value');
+            expect($secret2->key())->toBe('مفتاح_API');
+        });
+        
+        it('handles mixed case keys', function () {
+            $secret = new Secret('myApiKey', 'value');
+            expect($secret->key())->toBe('myApiKey');
+            
+            $secret2 = new Secret('MyApp_Config', 'value');
+            expect($secret2->key())->toBe('MyApp_Config');
+        });
+    });
+    
     it('can be created with minimal parameters', function () {
         $secret = new Secret(
             key: 'DB_PASSWORD',
@@ -149,6 +236,7 @@ describe('Secret', function () {
     
     it('handles very long keys and values', function () {
         $longKey = str_repeat('LONG_KEY_', 100);
+        $expectedKey = rtrim($longKey, '_'); // Sanitization removes trailing underscore
         $longValue = str_repeat('This is a very long value. ', 1000);
         
         $secret = new Secret(
@@ -156,9 +244,9 @@ describe('Secret', function () {
             value: $longValue
         );
         
-        expect($secret->key())->toBe($longKey);
+        expect($secret->key())->toBe($expectedKey);
         expect($secret->value())->toBe($longValue);
-        expect(strlen($secret->key()))->toBe(900);
+        expect(strlen($secret->key()))->toBe(899); // One char less due to trailing _ removal
         expect(strlen($secret->value()))->toBe(27000);
     });
     
