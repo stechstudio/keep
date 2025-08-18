@@ -8,10 +8,17 @@ use Throwable;
 class KeepException extends RuntimeException
 {
     protected string $details = '';
+    protected ?string $vault = null;
+    protected ?string $environment = null;
+    protected ?string $key = null;
+    protected ?string $path = null;
+    protected ?int $lineNumber = null;
+    protected ?string $suggestion = null;
 
     public function __construct(string $message = "", string $details = "", int $code = 0, ?Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
+        $this->details = $details;
     }
 
     public function getDetails(): string
@@ -19,11 +26,68 @@ class KeepException extends RuntimeException
         return $this->details;
     }
 
+    public function withContext(
+        ?string $vault = null,
+        ?string $environment = null,
+        ?string $key = null,
+        ?string $path = null,
+        ?int $lineNumber = null,
+        ?string $suggestion = null
+    ): static {
+        $this->vault = $vault;
+        $this->environment = $environment;
+        $this->key = $key;
+        $this->path = $path;
+        $this->lineNumber = $lineNumber;
+        $this->suggestion = $suggestion;
+        
+        return $this;
+    }
+
     public function renderConsole($command): void
     {
         $command->error($this->getMessage());
+        
+        // Build context details
+        $contextLines = [];
+        
+        if ($this->vault) {
+            $contextLines[] = "  Vault: {$this->vault}";
+        }
+        
+        if ($this->environment) {
+            $contextLines[] = "  Environment: {$this->environment}";
+        }
+        
+        if ($this->key) {
+            $contextLines[] = "  Key: {$this->key}";
+        }
+        
+        if ($this->path) {
+            $contextLines[] = "  Path: {$this->path}";
+        }
+        
+        if ($this->lineNumber) {
+            $contextLines[] = "  Template line: {$this->lineNumber}";
+        }
+        
+        // Output context if we have any
+        if (!empty($contextLines)) {
+            foreach ($contextLines as $line) {
+                $command->line($line);
+            }
+        }
+        
+        // Output additional details if provided
         if ($this->details) {
+            $command->line('');
             $command->line($this->details);
+        }
+        
+        // Output suggestion if provided
+        if ($this->suggestion) {
+            $command->line('');
+            $command->comment('💡 ' . $this->suggestion);
         }
     }
 }

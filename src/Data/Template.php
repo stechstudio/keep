@@ -26,13 +26,24 @@ class Template
     {
         $pattern = $this->pattern($slug);
 
-        return preg_replace_callback($pattern, function($matches) use ($secrets, $strategy) {
+        return preg_replace_callback($pattern, function($matches) use ($secrets, $strategy, $slug) {
+            // Calculate line number by counting newlines before this match
+            $beforeMatch = strstr($this->contents, $matches[0], true);
+            $lineNumber = $beforeMatch !== false ? substr_count($beforeMatch, "\n") + 1 : 1;
+            
             $path = $matches['path'] ?: $matches['key'];
             $secret = $secrets->firstWhere(fn(Secret $secret) => $secret->key() === $path);
 
             if(!$secret) {
                 return match($strategy) {
-                    MissingSecretStrategy::FAIL => throw new SecretNotFoundException("Unable to find secret for key [{$path}]"),
+                    MissingSecretStrategy::FAIL => throw (new SecretNotFoundException("Unable to find secret for key [{$path}]"))
+                        ->withContext(
+                            vault: $slug,
+                            key: $matches['key'],
+                            path: $path,
+                            lineNumber: $lineNumber,
+                            suggestion: "Check if this secret exists using 'php artisan keeper:list --vault={$slug}'"
+                        ),
                     MissingSecretStrategy::REMOVE => '# Removed missing secret: ' . $matches[0],
                     MissingSecretStrategy::BLANK => $matches['key'] . '=',
                     MissingSecretStrategy::SKIP => $matches[0],
