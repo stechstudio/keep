@@ -2,39 +2,44 @@
 
 use STS\Keep\Exceptions\KeepException;
 use STS\Keep\Exceptions\SecretNotFoundException;
-use Illuminate\Console\Command;
-use Mockery;
 
 describe('KeepException', function () {
     
     it('renders basic error message to console', function () {
-        $command = Mockery::mock(Command::class);
-        $command->shouldReceive('error')->once()->with('Basic error message');
+        $output = [];
+        $outputCallback = function($message, $style = 'line') use (&$output) {
+            $output[] = ['message' => $message, 'style' => $style];
+        };
         
         $exception = new KeepException('Basic error message');
-        $exception->renderConsole($command);
+        $exception->renderConsole($outputCallback);
+        
+        expect($output)->toEqual([
+            ['message' => 'Basic error message', 'style' => 'error']
+        ]);
     });
     
     it('renders error with details', function () {
-        $command = Mockery::mock(Command::class);
-        $command->shouldReceive('error')->once()->with('Error occurred');
-        $command->shouldReceive('line')->once()->with('');
-        $command->shouldReceive('line')->once()->with('Additional details about the error');
+        $output = [];
+        $outputCallback = function($message, $style = 'line') use (&$output) {
+            $output[] = ['message' => $message, 'style' => $style];
+        };
         
         $exception = new KeepException('Error occurred', 'Additional details about the error');
-        $exception->renderConsole($command);
+        $exception->renderConsole($outputCallback);
+        
+        expect($output)->toEqual([
+            ['message' => 'Error occurred', 'style' => 'error'],
+            ['message' => '', 'style' => 'line'],
+            ['message' => 'Additional details about the error', 'style' => 'line']
+        ]);
     });
     
     it('renders error with full context', function () {
-        $command = Mockery::mock(Command::class);
-        $command->shouldReceive('error')->once()->with('Secret not found');
-        $command->shouldReceive('line')->with('  Vault: aws-ssm')->once();
-        $command->shouldReceive('line')->with('  Environment: production')->once();
-        $command->shouldReceive('line')->with('  Key: DB_PASSWORD')->once();
-        $command->shouldReceive('line')->with('  Path: /app/production/DB_PASSWORD')->once();
-        $command->shouldReceive('line')->with('  Template line: 15')->once();
-        $command->shouldReceive('line')->with('')->once();
-        $command->shouldReceive('comment')->with("💡 Check if this secret exists using 'php artisan keeper:list'")->once();
+        $output = [];
+        $outputCallback = function($message, $style = 'line') use (&$output) {
+            $output[] = ['message' => $message, 'style' => $style];
+        };
         
         $exception = (new KeepException('Secret not found'))
             ->withContext(
@@ -46,14 +51,25 @@ describe('KeepException', function () {
                 suggestion: "Check if this secret exists using 'php artisan keeper:list'"
             );
         
-        $exception->renderConsole($command);
+        $exception->renderConsole($outputCallback);
+        
+        expect($output)->toEqual([
+            ['message' => 'Secret not found', 'style' => 'error'],
+            ['message' => '  Vault: aws-ssm', 'style' => 'line'],
+            ['message' => '  Environment: production', 'style' => 'line'],
+            ['message' => '  Key: DB_PASSWORD', 'style' => 'line'],
+            ['message' => '  Path: /app/production/DB_PASSWORD', 'style' => 'line'],
+            ['message' => '  Template line: 15', 'style' => 'line'],
+            ['message' => '', 'style' => 'line'],
+            ['message' => "💡 Check if this secret exists using 'php artisan keeper:list'", 'style' => 'comment']
+        ]);
     });
     
     it('renders error with partial context', function () {
-        $command = Mockery::mock(Command::class);
-        $command->shouldReceive('error')->once()->with('Partial error');
-        $command->shouldReceive('line')->with('  Vault: local')->once();
-        $command->shouldReceive('line')->with('  Key: API_KEY')->once();
+        $output = [];
+        $outputCallback = function($message, $style = 'line') use (&$output) {
+            $output[] = ['message' => $message, 'style' => $style];
+        };
         
         $exception = (new KeepException('Partial error'))
             ->withContext(
@@ -61,14 +77,20 @@ describe('KeepException', function () {
                 key: 'API_KEY'
             );
         
-        $exception->renderConsole($command);
+        $exception->renderConsole($outputCallback);
+        
+        expect($output)->toEqual([
+            ['message' => 'Partial error', 'style' => 'error'],
+            ['message' => '  Vault: local', 'style' => 'line'],
+            ['message' => '  Key: API_KEY', 'style' => 'line']
+        ]);
     });
     
     it('preserves context in subclasses', function () {
-        $command = Mockery::mock(Command::class);
-        $command->shouldReceive('error')->once()->with('Secret not found');
-        $command->shouldReceive('line')->with('  Vault: aws-ssm')->once();
-        $command->shouldReceive('line')->with('  Key: SECRET_KEY')->once();
+        $output = [];
+        $outputCallback = function($message, $style = 'line') use (&$output) {
+            $output[] = ['message' => $message, 'style' => $style];
+        };
         
         $exception = (new SecretNotFoundException('Secret not found'))
             ->withContext(
@@ -76,7 +98,13 @@ describe('KeepException', function () {
                 key: 'SECRET_KEY'
             );
         
-        $exception->renderConsole($command);
+        $exception->renderConsole($outputCallback);
+        
+        expect($output)->toEqual([
+            ['message' => 'Secret not found', 'style' => 'error'],
+            ['message' => '  Vault: aws-ssm', 'style' => 'line'],
+            ['message' => '  Key: SECRET_KEY', 'style' => 'line']
+        ]);
     });
     
     it('fluently returns self from withContext', function () {
@@ -88,10 +116,10 @@ describe('KeepException', function () {
     });
     
     it('handles all context properties', function () {
-        $command = Mockery::mock(Command::class);
-        $command->shouldReceive('error')->once();
-        $command->shouldReceive('line')->times(8); // 5 context lines + 2 empty + 1 details
-        $command->shouldReceive('comment')->once();
+        $output = [];
+        $outputCallback = function($message, $style = 'line') use (&$output) {
+            $output[] = ['message' => $message, 'style' => $style];
+        };
         
         $exception = (new KeepException('Error', 'Extra details'))
             ->withContext(
@@ -103,6 +131,19 @@ describe('KeepException', function () {
                 suggestion: 'Try this instead'
             );
         
-        $exception->renderConsole($command);
+        $exception->renderConsole($outputCallback);
+        
+        expect($output)->toEqual([
+            ['message' => 'Error', 'style' => 'error'],
+            ['message' => '  Vault: vault-name', 'style' => 'line'],
+            ['message' => '  Environment: staging', 'style' => 'line'],
+            ['message' => '  Key: KEY_NAME', 'style' => 'line'],
+            ['message' => '  Path: /full/path', 'style' => 'line'],
+            ['message' => '  Template line: 42', 'style' => 'line'],
+            ['message' => '', 'style' => 'line'],
+            ['message' => 'Extra details', 'style' => 'line'],
+            ['message' => '', 'style' => 'line'],
+            ['message' => '💡 Try this instead', 'style' => 'comment']
+        ]);
     });
 });

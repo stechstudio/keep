@@ -44,9 +44,9 @@ class KeepException extends RuntimeException
         return $this;
     }
 
-    public function renderConsole($command): void
+    public function renderConsole(callable $output): void
     {
-        $command->error($this->getMessage());
+        $output($this->getMessage(), 'error');
         
         // Build context details
         $contextLines = array_filter([
@@ -62,20 +62,20 @@ class KeepException extends RuntimeException
         // Output context if we have any
         if (!empty($contextLines)) {
             foreach ($contextLines as $line) {
-                $command->line($line);
+                $output($line);
             }
         }
         
         // Output additional details if provided
         if ($this->details) {
-            $command->line('');
-            $command->line($this->details);
+            $output('');
+            $output($this->details);
         }
         
         // Output suggestion if provided
         if ($this->suggestion) {
-            $command->line('');
-            $command->comment('💡 ' . $this->suggestion);
+            $output('');
+            $output('💡 ' . $this->suggestion, 'comment');
         }
     }
 }

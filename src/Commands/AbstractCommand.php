@@ -19,7 +19,7 @@ abstract class AbstractCommand extends Command
 
             return is_int($result) ? $result : self::SUCCESS;
         } catch(KeepException $e) {
-            $e->renderConsole($this);
+            $e->renderConsole($this->line(...));
             return self::FAILURE;
         } catch (\Exception $e) {
             $this->error("An error occurred");
