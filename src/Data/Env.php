@@ -28,4 +28,25 @@ class Env
     {
         return $this->entries()->map->getName()->values();
     }
+
+    public function list(): Collection
+    {
+        return $this->entries()->mapWithKeys(function ($entry) {
+            return [$entry->getName() => $entry->getValue()->get()->getChars()];
+        });
+    }
+
+    public function secrets(): SecretsCollection
+    {
+        $secrets = $this->entries()->map(function ($entry) {
+            return new Secret(
+                key: $entry->getName(),
+                value: $entry->getValue()->get()->getChars(),
+                secure: false, // Env file values are not encrypted
+                revision: 0     // New secrets start at revision 0
+            );
+        });
+
+        return new SecretsCollection($secrets->all());
+    }
 }

@@ -88,6 +88,12 @@ class KeepManager {
         return $this->{$driverMethod}($name, $config);
     }
 
+    public function extend(string $driver, callable $creator): static
+    {
+        $this->customCreators[$driver] = $creator;
+        return $this;
+    }
+
     public function createAwsSsmDriver(string $name, array $config): AwsSsmVault
     {
         return new AwsSsmVault($name, $config);

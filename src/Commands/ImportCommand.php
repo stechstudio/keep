@@ -34,23 +34,26 @@ class ImportCommand extends AbstractCommand
         }
 
         $env = new Env(file_get_contents($envFilePath));
-
-        $secrets = $this->vault()->list()->filterByPatterns(
+        
+        // Convert env entries to secrets and apply filtering
+        $importSecrets = $env->secrets()->filterByPatterns(
             only: $this->option('only'),
             except: $this->option('except')
         );
 
-        if (!$this->canImport($env, $secrets)) {
+        $vaultSecrets = $this->vault()->list();
+
+        if (!$this->canImport($importSecrets, $vaultSecrets)) {
             return self::FAILURE;
         }
 
         if ($this->option('dry-run')) {
             $imported = null;
         } else {
-            $imported = $this->runImport($env, $secrets);
+            $imported = $this->runImport($importSecrets, $vaultSecrets);
         }
 
-        table(['Key', 'Status', 'Rev'], $this->resultsTable($env, $secrets, $imported));
+        table(['Key', 'Status', 'Rev'], $this->resultsTable($importSecrets, $vaultSecrets, $imported));
 
         if ($this->option('dry-run')) {
             $this->info("This was a dry run. No secrets were imported.");
@@ -59,10 +62,10 @@ class ImportCommand extends AbstractCommand
         return self::SUCCESS;
     }
 
-    protected function canImport(Env $env, SecretsCollection $secrets): bool
+    protected function canImport(SecretsCollection $importSecrets, SecretsCollection $vaultSecrets): bool
     {
         // If any keys exist in the vault, we can only proceed if --overwrite or --skip-existing is set
-        $existingKeys = $env->allKeys()->intersect($secrets->allKeys());
+        $existingKeys = $importSecrets->allKeys()->intersect($vaultSecrets->allKeys());
 
         if ($existingKeys->isNotEmpty()) {
             if ($this->option('overwrite')) {
@@ -83,51 +86,59 @@ class ImportCommand extends AbstractCommand
         return true;
     }
 
-    protected function runImport(Env $env, SecretsCollection $secrets): SecretsCollection
+    protected function runImport(SecretsCollection $importSecrets, SecretsCollection $vaultSecrets): SecretsCollection
     {
         $imported = new SecretsCollection();
 
-        foreach ($env->entries() as $entry) {
-            if ($secrets->hasKey($entry->getName()) && $this->option('skip-existing')) {
+        foreach ($importSecrets as $secret) {
+            if ($vaultSecrets->hasKey($secret->key()) && $this->option('skip-existing')) {
                 continue;
             }
 
-            if ($entry->getValue()->isEmpty()) {
-                $this->warn("Skipping key [{$entry->getName()}] with empty value.");
+            if (empty($secret->value())) {
+                $this->warn("Skipping key [{$secret->key()}] with empty value.");
                 continue;
             }
 
             try {
                 $imported->push(
-                    $secret = $this->vault()->set($entry->getName(), $entry->getValue()->get()->getChars())
+                    $importedSecret = $this->vault()->set($secret->key(), $secret->value())
                 );
-                $this->info("Imported key [{$secret->key()}]");
+                $this->info("Imported key [{$importedSecret->key()}]");
             } catch (KeepException $e) {
-                $this->error("Failed to import key [{$entry->getName()}]: ".$e->getMessage());
+                $this->error("Failed to import key [{$secret->key()}]: ".$e->getMessage());
             }
         }
 
         return $imported;
     }
 
-    protected function resultsTable(Env $env, SecretsCollection $secrets, ?SecretsCollection $imported): array
+    protected function resultsTable(SecretsCollection $importSecrets, SecretsCollection $vaultSecrets, ?SecretsCollection $imported): array
     {
         $rows = [];
 
-        foreach ($env->entries() as $entry) {
+        foreach ($importSecrets as $secret) {
+            $key = $secret->key();
+            $value = $secret->value();
+            
+            // Determine status based on what actually happened
             $status = 'Skipped';
-            if ($imported && $imported->hasKey($entry->getName())) {
+            $revision = null;
+            
+            if ($imported && $imported->hasKey($key)) {
                 $status = 'Imported';
-            } elseif ($secrets->hasKey($entry->getName())) {
-                $status = 'Exists';
+                $revision = $imported->getByKey($key)->revision();
+            } elseif (empty($value)) {
+                $status = 'Skipped'; // Empty value
+            } elseif ($vaultSecrets->hasKey($key)) {
+                $status = 'Exists'; // Already exists in vault
+                $revision = $vaultSecrets->getByKey($key)?->revision();
             }
 
             $rows[] = [
-                'key'     => $entry->getName(),
+                'key'     => $key,
                 'status'  => $status,
-                'revision' => $imported && $imported->hasKey($entry->getName())
-                    ? $imported->getByKey($entry->getName())->revision()
-                    : $secrets->getByKey($entry->getName())?->revision()
+                'revision' => $revision
             ];
         }
 

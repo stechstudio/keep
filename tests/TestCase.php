@@ -10,6 +10,11 @@ class TestCase extends Orchestra
     protected function setUp(): void
     {
         parent::setUp();
+        
+        // Register test vault driver
+        app(\STS\Keep\KeepManager::class)->extend('test', function ($name, $config) {
+            return new \STS\Keep\Tests\Support\TestVault($name, $config);
+        });
     }
 
     protected function getPackageProviders($app)
