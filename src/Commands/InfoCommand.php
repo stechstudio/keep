@@ -16,13 +16,11 @@ class InfoCommand extends AbstractCommand
     {
         $info = $this->gatherInfo();
 
-        match ($this->option('format')) {
-            'table' => $this->displayTable($info),
-            'json' => $this->line(json_encode($info, JSON_PRETTY_PRINT)),
-            default => $this->error('Invalid format option. Supported formats are: table, json.'),
+        return match ($this->option('format')) {
+            'table' => $this->displayTable($info) ?: self::SUCCESS,
+            'json' => $this->line(json_encode($info, JSON_PRETTY_PRINT)) ?: self::SUCCESS,
+            default => $this->error('Invalid format option. Supported formats are: table, json.') ?: self::FAILURE,
         };
-
-        return self::SUCCESS;
     }
 
     protected function gatherInfo(): array
