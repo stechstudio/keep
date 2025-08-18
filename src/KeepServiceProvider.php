@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use STS\Keep\Commands\ExportCommand;
 use STS\Keep\Commands\GetCommand;
 use STS\Keep\Commands\ImportCommand;
+use STS\Keep\Commands\InfoCommand;
 use STS\Keep\Commands\ListCommand;
 use STS\Keep\Commands\MergeCommand;
 use STS\Keep\Commands\SetCommand;
@@ -34,6 +35,7 @@ class KeepServiceProvider extends ServiceProvider
                 SetCommand::class,
                 GetCommand::class,
                 ListCommand::class,
+                InfoCommand::class,
                 MergeCommand::class,
                 ExportCommand::class,
                 ImportCommand::class,
