@@ -49,6 +49,14 @@ trait GathersInput
         };
     }
 
+    /**
+     * Reset cached input values (used in testing)
+     */
+    public function resetInput(): void
+    {
+        unset($this->key, $this->value, $this->vaultName, $this->env);
+    }
+
     protected function secure(): bool
     {
         return ! $this->option('plain');
