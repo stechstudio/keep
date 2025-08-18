@@ -4,6 +4,8 @@
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/stechstudio/laravel-keep.svg?style=flat-square)](https://packagist.org/packages/stechstudio/laravel-keep)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
+[![Tests](https://img.shields.io/github/actions/workflow/status/stechstudio/laravel-keep/tests.yml?branch=main&style=flat-square)](https://github.com/stechstudio/laravel-keep/actions/workflows/tests.yml)
+
 
 **Laravel Keep** is a toolkit for managing application secrets across environments and teams.
 
@@ -27,7 +29,7 @@ composer require stechstudio/laravel-keep
 
 ## Quick Example
 
-Let's say you have three environments (local, staging, production) and you want to store secrets in AWS SSM with the default KMS encryption key.
+Let's say you have three environments (local, staging, production) and you want to store secrets in AWS SSM with the default KMS encryption key, in the `us-east-1` region.
 
 ### Setup
 
