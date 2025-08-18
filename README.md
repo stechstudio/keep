@@ -41,8 +41,11 @@ Let's say you have three environments (local, staging, production) and you want 
 You can add secrets using the artisan command:
 
 ```bash
-# You will be prompted to enter the secret value
-php artisan keep:set DB_PASSWORD --env=production
+# You will be prompted for the environment and secret value
+php artisan keep:set DB_PASSWORD
+
+# Or specify the environment and value directly
+php artisan keep:set DB_PASSWORD --env=production --value="supersecretpassword"
 ```
 
 This will store the `DB_PASSWORD` secret in AWS SSM under the path `/[app-name-slug]/production/DB_PASSWORD`.
@@ -82,7 +85,7 @@ Then run the merge command:
 php artisan keep:merge --template=.env.base --output=.env --env=production
 ```
 
-You will not have a `.env` file with all the values from the template and the secrets filled in.
+You will now have a `.env` file with all the values from the template and the secrets filled in.
 
 ## License
 
