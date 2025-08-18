@@ -48,5 +48,8 @@ jobs:
       - name: List Installed Dependencies
         run: composer show -D
 
+      - name: Show Pest Version
+        run: ./vendor/bin/pest --version
+
       - name: Execute tests
         run: ./vendor/bin/pest --ci
