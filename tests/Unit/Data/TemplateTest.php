@@ -14,6 +14,15 @@ beforeEach(function () {
         new Secret('MAIL_PASSWORD', 'mail_pass'),
         new Secret('APP_KEY', 'base64:key123'),
         new Secret('SPECIAL_CHARS', 'value with "quotes" and $pecial'),
+        new Secret('ALPHANUMERIC', 'abc123'),
+        new Secret('NUMERIC', '12345'),
+        new Secret('WITH_SPACES', 'value with spaces'),
+        new Secret('WITH_SINGLE_QUOTES', "value with 'quotes'"),
+        new Secret('WITH_DOUBLE_QUOTES', 'value with "quotes"'),
+        new Secret('WITH_BOTH_QUOTES', 'value with "double" and \'single\''),
+        new Secret('WITH_BACKSLASH', 'value\\with\\backslash'),
+        new Secret('EMPTY_VALUE', ''),
+        new Secret('NULL_VALUE', null),
     ]);
 });
 
@@ -49,7 +58,7 @@ describe('Template', function () {
             
             $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
             
-            expect($result)->toBe('DB_PASSWORD="secret123"');
+            expect($result)->toBe('DB_PASSWORD=secret123');
         });
         
         it('merges placeholder with quotes', function () {
@@ -73,7 +82,7 @@ describe('Template', function () {
             
             $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
             
-            expect($result)->toBe('DB_HOST="localhost"');
+            expect($result)->toBe('DB_HOST=localhost');
         });
         
         it('handles placeholders with attributes', function () {
@@ -89,7 +98,7 @@ describe('Template', function () {
             
             $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
             
-            expect($result)->toBe('DB_PASSWORD="secret123" # Database password');
+            expect($result)->toBe('DB_PASSWORD=secret123 # Database password');
         });
         
         it('handles multiple placeholders in template', function () {
@@ -102,8 +111,8 @@ describe('Template', function () {
             $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
             
             expect($result)->toBe(
-                "DB_PASSWORD=\"secret123\"\n" .
-                "DB_HOST=\"localhost\"\n" .
+                "DB_PASSWORD=secret123\n" .
+                "DB_HOST=localhost\n" .
                 "API_KEY=\"api_secret_key\""
             );
         });
@@ -120,7 +129,7 @@ describe('Template', function () {
             
             expect($result)->toBe(
                 "# Comment line\n" .
-                "DB_PASSWORD=\"secret123\"\n" .
+                "DB_PASSWORD=secret123\n" .
                 "STATIC_VALUE=not_a_placeholder\n" .
                 "API_KEY=\"api_secret_key\""
             );
@@ -132,7 +141,7 @@ describe('Template', function () {
             $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
             
             // Whitespace should be preserved from the template
-            expect($result)->toBe('   DB_PASSWORD="secret123"   ');
+            expect($result)->toBe('   DB_PASSWORD=secret123   ');
         });
         
         it('handles special characters in secret values', function () {
@@ -141,7 +150,7 @@ describe('Template', function () {
             $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
             
             // Quotes should now be properly escaped
-            expect($result)->toBe('SPECIAL_CHARS="value with \"quotes\" and $pecial"');
+            expect($result)->toBe('SPECIAL_CHARS=\'value with "quotes" and $pecial\'');
         });
         
         it('properly escapes double quotes in values', function () {
@@ -161,9 +170,9 @@ describe('Template', function () {
             
             // Only double quotes are escaped for .env compatibility
             expect($result)->toBe(
-                "QUOTES=\"value with \\\"double\\\" and 'single' quotes\"\n" .
-                "JSON=\"{\\\"key\\\": \\\"value\\\", \\\"nested\\\": {\\\"item\\\": \\\"data\\\"}}\"\n" .
-                "MIXED=\"Path: \\\"C:\\Program Files\\App\\\" and \$HOME\""
+                "QUOTES='value with \"double\" and \\'single\\' quotes'\n" .
+                "JSON='{\"key\": \"value\", \"nested\": {\"item\": \"data\"}}'\n" .
+                "MIXED='Path: \"C:\\\\Program Files\\\\App\" and \$HOME'"
             );
         });
         
@@ -176,7 +185,7 @@ describe('Template', function () {
             $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::SKIP);
             
             expect($result)->toBe(
-                "DB_PASSWORD=\"secret123\"\n" .
+                "DB_PASSWORD=secret123\n" .
                 "OTHER_SECRET={other-vault:OTHER_SECRET}"
             );
         });
@@ -249,7 +258,7 @@ describe('Template', function () {
             $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::REMOVE);
             
             expect($result)->toBe(
-                "DB_PASSWORD=\"secret123\"\n" .
+                "DB_PASSWORD=secret123\n" .
                 "# Removed missing secret: MISSING1={aws-ssm:MISSING1}\n" .
                 "API_KEY=\"api_secret_key\"\n" .
                 "# Removed missing secret: MISSING2={aws-ssm:MISSING2}"
@@ -288,8 +297,8 @@ describe('Template', function () {
             $result = $template->merge('aws-ssm', $secrets, MissingSecretStrategy::FAIL);
             
             expect($result)->toBe(
-                "SECRET1=\"value1\"\n" .
-                "SECRET2=\"value2\""
+                "SECRET1=value1\n" .
+                "SECRET2=value2"
             );
         });
         
@@ -298,7 +307,7 @@ describe('Template', function () {
             
             $result = $template->merge('aws-ssm-prod', $this->secrets, MissingSecretStrategy::FAIL);
             
-            expect($result)->toBe('DB_PASSWORD="secret123"');
+            expect($result)->toBe('DB_PASSWORD=secret123');
         });
         
         it('ignores placeholders with leading slashes in path', function () {
@@ -345,7 +354,7 @@ describe('Template', function () {
             $result3 = $template3->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
             
             // Spacing around equals should be preserved exactly
-            expect($result1)->toBe('DB_PASSWORD = "secret123"');
+            expect($result1)->toBe('DB_PASSWORD = secret123');
             expect($result2)->toBe('API_KEY= "api_secret_key"');
             expect($result3)->toBe('APP_KEY ="base64:key123"');
         });
@@ -371,10 +380,10 @@ describe('Template', function () {
             
             // All original formatting should be preserved
             expect($result)->toBe(
-                "    DB_HOST=\"localhost\"\n" .
-                "\tDB_PORT = \"3306\"\n" .
-                "  DB_NAME  =  \"myapp\"  \n" .
-                "DB_PASSWORD=\"secret\"    # Production password"
+                "    DB_HOST=localhost\n" .
+                "\tDB_PORT = 3306\n" .
+                "  DB_NAME  =  myapp  \n" .
+                "DB_PASSWORD=secret    # Production password"
             );
         });
     });
@@ -459,6 +468,86 @@ describe('Template', function () {
             expect($result)->toContain('APP_NAME="My App"');
             expect($result)->toContain('DB_PORT=3306');
             expect($result)->toContain('# Application Settings');
+        });
+    });
+    
+    describe('smart quoting behavior', function () {
+        it('leaves pure alphanumeric values unquoted', function () {
+            $template = new Template(
+                "ALPHANUMERIC={aws-ssm:ALPHANUMERIC}\n" .
+                "NUMERIC={aws-ssm:NUMERIC}"
+            );
+            
+            $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            
+            expect($result)->toBe(
+                "ALPHANUMERIC=abc123\n" .
+                "NUMERIC=12345"
+            );
+        });
+        
+        it('quotes values with spaces', function () {
+            $template = new Template('WITH_SPACES={aws-ssm:WITH_SPACES}');
+            
+            $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            
+            expect($result)->toBe('WITH_SPACES="value with spaces"');
+        });
+        
+        it('quotes values with special characters', function () {
+            $template = new Template('APP_KEY={aws-ssm:APP_KEY}');
+            
+            $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            
+            expect($result)->toBe('APP_KEY="base64:key123"');
+        });
+        
+        it('handles values with single quotes using double quotes', function () {
+            $template = new Template('WITH_SINGLE_QUOTES={aws-ssm:WITH_SINGLE_QUOTES}');
+            
+            $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            
+            expect($result)->toBe('WITH_SINGLE_QUOTES="value with \'quotes\'"');
+        });
+        
+        it('handles values with double quotes using single quotes and escaping', function () {
+            $template = new Template('WITH_DOUBLE_QUOTES={aws-ssm:WITH_DOUBLE_QUOTES}');
+            
+            $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            
+            expect($result)->toBe('WITH_DOUBLE_QUOTES=\'value with "quotes"\'');
+        });
+        
+        it('handles values with both quote types', function () {
+            $template = new Template('WITH_BOTH_QUOTES={aws-ssm:WITH_BOTH_QUOTES}');
+            
+            $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            
+            expect($result)->toBe('WITH_BOTH_QUOTES=\'value with "double" and \\\'single\\\'\'');
+        });
+        
+        it('properly escapes backslashes', function () {
+            $template = new Template('WITH_BACKSLASH={aws-ssm:WITH_BACKSLASH}');
+            
+            $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            
+            expect($result)->toBe('WITH_BACKSLASH="value\\\\with\\\\backslash"');
+        });
+        
+        it('handles empty values without quotes', function () {
+            $template = new Template('EMPTY_VALUE={aws-ssm:EMPTY_VALUE}');
+            
+            $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            
+            expect($result)->toBe('EMPTY_VALUE=');
+        });
+        
+        it('handles null values without quotes', function () {
+            $template = new Template('NULL_VALUE={aws-ssm:NULL_VALUE}');
+            
+            $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            
+            expect($result)->toBe('NULL_VALUE=');
         });
     });
 });

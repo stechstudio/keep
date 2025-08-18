@@ -79,9 +79,9 @@ describe('SecretsCollection', function () {
             $envString = $secrets->toEnvString();
             
             expect($envString)->toBe(
-                'DB_HOST="localhost"' . PHP_EOL .
-                'DB_PORT="3306"' . PHP_EOL .
-                'DB_NAME="myapp"'
+                'DB_HOST=localhost' . PHP_EOL .
+                'DB_PORT=3306' . PHP_EOL .
+                'DB_NAME=myapp'
             );
         });
         
@@ -95,9 +95,9 @@ describe('SecretsCollection', function () {
             $envString = $secrets->toEnvString();
             
             expect($envString)->toBe(
-                'KEY1="value1"' . PHP_EOL .
+                'KEY1=value1' . PHP_EOL .
                 'KEY2=' . PHP_EOL .
-                'KEY3="value3"'
+                'KEY3=value3'
             );
         });
         
@@ -110,7 +110,7 @@ describe('SecretsCollection', function () {
             $envString = $secrets->toEnvString();
             
             expect($envString)->toBe(
-                'QUOTED="value with \\"quotes\\""' . PHP_EOL .
+                'QUOTED=\'value with "quotes"\'' . PHP_EOL .
                 'NORMAL="normal value"'
             );
         });
@@ -119,6 +119,90 @@ describe('SecretsCollection', function () {
             $secrets = new SecretsCollection([]);
             
             expect($secrets->toEnvString())->toBe('');
+        });
+        
+        it('uses smart quoting - leaves alphanumeric unquoted', function () {
+            $secrets = new SecretsCollection([
+                new Secret('ALPHA', 'abc123'),
+                new Secret('NUMERIC', '42'),
+                new Secret('UPPER', 'ABC'),
+                new Secret('MIXED', 'AbC123'),
+            ]);
+            
+            $envString = $secrets->toEnvString();
+            
+            expect($envString)->toBe(
+                'ALPHA=abc123' . PHP_EOL .
+                'NUMERIC=42' . PHP_EOL .
+                'UPPER=ABC' . PHP_EOL .
+                'MIXED=AbC123'
+            );
+        });
+        
+        it('uses smart quoting - quotes special characters', function () {
+            $secrets = new SecretsCollection([
+                new Secret('WITH_SPACES', 'value with spaces'),
+                new Secret('WITH_COLON', 'base64:key'),
+                new Secret('WITH_EQUALS', 'key=value'),
+                new Secret('WITH_DASH', 'some-value'),
+                new Secret('WITH_DOT', 'file.txt'),
+                new Secret('WITH_SLASH', 'path/to/file'),
+            ]);
+            
+            $envString = $secrets->toEnvString();
+            
+            expect($envString)->toBe(
+                'WITH_SPACES="value with spaces"' . PHP_EOL .
+                'WITH_COLON="base64:key"' . PHP_EOL .
+                'WITH_EQUALS="key=value"' . PHP_EOL .
+                'WITH_DASH="some-value"' . PHP_EOL .
+                'WITH_DOT="file.txt"' . PHP_EOL .
+                'WITH_SLASH="path/to/file"'
+            );
+        });
+        
+        it('chooses correct quote style based on content', function () {
+            $secrets = new SecretsCollection([
+                new Secret('SINGLE_QUOTES', "value with 'quotes'"),
+                new Secret('DOUBLE_QUOTES', 'value with "quotes"'),
+                new Secret('BOTH_QUOTES', 'has "double" and \'single\''),
+            ]);
+            
+            $envString = $secrets->toEnvString();
+            
+            expect($envString)->toBe(
+                'SINGLE_QUOTES="value with \'quotes\'"' . PHP_EOL .
+                'DOUBLE_QUOTES=\'value with "quotes"\'' . PHP_EOL .
+                'BOTH_QUOTES=\'has "double" and \\\'single\\\'\''
+            );
+        });
+        
+        it('properly escapes backslashes', function () {
+            $secrets = new SecretsCollection([
+                new Secret('PATH', 'C:\\Windows\\System32'),
+                new Secret('REGEX', '\\d+\\w*'),
+            ]);
+            
+            $envString = $secrets->toEnvString();
+            
+            expect($envString)->toBe(
+                'PATH="C:\\\\Windows\\\\System32"' . PHP_EOL .
+                'REGEX="\\\\d+\\\\w*"'
+            );
+        });
+        
+        it('handles empty and null consistently', function () {
+            $secrets = new SecretsCollection([
+                new Secret('EMPTY', ''),
+                new Secret('NULL', null),
+            ]);
+            
+            $envString = $secrets->toEnvString();
+            
+            expect($envString)->toBe(
+                'EMPTY=' . PHP_EOL .
+                'NULL='
+            );
         });
     });
     

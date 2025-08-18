@@ -3,11 +3,13 @@
 namespace STS\Keep\Data;
 
 use Illuminate\Support\Collection;
+use STS\Keep\Concerns\FormatsEnvValues;
 use STS\Keep\Enums\MissingSecretStrategy;
 use STS\Keep\Exceptions\SecretNotFoundException;
 
 class Template
 {
+    use FormatsEnvValues;
     public function __construct(protected string $contents)
     {
     }
@@ -51,7 +53,7 @@ class Template
             }
 
             $value = $secret->value();
-            $formattedValue = $value !== null ? '"' . addcslashes($value, '"') . '"' : '';
+            $formattedValue = $this->formatEnvValue($value);
             
             // Preserve original formatting from template
             return $matches['lead'] . 

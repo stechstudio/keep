@@ -4,9 +4,11 @@ namespace STS\Keep\Data;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use STS\Keep\Concerns\FormatsEnvValues;
 
 class SecretsCollection extends Collection
 {
+    use FormatsEnvValues;
     public function toKeyValuePair(): static
     {
         return $this->mapWithKeys(fn(Secret $secret) => [$secret->key() => $secret->value()]);
@@ -14,7 +16,9 @@ class SecretsCollection extends Collection
 
     public function toEnvString()
     {
-        return $this->map(fn(Secret $secret) => $secret->key() . '=' . ($secret->value() !== null ? '"' . addcslashes($secret->value(), '"') . '"' : ''))->implode(PHP_EOL);
+        return $this->map(fn(Secret $secret) => 
+            $secret->key() . '=' . $this->formatEnvValue($secret->value())
+        )->implode(PHP_EOL);
     }
 
     public function filterByPatterns(?string $only = null, ?string $except = null): static

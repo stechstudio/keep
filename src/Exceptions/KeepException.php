@@ -49,27 +49,15 @@ class KeepException extends RuntimeException
         $command->error($this->getMessage());
         
         // Build context details
-        $contextLines = [];
-        
-        if ($this->vault) {
-            $contextLines[] = "  Vault: {$this->vault}";
-        }
-        
-        if ($this->environment) {
-            $contextLines[] = "  Environment: {$this->environment}";
-        }
-        
-        if ($this->key) {
-            $contextLines[] = "  Key: {$this->key}";
-        }
-        
-        if ($this->path) {
-            $contextLines[] = "  Path: {$this->path}";
-        }
-        
-        if ($this->lineNumber) {
-            $contextLines[] = "  Template line: {$this->lineNumber}";
-        }
+        $contextLines = array_filter([
+            'Vault' => $this->vault,
+            'Environment' => $this->environment,
+            'Key' => $this->key,
+            'Path' => $this->path,
+            'Template line' => $this->lineNumber,
+        ]);
+
+        $contextLines = array_map(fn($k, $v) => "  $k: $v", array_keys($contextLines), $contextLines);
         
         // Output context if we have any
         if (!empty($contextLines)) {
