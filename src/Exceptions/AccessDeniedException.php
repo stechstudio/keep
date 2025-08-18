@@ -2,7 +2,4 @@
 
 namespace STS\Keep\Exceptions;
 
-class AccessDeniedException extends KeepException
-{
-
-}
+class AccessDeniedException extends KeepException {}

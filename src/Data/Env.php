@@ -3,16 +3,13 @@
 namespace STS\Keep\Data;
 
 use Dotenv\Parser\Parser;
-use Dotenv\Store\StoreBuilder;
 use Illuminate\Support\Collection;
 
 class Env
 {
     protected Collection $entries;
 
-    public function __construct(protected string $contents)
-    {
-    }
+    public function __construct(protected string $contents) {}
 
     public function contents(): string
     {
@@ -21,7 +18,7 @@ class Env
 
     public function entries(): Collection
     {
-        return $this->entries ??= collect((new Parser())->parse($this->contents));
+        return $this->entries ??= collect((new Parser)->parse($this->contents));
     }
 
     public function allKeys(): Collection

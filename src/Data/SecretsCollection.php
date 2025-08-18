@@ -9,15 +9,15 @@ use STS\Keep\Concerns\FormatsEnvValues;
 class SecretsCollection extends Collection
 {
     use FormatsEnvValues;
+
     public function toKeyValuePair(): static
     {
-        return $this->mapWithKeys(fn(Secret $secret) => [$secret->key() => $secret->value()]);
+        return $this->mapWithKeys(fn (Secret $secret) => [$secret->key() => $secret->value()]);
     }
 
     public function toEnvString()
     {
-        return $this->map(fn(Secret $secret) => 
-            $secret->key() . '=' . $this->formatEnvValue($secret->value())
+        return $this->map(fn (Secret $secret) => $secret->key().'='.$this->formatEnvValue($secret->value())
         )->implode(PHP_EOL);
     }
 
@@ -29,26 +29,26 @@ class SecretsCollection extends Collection
         return $this->filter(function (Secret $secret) use ($onlyPatterns, $exceptPatterns) {
             $key = $secret->key();
 
-            $matchesOnly = $onlyPatterns->isEmpty() || $onlyPatterns->contains(fn($pattern) => Str::is($pattern, $key));
-            $matchesExcept = $exceptPatterns->isNotEmpty() && $exceptPatterns->contains(fn($pattern) => Str::is($pattern, $key));
+            $matchesOnly = $onlyPatterns->isEmpty() || $onlyPatterns->contains(fn ($pattern) => Str::is($pattern, $key));
+            $matchesExcept = $exceptPatterns->isNotEmpty() && $exceptPatterns->contains(fn ($pattern) => Str::is($pattern, $key));
 
-            return $matchesOnly && !$matchesExcept;
+            return $matchesOnly && ! $matchesExcept;
         });
     }
 
     public function allKeys(): static
     {
-        return $this->map(fn(Secret $secret) => $secret->key())->values();
+        return $this->map(fn (Secret $secret) => $secret->key())->values();
     }
 
     public function hasKey(string $key): bool
     {
-        return $this->contains(fn(Secret $secret) => $secret->key() === $key);
+        return $this->contains(fn (Secret $secret) => $secret->key() === $key);
     }
 
     public function getByKey(string $key): ?Secret
     {
-        return $this->first(fn(Secret $secret) => $secret->key() === $key) ?: null;
+        return $this->first(fn (Secret $secret) => $secret->key() === $key) ?: null;
     }
 
     public function mapToOnly($keys = [])

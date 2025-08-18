@@ -1,4 +1,5 @@
 <?php
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -40,7 +41,7 @@ return [
     | policies restrict access to only the environments needed.
     |
     */
-    'environments' => explode(",", env('KEEP_ENVS', 'local,staging,production')),
+    'environments' => explode(',', env('KEEP_ENVS', 'local,staging,production')),
 
     /*
     |--------------------------------------------------------------------------
@@ -86,7 +87,7 @@ return [
     | vault. Otherwise, the default vault will be the only available one.
     |
     */
-    'available' => explode(",", env('KEEP_AVAILABLE_VAULTS', env('KEEP_VAULT', 'aws_ssm'))),
+    'available' => explode(',', env('KEEP_AVAILABLE_VAULTS', env('KEEP_VAULT', 'aws_ssm'))),
 
     /*
     |--------------------------------------------------------------------------

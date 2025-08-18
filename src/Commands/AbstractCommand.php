@@ -10,7 +10,7 @@ use STS\Keep\Exceptions\KeepException;
 
 abstract class AbstractCommand extends Command
 {
-    use GathersInput, InteractsWithVaults, InteractsWithFilesystem;
+    use GathersInput, InteractsWithFilesystem, InteractsWithVaults;
 
     public function handle(): int
     {
@@ -18,12 +18,14 @@ abstract class AbstractCommand extends Command
             $result = $this->process();
 
             return is_int($result) ? $result : self::SUCCESS;
-        } catch(KeepException $e) {
+        } catch (KeepException $e) {
             $e->renderConsole($this->line(...));
+
             return self::FAILURE;
         } catch (\Exception $e) {
-            $this->error("An error occurred");
+            $this->error('An error occurred');
             $this->line($e->getMessage());
+
             return self::FAILURE;
         }
     }

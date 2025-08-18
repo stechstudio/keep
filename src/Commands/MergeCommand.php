@@ -2,10 +2,10 @@
 
 namespace STS\Keep\Commands;
 
-use STS\Keep\Commands\Concerns\InteractsWithFilesystem;
 use STS\Keep\Data\SecretsCollection;
 use STS\Keep\Data\Template;
 use STS\Keep\Enums\MissingSecretStrategy;
+
 use function Laravel\Prompts\text;
 
 class MergeCommand extends AbstractCommand
@@ -16,17 +16,18 @@ class MergeCommand extends AbstractCommand
         {--overwrite : Overwrite the output file if it exists} 
         {--append : Append to the output file if it exists} 
         {--missing=fail : How to handle missing secrets: fail|remove|blank|skip (default: fail) } '
-    .self::VAULT_SIGNATURE
-    .self::ENV_SIGNATURE;
+        .self::VAULT_SIGNATURE
+        .self::ENV_SIGNATURE;
 
     public $description = 'Merge environment secrets into a template env file, replacing placeholders with actual secret values from a specified vault';
 
     protected Template $baseTemplate;
+
     protected Template $overlayTemplate;
 
     public function process(): int
     {
-        if (!$this->prepareTemplateContents()) {
+        if (! $this->prepareTemplateContents()) {
             return self::FAILURE;
         }
 
@@ -59,8 +60,9 @@ class MergeCommand extends AbstractCommand
             ?? config('keep.template')
             ?? text('Template file with placeholders', required: true);
 
-        if (!file_exists($template) || !is_readable($template)) {
+        if (! file_exists($template) || ! is_readable($template)) {
             $this->error("Template file [$template] does not exist or is not readable.");
+
             return false;
         }
 
@@ -70,8 +72,9 @@ class MergeCommand extends AbstractCommand
         $overlayTemplate = $this->option('overlay') ?? $this->findEnvironmentOverlayTemplate();
 
         if ($overlayTemplate) {
-            if (!file_exists($overlayTemplate) || !is_readable($overlayTemplate)) {
+            if (! file_exists($overlayTemplate) || ! is_readable($overlayTemplate)) {
                 $this->error("Overlay file [$overlayTemplate] does not exist or is not readable.");
+
                 return false;
             }
 

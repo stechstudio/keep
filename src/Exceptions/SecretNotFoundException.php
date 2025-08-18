@@ -2,7 +2,4 @@
 
 namespace STS\Keep\Exceptions;
 
-class SecretNotFoundException extends KeepException
-{
-
-}
+class SecretNotFoundException extends KeepException {}
