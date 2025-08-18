@@ -77,7 +77,7 @@ DB_PASSWORD={aws-ssm:DB_PASSWORD} # or just {aws-ssm} since the key matches the 
 Then run the merge command:
 
 ```bash
-php artisan keep:merge .env.base .env --env=production
+php artisan keep:merge --template=.env.base --output=.env --env=production
 ```
 
 You will not have a `.env` file with all the values from the template and the secrets filled in.
