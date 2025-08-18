@@ -41,7 +41,14 @@ class Template
 
             $value = $secret->value();
             $formattedValue = $value !== null ? '"' . addcslashes($value, '"') . '"' : '';
-            return trim($matches['key'] . '=' . $formattedValue . ' ' . ($matches['comment'] ?? ''));
+            
+            // Preserve original formatting from template
+            return $matches['lead'] . 
+                   $matches['key'] . 
+                   $matches['mid'] . 
+                   $formattedValue . 
+                   $matches['trail'] . 
+                   ($matches['comment'] ?? '');
         }, $this->contents);
     }
 

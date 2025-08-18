@@ -126,13 +126,13 @@ describe('Template', function () {
             );
         });
         
-        it('handles leading and trailing whitespace', function () {
+        it('preserves leading and trailing whitespace', function () {
             $template = new Template('   DB_PASSWORD={aws-ssm:DB_PASSWORD}   ');
             
             $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
             
-            // The trim() in the merge method removes trailing spaces from the result
-            expect($result)->toBe('DB_PASSWORD="secret123"');
+            // Whitespace should be preserved from the template
+            expect($result)->toBe('   DB_PASSWORD="secret123"   ');
         });
         
         it('handles special characters in secret values', function () {
@@ -320,10 +320,38 @@ describe('Template', function () {
             $result2 = $template2->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
             $result3 = $template3->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
             
-            // The trim() in the merge method normalizes the output
-            expect($result1)->toBe('DB_PASSWORD="secret123"');
-            expect($result2)->toBe('API_KEY="api_secret_key"');
-            expect($result3)->toBe('APP_KEY="base64:key123"');
+            // Spacing around equals should be preserved exactly
+            expect($result1)->toBe('DB_PASSWORD = "secret123"');
+            expect($result2)->toBe('API_KEY= "api_secret_key"');
+            expect($result3)->toBe('APP_KEY ="base64:key123"');
+        });
+    });
+    
+    describe('whitespace preservation', function () {
+        it('preserves complex formatting exactly', function () {
+            $template = new Template(
+                "    DB_HOST={aws-ssm:DB_HOST}\n" .
+                "\tDB_PORT = {aws-ssm}\n" .
+                "  DB_NAME  =  {aws-ssm:DB_NAME}  \n" .
+                "DB_PASSWORD={aws-ssm:DB_PASSWORD}    # Production password"
+            );
+            
+            $secrets = new SecretsCollection([
+                new Secret('DB_HOST', 'localhost'),
+                new Secret('DB_PORT', '3306'),
+                new Secret('DB_NAME', 'myapp'),
+                new Secret('DB_PASSWORD', 'secret'),
+            ]);
+            
+            $result = $template->merge('aws-ssm', $secrets, MissingSecretStrategy::FAIL);
+            
+            // All original formatting should be preserved
+            expect($result)->toBe(
+                "    DB_HOST=\"localhost\"\n" .
+                "\tDB_PORT = \"3306\"\n" .
+                "  DB_NAME  =  \"myapp\"  \n" .
+                "DB_PASSWORD=\"secret\"    # Production password"
+            );
         });
     });
     
@@ -336,7 +364,7 @@ describe('Template', function () {
                 new Secret('KEY4', 'path\\with\\backslash'),
             ]);
             
-            // Template approach
+            // Template approach (without extra whitespace so it matches)
             $template = new Template(
                 "KEY1={aws-ssm:KEY1}\n" .
                 "KEY2={aws-ssm:KEY2}\n" .
@@ -348,7 +376,7 @@ describe('Template', function () {
             // SecretsCollection approach
             $collectionResult = $secrets->toEnvString();
             
-            // Both should produce the same escaping
+            // Both should produce the same output when template has no extra whitespace
             expect($templateResult)->toBe($collectionResult);
         });
     });
