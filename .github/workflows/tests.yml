@@ -13,11 +13,9 @@ jobs:
       fail-fast: true
       matrix:
         php: [8.3]
-        laravel: [10.*, 11.*, 12.*]
+        laravel: [11.*, 12.*]
         stability: [prefer-lowest, prefer-stable]
         include:
-          - laravel: 10.*
-            testbench: ^8.22.0
           - laravel: 11.*
             testbench: ^9.0.0
           - laravel: 12.*
@@ -50,4 +48,4 @@ jobs:
         run: composer show -D
 
       - name: Execute tests
-        run: vendor/bin/pest --colors=always
+        run: composer test
