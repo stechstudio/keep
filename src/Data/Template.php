@@ -39,7 +39,9 @@ class Template
                 };
             }
 
-            return trim($matches['key'] . '="' . $secret->value() . '" ' . ($matches['comment'] ?? ''));
+            $value = $secret->value();
+            $formattedValue = $value !== null ? '"' . addcslashes($value, '"') . '"' : '';
+            return trim($matches['key'] . '=' . $formattedValue . ' ' . ($matches['comment'] ?? ''));
         }, $this->contents);
     }
 

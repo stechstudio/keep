@@ -140,8 +140,31 @@ describe('Template', function () {
             
             $result = $template->merge('aws-ssm', $this->secrets, MissingSecretStrategy::FAIL);
             
-            // Quotes are not escaped in the current implementation
-            expect($result)->toBe('SPECIAL_CHARS="value with "quotes" and $pecial"');
+            // Quotes should now be properly escaped
+            expect($result)->toBe('SPECIAL_CHARS="value with \"quotes\" and $pecial"');
+        });
+        
+        it('properly escapes double quotes in values', function () {
+            $secrets = new SecretsCollection([
+                new Secret('QUOTES', 'value with "double" and \'single\' quotes'),
+                new Secret('JSON', '{"key": "value", "nested": {"item": "data"}}'),
+                new Secret('MIXED', 'Path: "C:\\Program Files\\App" and $HOME'),
+            ]);
+            
+            $template = new Template(
+                "QUOTES={aws-ssm:QUOTES}\n" .
+                "JSON={aws-ssm:JSON}\n" .
+                "MIXED={aws-ssm:MIXED}"
+            );
+            
+            $result = $template->merge('aws-ssm', $secrets, MissingSecretStrategy::FAIL);
+            
+            // Only double quotes are escaped for .env compatibility
+            expect($result)->toBe(
+                "QUOTES=\"value with \\\"double\\\" and 'single' quotes\"\n" .
+                "JSON=\"{\\\"key\\\": \\\"value\\\", \\\"nested\\\": {\\\"item\\\": \\\"data\\\"}}\"\n" .
+                "MIXED=\"Path: \\\"C:\\Program Files\\App\\\" and \$HOME\""
+            );
         });
         
         it('only matches specified slug', function () {
@@ -301,6 +324,32 @@ describe('Template', function () {
             expect($result1)->toBe('DB_PASSWORD="secret123"');
             expect($result2)->toBe('API_KEY="api_secret_key"');
             expect($result3)->toBe('APP_KEY="base64:key123"');
+        });
+    });
+    
+    describe('consistency with SecretsCollection', function () {
+        it('produces same escaping as SecretsCollection::toEnvString()', function () {
+            $secrets = new SecretsCollection([
+                new Secret('KEY1', 'simple value'),
+                new Secret('KEY2', 'value with "quotes"'),
+                new Secret('KEY3', null),
+                new Secret('KEY4', 'path\\with\\backslash'),
+            ]);
+            
+            // Template approach
+            $template = new Template(
+                "KEY1={aws-ssm:KEY1}\n" .
+                "KEY2={aws-ssm:KEY2}\n" .
+                "KEY3={aws-ssm:KEY3}\n" .
+                "KEY4={aws-ssm:KEY4}"
+            );
+            $templateResult = $template->merge('aws-ssm', $secrets, MissingSecretStrategy::BLANK);
+            
+            // SecretsCollection approach
+            $collectionResult = $secrets->toEnvString();
+            
+            // Both should produce the same escaping
+            expect($templateResult)->toBe($collectionResult);
         });
     });
     
