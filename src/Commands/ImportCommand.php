@@ -5,6 +5,7 @@ namespace STS\Keep\Commands;
 use STS\Keep\Data\Env;
 use STS\Keep\Data\SecretsCollection;
 use STS\Keep\Exceptions\KeepException;
+
 use function Laravel\Prompts\table;
 use function Laravel\Prompts\text;
 
@@ -14,27 +15,29 @@ class ImportCommand extends AbstractCommand
         {--overwrite : Overwrite existing secrets} 
         {--skip-existing : Skip existing secrets}  
         {--dry-run : Show what would be imported without actually importing} '
-    .self::ONLY_EXCLUDE_SIGNATURE
-    .self::VAULT_SIGNATURE
-    .self::ENV_SIGNATURE;
+        .self::ONLY_EXCLUDE_SIGNATURE
+        .self::VAULT_SIGNATURE
+        .self::ENV_SIGNATURE;
 
     public $description = 'Import a .env file and store as environment secrets in a specified vault';
 
     public function process(): int
     {
         if ($this->option('overwrite') && $this->option('skip-existing')) {
-            $this->error("You cannot use --overwrite and --skip-existing together.");
+            $this->error('You cannot use --overwrite and --skip-existing together.');
+
             return self::FAILURE;
         }
 
         $envFilePath = $this->argument('from') ?? text('Path to .env file', required: true);
-        if (!file_exists($envFilePath) || !is_readable($envFilePath)) {
+        if (! file_exists($envFilePath) || ! is_readable($envFilePath)) {
             $this->error("Env file [$envFilePath] does not exist or is not readable.");
+
             return self::FAILURE;
         }
 
         $env = new Env(file_get_contents($envFilePath));
-        
+
         // Convert env entries to secrets and apply filtering
         $importSecrets = $env->secrets()->filterByPatterns(
             only: $this->option('only'),
@@ -43,7 +46,7 @@ class ImportCommand extends AbstractCommand
 
         $vaultSecrets = $this->vault()->list();
 
-        if (!$this->canImport($importSecrets, $vaultSecrets)) {
+        if (! $this->canImport($importSecrets, $vaultSecrets)) {
             return self::FAILURE;
         }
 
@@ -56,7 +59,7 @@ class ImportCommand extends AbstractCommand
         table(['Key', 'Status', 'Rev'], $this->resultsTable($importSecrets, $vaultSecrets, $imported));
 
         if ($this->option('dry-run')) {
-            $this->info("This was a dry run. No secrets were imported.");
+            $this->info('This was a dry run. No secrets were imported.');
         }
 
         return self::SUCCESS;
@@ -69,17 +72,20 @@ class ImportCommand extends AbstractCommand
 
         if ($existingKeys->isNotEmpty()) {
             if ($this->option('overwrite')) {
-                $this->warn("The following keys already exist and will be overwritten: ".$existingKeys->implode(', '));
+                $this->warn('The following keys already exist and will be overwritten: '.$existingKeys->implode(', '));
+
                 return true;
             }
 
             if ($this->option('skip-existing')) {
-                $this->warn("The following keys already exist and will be skipped: ".$existingKeys->implode(', '));
+                $this->warn('The following keys already exist and will be skipped: '.$existingKeys->implode(', '));
+
                 return true;
             }
 
-            $this->error("The following keys already exist: ".$existingKeys->implode(', '));
-            $this->line("Use --overwrite to overwrite existing keys, or --skip-existing to skip them.");
+            $this->error('The following keys already exist: '.$existingKeys->implode(', '));
+            $this->line('Use --overwrite to overwrite existing keys, or --skip-existing to skip them.');
+
             return false;
         }
 
@@ -88,7 +94,7 @@ class ImportCommand extends AbstractCommand
 
     protected function runImport(SecretsCollection $importSecrets, SecretsCollection $vaultSecrets): SecretsCollection
     {
-        $imported = new SecretsCollection();
+        $imported = new SecretsCollection;
 
         foreach ($importSecrets as $secret) {
             if ($vaultSecrets->hasKey($secret->key()) && $this->option('skip-existing')) {
@@ -97,6 +103,7 @@ class ImportCommand extends AbstractCommand
 
             if (empty($secret->value())) {
                 $this->warn("Skipping key [{$secret->key()}] with empty value.");
+
                 continue;
             }
 
@@ -120,11 +127,11 @@ class ImportCommand extends AbstractCommand
         foreach ($importSecrets as $secret) {
             $key = $secret->key();
             $value = $secret->value();
-            
+
             // Determine status based on what actually happened
             $status = 'Skipped';
             $revision = null;
-            
+
             if ($imported && $imported->hasKey($key)) {
                 $status = 'Imported';
                 $revision = $imported->getByKey($key)->revision();
@@ -136,9 +143,9 @@ class ImportCommand extends AbstractCommand
             }
 
             $rows[] = [
-                'key'     => $key,
-                'status'  => $status,
-                'revision' => $revision
+                'key' => $key,
+                'status' => $status,
+                'revision' => $revision,
             ];
         }
 

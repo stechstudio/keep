@@ -7,9 +7,10 @@ use InvalidArgumentException;
 use STS\Keep\Vaults\AbstractVault;
 use STS\Keep\Vaults\AwsSsmVault;
 
-class KeepManager {
-
+class KeepManager
+{
     protected array $vaults = [];
+
     protected array $customCreators = [];
 
     protected $environmentResolver;
@@ -38,11 +39,11 @@ class KeepManager {
 
     public function environment($name = null): string|bool
     {
-        if($name) {
+        if ($name) {
             return $name === $this->environment();
         }
 
-        if(is_callable($this->environmentResolver)) {
+        if (is_callable($this->environmentResolver)) {
             return call_user_func($this->environmentResolver);
         }
 
@@ -79,7 +80,7 @@ class KeepManager {
             return $this->customCreators[$driver]($name, $config);
         }
 
-        $driverMethod = 'create' . Str::pascal($driver) . 'Driver';
+        $driverMethod = 'create'.Str::pascal($driver).'Driver';
 
         if (! method_exists($this, $driverMethod)) {
             throw new InvalidArgumentException("Driver [{$driver}] is not supported.");
@@ -91,6 +92,7 @@ class KeepManager {
     public function extend(string $driver, callable $creator): static
     {
         $this->customCreators[$driver] = $creator;
+
         return $this;
     }
 

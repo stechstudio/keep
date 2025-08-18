@@ -2,7 +2,6 @@
 
 namespace STS\Keep\Data;
 
-use Illuminate\Support\Collection;
 use STS\Keep\Concerns\FormatsEnvValues;
 use STS\Keep\Enums\MissingSecretStrategy;
 use STS\Keep\Exceptions\SecretNotFoundException;
@@ -10,9 +9,8 @@ use STS\Keep\Exceptions\SecretNotFoundException;
 class Template
 {
     use FormatsEnvValues;
-    public function __construct(protected string $contents)
-    {
-    }
+
+    public function __construct(protected string $contents) {}
 
     public function isEmpty(): bool
     {
@@ -21,23 +19,23 @@ class Template
 
     public function isNotEmpty(): bool
     {
-        return !$this->isEmpty();
+        return ! $this->isEmpty();
     }
 
     public function merge(string $slug, SecretsCollection $secrets, MissingSecretStrategy $strategy): string
     {
         $pattern = $this->pattern($slug);
 
-        return preg_replace_callback($pattern, function($matches) use ($secrets, $strategy, $slug) {
+        return preg_replace_callback($pattern, function ($matches) use ($secrets, $strategy, $slug) {
             // Calculate line number by counting newlines before this match
             $beforeMatch = strstr($this->contents, $matches[0], true);
             $lineNumber = $beforeMatch !== false ? substr_count($beforeMatch, "\n") + 1 : 1;
-            
-            $path = $matches['path'] ?: $matches['key'];
-            $secret = $secrets->firstWhere(fn(Secret $secret) => $secret->key() === $path);
 
-            if(!$secret) {
-                return match($strategy) {
+            $path = $matches['path'] ?: $matches['key'];
+            $secret = $secrets->firstWhere(fn (Secret $secret) => $secret->key() === $path);
+
+            if (! $secret) {
+                return match ($strategy) {
                     MissingSecretStrategy::FAIL => throw (new SecretNotFoundException("Unable to find secret for key [{$path}]"))
                         ->withContext(
                             vault: $slug,
@@ -46,21 +44,21 @@ class Template
                             lineNumber: $lineNumber,
                             suggestion: "Check if this secret exists using 'php artisan keeper:list --vault={$slug}'"
                         ),
-                    MissingSecretStrategy::REMOVE => '# Removed missing secret: ' . $matches['key'],
-                    MissingSecretStrategy::BLANK => $matches['key'] . '=',
+                    MissingSecretStrategy::REMOVE => '# Removed missing secret: '.$matches['key'],
+                    MissingSecretStrategy::BLANK => $matches['key'].'=',
                     MissingSecretStrategy::SKIP => $matches[0],
                 };
             }
 
             $value = $secret->value();
             $formattedValue = $this->formatEnvValue($value);
-            
+
             // Preserve original formatting from template
-            return $matches['lead'] . 
-                   $matches['key'] . 
-                   $matches['mid'] . 
-                   $formattedValue . 
-                   $matches['trail'] . 
+            return $matches['lead'].
+                   $matches['key'].
+                   $matches['mid'].
+                   $formattedValue.
+                   $matches['trail'].
                    ($matches['comment'] ?? '');
         }, $this->contents);
     }

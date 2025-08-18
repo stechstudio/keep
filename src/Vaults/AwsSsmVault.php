@@ -2,16 +2,15 @@
 
 namespace STS\Keep\Vaults;
 
-use Aws\Result;
 use Aws\Ssm\Exception\SsmException;
 use Aws\Ssm\SsmClient;
 use Illuminate\Support\Str;
+use STS\Keep\Data\Secret;
 use STS\Keep\Data\SecretsCollection;
 use STS\Keep\Exceptions\AccessDeniedException;
 use STS\Keep\Exceptions\KeepException;
 use STS\Keep\Exceptions\SecretNotFoundException;
 use STS\Keep\Facades\Keep;
-use STS\Keep\Data\Secret;
 
 class AwsSsmVault extends AbstractVault
 {
@@ -25,25 +24,25 @@ class AwsSsmVault extends AbstractVault
 
         return Str::of($this->config['prefix'] ?? '')
             ->start('/')->finish('/')
-            ->append(Keep::namespace() . "/")
-            ->append($this->environment . "/")
+            ->append(Keep::namespace().'/')
+            ->append($this->environment.'/')
             ->append($key)
-            ->rtrim("/")
+            ->rtrim('/')
             ->toString();
     }
 
     public function list(): SecretsCollection
     {
         try {
-            $secrets = new SecretsCollection();
+            $secrets = new SecretsCollection;
             $nextToken = null;
 
             do {
                 $params = [
-                    'Path'           => $this->format(),
-                    'Recursive'      => true,
+                    'Path' => $this->format(),
+                    'Recursive' => true,
                     'WithDecryption' => true,
-                    'MaxResults'     => 10,
+                    'MaxResults' => 10,
                 ];
 
                 if ($nextToken) {
@@ -72,7 +71,7 @@ class AwsSsmVault extends AbstractVault
             } while ($nextToken = $result->get('NextToken'));
 
         } catch (SsmException $e) {
-            if($e->getAwsErrorCode() === "AccessDeniedException") {
+            if ($e->getAwsErrorCode() === 'AccessDeniedException') {
                 throw new AccessDeniedException($e->getAwsErrorMessage());
             } else {
                 throw new KeepException($e->getAwsErrorMessage());
@@ -86,13 +85,13 @@ class AwsSsmVault extends AbstractVault
     {
         try {
             $result = $this->client()->getParameter([
-                'Name'           => $this->format($key),
+                'Name' => $this->format($key),
                 'WithDecryption' => true,
             ]);
 
             $parameter = $result->get('Parameter');
 
-            if (!$parameter || !is_array($parameter)) {
+            if (! $parameter || ! is_array($parameter)) {
                 throw new SecretNotFoundException("Secret not found [{$this->format($key)}");
             }
 
@@ -107,9 +106,9 @@ class AwsSsmVault extends AbstractVault
                 vault: $this,
             );
         } catch (SsmException $e) {
-            if($e->getAwsErrorCode() === "ParameterNotFound") {
+            if ($e->getAwsErrorCode() === 'ParameterNotFound') {
                 throw new SecretNotFoundException("Secret not found [{$this->format($key)}");
-            } elseif($e->getAwsErrorCode() === "AccessDeniedException") {
+            } elseif ($e->getAwsErrorCode() === 'AccessDeniedException') {
                 throw new AccessDeniedException($e->getAwsErrorMessage());
             } else {
                 throw new KeepException($e->getAwsErrorMessage());
@@ -126,15 +125,15 @@ class AwsSsmVault extends AbstractVault
     {
         try {
             $this->client()->putParameter([
-                'Name'      => $this->format($key),
-                'Value'     => $value,
-                'Type'      => $secure ? 'SecureString' : 'String',
+                'Name' => $this->format($key),
+                'Value' => $value,
+                'Type' => $secure ? 'SecureString' : 'String',
                 'Overwrite' => true,
             ]);
 
             return $this->get($key);
         } catch (SsmException $e) {
-            if($e->getAwsErrorCode() === "AccessDeniedException") {
+            if ($e->getAwsErrorCode() === 'AccessDeniedException') {
                 throw new AccessDeniedException($e->getAwsErrorMessage());
             } else {
                 throw new KeepException($e->getAwsErrorMessage());

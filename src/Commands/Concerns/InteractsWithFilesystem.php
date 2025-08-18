@@ -17,10 +17,11 @@ trait InteractsWithFilesystem
             } elseif ($append) {
                 $flags = FILE_APPEND; // Append
             } else {
-                if (confirm("Output file already exists. Overwrite?", false)) {
+                if (confirm('Output file already exists. Overwrite?', false)) {
                     $flags = 0; // Overwrite
                 } else {
                     $this->error("File [$filePath] already exists. Use --overwrite or --append option.");
+
                     return self::FAILURE;
                 }
             }
@@ -32,13 +33,13 @@ trait InteractsWithFilesystem
         return self::SUCCESS;
     }
 
-    protected function findEnvironmentOverlayTemplate(): string|null
+    protected function findEnvironmentOverlayTemplate(): ?string
     {
-        if(!config('keep.environment_templates')) {
+        if (! config('keep.environment_templates')) {
             return null;
         }
 
-        $path = config('keep.environment_templates') . "/" . $this->environment() . '.env';
+        $path = config('keep.environment_templates').'/'.$this->environment().'.env';
 
         return file_exists($path) && is_readable($path) ? $path : null;
     }

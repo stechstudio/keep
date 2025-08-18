@@ -20,11 +20,13 @@ class TestVault extends AbstractVault
      * ]
      */
     protected static array $storage = [];
+
     protected int $revision = 1;
 
     public function list(): SecretsCollection
     {
         $secrets = $this->getVaultEnvironmentSecrets();
+
         return new SecretsCollection(collect($secrets)->values());
     }
 
@@ -32,8 +34,8 @@ class TestVault extends AbstractVault
     {
         $path = $this->format($key);
         $secrets = $this->getVaultEnvironmentSecrets();
-        
-        if (!isset($secrets[$path])) {
+
+        if (! isset($secrets[$path])) {
             throw new SecretNotFoundException("Secret [{$key}] not found in vault [{$this->name()}].");
         }
 
@@ -45,28 +47,29 @@ class TestVault extends AbstractVault
         $path = $this->format($key);
         $secrets = $this->getVaultEnvironmentSecrets();
         $revision = isset($secrets[$path]) ? $secrets[$path]->revision() + 1 : 1;
-        
+
         $secret = new Secret($key, $value, null, $secure, $this->environment, $revision, $path, $this);
         $this->setVaultEnvironmentSecret($path, $secret);
-        
+
         return $secret;
     }
 
     public function save(Secret $secret): Secret
     {
         $this->setVaultEnvironmentSecret($secret->path(), $secret);
+
         return $secret;
     }
 
     public function format(?string $key = null): string
     {
-        if (!$key) {
+        if (! $key) {
             return sprintf('/%s/%s/', $this->config['namespace'] ?? 'test-app', $this->environment);
         }
 
-        $formatter = $this->keyFormatter ?? fn($k) => strtoupper($k);
+        $formatter = $this->keyFormatter ?? fn ($k) => strtoupper($k);
         $formattedKey = call_user_func($formatter, $key);
-        
+
         return sprintf('/%s/%s/%s', $this->config['namespace'] ?? 'test-app', $this->environment, $formattedKey);
     }
 
@@ -81,6 +84,7 @@ class TestVault extends AbstractVault
     public function hasSecret(string $key): bool
     {
         $secrets = $this->getVaultEnvironmentSecrets();
+
         return isset($secrets[$this->format($key)]);
     }
 
@@ -102,14 +106,14 @@ class TestVault extends AbstractVault
      */
     protected function setVaultEnvironmentSecret(string $path, Secret $secret): void
     {
-        if (!isset(self::$storage[$this->name()])) {
+        if (! isset(self::$storage[$this->name()])) {
             self::$storage[$this->name()] = [];
         }
-        
-        if (!isset(self::$storage[$this->name()][$this->environment])) {
+
+        if (! isset(self::$storage[$this->name()][$this->environment])) {
             self::$storage[$this->name()][$this->environment] = [];
         }
-        
+
         self::$storage[$this->name()][$this->environment][$path] = $secret;
     }
 

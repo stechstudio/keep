@@ -4,17 +4,17 @@ use Illuminate\Support\Facades\Artisan;
 use STS\Keep\Facades\Keep;
 
 describe('EndToEndWorkflowTest', function () {
-    
+
     beforeEach(function () {
         // Clear test vault before each test
         Keep::vault('test')->clear();
-        
+
         // Create test directory for file operations
-        if (!is_dir('/tmp/keeper-integration-test')) {
+        if (! is_dir('/tmp/keeper-integration-test')) {
             mkdir('/tmp/keeper-integration-test', 0755, true);
         }
     });
-    
+
     afterEach(function () {
         // Clean up test files safely
         if (is_dir('/tmp/keeper-integration-test')) {
@@ -29,7 +29,7 @@ describe('EndToEndWorkflowTest', function () {
             @rmdir('/tmp/keeper-integration-test');
         }
     });
-    
+
     describe('complete secret lifecycle', function () {
         it('set → get workflow', function () {
             // Step 1: Set a secret
@@ -38,35 +38,35 @@ describe('EndToEndWorkflowTest', function () {
                 'value' => 'integration-test-value',
                 '--vault' => 'test',
                 '--env' => 'testing',
-                '--no-interaction' => true
+                '--no-interaction' => true,
             ]);
-            
+
             expect($result)->toBe(0);
             expect(Artisan::output())->toContain('created in vault [test]');
-            
+
             // Step 2: Verify secret can be retrieved
             $result = Artisan::call('keep:get', [
                 'key' => 'INTEGRATION_TEST_KEY',
                 '--vault' => 'test',
                 '--env' => 'testing',
                 '--format' => 'raw',
-                '--no-interaction' => true
+                '--no-interaction' => true,
             ]);
-            
+
             expect($result)->toBe(0);
             expect(trim(Artisan::output()))->toBe('integration-test-value');
-            
+
             // Step 3: Verify secret appears in list
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--env' => 'testing',
                 '--format' => 'env',
-                '--no-interaction' => true
+                '--no-interaction' => true,
             ]);
-            
+
             expect($result)->toBe(0);
             expect(Artisan::output())->toContain('INTEGRATION_TEST_KEY=');
-            
+
             // Step 4: Export to file
             $exportFile = '/tmp/keeper-integration-test/single-secret.env';
             $result = Artisan::call('keep:export', [
@@ -74,58 +74,58 @@ describe('EndToEndWorkflowTest', function () {
                 '--format' => 'env',
                 '--vault' => 'test',
                 '--env' => 'testing',
-                '--no-interaction' => true
+                '--no-interaction' => true,
             ]);
-            
+
             expect($result)->toBe(0);
             expect(file_exists($exportFile))->toBeTrue();
-            
+
             $exportedContent = file_get_contents($exportFile);
             expect($exportedContent)->toContain('INTEGRATION_TEST_KEY=');
         });
-        
+
         it('command interactions work without errors', function () {
             // Test import command with simple file
             $sourceFile = '/tmp/keeper-integration-test/simple.env';
             file_put_contents($sourceFile, 'SIMPLE_KEY=simple_value');
-            
+
             $result = Artisan::call('keep:import', [
                 'from' => $sourceFile,
                 '--vault' => 'test',
                 '--env' => 'testing',
-                '--no-interaction' => true
+                '--no-interaction' => true,
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             // Test merge command with static template (no placeholders to avoid TestVault issues)
             $templateFile = '/tmp/keeper-integration-test/static.template';
             file_put_contents($templateFile, implode("\n", [
                 'STATIC_CONFIG=production',
-                'ANOTHER_STATIC=value'
+                'ANOTHER_STATIC=value',
             ]));
-            
+
             $mergedFile = '/tmp/keeper-integration-test/static-merged.env';
             $result = Artisan::call('keep:merge', [
                 'template' => $templateFile,
                 '--output' => $mergedFile,
                 '--vault' => 'test',
                 '--env' => 'testing',
-                '--no-interaction' => true
+                '--no-interaction' => true,
             ]);
-            
+
             expect($result)->toBe(0);
             expect(file_exists($mergedFile))->toBeTrue();
-            
+
             $mergedContent = file_get_contents($mergedFile);
             expect($mergedContent)->toContain('STATIC_CONFIG=production');
             expect($mergedContent)->toContain('ANOTHER_STATIC=value');
         });
     });
-    
+
     // NOTE: The following tests are commented out due to TestVault environment isolation issues
     // See DEV_PLAN.md for details on these known infrastructure limitations
-    
+
     /*
     describe('multi-environment secret management', function () {
         it('manages secrets across different environments', function () {
@@ -137,7 +137,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--env' => 'development',
                 '--no-interaction' => true
             ]);
-            
+
             Artisan::call('keep:set', [
                 'key' => 'API_URL',
                 'value' => 'https://api-dev.example.com',
@@ -145,7 +145,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--env' => 'development',
                 '--no-interaction' => true
             ]);
-            
+
             // Set up staging environment secrets
             Artisan::call('keep:set', [
                 'key' => 'DB_HOST',
@@ -154,7 +154,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--env' => 'staging',
                 '--no-interaction' => true
             ]);
-            
+
             Artisan::call('keep:set', [
                 'key' => 'API_URL',
                 'value' => 'https://api-staging.example.com',
@@ -162,7 +162,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--env' => 'staging',
                 '--no-interaction' => true
             ]);
-            
+
             // Set up production environment secrets
             Artisan::call('keep:set', [
                 'key' => 'DB_HOST',
@@ -171,7 +171,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--env' => 'production',
                 '--no-interaction' => true
             ]);
-            
+
             Artisan::call('keep:set', [
                 'key' => 'API_URL',
                 'value' => 'https://api.example.com',
@@ -179,7 +179,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--env' => 'production',
                 '--no-interaction' => true
             ]);
-            
+
             // Verify development environment
             $result = Artisan::call('keep:get', [
                 'key' => 'DB_HOST',
@@ -189,7 +189,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--no-interaction' => true
             ]);
             expect(trim(Artisan::output()))->toBe('localhost');
-            
+
             // Verify staging environment
             $result = Artisan::call('keep:get', [
                 'key' => 'API_URL',
@@ -199,7 +199,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--no-interaction' => true
             ]);
             expect(trim(Artisan::output()))->toBe('https://api-staging.example.com');
-            
+
             // Verify production environment
             $result = Artisan::call('keep:get', [
                 'key' => 'DB_HOST',
@@ -209,7 +209,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--no-interaction' => true
             ]);
             expect(trim(Artisan::output()))->toBe('prod-cluster.example.com');
-            
+
             // Create environment-specific exports
             foreach (['development', 'staging', 'production'] as $env) {
                 $envFile = "/tmp/keeper-integration-test/{$env}.env";
@@ -220,21 +220,21 @@ describe('EndToEndWorkflowTest', function () {
                     '--env' => $env,
                     '--no-interaction' => true
                 ]);
-                
+
                 expect(file_exists($envFile))->toBeTrue();
             }
-            
+
             // Verify each export contains correct values
             $devContent = file_get_contents('/tmp/keeper-integration-test/development.env');
             expect($devContent)->toContain('DB_HOST=localhost');
             expect($devContent)->toContain('API_URL="https://api-dev.example.com"');
-            
+
             $prodContent = file_get_contents('/tmp/keeper-integration-test/production.env');
             expect($prodContent)->toContain('DB_HOST=prod-cluster.example.com');
             expect($prodContent)->toContain('API_URL="https://api.example.com"');
         });
     });
-    
+
     describe('template merging with real vault data', function () {
         it('merges complex template with multiple missing secret strategies', function () {
             // Set up some secrets (but not all needed by template)
@@ -245,7 +245,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--env' => 'testing',
                 '--no-interaction' => true
             ]);
-            
+
             Artisan::call('keep:set', [
                 'key' => 'DB_PASSWORD',
                 'value' => 'secret123',
@@ -253,7 +253,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--env' => 'testing',
                 '--no-interaction' => true
             ]);
-            
+
             Artisan::call('keep:set', [
                 'key' => 'REDIS_URL',
                 'value' => 'redis://redis.example.com:6379',
@@ -261,7 +261,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--env' => 'testing',
                 '--no-interaction' => true
             ]);
-            
+
             // Create complex template with mix of existing and missing secrets
             $templateFile = '/tmp/keeper-integration-test/complex.template';
             file_put_contents($templateFile, implode("\n", [
@@ -291,7 +291,7 @@ describe('EndToEndWorkflowTest', function () {
                 'OPTIONAL_FEATURE={test:OPTIONAL_FEATURE}',
                 'DEBUG_TOKEN={test:DEBUG_TOKEN}'
             ]));
-            
+
             // Test REMOVE strategy
             $removeFile = '/tmp/keeper-integration-test/remove-strategy.env';
             Artisan::call('keep:merge', [
@@ -302,7 +302,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--env' => 'testing',
                 '--no-interaction' => true
             ]);
-            
+
             $removeContent = file_get_contents($removeFile);
             expect($removeContent)->toContain('DB_HOST=database.example.com');
             expect($removeContent)->toContain('DB_PASSWORD="secret123"');
@@ -310,7 +310,7 @@ describe('EndToEndWorkflowTest', function () {
             expect($removeContent)->toContain('# Removed missing secret: MAIL_HOST');
             expect($removeContent)->not->toContain('MAIL_HOST=');
             expect($removeContent)->not->toContain('API_KEY=');
-            
+
             // Test BLANK strategy
             $blankFile = '/tmp/keeper-integration-test/blank-strategy.env';
             Artisan::call('keep:merge', [
@@ -321,13 +321,13 @@ describe('EndToEndWorkflowTest', function () {
                 '--env' => 'testing',
                 '--no-interaction' => true
             ]);
-            
+
             $blankContent = file_get_contents($blankFile);
             expect($blankContent)->toContain('DB_HOST=database.example.com');
             expect($blankContent)->toContain('MAIL_HOST=');
             expect($blankContent)->toContain('API_KEY=');
             expect($blankContent)->toContain('OPTIONAL_FEATURE=');
-            
+
             // Test SKIP strategy
             $skipFile = '/tmp/keeper-integration-test/skip-strategy.env';
             Artisan::call('keep:merge', [
@@ -338,7 +338,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--env' => 'testing',
                 '--no-interaction' => true
             ]);
-            
+
             $skipContent = file_get_contents($skipFile);
             expect($skipContent)->toContain('DB_HOST=database.example.com');
             expect($skipContent)->toContain('MAIL_HOST={test:MAIL_HOST}');
@@ -346,7 +346,7 @@ describe('EndToEndWorkflowTest', function () {
             expect($skipContent)->toContain('DEBUG_TOKEN={test:DEBUG_TOKEN}');
         });
     });
-    
+
     describe('team collaboration scenarios', function () {
         it('supports sharing templates while keeping secrets separate', function () {
             // Create shared template (what would be in version control)
@@ -378,7 +378,7 @@ describe('EndToEndWorkflowTest', function () {
                 'FEATURE_NEW_DASHBOARD=true',
                 'FEATURE_BETA_API=false'
             ]));
-            
+
             // Team member A sets up their secrets
             $memberASecrets = [
                 'DB_HOST' => 'localhost',
@@ -390,7 +390,7 @@ describe('EndToEndWorkflowTest', function () {
                 'MAILGUN_DOMAIN' => 'dev.example.com',
                 'MAILGUN_SECRET' => 'dev_mailgun_789'
             ];
-            
+
             foreach ($memberASecrets as $key => $value) {
                 Artisan::call('keep:set', [
                     'key' => $key,
@@ -400,7 +400,7 @@ describe('EndToEndWorkflowTest', function () {
                     '--no-interaction' => true
                 ]);
             }
-            
+
             // Team member B sets up their secrets (different values)
             $memberBSecrets = [
                 'DB_HOST' => 'member-b-db.local',
@@ -412,7 +412,7 @@ describe('EndToEndWorkflowTest', function () {
                 'MAILGUN_DOMAIN' => 'memberb.example.com',
                 'MAILGUN_SECRET' => 'memberb_mailgun_123'
             ];
-            
+
             foreach ($memberBSecrets as $key => $value) {
                 Artisan::call('keep:set', [
                     'key' => $key,
@@ -422,7 +422,7 @@ describe('EndToEndWorkflowTest', function () {
                     '--no-interaction' => true
                 ]);
             }
-            
+
             // Each team member generates their own .env file
             $memberAEnv = '/tmp/keeper-integration-test/memberA.env';
             Artisan::call('keep:merge', [
@@ -432,7 +432,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--env' => 'memberA',
                 '--no-interaction' => true
             ]);
-            
+
             $memberBEnv = '/tmp/keeper-integration-test/memberB.env';
             Artisan::call('keep:merge', [
                 'template' => $sharedTemplate,
@@ -441,29 +441,29 @@ describe('EndToEndWorkflowTest', function () {
                 '--env' => 'memberB',
                 '--no-interaction' => true
             ]);
-            
+
             // Verify each member gets their own secrets but same template structure
             $memberAContent = file_get_contents($memberAEnv);
             $memberBContent = file_get_contents($memberBEnv);
-            
+
             // Both should have same non-secret values
             expect($memberAContent)->toContain('APP_NAME="Team Application"');
             expect($memberBContent)->toContain('APP_NAME="Team Application"');
             expect($memberAContent)->toContain('FEATURE_NEW_DASHBOARD=true');
             expect($memberBContent)->toContain('FEATURE_NEW_DASHBOARD=true');
-            
+
             // But different secret values
             expect($memberAContent)->toContain('DB_HOST=localhost');
             expect($memberBContent)->toContain('DB_HOST=member-b-db.local');
-            
+
             expect($memberAContent)->toContain('DB_PASSWORD="dev_password_123"');
             expect($memberBContent)->toContain('DB_PASSWORD="memberb_secret_456"');
-            
+
             expect($memberAContent)->toContain('STRIPE_SECRET="sk_test_dev_456"');
             expect($memberBContent)->toContain('STRIPE_SECRET="sk_test_memberb_789"');
         });
     });
-    
+
     describe('data consistency and error recovery', function () {
         it('handles partial failures gracefully', function () {
             // Test import with some valid and some invalid data
@@ -476,7 +476,7 @@ describe('EndToEndWorkflowTest', function () {
                 '=invalid_key_starts_with_equals',
                 'VALID_KEY_4="final valid value"'
             ]));
-            
+
             // Import should handle valid entries even if some are malformed
             $result = Artisan::call('keep:import', [
                 'from' => $mixedFile,
@@ -484,10 +484,10 @@ describe('EndToEndWorkflowTest', function () {
                 '--env' => 'testing',
                 '--no-interaction' => true
             ]);
-            
+
             // Should still succeed for valid entries
             expect($result)->toBeIn([0, 1]); // May succeed or fail depending on how strict parsing is
-            
+
             // If it succeeded, verify valid entries were imported
             if ($result === 0) {
                 $vault = Keep::vault('test')->forEnvironment('testing');
@@ -497,7 +497,7 @@ describe('EndToEndWorkflowTest', function () {
                 expect($vault->hasSecret('VALID_KEY_4'))->toBeTrue();
             }
         });
-        
+
         it('maintains data integrity during template merging errors', function () {
             // Set up some valid secrets
             Artisan::call('keep:set', [
@@ -507,7 +507,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--env' => 'testing',
                 '--no-interaction' => true
             ]);
-            
+
             // Create template with valid and invalid placeholders
             $templateFile = '/tmp/keeper-integration-test/mixed-template.env';
             file_put_contents($templateFile, implode("\n", [
@@ -515,7 +515,7 @@ describe('EndToEndWorkflowTest', function () {
                 'INVALID_VAR={test:NONEXISTENT_SECRET}',
                 'ANOTHER_VALID=static_value'
             ]));
-            
+
             // Test with FAIL strategy (should fail on missing secret)
             $result = Artisan::call('keep:merge', [
                 'template' => $templateFile,
@@ -524,9 +524,9 @@ describe('EndToEndWorkflowTest', function () {
                 '--env' => 'testing',
                 '--no-interaction' => true
             ]);
-            
+
             expect($result)->toBe(1); // Should fail
-            
+
             // Test with REMOVE strategy (should succeed)
             $outputFile = '/tmp/keeper-integration-test/safe-merge.env';
             $result = Artisan::call('keep:merge', [
@@ -537,10 +537,10 @@ describe('EndToEndWorkflowTest', function () {
                 '--env' => 'testing',
                 '--no-interaction' => true
             ]);
-            
+
             expect($result)->toBe(0);
             expect(file_exists($outputFile))->toBeTrue();
-            
+
             $content = file_get_contents($outputFile);
             expect($content)->toContain('VALID_VAR=valid_value');
             expect($content)->toContain('ANOTHER_VALID=static_value');

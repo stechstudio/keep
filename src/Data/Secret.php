@@ -9,7 +9,7 @@ use STS\Keep\Vaults\AbstractVault;
 class Secret implements Arrayable
 {
     protected string $key;
-    
+
     public function __construct(
         string $key,
         protected ?string $value = null,
@@ -19,31 +19,30 @@ class Secret implements Arrayable
         protected ?int $revision = 0,
         protected ?string $path = null,
         protected ?AbstractVault $vault = null,
-    )
-    {
+    ) {
         $this->key = $this->sanitizeKey($key);
     }
-    
+
     /**
      * Sanitize a secret key by removing dangerous characters and normalizing format.
-     * 
-     * @param string $key The raw key to sanitize
+     *
+     * @param  string  $key  The raw key to sanitize
      * @return string The sanitized key
      */
     protected function sanitizeKey(string $key): string
     {
         // 1. Trim whitespace
         $sanitized = trim($key);
-        
+
         // 2. Remove null bytes and control characters
         $sanitized = preg_replace('/[\x00-\x1F\x7F]/', '', $sanitized);
-        
+
         // 3. Replace spaces with underscores (common in env vars)
         $sanitized = str_replace(' ', '_', $sanitized);
-        
+
         // 4. Collapse multiple underscores/dashes to single
         $sanitized = preg_replace('/[_-]{2,}/', '_', $sanitized);
-        
+
         // 5. Remove leading/trailing underscores/dashes
         $sanitized = trim($sanitized, '_-');
 

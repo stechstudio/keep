@@ -3,9 +3,9 @@
 namespace STS\Keep\Vaults;
 
 use Illuminate\Support\Str;
+use STS\Keep\Data\Secret;
 use STS\Keep\Data\SecretsCollection;
 use STS\Keep\Facades\Keep;
-use STS\Keep\Data\Secret;
 
 abstract class AbstractVault
 {
@@ -14,7 +14,7 @@ abstract class AbstractVault
     public function __construct(protected string $name, protected array $config, protected ?string $environment = null)
     {
         // If none was provided, use the current resolved environment
-        if(!$this->environment) {
+        if (! $this->environment) {
             $this->environment = Keep::environment();
         }
     }
@@ -23,6 +23,7 @@ abstract class AbstractVault
     {
         $clone = clone $this;
         $clone->environment = $environment;
+
         return $clone;
     }
 

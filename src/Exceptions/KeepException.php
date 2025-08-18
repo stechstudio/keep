@@ -8,14 +8,20 @@ use Throwable;
 class KeepException extends RuntimeException
 {
     protected string $details = '';
+
     protected ?string $vault = null;
+
     protected ?string $environment = null;
+
     protected ?string $key = null;
+
     protected ?string $path = null;
+
     protected ?int $lineNumber = null;
+
     protected ?string $suggestion = null;
 
-    public function __construct(string $message = "", string $details = "", int $code = 0, ?Throwable $previous = null)
+    public function __construct(string $message = '', string $details = '', int $code = 0, ?Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
         $this->details = $details;
@@ -40,14 +46,14 @@ class KeepException extends RuntimeException
         $this->path = $path;
         $this->lineNumber = $lineNumber;
         $this->suggestion = $suggestion;
-        
+
         return $this;
     }
 
     public function renderConsole(callable $output): void
     {
         $output($this->getMessage(), 'error');
-        
+
         // Build context details
         $contextLines = array_filter([
             'Vault' => $this->vault,
@@ -57,25 +63,25 @@ class KeepException extends RuntimeException
             'Template line' => $this->lineNumber,
         ]);
 
-        $contextLines = array_map(fn($k, $v) => "  $k: $v", array_keys($contextLines), $contextLines);
-        
+        $contextLines = array_map(fn ($k, $v) => "  $k: $v", array_keys($contextLines), $contextLines);
+
         // Output context if we have any
-        if (!empty($contextLines)) {
+        if (! empty($contextLines)) {
             foreach ($contextLines as $line) {
                 $output($line);
             }
         }
-        
+
         // Output additional details if provided
         if ($this->details) {
             $output('');
             $output($this->details);
         }
-        
+
         // Output suggestion if provided
         if ($this->suggestion) {
             $output('');
-            $output('💡 ' . $this->suggestion, 'comment');
+            $output('💡 '.$this->suggestion, 'comment');
         }
     }
 }

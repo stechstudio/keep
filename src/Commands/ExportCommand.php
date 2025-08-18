@@ -11,8 +11,8 @@ class ExportCommand extends AbstractCommand
         {--output= : File where to save the output (defaults to stdout)} 
         {--overwrite : Overwrite the output file if it exists} 
         {--append : Append to the output file if it exists} '
-    .self::VAULT_SIGNATURE
-    .self::ENV_SIGNATURE;
+        .self::VAULT_SIGNATURE
+        .self::ENV_SIGNATURE;
 
     public $description = 'Export all environment secrets in a specified vault';
 
@@ -20,7 +20,7 @@ class ExportCommand extends AbstractCommand
     {
         $secrets = $this->vault()->list();
 
-        if($this->option('output')) {
+        if ($this->option('output')) {
             return $this->writeToFile(
                 $this->option('output'),
                 $this->formatOutput($secrets),

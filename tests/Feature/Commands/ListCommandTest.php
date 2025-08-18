@@ -3,11 +3,11 @@
 use Illuminate\Support\Facades\Artisan;
 
 describe('ListCommand', function () {
-    
+
     beforeEach(function () {
         // Clear test vault before each test
         \STS\Keep\Facades\Keep::vault('test')->clear();
-        
+
         // Set up test secrets for different scenarios
         $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
         $vault->set('DB_HOST', 'localhost');
@@ -20,24 +20,24 @@ describe('ListCommand', function () {
         $vault->set('UNICODE_VALUE', 'Hello 世界 🚀');
         $vault->set('EMPTY_VALUE', '');
         $vault->set('SPECIAL_CHARS', 'value with & symbols');
-        
+
         // COMMENTED OUT: Cross-environment setup causing TestVault isolation issues
-        // Set up secrets in different environment  
+        // Set up secrets in different environment
         // $prodVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('production');
         // $prodVault->set('PROD_DB_HOST', 'prod-db.example.com');
         // $prodVault->set('PROD_API_KEY', 'prod-api-key');
     });
-    
+
     describe('basic functionality', function () {
         it('lists all secrets with default table format', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--env' => 'testing',
-                '--no-interaction' => true
+                '--no-interaction' => true,
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
             expect($output)->toContain('Key');
             expect($output)->toContain('Value');
@@ -47,7 +47,7 @@ describe('ListCommand', function () {
             expect($output)->toContain('MAIL_HOST');
             expect($output)->toContain('API_KEY');
         });
-        
+
         // COMMENTED OUT: JSON test still affected by TestVault isolation issues
         // The JSON format returns empty array due to environment isolation bugs
         /*
@@ -58,15 +58,15 @@ describe('ListCommand', function () {
                 '--format' => 'json',
                 '--no-interaction' => true
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
             $json = json_decode($output, true);
-            
+
             expect($json)->toBeArray();
             expect($json)->not->toBeEmpty();
-            
+
             // Check that we have expected secrets
             $keys = array_column($json, 'key');
             expect($keys)->toContain('DB_HOST');
@@ -74,16 +74,16 @@ describe('ListCommand', function () {
             expect($keys)->toContain('API_KEY');
         });
         */
-        
+
         it('lists secrets in env format', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--env' => 'testing',
-                '--format' => 'env'
+                '--format' => 'env',
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
             expect($output)->toContain('DB_HOST=localhost');
             expect($output)->toContain('DB_PORT=3306');
@@ -91,18 +91,18 @@ describe('ListCommand', function () {
             expect($output)->toContain('API_KEY="secret-api-key"');
         });
     });
-    
+
     describe('filtering with patterns', function () {
         it('filters secrets with --only pattern', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--env' => 'testing',
                 '--format' => 'env',
-                '--only' => 'DB_*'
+                '--only' => 'DB_*',
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
             expect($output)->toContain('DB_HOST=localhost');
             expect($output)->toContain('DB_PORT=3306');
@@ -110,17 +110,17 @@ describe('ListCommand', function () {
             expect($output)->not->toContain('MAIL_HOST');
             expect($output)->not->toContain('API_KEY');
         });
-        
+
         it('filters secrets with --except pattern', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--env' => 'testing',
                 '--format' => 'env',
-                '--except' => 'DB_*'
+                '--except' => 'DB_*',
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
             expect($output)->not->toContain('DB_HOST');
             expect($output)->not->toContain('DB_PORT');
@@ -129,17 +129,17 @@ describe('ListCommand', function () {
             expect($output)->toContain('API_KEY="secret-api-key"');
             expect($output)->toContain('CACHE_DRIVER=redis');
         });
-        
+
         it('filters with multiple comma-separated patterns', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--env' => 'testing',
                 '--format' => 'env',
-                '--only' => 'DB_*,MAIL_*'
+                '--only' => 'DB_*,MAIL_*',
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
             expect($output)->toContain('DB_HOST=localhost');
             expect($output)->toContain('MAIL_HOST="smtp.example.com"');
@@ -147,33 +147,33 @@ describe('ListCommand', function () {
             expect($output)->not->toContain('API_KEY');
             expect($output)->not->toContain('CACHE_DRIVER');
         });
-        
+
         it('handles case-sensitive filtering', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--env' => 'testing',
                 '--format' => 'env',
-                '--only' => 'db_*' // lowercase pattern
+                '--only' => 'db_*', // lowercase pattern
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
             // Should not match uppercase DB_* secrets (case-sensitive)
             expect($output)->not->toContain('DB_HOST');
             expect($output)->not->toContain('DB_PORT');
         });
-        
+
         it('filters with complex patterns', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--env' => 'testing',
                 '--format' => 'env',
-                '--only' => '*_HOST,*_PORT'
+                '--only' => '*_HOST,*_PORT',
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
             expect($output)->toContain('DB_HOST=localhost');
             expect($output)->toContain('DB_PORT=3306');
@@ -183,7 +183,7 @@ describe('ListCommand', function () {
             expect($output)->not->toContain('API_KEY');
         });
     });
-    
+
     // COMMENTED OUT: Environment isolation tests causing infinite loops due to TestVault bugs
     /*
     describe('environment handling', function () {
@@ -193,23 +193,23 @@ describe('ListCommand', function () {
                 '--env' => 'production',
                 '--format' => 'env'
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
             expect($output)->toContain('PROD_DB_HOST=prod-db.example.com');
             expect($output)->toContain('PROD_API_KEY=prod-api-key');
             expect($output)->not->toContain('DB_HOST'); // testing env secret
         });
-        
+
         it('shows environment selection when not specified', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--format' => 'env'
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
             expect($output)->toContain('Environment:');
             expect($output)->toContain('testing');
@@ -218,45 +218,45 @@ describe('ListCommand', function () {
         });
     });
     */
-    
+
     describe('vault handling', function () {
         it('uses specified vault', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--env' => 'testing',
-                '--format' => 'env'
+                '--format' => 'env',
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
             expect($output)->toContain('DB_HOST=localhost');
         });
-        
+
         it('uses default vault when not specified', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',  // Always specify to avoid prompts
                 '--env' => 'testing',
-                '--format' => 'env'
+                '--format' => 'env',
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
             expect($output)->toContain('DB_HOST=localhost');
         });
     });
-    
+
     describe('output formats', function () {
         it('table format shows structured data with headers', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--env' => 'testing',
-                '--format' => 'table'
+                '--format' => 'table',
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
             expect($output)->toContain('Key');
             expect($output)->toContain('Value');
@@ -265,9 +265,9 @@ describe('ListCommand', function () {
             expect($output)->toContain('localhost');
             expect($output)->toContain('1'); // revision number
         });
-        
+
         // COMMENTED OUT: JSON counting test still affected by TestVault isolation issues
-        // The JSON format returns empty array due to environment isolation bugs  
+        // The JSON format returns empty array due to environment isolation bugs
         /*
         it('json format is valid and contains all secrets', function () {
             $result = Artisan::call('keep:list', [
@@ -276,15 +276,15 @@ describe('ListCommand', function () {
                 '--format' => 'json',
                 '--no-interaction' => true
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
             $json = json_decode($output, true);
-            
+
             expect($json)->toBeArray();
             expect(count($json))->toBeGreaterThan(5); // Should have multiple secrets
-            
+
             // Verify structure of first secret
             $firstSecret = $json[0];
             expect($firstSecret)->toHaveKey('key');
@@ -292,45 +292,45 @@ describe('ListCommand', function () {
             expect($firstSecret)->toHaveKey('revision');
         });
         */
-        
+
         it('env format produces valid .env file content', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--env' => 'testing',
-                '--format' => 'env'
+                '--format' => 'env',
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
-            
+
             // Should be valid key=value format
             $lines = explode("\n", trim($output));
             foreach ($lines as $line) {
-                if (!empty(trim($line))) {
+                if (! empty(trim($line))) {
                     expect($line)->toMatch('/^[A-Z_][A-Z0-9_]*=.*$/');
                 }
             }
-            
+
             expect($output)->toContain('DB_HOST=localhost');
             expect($output)->toContain('UNICODE_VALUE="Hello 世界 🚀"'); // Should be quoted
         });
-        
+
         it('handles invalid format option', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--env' => 'testing',
-                '--format' => 'invalid'
+                '--format' => 'invalid',
             ]);
-            
+
             expect($result)->toBe(0); // Command succeeds but shows error
-            
+
             $output = Artisan::output();
             expect($output)->toContain('Invalid format option');
             expect($output)->toContain('table, json, env');
         });
     });
-    
+
     describe('edge cases', function () {
         // COMMENTED OUT: TestVault environment isolation bug causes this to fail/hang
         /*
@@ -341,56 +341,56 @@ describe('ListCommand', function () {
                 '--env' => 'staging',
                 '--format' => 'env'
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = trim(Artisan::output());
             expect($output)->toBe(''); // Should be empty
         });
         */
-        
+
         it('handles empty values correctly', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--env' => 'testing',
                 '--format' => 'env',
-                '--only' => 'EMPTY_VALUE'
+                '--only' => 'EMPTY_VALUE',
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
             expect($output)->toContain('EMPTY_VALUE=');
         });
-        
+
         it('handles special characters in values', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--env' => 'testing',
                 '--format' => 'env',
-                '--only' => 'SPECIAL_CHARS'
+                '--only' => 'SPECIAL_CHARS',
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
             expect($output)->toContain('SPECIAL_CHARS="value with & symbols"');
         });
-        
+
         it('handles unicode values correctly', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--env' => 'testing',
                 '--format' => 'env',
-                '--only' => 'UNICODE_VALUE'
+                '--only' => 'UNICODE_VALUE',
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
             expect($output)->toContain('UNICODE_VALUE="Hello 世界 🚀"');
         });
-        
+
         // COMMENTED OUT: Test expecting empty output may cause hanging
         /*
         it('handles patterns with no matches', function () {
@@ -400,25 +400,25 @@ describe('ListCommand', function () {
                 '--format' => 'env',
                 '--only' => 'NONEXISTENT_*'
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = trim(Artisan::output());
             expect($output)->toBe(''); // Should be empty
         });
         */
-        
+
         it('handles combining --only and --except patterns', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--env' => 'testing',
                 '--format' => 'env',
                 '--only' => 'DB_*,MAIL_*',
-                '--except' => '*_PORT'
+                '--except' => '*_PORT',
             ]);
-            
+
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
             expect($output)->toContain('DB_HOST=localhost');
             expect($output)->toContain('DB_NAME=myapp');

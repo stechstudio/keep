@@ -12,10 +12,10 @@ class TestCase extends Orchestra
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Clear all test vault storage before each test for proper isolation
         TestVault::clearAll();
-        
+
         // Register test vault driver
         app(\STS\Keep\KeepManager::class)->extend('test', function ($name, $config) {
             return new \STS\Keep\Tests\Support\TestVault($name, $config);
@@ -32,7 +32,7 @@ class TestCase extends Orchestra
     protected function getEnvironmentSetUp($app)
     {
         config()->set('database.default', 'testing');
-        
+
         config()->set('keep.default', 'test');
         config()->set('keep.namespace', 'test-app');
         config()->set('keep.environment', 'testing');
@@ -49,12 +49,12 @@ class TestCase extends Orchestra
             if (method_exists($command, 'resetInput')) {
                 $command->resetInput();
             }
-            
+
             if (method_exists($command, 'resetVault')) {
                 $command->resetVault();
             }
         }
-        
+
         parent::tearDown();
     }
 
@@ -67,7 +67,7 @@ class TestCase extends Orchestra
             if (method_exists($command, 'resetInput')) {
                 $command->resetInput();
             }
-            
+
             if (method_exists($command, 'resetVault')) {
                 $command->resetVault();
             }
