@@ -61,6 +61,20 @@ class TestVault extends AbstractVault
         return $secret;
     }
 
+    public function delete(string $key): bool
+    {
+        $path = $this->format($key);
+        $secrets = $this->getVaultEnvironmentSecrets();
+
+        if (! isset($secrets[$path])) {
+            throw new SecretNotFoundException("Secret [{$key}] not found in vault [{$this->name()}]");
+        }
+
+        unset(self::$storage[$this->name()][$this->environment][$path]);
+
+        return true;
+    }
+
     public function format(?string $key = null): string
     {
         if (! $key) {

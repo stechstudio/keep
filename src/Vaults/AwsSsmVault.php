@@ -92,7 +92,7 @@ class AwsSsmVault extends AbstractVault
             $parameter = $result->get('Parameter');
 
             if (! $parameter || ! is_array($parameter)) {
-                throw new SecretNotFoundException("Secret not found [{$this->format($key)}");
+                throw new SecretNotFoundException("Secret not found [{$this->format($key)}]");
             }
 
             return new Secret(
@@ -107,7 +107,7 @@ class AwsSsmVault extends AbstractVault
             );
         } catch (SsmException $e) {
             if ($e->getAwsErrorCode() === 'ParameterNotFound') {
-                throw new SecretNotFoundException("Secret not found [{$this->format($key)}");
+                throw new SecretNotFoundException("Secret not found [{$this->format($key)}]");
             } elseif ($e->getAwsErrorCode() === 'AccessDeniedException') {
                 throw new AccessDeniedException($e->getAwsErrorMessage());
             } else {
@@ -134,6 +134,25 @@ class AwsSsmVault extends AbstractVault
             return $this->get($key);
         } catch (SsmException $e) {
             if ($e->getAwsErrorCode() === 'AccessDeniedException') {
+                throw new AccessDeniedException($e->getAwsErrorMessage());
+            } else {
+                throw new KeepException($e->getAwsErrorMessage());
+            }
+        }
+    }
+
+    public function delete(string $key): bool
+    {
+        try {
+            $this->client()->deleteParameter([
+                'Name' => $this->format($key),
+            ]);
+
+            return true;
+        } catch (SsmException $e) {
+            if ($e->getAwsErrorCode() === 'ParameterNotFound') {
+                throw new SecretNotFoundException("Secret [{$key}] not found in vault [{$this->name()}]");
+            } elseif ($e->getAwsErrorCode() === 'AccessDeniedException') {
                 throw new AccessDeniedException($e->getAwsErrorMessage());
             } else {
                 throw new KeepException($e->getAwsErrorMessage());
