@@ -12,9 +12,9 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.3]
-        laravel: [11.*, 12.*]
-        stability: [prefer-lowest, prefer-stable]
+        php: [ 8.3 ]
+        laravel: [ 11.*, 12.* ]
+        stability: [ prefer-lowest, prefer-stable ]
         include:
           - laravel: 11.*
             testbench: ^9.0.0
@@ -39,11 +39,22 @@ jobs:
           echo "::add-matcher::${{ runner.tool_cache }}/php.json"
           echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
-      - name: Install dependencies
+      - name: Install dependencies (latest dev)
         run: |
+          # Pin the Laravel/Testbench versions into the solver (no update yet)
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
-          composer update --${{ matrix.stability }} --prefer-dist --no-interaction --no-dev
-          composer install --prefer-dist --no-interaction
+      
+          # 1) Resolve runtime (non-dev) at matrix stability and write the lock
+          composer update --${{ matrix.stability }} --prefer-dist --no-interaction --no-dev --no-scripts
+      
+          # 2) Update ONLY direct dev packages to latest allowed (this populates packages-dev in the lock)
+          DEV_PKGS=$(composer show --direct --dev --name-only)
+          if [ -n "$DEV_PKGS" ]; then
+            composer update $DEV_PKGS --with-all-dependencies --prefer-dist --no-interaction --no-scripts
+          fi
+      
+          # 3) Install exactly what's in the lock (now includes dev)
+          composer install --prefer-dist --no-interaction --no-scripts
 
       - name: List Installed Dependencies
         run: composer show -D
