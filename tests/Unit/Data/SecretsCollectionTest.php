@@ -322,11 +322,11 @@ describe('SecretsCollection', function () {
         });
     });
     
-    describe('only()', function () {
+    describe('mapToOnly()', function () {
         it('returns collection mapped to only specified attributes', function () {
-            // This method actually maps each Secret to only show specified attributes
-            // It doesn't filter by keys, but rather shows only certain attributes of each Secret
-            $filtered = $this->secrets->only(['key', 'value']);
+            // This method maps each Secret to only show specified attributes
+            // The number of secrets remains the same, but each only shows selected attributes
+            $filtered = $this->secrets->mapToOnly(['key', 'value']);
             
             expect($filtered)->toBeInstanceOf(Illuminate\Support\Collection::class);
             expect($filtered->count())->toBe(14); // All secrets, but only with key/value attributes
@@ -339,14 +339,14 @@ describe('SecretsCollection', function () {
         });
         
         it('returns empty attributes when given empty array', function () {
-            $filtered = $this->secrets->only([]);
+            $filtered = $this->secrets->mapToOnly([]);
             
             expect($filtered->count())->toBe(14); // Still has all secrets
             expect($filtered->first())->toBe([]); // But each is empty
         });
         
         it('handles non-existent attributes gracefully', function () {
-            $filtered = $this->secrets->only(['key', 'nonexistent']);
+            $filtered = $this->secrets->mapToOnly(['key', 'nonexistent']);
             
             expect($filtered->count())->toBe(14);
             $first = $filtered->first();

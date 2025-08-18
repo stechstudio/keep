@@ -47,7 +47,7 @@ class SecretsCollection extends Collection
         return $this->first(fn(Secret $secret) => $secret->key() === $key) ?: null;
     }
 
-    public function only($keys = [])
+    public function mapToOnly($keys = [])
     {
         return $this->map->only($keys);
     }
