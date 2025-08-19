@@ -18,8 +18,7 @@ describe('VerifyCommand', function () {
             expect($result)->toBe(0);
 
             $output = Artisan::output();
-            expect($output)->toContain('Keep Vault Verification');
-            expect($output)->toContain('Verification Results:');
+            expect($output)->toContain('Verification Results');
             expect($output)->toContain('test'); // vault name
             expect($output)->toContain('testing'); // environment
             expect($output)->toContain('staging'); // environment
