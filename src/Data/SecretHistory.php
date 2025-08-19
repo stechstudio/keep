@@ -61,10 +61,6 @@ class SecretHistory implements Arrayable
         return $this->lastModifiedUser;
     }
 
-    public function type(): ?string
-    {
-        return $this->type;
-    }
 
     public function dataType(): ?string
     {
