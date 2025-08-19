@@ -100,4 +100,13 @@ class KeepManager
     {
         return new AwsSsmVault($name, $config);
     }
+
+    /**
+     * Clear the vault cache - useful for testing
+     */
+    public function clearVaultCache(): static
+    {
+        $this->vaults = [];
+        return $this;
+    }
 }

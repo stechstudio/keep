@@ -16,6 +16,9 @@ class TestCase extends Orchestra
         // Clear all test vault storage before each test for proper isolation
         TestVault::clearAll();
 
+        // Clear vault cache to ensure fresh instances
+        app(\STS\Keep\KeepManager::class)->clearVaultCache();
+
         // Register test vault driver
         app(\STS\Keep\KeepManager::class)->extend('test', function ($name, $config) {
             return new \STS\Keep\Tests\Support\TestVault($name, $config);

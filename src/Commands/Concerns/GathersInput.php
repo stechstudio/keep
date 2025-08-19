@@ -32,6 +32,10 @@ trait GathersInput
 
     protected string $stage;
 
+    protected string $from;
+
+    protected string $to;
+
     protected function key()
     {
         return $this->key ??= $this->argument('key') ?? text('Key', 'DATABASE_PASSWORD', required: true);
@@ -65,7 +69,17 @@ trait GathersInput
      */
     public function resetInput(): void
     {
-        unset($this->key, $this->value, $this->vaultName, $this->stage);
+        unset($this->key, $this->value, $this->vaultName, $this->stage, $this->from, $this->to);
+    }
+
+    protected function from()
+    {
+        return $this->from ??= $this->option('from') ?? text('From (vault:stage or stage)', 'development', required: true);
+    }
+
+    protected function to()
+    {
+        return $this->to ??= $this->option('to') ?? text('To (vault:stage or stage)', 'production', required: true);
     }
 
     protected function secure(): bool
