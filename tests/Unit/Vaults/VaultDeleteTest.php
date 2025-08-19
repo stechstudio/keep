@@ -13,7 +13,7 @@ describe('Vault Delete Functionality', function () {
     describe('TestVault delete method', function () {
         it('deletes an existing secret successfully', function () {
             $vault = new TestVault('test-vault', ['namespace' => 'test-app'], 'testing');
-            
+
             // Set a secret first
             $vault->set('TEST_KEY', 'test-value');
             expect($vault->hasSecret('TEST_KEY'))->toBeTrue();
@@ -54,7 +54,7 @@ describe('Vault Delete Functionality', function () {
 
         it('handles unicode and special character keys correctly', function () {
             $vault = new TestVault('test-vault', ['namespace' => 'test-app'], 'testing');
-            
+
             // Set secrets with special characters
             $vault->set('UNICODE_KEY_世界', 'unicode-value');
             $vault->set('SPECIAL_KEY_!@#', 'special-value');
@@ -89,7 +89,7 @@ describe('Vault Delete Functionality', function () {
     describe('delete operation edge cases', function () {
         it('handles deletion of secrets with different security levels', function () {
             $vault = new TestVault('test-vault', ['namespace' => 'test-app'], 'testing');
-            
+
             // Set both secure and plain secrets
             $vault->set('SECURE_KEY', 'secure-value', true);
             $vault->set('PLAIN_KEY', 'plain-value', false);
@@ -105,7 +105,7 @@ describe('Vault Delete Functionality', function () {
 
         it('handles deletion after multiple updates', function () {
             $vault = new TestVault('test-vault', ['namespace' => 'test-app'], 'testing');
-            
+
             // Set and update a secret multiple times
             $vault->set('UPDATED_KEY', 'value1');
             $vault->set('UPDATED_KEY', 'value2');

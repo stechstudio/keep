@@ -101,11 +101,11 @@ describe('InfoCommand', function () {
 
             expect($json)->toHaveKeys([
                 'namespace',
-                'environment', 
+                'environment',
                 'default_vault',
                 'available_vaults',
                 'configured_environments',
-                'vault_configurations'
+                'vault_configurations',
             ]);
         });
 
@@ -124,7 +124,7 @@ describe('InfoCommand', function () {
             expect($json['vault_configurations']['test'])->toHaveKeys([
                 'driver',
                 'region',
-                'prefix'
+                'prefix',
             ]);
             expect($json['vault_configurations']['test']['driver'])->toBe('test');
         });

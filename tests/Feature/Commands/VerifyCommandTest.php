@@ -102,7 +102,7 @@ describe('VerifyCommand', function () {
             $testingCount = substr_count($output, 'testing');
             $stagingCount = substr_count($output, 'staging');
             $productionCount = substr_count($output, 'production');
-            
+
             expect($testingCount)->toBeGreaterThan(0);
             expect($stagingCount)->toBe(0);
             expect($productionCount)->toBe(0);
@@ -122,10 +122,10 @@ describe('VerifyCommand', function () {
             $output = Artisan::output();
             expect($output)->toContain('test');
             expect($output)->toContain('testing');
-            
+
             // Should only show one combination
             $lines = explode("\n", $output);
-            $dataLines = array_filter($lines, fn($line) => str_contains($line, 'test') && str_contains($line, 'testing'));
+            $dataLines = array_filter($lines, fn ($line) => str_contains($line, 'test') && str_contains($line, 'testing'));
             expect(count($dataLines))->toBe(1);
         });
     });
@@ -141,10 +141,10 @@ describe('VerifyCommand', function () {
             expect($result)->toBe(0);
 
             $output = Artisan::output();
-            
+
             // Should show success for all operations with test vault
             expect($output)->toContain('✓'); // Success indicators
-            
+
             // Check that summary shows full access
             expect($output)->toContain('Full access');
         });
@@ -165,11 +165,11 @@ describe('VerifyCommand', function () {
             // Check that no test secrets remain
             $finalSecrets = $vault->list();
             $finalCount = $finalSecrets->count();
-            
+
             expect($finalCount)->toBe($initialCount);
-            
+
             // Ensure no keep-verify keys remain
-            $verifyKeys = $finalSecrets->filter(fn($secret) => str_starts_with($secret->key(), 'keep-verify-'));
+            $verifyKeys = $finalSecrets->filter(fn ($secret) => str_starts_with($secret->key(), 'keep-verify-'));
             expect($verifyKeys->count())->toBe(0);
         });
 
@@ -182,12 +182,12 @@ describe('VerifyCommand', function () {
             expect($result)->toBe(0);
 
             $output = Artisan::output();
-            
+
             // Should test all three environments
             expect($output)->toContain('testing');
-            expect($output)->toContain('staging');  
+            expect($output)->toContain('staging');
             expect($output)->toContain('production');
-            
+
             // Should show success for all environments
             $successCount = substr_count($output, '✓');
             expect($successCount)->toBeGreaterThan(3); // At least 3 operations per environment
@@ -195,10 +195,10 @@ describe('VerifyCommand', function () {
 
         it('tests read permissions against existing secrets when write fails', function () {
             $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
-            
+
             // Set up an existing secret
             $vault->set('EXISTING_SECRET', 'existing-value');
-            
+
             // Create a mock vault that allows list and read but not write
             // We'll simulate this by testing the logic indirectly
             $result = Artisan::call('keep:verify', [
@@ -208,12 +208,12 @@ describe('VerifyCommand', function () {
             ]);
 
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
-            
+
             // Should show success for read operation even in read-only scenarios
             expect($output)->toContain('✓');
-            
+
             // The existing secret should still be there
             expect($vault->hasSecret('EXISTING_SECRET'))->toBeTrue();
         });
@@ -222,19 +222,19 @@ describe('VerifyCommand', function () {
             // Clear all secrets to create a scenario where read can't be tested
             $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('staging');
             $vault->clear();
-            
+
             // In our test environment, write operations work, so we need to test
             // the logic more directly or check the legend explanation
             $result = Artisan::call('keep:verify', [
                 '--vault' => 'test',
-                '--env' => 'staging', 
+                '--env' => 'staging',
                 '--no-interaction' => true,
             ]);
 
             expect($result)->toBe(0);
-            
+
             $output = Artisan::output();
-            
+
             // Should show the unknown state symbol in legend
             expect($output)->toContain('?');
         });
@@ -244,13 +244,13 @@ describe('VerifyCommand', function () {
         it('continues verification even if some operations fail', function () {
             // This test verifies that the command doesn't crash on vault errors
             // and instead marks operations as failed gracefully
-            
+
             $result = Artisan::call('keep:verify', [
                 '--no-interaction' => true,
             ]);
 
             expect($result)->toBe(0); // Should always succeed and not throw exceptions
-            
+
             $output = Artisan::output();
             expect($output)->toContain('Summary:');
         });
@@ -287,7 +287,7 @@ describe('VerifyCommand', function () {
             expect($result)->toBe(0);
 
             $output = Artisan::output();
-            
+
             // Should contain color-formatted success indicators
             expect($output)->toContain('✓'); // Success indicator
             expect($output)->toContain('Legend:');
@@ -328,11 +328,11 @@ describe('VerifyCommand', function () {
     describe('integration scenarios', function () {
         it('works correctly after setting and deleting secrets', function () {
             $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
-            
+
             // Set some existing secrets
             $vault->set('EXISTING_SECRET_1', 'value1');
             $vault->set('EXISTING_SECRET_2', 'value2');
-            
+
             $result = Artisan::call('keep:verify', [
                 '--vault' => 'test',
                 '--env' => 'testing',
@@ -340,14 +340,14 @@ describe('VerifyCommand', function () {
             ]);
 
             expect($result)->toBe(0);
-            
+
             // Existing secrets should still be there
             expect($vault->hasSecret('EXISTING_SECRET_1'))->toBeTrue();
             expect($vault->hasSecret('EXISTING_SECRET_2'))->toBeTrue();
-            
+
             // No verify secrets should remain
             $allSecrets = $vault->list();
-            $verifySecrets = $allSecrets->filter(fn($s) => str_starts_with($s->key(), 'keep-verify-'));
+            $verifySecrets = $allSecrets->filter(fn ($s) => str_starts_with($s->key(), 'keep-verify-'));
             expect($verifySecrets->count())->toBe(0);
         });
 
@@ -360,7 +360,7 @@ describe('VerifyCommand', function () {
             expect($result)->toBe(0);
 
             $output = Artisan::output();
-            
+
             // Should test exactly 3 environments (testing, staging, production)
             expect($output)->toContain('Total vault/environment combinations tested: 3');
         });

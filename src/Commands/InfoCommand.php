@@ -38,7 +38,7 @@ class InfoCommand extends AbstractCommand
     protected function getVaultConfigurations(): array
     {
         $configurations = [];
-        
+
         foreach (Keep::available() as $vaultName) {
             $config = config("keep.vaults.$vaultName", []);
             $configurations[$vaultName] = [
@@ -68,7 +68,7 @@ class InfoCommand extends AbstractCommand
 
         // Available environments
         $this->info('Configured Environments');
-        table(['Environment'], array_map(fn($env) => [$env], $info['configured_environments']));
+        table(['Environment'], array_map(fn ($env) => [$env], $info['configured_environments']));
 
         $this->newLine();
 
@@ -77,17 +77,23 @@ class InfoCommand extends AbstractCommand
         $vaultRows = [];
         foreach ($info['vault_configurations'] as $name => $config) {
             $details = [];
-            if ($config['driver']) $details[] = "driver: {$config['driver']}";
-            if ($config['region']) $details[] = "region: {$config['region']}";
-            if ($config['prefix']) $details[] = "prefix: {$config['prefix']}";
-            
+            if ($config['driver']) {
+                $details[] = "driver: {$config['driver']}";
+            }
+            if ($config['region']) {
+                $details[] = "region: {$config['region']}";
+            }
+            if ($config['prefix']) {
+                $details[] = "prefix: {$config['prefix']}";
+            }
+
             $vaultRows[] = [
                 $name,
                 $config['driver'],
                 implode(', ', array_filter([$config['region'], $config['prefix']])),
             ];
         }
-        
+
         table(['Vault', 'Driver', 'Configuration'], $vaultRows);
     }
 }
