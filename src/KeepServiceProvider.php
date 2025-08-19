@@ -11,6 +11,7 @@ use STS\Keep\Commands\InfoCommand;
 use STS\Keep\Commands\ListCommand;
 use STS\Keep\Commands\MergeCommand;
 use STS\Keep\Commands\SetCommand;
+use STS\Keep\Commands\VerifyCommand;
 
 class KeepServiceProvider extends ServiceProvider
 {
@@ -38,6 +39,7 @@ class KeepServiceProvider extends ServiceProvider
                 DeleteCommand::class,
                 ListCommand::class,
                 InfoCommand::class,
+                VerifyCommand::class,
                 MergeCommand::class,
                 ExportCommand::class,
                 ImportCommand::class,
