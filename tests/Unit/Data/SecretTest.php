@@ -298,4 +298,82 @@ describe('Secret', function () {
         expect($secret)->toBeInstanceOf(\Illuminate\Contracts\Support\Arrayable::class);
         expect($secret->toArray())->toBeArray();
     });
+
+    describe('masked() method', function () {
+        it('returns null for null values', function () {
+            $secret = new Secret(
+                key: 'NULL_VALUE',
+                value: null
+            );
+
+            expect($secret->masked())->toBeNull();
+        });
+
+        it('masks short values (≤8 chars) with ****', function () {
+            $testCases = [
+                'a' => '****',
+                'ab' => '****',
+                'abc' => '****',
+                'abcd' => '****',
+                'abcde' => '****',
+                'abcdef' => '****',
+                'abcdefg' => '****',
+                'abcdefgh' => '****',
+            ];
+
+            foreach ($testCases as $value => $expected) {
+                $secret = new Secret(key: 'SHORT_VALUE', value: $value);
+                expect($secret->masked())->toBe($expected, "Value '$value' should be masked as '$expected'");
+            }
+        });
+
+        it('masks longer values (>8 chars) with first 4 chars + asterisks', function () {
+            $testCases = [
+                'abcdefghi' => 'abcd*****',
+                'localhost' => 'loca*****',
+                'secret-api-key' => 'secr**********',
+                'smtp.example.com' => 'smtp************',
+                'very-long-password-value' => 'very********************',
+            ];
+
+            foreach ($testCases as $value => $expected) {
+                $secret = new Secret(key: 'LONG_VALUE', value: $value);
+                expect($secret->masked())->toBe($expected, "Value '$value' should be masked as '$expected'");
+            }
+        });
+
+        it('handles empty string', function () {
+            $secret = new Secret(
+                key: 'EMPTY_VALUE',
+                value: ''
+            );
+
+            expect($secret->masked())->toBe('****');
+        });
+
+        it('handles unicode characters in masking', function () {
+            $value = 'Hello 世界 🚀 مرحبا';
+            $secret = new Secret(
+                key: 'UNICODE_VALUE',
+                value: $value
+            );
+
+            // Calculate expected result dynamically
+            $length = strlen($value);
+            $expectedAsterisks = $length - 4;
+            $expected = 'Hell'.str_repeat('*', $expectedAsterisks);
+
+            expect($secret->masked())->toBe($expected);
+            expect($length)->toBeGreaterThan(8); // Ensure it's using the long value logic
+        });
+
+        it('handles special characters in masking', function () {
+            $secret = new Secret(
+                key: 'SPECIAL_VALUE',
+                value: 'value with & symbols!'
+            );
+
+            expect($secret->masked())->toBe('valu*****************');
+        });
+    });
 });

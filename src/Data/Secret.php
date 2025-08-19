@@ -95,6 +95,28 @@ class Secret implements Arrayable
         return $this->vault;
     }
 
+    public function mask(): static
+    {
+        $this->value = $this->masked();
+
+        return $this;
+    }
+
+    public function masked(): ?string
+    {
+        if ($this->value === null) {
+            return null;
+        }
+
+        $length = strlen($this->value);
+
+        if ($length <= 8) {
+            return '****';
+        }
+
+        return substr($this->value, 0, 4).str_repeat('*', $length - 4);
+    }
+
     public function only(array $keys): array
     {
         return Arr::only($this->toArray(), $keys);
