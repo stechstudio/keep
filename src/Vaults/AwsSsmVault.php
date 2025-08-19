@@ -4,8 +4,11 @@ namespace STS\Keep\Vaults;
 
 use Aws\Ssm\Exception\SsmException;
 use Aws\Ssm\SsmClient;
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use STS\Keep\Data\Secret;
+use STS\Keep\Data\SecretHistory;
 use STS\Keep\Data\SecretsCollection;
 use STS\Keep\Exceptions\AccessDeniedException;
 use STS\Keep\Exceptions\KeepException;
@@ -149,6 +152,42 @@ class AwsSsmVault extends AbstractVault
             ]);
 
             return true;
+        } catch (SsmException $e) {
+            if ($e->getAwsErrorCode() === 'ParameterNotFound') {
+                throw new SecretNotFoundException("Secret [{$key}] not found in vault [{$this->name()}]");
+            } elseif ($e->getAwsErrorCode() === 'AccessDeniedException') {
+                throw new AccessDeniedException($e->getAwsErrorMessage());
+            } else {
+                throw new KeepException($e->getAwsErrorMessage());
+            }
+        }
+    }
+
+    public function history(string $key, int $limit = 10): Collection
+    {
+        try {
+            $result = $this->client()->getParameterHistory([
+                'Name' => $this->format($key),
+                'WithDecryption' => true,
+                'MaxResults' => $limit,
+            ]);
+
+            $parameters = $result->get('Parameters') ?? [];
+
+            return collect($parameters)->map(function ($parameter) use ($key) {
+                return new SecretHistory(
+                    key: $key,
+                    value: $parameter['Value'] ?? null,
+                    version: $parameter['Version'] ?? 1,
+                    lastModifiedDate: $parameter['LastModifiedDate'] ? Carbon::parse($parameter['LastModifiedDate']) : null,
+                    lastModifiedUser: $parameter['LastModifiedUser'] ?? null,
+                    dataType: $parameter['DataType'] ?? null,
+                    labels: $parameter['Labels'] ?? [],
+                    policies: $parameter['Policies'] ?? null,
+                    description: $parameter['Description'] ?? null,
+                    secure: ($parameter['Type'] ?? 'String') === 'SecureString',
+                );
+            })->sortByDesc('version')->values();
         } catch (SsmException $e) {
             if ($e->getAwsErrorCode() === 'ParameterNotFound') {
                 throw new SecretNotFoundException("Secret [{$key}] not found in vault [{$this->name()}]");

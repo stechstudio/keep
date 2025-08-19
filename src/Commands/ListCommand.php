@@ -21,7 +21,7 @@ class ListCommand extends AbstractCommand
         );
 
         if (! $this->option('unmask')) {
-            $secrets = $secrets->map->mask();
+            $secrets = $secrets->map->withMaskedValue();
         }
 
         match ($this->option('format')) {

@@ -2,7 +2,7 @@
 
 namespace STS\Keep\Data;
 
-use STS\Keep\Concerns\FormatsEnvValues;
+use STS\Keep\Data\Concerns\FormatsEnvValues;
 use STS\Keep\Enums\MissingSecretStrategy;
 use STS\Keep\Exceptions\SecretNotFoundException;
 

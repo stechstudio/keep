@@ -4,7 +4,7 @@ namespace STS\Keep\Data;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use STS\Keep\Concerns\FormatsEnvValues;
+use STS\Keep\Data\Concerns\FormatsEnvValues;
 
 class SecretsCollection extends Collection
 {

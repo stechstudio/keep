@@ -22,6 +22,8 @@ trait GathersInput
     protected const string ONLY_EXCLUDE_SIGNATURE = '{--only= : Only include keys matching this pattern (e.g. DB_*)} 
         {--except= : Exclude keys matching this pattern (e.g. MAIL_*)}';
 
+    protected const string UNMASK_SIGNATURE = '{--unmask : Show full secret values instead of masked values}';
+
     protected string $key;
 
     protected string $value;

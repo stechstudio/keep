@@ -1,6 +1,6 @@
 <?php
 
-namespace STS\Keep\Concerns;
+namespace STS\Keep\Data\Concerns;
 
 trait FormatsEnvValues
 {

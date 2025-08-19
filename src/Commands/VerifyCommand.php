@@ -45,6 +45,7 @@ class VerifyCommand extends AbstractCommand
             'list' => false,
             'write' => false,
             'read' => null, // null = unknown/untestable, false = tested and failed, true = success
+            'history' => null, // null = unknown/untestable, false = tested and failed, true = success
             'cleanup' => false,
         ];
 
@@ -93,6 +94,28 @@ class VerifyCommand extends AbstractCommand
         // If we reach here and read is still null, it means we couldn't test read
         // (write failed and no existing secrets to test against)
 
+        // Test HISTORY operation
+        if ($result['write']) {
+            // If write succeeded, try to get history for our test secret
+            try {
+                $vault->history($testKey, 1);
+                $result['history'] = true;
+            } catch (\Exception $e) {
+                $result['history'] = false; // Tested and failed
+            }
+        } elseif ($result['list'] && $existingSecrets && $existingSecrets->count() > 0) {
+            // If write failed but list succeeded and there are existing secrets,
+            // try to get history for the first existing secret
+            try {
+                $firstSecret = $existingSecrets->first();
+                $vault->history($firstSecret->key(), 1);
+                $result['history'] = true;
+            } catch (\Exception $e) {
+                $result['history'] = false; // Tested and failed
+            }
+        }
+        // If we reach here and history is still null, it means we couldn't test history
+
         // CLEANUP - try to delete the test key (only if write succeeded)
         if ($result['write']) {
             try {
@@ -119,12 +142,13 @@ class VerifyCommand extends AbstractCommand
                 $this->formatResult($result['list']),
                 $this->formatResult($result['write']),
                 $this->formatResult($result['read']),
+                $this->formatResult($result['history']),
                 $this->formatCleanupResult($result['cleanup'], $result['write']),
             ];
         }
 
         table(
-            ['Vault', 'Environment', 'List', 'Write', 'Read', 'Delete'],
+            ['Vault', 'Environment', 'List', 'Write', 'Read', 'History', 'Delete'],
             $rows
         );
 
@@ -153,21 +177,27 @@ class VerifyCommand extends AbstractCommand
     protected function displaySummary(array $results): void
     {
         $totalCombinations = count($results);
-        $fullAccess = collect($results)->filter(fn ($r) => $r['list'] && $r['write'] && $r['read'] === true)->count();
-        $readOnly = collect($results)->filter(fn ($r) => $r['list'] && ! $r['write'] && $r['read'] === true)->count();
+        $fullAccess = collect($results)->filter(fn ($r) => $r['list'] && $r['write'] && $r['read'] === true && $r['history'] === true)->count();
+        $readHistoryOnly = collect($results)->filter(fn ($r) => $r['list'] && ! $r['write'] && $r['read'] === true && $r['history'] === true)->count();
+        $readOnly = collect($results)->filter(fn ($r) => $r['list'] && ! $r['write'] && $r['read'] === true && $r['history'] !== true)->count();
         $listOnly = collect($results)->filter(fn ($r) => $r['list'] && ! $r['write'] && $r['read'] === false)->count();
         $noAccess = collect($results)->filter(fn ($r) => ! $r['list'] && ! $r['write'] && in_array($r['read'], [false, null]))->count();
         $unknownRead = collect($results)->filter(fn ($r) => $r['read'] === null)->count();
+        $unknownHistory = collect($results)->filter(fn ($r) => $r['history'] === null)->count();
         $cleanupIssues = collect($results)->filter(fn ($r) => $r['write'] && ! $r['cleanup'])->count();
 
         $this->info('Summary:');
         $this->line("• Total vault/environment combinations tested: {$totalCombinations}");
-        $this->line("• <fg=green>Full access</> (list + write + read): {$fullAccess}");
+        $this->line("• <fg=green>Full access</> (list + write + read + history): {$fullAccess}");
+        $this->line("• <fg=blue>Read + History access</> (list + read + history): {$readHistoryOnly}");
         $this->line("• <fg=blue>Read-only access</> (list + read): {$readOnly}");
         $this->line("• <fg=yellow>List-only access</> (list only): {$listOnly}");
         $this->line("• <fg=red>No access</> (none): {$noAccess}");
         if ($unknownRead > 0) {
             $this->line("• <fg=blue>Unknown read access</> (unable to test): {$unknownRead}");
+        }
+        if ($unknownHistory > 0) {
+            $this->line("• <fg=blue>Unknown history access</> (unable to test): {$unknownHistory}");
         }
 
         if ($cleanupIssues > 0) {
