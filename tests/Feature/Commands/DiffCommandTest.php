@@ -57,7 +57,7 @@ describe('DiffCommand', function () {
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--envs' => 'testing,staging',
+                '--env' => 'testing,staging',
             ]);
 
             expect($result)->toBe(0);
@@ -76,7 +76,7 @@ describe('DiffCommand', function () {
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--envs' => 'testing,staging',
+                '--env' => 'testing,staging',
                 '--unmask' => true,
             ]);
 
@@ -98,7 +98,7 @@ describe('DiffCommand', function () {
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--envs' => 'testing,staging',
+                '--env' => 'testing,staging',
             ]);
 
             expect($result)->toBe(0);
@@ -116,7 +116,7 @@ describe('DiffCommand', function () {
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--envs' => 'testing,staging',
+                '--env' => 'testing,staging',
             ]);
 
             expect($result)->toBe(0);
@@ -133,7 +133,7 @@ describe('DiffCommand', function () {
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--envs' => 'testing,staging',
+                '--env' => 'testing,staging',
             ]);
 
             expect($result)->toBe(0);
@@ -145,7 +145,7 @@ describe('DiffCommand', function () {
     });
 
     describe('environment filtering', function () {
-        it('compares only specified environments with --envs option', function () {
+        it('compares only specified environments with --env option', function () {
             $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
             $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('staging');
             $productionVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('production');
@@ -156,7 +156,7 @@ describe('DiffCommand', function () {
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--envs' => 'testing,staging',
+                '--env' => 'testing,staging',
             ]);
 
             expect($result)->toBe(0);
@@ -174,7 +174,7 @@ describe('DiffCommand', function () {
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--envs' => 'testing',
+                '--env' => 'testing',
             ]);
 
             expect($result)->toBe(0);
@@ -184,13 +184,37 @@ describe('DiffCommand', function () {
             expect($output)->toContain('Environments compared: testing');
         });
 
+        it('handles comma-separated environments correctly', function () {
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('staging');
+            $productionVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('production');
+
+            $testingVault->set('TEST_SECRET', 'testing-value');
+            $stagingVault->set('TEST_SECRET', 'staging-value');
+            $productionVault->set('TEST_SECRET', 'production-value');
+
+            $result = Artisan::call('keep:diff', [
+                '--vault' => 'test',
+                '--env' => 'staging,production',
+            ]);
+
+            expect($result)->toBe(0);
+
+            $output = Artisan::output();
+            expect($output)->toContain('staging');
+            expect($output)->toContain('production');
+            expect($output)->not->toContain('testing');
+            expect($output)->toContain('Environments compared: staging, production');
+            expect($output)->toContain('TEST_SECRET');
+        });
+
         it('warns about invalid environments', function () {
             $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
             $testingVault->set('TEST_SECRET', 'testing-value');
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--envs' => 'testing,invalid-env',
+                '--env' => 'testing,invalid-env',
             ]);
 
             expect($result)->toBe(0);
@@ -201,12 +225,12 @@ describe('DiffCommand', function () {
     });
 
     describe('vault filtering', function () {
-        it('uses default vault when --vaults not specified', function () {
+        it('uses default vault when --vault not specified', function () {
             $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
             $testingVault->set('TEST_SECRET', 'testing-value');
 
             $result = Artisan::call('keep:diff', [
-                '--envs' => 'testing',
+                '--env' => 'testing',
             ]);
 
             expect($result)->toBe(0);
@@ -217,8 +241,8 @@ describe('DiffCommand', function () {
 
         it('warns about invalid vaults', function () {
             $result = Artisan::call('keep:diff', [
-                '--vaults' => 'test,invalid-vault',
-                '--envs' => 'testing',
+                '--vault' => 'test,invalid-vault',
+                '--env' => 'testing',
             ]);
 
             expect($result)->toBe(0);
@@ -246,7 +270,7 @@ describe('DiffCommand', function () {
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--envs' => 'testing,staging',
+                '--env' => 'testing,staging',
             ]);
 
             expect($result)->toBe(0);
@@ -264,7 +288,7 @@ describe('DiffCommand', function () {
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--envs' => 'testing',
+                '--env' => 'testing',
             ]);
 
             expect($result)->toBe(0);
@@ -279,7 +303,7 @@ describe('DiffCommand', function () {
         it('handles empty vault gracefully', function () {
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--envs' => 'testing',
+                '--env' => 'testing',
             ]);
 
             expect($result)->toBe(0);
@@ -293,7 +317,7 @@ describe('DiffCommand', function () {
             expect(function () {
                 Artisan::call('keep:diff', [
                     '--vault' => 'test',
-                    '--envs' => 'testing',
+                    '--env' => 'testing',
                     '--invalid-option' => 'test',
                 ]);
             })->toThrow(\Symfony\Component\Console\Exception\InvalidOptionException::class);
@@ -301,8 +325,8 @@ describe('DiffCommand', function () {
 
         it('handles no vaults available', function () {
             $result = Artisan::call('keep:diff', [
-                '--vaults' => 'nonexistent-vault',
-                '--envs' => 'testing',
+                '--vault' => 'nonexistent-vault',
+                '--env' => 'testing',
             ]);
 
             expect($result)->toBe(1);
@@ -314,7 +338,7 @@ describe('DiffCommand', function () {
         it('handles no environments available', function () {
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--envs' => 'nonexistent-env',
+                '--env' => 'nonexistent-env',
             ]);
 
             expect($result)->toBe(1);
@@ -334,7 +358,7 @@ describe('DiffCommand', function () {
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--envs' => 'testing,staging',
+                '--env' => 'testing,staging',
                 '--unmask' => true,
             ]);
 
@@ -354,7 +378,7 @@ describe('DiffCommand', function () {
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--envs' => 'testing,staging',
+                '--env' => 'testing,staging',
             ]);
 
             expect($result)->toBe(0);
@@ -376,7 +400,7 @@ describe('DiffCommand', function () {
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--envs' => 'testing,staging',
+                '--env' => 'testing,staging',
             ]);
 
             expect($result)->toBe(0);
@@ -396,31 +420,37 @@ describe('DiffCommand', function () {
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--envs' => 'testing',
+                '--env' => 'testing',
             ]);
 
             expect($result)->toBe(0);
 
             $output = Artisan::output();
             $lines = explode("\n", $output);
-            
+
             // Find lines containing the secrets and verify order
-            $secretLines = array_filter($lines, fn($line) => str_contains($line, '_SECRET'));
+            $secretLines = array_filter($lines, fn ($line) => str_contains($line, '_SECRET'));
             $secretLines = array_values($secretLines);
-            
+
             expect(count($secretLines))->toBeGreaterThanOrEqual(3);
-            
+
             // Should appear in alphabetical order
             $alphaIndex = null;
             $betaIndex = null;
             $zebraIndex = null;
-            
+
             foreach ($secretLines as $index => $line) {
-                if (str_contains($line, 'ALPHA_SECRET')) $alphaIndex = $index;
-                if (str_contains($line, 'BETA_SECRET')) $betaIndex = $index;
-                if (str_contains($line, 'ZEBRA_SECRET')) $zebraIndex = $index;
+                if (str_contains($line, 'ALPHA_SECRET')) {
+                    $alphaIndex = $index;
+                }
+                if (str_contains($line, 'BETA_SECRET')) {
+                    $betaIndex = $index;
+                }
+                if (str_contains($line, 'ZEBRA_SECRET')) {
+                    $zebraIndex = $index;
+                }
             }
-            
+
             expect($alphaIndex)->not->toBeNull();
             expect($betaIndex)->not->toBeNull();
             expect($zebraIndex)->not->toBeNull();
@@ -437,8 +467,8 @@ describe('DiffCommand', function () {
             $testingVault->set('TEST_SECRET', 'value');
 
             $result = Artisan::call('keep:diff', [
-                '--vaults' => 'test',
-                '--envs' => 'testing,staging',
+                '--vault' => 'test',
+                '--env' => 'testing,staging',
             ]);
 
             expect($result)->toBe(0);
@@ -447,6 +477,23 @@ describe('DiffCommand', function () {
             // With single vault, should show environment names only
             expect($output)->toContain('testing');
             expect($output)->toContain('staging');
+        });
+
+        it('handles comma-separated vaults correctly', function () {
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $testingVault->set('TEST_SECRET', 'test-value');
+
+            $result = Artisan::call('keep:diff', [
+                '--vault' => 'test',
+                '--env' => 'testing',
+            ]);
+
+            expect($result)->toBe(0);
+
+            $output = Artisan::output();
+            expect($output)->toContain('test');
+            expect($output)->toContain('testing');
+            expect($output)->toContain('Vault: test');
         });
     });
 });
