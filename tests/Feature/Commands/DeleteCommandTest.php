@@ -53,7 +53,7 @@ describe('DeleteCommand', function () {
         it('actually removes the secret from the vault', function () {
             // Verify secret exists before deletion
             $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
-            expect($vault->hasSecret('TEST_SECRET'))->toBeTrue();
+            expect($vault->has('TEST_SECRET'))->toBeTrue();
 
             // Delete the secret
             Artisan::call('keep:delete', [
@@ -65,7 +65,7 @@ describe('DeleteCommand', function () {
             ]);
 
             // Verify secret no longer exists
-            expect($vault->hasSecret('TEST_SECRET'))->toBeFalse();
+            expect($vault->has('TEST_SECRET'))->toBeFalse();
         });
 
         it('handles unicode secrets correctly', function () {
@@ -118,11 +118,11 @@ describe('DeleteCommand', function () {
 
             // Verify testing environment secret is gone
             $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
-            expect($testingVault->hasSecret('SHARED_SECRET'))->toBeFalse();
+            expect($testingVault->has('SHARED_SECRET'))->toBeFalse();
 
             // Verify staging environment secret still exists
             $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('staging');
-            expect($stagingVault->hasSecret('SHARED_SECRET'))->toBeTrue();
+            expect($stagingVault->has('SHARED_SECRET'))->toBeTrue();
         });
 
         it('deletes secret from production environment', function () {

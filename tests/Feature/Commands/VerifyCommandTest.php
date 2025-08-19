@@ -214,7 +214,7 @@ describe('VerifyCommand', function () {
             expect($output)->toContain('✓');
 
             // The existing secret should still be there
-            expect($vault->hasSecret('EXISTING_SECRET'))->toBeTrue();
+            expect($vault->has('EXISTING_SECRET'))->toBeTrue();
         });
 
         it('shows unknown state for read when write fails and no existing secrets', function () {
@@ -341,8 +341,8 @@ describe('VerifyCommand', function () {
             expect($result)->toBe(0);
 
             // Existing secrets should still be there
-            expect($vault->hasSecret('EXISTING_SECRET_1'))->toBeTrue();
-            expect($vault->hasSecret('EXISTING_SECRET_2'))->toBeTrue();
+            expect($vault->has('EXISTING_SECRET_1'))->toBeTrue();
+            expect($vault->has('EXISTING_SECRET_2'))->toBeTrue();
 
             // No verify secrets should remain
             $allSecrets = $vault->list();

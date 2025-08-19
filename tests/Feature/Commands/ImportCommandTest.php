@@ -82,10 +82,10 @@ describe('ImportCommand', function () {
 
             // Verify secrets were imported
             $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
-            expect($vault->hasSecret('DB_HOST'))->toBeTrue();
-            expect($vault->hasSecret('DB_PORT'))->toBeTrue();
-            expect($vault->hasSecret('DB_NAME'))->toBeTrue();
-            expect($vault->hasSecret('API_KEY'))->toBeTrue();
+            expect($vault->has('DB_HOST'))->toBeTrue();
+            expect($vault->has('DB_PORT'))->toBeTrue();
+            expect($vault->has('DB_NAME'))->toBeTrue();
+            expect($vault->has('API_KEY'))->toBeTrue();
 
             expect($vault->get('DB_HOST')->value())->toBe('localhost');
             expect($vault->get('API_KEY')->value())->toBe('secret-api-key');
@@ -112,7 +112,7 @@ describe('ImportCommand', function () {
 
             // Verify no secrets were imported
             $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
-            expect($vault->hasSecret('DB_HOST'))->toBeFalse();
+            expect($vault->has('DB_HOST'))->toBeFalse();
 
             // But output should show what would be imported
             $output = Artisan::output();
@@ -223,7 +223,7 @@ describe('ImportCommand', function () {
             expect($secret->revision())->toBe(1); // Should not be incremented
 
             // But new secrets should be imported
-            expect($vault->hasSecret('DB_PORT'))->toBeTrue();
+            expect($vault->has('DB_PORT'))->toBeTrue();
 
             $output = Artisan::output();
             expect($output)->toContain('will be skipped');
@@ -294,7 +294,7 @@ describe('ImportCommand', function () {
             if ($result === 0) {
                 // If it succeeded, verify valid entries were imported
                 $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
-                expect($vault->hasSecret('VALID_KEY'))->toBeTrue();
+                expect($vault->has('VALID_KEY'))->toBeTrue();
                 expect($vault->get('VALID_KEY')->value())->toBe('valid_value');
             }
         });
@@ -313,10 +313,10 @@ describe('ImportCommand', function () {
             expect($result)->toBe(0);
 
             $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
-            expect($vault->hasSecret('DB_HOST'))->toBeTrue();
-            expect($vault->hasSecret('DB_PORT'))->toBeTrue();
-            expect($vault->hasSecret('DB_NAME'))->toBeTrue();
-            expect($vault->hasSecret('API_KEY'))->toBeFalse(); // Should be filtered out
+            expect($vault->has('DB_HOST'))->toBeTrue();
+            expect($vault->has('DB_PORT'))->toBeTrue();
+            expect($vault->has('DB_NAME'))->toBeTrue();
+            expect($vault->has('API_KEY'))->toBeFalse(); // Should be filtered out
         });
 
         it('excludes specified patterns with --except', function () {
@@ -331,10 +331,10 @@ describe('ImportCommand', function () {
             expect($result)->toBe(0);
 
             $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
-            expect($vault->hasSecret('DB_HOST'))->toBeTrue();
-            expect($vault->hasSecret('DB_PORT'))->toBeTrue();
-            expect($vault->hasSecret('DB_NAME'))->toBeTrue();
-            expect($vault->hasSecret('API_KEY'))->toBeFalse(); // Should be excluded
+            expect($vault->has('DB_HOST'))->toBeTrue();
+            expect($vault->has('DB_PORT'))->toBeTrue();
+            expect($vault->has('DB_NAME'))->toBeTrue();
+            expect($vault->has('API_KEY'))->toBeFalse(); // Should be excluded
         });
 
         it('handles multiple comma-separated patterns', function () {
@@ -349,10 +349,10 @@ describe('ImportCommand', function () {
             expect($result)->toBe(0);
 
             $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
-            expect($vault->hasSecret('DB_HOST'))->toBeTrue();
-            expect($vault->hasSecret('API_KEY'))->toBeTrue();
-            expect($vault->hasSecret('DB_PORT'))->toBeFalse(); // Should be filtered out
-            expect($vault->hasSecret('DB_NAME'))->toBeFalse(); // Should be filtered out
+            expect($vault->has('DB_HOST'))->toBeTrue();
+            expect($vault->has('API_KEY'))->toBeTrue();
+            expect($vault->has('DB_PORT'))->toBeFalse(); // Should be filtered out
+            expect($vault->has('DB_NAME'))->toBeFalse(); // Should be filtered out
         });
     });
 
@@ -368,7 +368,7 @@ describe('ImportCommand', function () {
             expect($result)->toBe(0);
 
             $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
-            expect($vault->hasSecret('DB_HOST'))->toBeTrue();
+            expect($vault->has('DB_HOST'))->toBeTrue();
         });
 
         it('uses specified vault', function () {
@@ -382,7 +382,7 @@ describe('ImportCommand', function () {
             expect($result)->toBe(0);
 
             $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
-            expect($vault->hasSecret('DB_HOST'))->toBeTrue();
+            expect($vault->has('DB_HOST'))->toBeTrue();
         });
 
         it('uses default vault when not specified', function () {
@@ -395,7 +395,7 @@ describe('ImportCommand', function () {
             expect($result)->toBe(0);
 
             $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
-            expect($vault->hasSecret('DB_HOST'))->toBeTrue();
+            expect($vault->has('DB_HOST'))->toBeTrue();
         });
 
         // NOTE: Cannot test stage selection prompts in automated tests
@@ -421,8 +421,8 @@ describe('ImportCommand', function () {
             expect($output)->toContain('Skipping key [EMPTY_VALUE] with empty value');
 
             // Other values should be imported
-            expect($vault->hasSecret('SIMPLE_VALUE'))->toBeTrue();
-            expect($vault->hasSecret('QUOTED_VALUE'))->toBeTrue();
+            expect($vault->has('SIMPLE_VALUE'))->toBeTrue();
+            expect($vault->has('QUOTED_VALUE'))->toBeTrue();
             expect($vault->get('SIMPLE_VALUE')->value())->toBe('hello');
             expect($vault->get('QUOTED_VALUE')->value())->toBe('world');
         });
@@ -438,8 +438,8 @@ describe('ImportCommand', function () {
             expect($result)->toBe(0);
 
             $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
-            expect($vault->hasSecret('VAR_1'))->toBeTrue();
-            expect($vault->hasSecret('VAR_20'))->toBeTrue();
+            expect($vault->has('VAR_1'))->toBeTrue();
+            expect($vault->has('VAR_20'))->toBeTrue();
             expect($vault->get('VAR_1')->value())->toBe('value_1');
             expect($vault->get('VAR_20')->value())->toBe('value_20');
         });
@@ -527,9 +527,9 @@ describe('ImportCommand', function () {
             expect($result)->toBe(0);
 
             // Verify mixed results
-            expect($vault->hasSecret('DB_HOST'))->toBeTrue(); // Existing
-            expect($vault->hasSecret('DB_PORT'))->toBeTrue(); // New
-            expect($vault->hasSecret('API_KEY'))->toBeTrue(); // New
+            expect($vault->has('DB_HOST'))->toBeTrue(); // Existing
+            expect($vault->has('DB_PORT'))->toBeTrue(); // New
+            expect($vault->has('API_KEY'))->toBeTrue(); // New
 
             $output = Artisan::output();
             expect($output)->toContain('Exists');

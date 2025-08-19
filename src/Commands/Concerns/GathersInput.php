@@ -30,7 +30,15 @@ trait GathersInput
 
     protected string $vaultName;
 
+    protected string $fromVaultName;
+
+    protected string $toVaultName;
+
     protected string $stage;
+
+    protected string $fromStage;
+
+    protected string $toStage;
 
     protected string $from;
 
@@ -46,21 +54,21 @@ trait GathersInput
         return $this->value ??= $this->argument('value') ?? text('Value', required: true);
     }
 
-    protected function vaultName()
+    protected function vaultName($prompt = "Vault", $cacheName = 'vaultName')
     {
-        return $this->vaultName ??= match (true) {
-            (bool) $this->option('vault') => $this->option('vault'),
+        return $this->{$cacheName} ??= match (true) {
+            $this->hasOption('vault') && (bool) $this->option('vault') => $this->option('vault'),
             count(Keep::available()) === 1 => Keep::getDefaultVault(),
-            default => select('Vault', Keep::available(), Keep::getDefaultVault()),
+            default => select($prompt, Keep::available(), Keep::getDefaultVault()),
         };
     }
 
-    protected function stage()
+    protected function stage($prompt = "Stage", $cacheName = 'stage')
     {
-        return $this->stage ??= match (true) {
-            (bool) $this->option('stage') => $this->option('stage'),
+        return $this->{$cacheName} ??= match (true) {
+            $this->hasOption('stage') && (bool) $this->option('stage') => $this->option('stage'),
             count(Keep::stages()) === 1 => Keep::stages()[0],
-            default => select('Stage', Keep::stages(), Keep::stage()),
+            default => select($prompt, Keep::stages(), Keep::stage()),
         };
     }
 
@@ -69,17 +77,25 @@ trait GathersInput
      */
     public function resetInput(): void
     {
-        unset($this->key, $this->value, $this->vaultName, $this->stage, $this->from, $this->to);
+        unset($this->key, $this->value, $this->vaultName, $this->fromVaultName, $this->toVaultName, $this->stage, $this->fromStage, $this->toStage, $this->from, $this->to);
     }
 
     protected function from()
     {
-        return $this->from ??= $this->option('from') ?? text('From (vault:stage or stage)', 'development', required: true);
+        return match(true) {
+            isset($this->from) => $this->from,
+            (bool) $this->option('from') => $this->option('from'),
+            default => $this->vaultName('From (vault)', 'fromVaultName').':'.$this->stage('From (stage)', 'fromStage'),
+        };
     }
 
     protected function to()
     {
-        return $this->to ??= $this->option('to') ?? text('To (vault:stage or stage)', 'production', required: true);
+        return match(true) {
+            isset($this->to) => $this->to,
+            (bool) $this->option('to') => $this->option('to'),
+            default => $this->vaultName('To (vault)', 'toVaultName').':'.$this->stage('To (stage)', 'toStage'),
+        };
     }
 
     protected function secure(): bool

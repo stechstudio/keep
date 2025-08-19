@@ -50,6 +50,8 @@ abstract class AbstractVault
 
     abstract public function list(): SecretCollection;
 
+    abstract public function has(string $key): bool;
+
     abstract public function get(string $key): Secret;
 
     abstract public function set(string $key, string $value, bool $secure = true): Secret;

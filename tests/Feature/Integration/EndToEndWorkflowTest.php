@@ -491,10 +491,10 @@ describe('EndToEndWorkflowTest', function () {
             // If it succeeded, verify valid entries were imported
             if ($result === 0) {
                 $vault = Keep::vault('test')->forStage('testing');
-                expect($vault->hasSecret('VALID_KEY_1'))->toBeTrue();
-                expect($vault->hasSecret('VALID_KEY_2'))->toBeTrue();
-                expect($vault->hasSecret('VALID_KEY_3'))->toBeTrue();
-                expect($vault->hasSecret('VALID_KEY_4'))->toBeTrue();
+                expect($vault->has('VALID_KEY_1'))->toBeTrue();
+                expect($vault->has('VALID_KEY_2'))->toBeTrue();
+                expect($vault->has('VALID_KEY_3'))->toBeTrue();
+                expect($vault->has('VALID_KEY_4'))->toBeTrue();
             }
         });
 

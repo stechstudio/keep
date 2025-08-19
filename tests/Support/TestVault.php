@@ -115,7 +115,7 @@ class TestVault extends AbstractVault
         }
     }
 
-    public function hasSecret(string $key): bool
+    public function has(string $key): bool
     {
         $secrets = $this->getVaultStageSecrets();
 

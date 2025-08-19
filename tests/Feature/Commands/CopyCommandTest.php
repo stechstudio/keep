@@ -33,7 +33,7 @@ describe('CopyCommand', function () {
 
             // Verify destination exists
             $destinationVault = \STS\Keep\Facades\Keep::vault('test')->forStage('production');
-            expect($destinationVault->hasSecret('TEST_KEY'))->toBeTrue();
+            expect($destinationVault->has('TEST_KEY'))->toBeTrue();
 
             $destinationSecret = $destinationVault->get('TEST_KEY');
             expect($destinationSecret->value())->toBe('test-value');
@@ -110,7 +110,7 @@ describe('CopyCommand', function () {
 
             // Verify destination exists
             $destinationVault = \STS\Keep\Facades\Keep::vault('test')->forStage('production');
-            expect($destinationVault->hasSecret('OPTIONAL_KEY_TEST'))->toBeTrue();
+            expect($destinationVault->has('OPTIONAL_KEY_TEST'))->toBeTrue();
 
             $destinationSecret = $destinationVault->get('OPTIONAL_KEY_TEST');
             expect($destinationSecret->value())->toBe('test-value');
@@ -304,7 +304,7 @@ describe('CopyCommand', function () {
 
             // Verify destination was not created
             $destinationVault = \STS\Keep\Facades\Keep::vault('test')->forStage('production');
-            expect($destinationVault->hasSecret('DRY_RUN_KEY'))->toBeFalse();
+            expect($destinationVault->has('DRY_RUN_KEY'))->toBeFalse();
         });
 
         it('shows overwrite warning in dry run preview', function () {
