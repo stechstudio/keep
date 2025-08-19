@@ -5,7 +5,7 @@ use Aws\Result;
 use Aws\Ssm\Exception\SsmException;
 use Aws\Ssm\SsmClient;
 use STS\Keep\Data\Secret;
-use STS\Keep\Data\SecretCollection;
+use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Exceptions\AccessDeniedException;
 use STS\Keep\Exceptions\KeepException;
 use STS\Keep\Exceptions\SecretNotFoundException;

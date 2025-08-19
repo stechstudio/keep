@@ -4,6 +4,7 @@ namespace STS\Keep\Data;
 
 use Dotenv\Parser\Parser;
 use Illuminate\Support\Collection;
+use STS\Keep\Data\Collections\SecretCollection;
 
 class Env
 {

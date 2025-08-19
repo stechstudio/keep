@@ -1,10 +1,11 @@
 <?php
 
-namespace STS\Keep\Data;
+namespace STS\Keep\Data\Collections;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use STS\Keep\Data\Concerns\FormatsEnvValues;
+use STS\Keep\Data\Secret;
 
 class SecretCollection extends Collection
 {

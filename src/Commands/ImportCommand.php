@@ -3,7 +3,7 @@
 namespace STS\Keep\Commands;
 
 use STS\Keep\Data\Env;
-use STS\Keep\Data\SecretCollection;
+use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Exceptions\KeepException;
 
 use function Laravel\Prompts\table;
