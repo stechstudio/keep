@@ -81,7 +81,7 @@ Example `.env.base` template:
 APP_NAME=MyApp
 # ...
 DB_DATABASE=myapp_db
-DB_PASSWORD={aws-ssm:DB_PASSWORD} # or just {aws-ssm} since the key matches the variable name
+DB_PASSWORD={ssm:DB_PASSWORD} # or just {ssm} since the key matches the variable name
 ```
 
 Then run the merge command:
