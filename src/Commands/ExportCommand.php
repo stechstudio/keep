@@ -2,7 +2,7 @@
 
 namespace STS\Keep\Commands;
 
-use STS\Keep\Data\SecretCollection;
+use STS\Keep\Data\Collections\SecretCollection;
 
 class ExportCommand extends AbstractCommand
 {

@@ -1,12 +1,14 @@
 <?php
 
-namespace STS\Keep\Data;
+namespace STS\Keep\Data\Collections;
 
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use STS\Keep\Data\Collections\FilterCollection;
 use STS\Keep\Data\Filters\DateFilter;
 use STS\Keep\Data\Filters\StringFilter;
+use STS\Keep\Data\SecretHistory;
 
 class SecretHistoryCollection extends Collection
 {

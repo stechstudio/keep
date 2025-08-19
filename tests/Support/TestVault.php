@@ -4,11 +4,11 @@ namespace STS\Keep\Tests\Support;
 
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use STS\Keep\Data\FilterCollection;
+use STS\Keep\Data\Collections\FilterCollection;
 use STS\Keep\Data\Secret;
 use STS\Keep\Data\SecretHistory;
-use STS\Keep\Data\SecretHistoryCollection;
-use STS\Keep\Data\SecretCollection;
+use STS\Keep\Data\Collections\SecretHistoryCollection;
+use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Exceptions\SecretNotFoundException;
 use STS\Keep\Vaults\AbstractVault;
 

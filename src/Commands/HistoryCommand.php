@@ -2,11 +2,11 @@
 
 namespace STS\Keep\Commands;
 
-use STS\Keep\Data\FilterCollection;
+use STS\Keep\Data\Collections\FilterCollection;
 use STS\Keep\Data\Filters\DateFilter;
 use STS\Keep\Data\Filters\StringFilter;
 use STS\Keep\Data\SecretHistory;
-use STS\Keep\Data\SecretHistoryCollection;
+use STS\Keep\Data\Collections\SecretHistoryCollection;
 
 use function Laravel\Prompts\table;
 

@@ -1,7 +1,7 @@
 <?php
 
 use STS\Keep\Data\Secret;
-use STS\Keep\Data\SecretCollection;
+use STS\Keep\Data\Collections\SecretCollection;
 
 beforeEach(function () {
     $this->secrets = new SecretCollection([
