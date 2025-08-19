@@ -3,6 +3,7 @@
 namespace STS\Keep;
 
 use Illuminate\Support\ServiceProvider;
+use STS\Keep\Commands\CopyCommand;
 use STS\Keep\Commands\DeleteCommand;
 use STS\Keep\Commands\DiffCommand;
 use STS\Keep\Commands\ExportCommand;
@@ -38,6 +39,7 @@ class KeepServiceProvider extends ServiceProvider
             $this->commands([
                 SetCommand::class,
                 GetCommand::class,
+                CopyCommand::class,
                 DeleteCommand::class,
                 ListCommand::class,
                 HistoryCommand::class,
