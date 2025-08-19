@@ -10,7 +10,7 @@
 **Laravel Keep** is a toolkit for managing application secrets across environments and teams.
 
 **Key Features:**
-- **CLI Commands** - Set, get, delete, list, import, export, and merge secrets via artisan commands
+- **CLI Commands** - Manage individual secrets, import/export in bulk, view history and diffs, all via artisan commands
 - **Multi-Vault Support** - Driver-based system (AWS SSM Parameter Store, extensible for other providers)
 - **Environment Isolation** - Separate secrets by environment (local, staging, production) with access controls
 - **Template System** - Merge secrets into `.env` files using template placeholders
