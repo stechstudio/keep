@@ -53,7 +53,7 @@ describe('ServiceProviderTest', function () {
 
         it('has expected config structure', function () {
             expect(config('keep.namespace'))->not->toBeNull();
-            expect(config('keep.environments'))->toBeArray();
+            expect(config('keep.stages'))->toBeArray();
             expect(config('keep.default'))->not->toBeNull();
             expect(config('keep.vaults'))->toBeArray();
         });
@@ -63,7 +63,7 @@ describe('ServiceProviderTest', function () {
             expect(config('keep.namespace'))->toBe('test-app');
 
             // Should have default environments (in tests: testing, staging, production)
-            $environments = config('keep.environments');
+            $environments = config('keep.stages');
             expect($environments)->toContain('testing');
             expect($environments)->toContain('staging');
             expect($environments)->toContain('production');
@@ -142,7 +142,7 @@ describe('ServiceProviderTest', function () {
         it('facade can access manager methods', function () {
             // Test basic facade functionality
             expect(Keep::namespace())->toBe('test-app');
-            expect(Keep::environment())->toBe('testing');
+            expect(Keep::stage())->toBe('testing');
         });
 
         it('facade maintains singleton behavior', function () {
@@ -204,13 +204,13 @@ describe('ServiceProviderTest', function () {
     describe('environment configuration', function () {
         it('respects KEEP_ENV override', function () {
             // Test environment override
-            config(['keep.environment' => 'custom-env']);
+            config(['keep.stage' => 'custom-env']);
 
-            expect(config('keep.environment'))->toBe('custom-env');
+            expect(config('keep.stage'))->toBe('custom-env');
         });
 
         it('provides sensible environment defaults', function () {
-            $environments = config('keep.environments');
+            $environments = config('keep.stages');
 
             expect($environments)->toBeArray();
             expect($environments)->toContain('testing');
@@ -220,9 +220,9 @@ describe('ServiceProviderTest', function () {
         });
 
         it('supports custom environment lists', function () {
-            config(['keep.environments' => ['dev', 'test', 'prod']]);
+            config(['keep.stages' => ['dev', 'test', 'prod']]);
 
-            $environments = config('keep.environments');
+            $environments = config('keep.stages');
             expect($environments)->toBe(['dev', 'test', 'prod']);
         });
     });
@@ -242,7 +242,7 @@ describe('ServiceProviderTest', function () {
         });
 
         it('supports environment-specific templates', function () {
-            $envTemplates = config('keep.environment_templates');
+            $envTemplates = config('keep.stage_templates');
 
             expect($envTemplates)->toBe('env');
         });
@@ -273,12 +273,12 @@ describe('ServiceProviderTest', function () {
             // it should fall back to Laravel's environment detection
 
             // Clear any explicit KEEP_ENV setting
-            config(['keep.environment' => null]);
+            config(['keep.stage' => null]);
 
             $manager = app(KeepManager::class);
 
             // Should use Laravel's environment (testing in our case)
-            expect($manager->environment())->toBe('testing');
+            expect($manager->stage())->toBe('testing');
         });
     });
 
@@ -297,7 +297,7 @@ describe('ServiceProviderTest', function () {
             // Test with various invalid config values
             config([
                 'keep.namespace' => null,
-                'keep.environments' => null,
+                'keep.stages' => null,
                 'keep.default' => null,
             ]);
 

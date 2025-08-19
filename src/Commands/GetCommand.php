@@ -7,9 +7,9 @@ class GetCommand extends AbstractCommand
     public $signature = 'keep:get {--format=table : table|json|raw} '
         .self::KEY_SIGNATURE
         .self::VAULT_SIGNATURE
-        .self::ENV_SIGNATURE;
+        .self::STAGE_SIGNATURE;
 
-    public $description = 'Get the value of an environment secret in a specified vault';
+    public $description = 'Get the value of a stage secret in a specified vault';
 
     public function process(): int
     {

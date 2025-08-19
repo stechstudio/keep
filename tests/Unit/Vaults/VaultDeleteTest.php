@@ -123,9 +123,9 @@ describe('Vault Delete Functionality', function () {
             $vault = new TestVault('test-vault', ['namespace' => 'test-app']);
 
             // Create vault instances for different environments
-            $testingVault = $vault->forEnvironment('testing');
-            $stagingVault = $vault->forEnvironment('staging');
-            $productionVault = $vault->forEnvironment('production');
+            $testingVault = $vault->forStage('testing');
+            $stagingVault = $vault->forStage('staging');
+            $productionVault = $vault->forStage('production');
 
             // Set the same key in all environments
             $testingVault->set('ENV_KEY', 'testing-value');

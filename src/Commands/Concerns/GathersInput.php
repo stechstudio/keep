@@ -15,7 +15,7 @@ trait GathersInput
 
     protected const string VAULT_SIGNATURE = '{--vault= : The vault to use}';
 
-    protected const string ENV_SIGNATURE = '{--env= : The environment to use}';
+    protected const string STAGE_SIGNATURE = '{--stage= : The stage to use}';
 
     protected const string PLAIN_SIGNATURE = '{--plain : Do not encrypt the value}';
 
@@ -30,7 +30,7 @@ trait GathersInput
 
     protected string $vaultName;
 
-    protected string $env;
+    protected string $stage;
 
     protected function key()
     {
@@ -51,12 +51,12 @@ trait GathersInput
         };
     }
 
-    protected function environment()
+    protected function stage()
     {
-        return $this->env ??= match (true) {
-            (bool) $this->option('env') => $this->option('env'),
-            count(Keep::environments()) === 1 => Keep::environments()[0],
-            default => select('Environment', Keep::environments(), Keep::environment()),
+        return $this->stage ??= match (true) {
+            (bool) $this->option('stage') => $this->option('stage'),
+            count(Keep::stages()) === 1 => Keep::stages()[0],
+            default => select('Stage', Keep::stages(), Keep::stage()),
         };
     }
 
@@ -65,7 +65,7 @@ trait GathersInput
      */
     public function resetInput(): void
     {
-        unset($this->key, $this->value, $this->vaultName, $this->env);
+        unset($this->key, $this->value, $this->vaultName, $this->stage);
     }
 
     protected function secure(): bool

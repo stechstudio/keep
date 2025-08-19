@@ -223,7 +223,7 @@ describe('AwsSsmVault', function () {
             expect($secret->value())->toBe('secret123');
             expect($secret->isSecure())->toBeTrue();
             expect($secret->revision())->toBe(3);
-            expect($secret->environment())->toBe('testing');
+            expect($secret->stage())->toBe('testing');
             expect($secret->vault())->toBe($this->vault);
         });
 
@@ -356,7 +356,7 @@ describe('AwsSsmVault', function () {
                 key: 'SAVE_TEST',
                 value: 'save-value',
                 secure: true,
-                environment: 'testing',
+                stage: 'testing',
                 revision: 0,
                 vault: $this->vault
             );
@@ -387,9 +387,9 @@ describe('AwsSsmVault', function () {
         });
     });
 
-    describe('environment handling', function () {
+    describe('stage handling', function () {
         it('creates vault for different environment', function () {
-            $prodVault = $this->vault->forEnvironment('production');
+            $prodVault = $this->vault->forStage('production');
 
             expect($prodVault->format('TEST_KEY'))
                 ->toBe('/app-secrets/test-app/production/TEST_KEY');

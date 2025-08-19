@@ -9,7 +9,7 @@ describe('HistoryCommand', function () {
         \STS\Keep\Facades\Keep::vault('test')->clear();
 
         // Set up test secret with multiple versions for history testing
-        $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+        $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
 
         // Create initial version
         $vault->set('TEST_SECRET', 'initial-value');
@@ -25,7 +25,7 @@ describe('HistoryCommand', function () {
             $result = Artisan::call('keep:history', [
                 'key' => 'TEST_SECRET',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
             ]);
 
             expect($result)->toBe(0);
@@ -42,7 +42,7 @@ describe('HistoryCommand', function () {
             $result = Artisan::call('keep:history', [
                 'key' => 'TEST_SECRET',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
             ]);
 
             expect($result)->toBe(0);
@@ -59,7 +59,7 @@ describe('HistoryCommand', function () {
             $result = Artisan::call('keep:history', [
                 'key' => 'TEST_SECRET',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--unmask' => true,
             ]);
 
@@ -77,7 +77,7 @@ describe('HistoryCommand', function () {
             $result = Artisan::call('keep:history', [
                 'key' => 'TEST_SECRET',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'json',
                 '--unmask' => true,
             ]);
@@ -107,7 +107,7 @@ describe('HistoryCommand', function () {
             $result = Artisan::call('keep:history', [
                 'key' => 'TEST_SECRET',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'json',
                 '--limit' => 2,
                 '--unmask' => true,
@@ -132,7 +132,7 @@ describe('HistoryCommand', function () {
             $result = Artisan::call('keep:history', [
                 'key' => 'NONEXISTENT_SECRET',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
             ]);
 
             expect($result)->toBe(1); // FAILURE
@@ -145,7 +145,7 @@ describe('HistoryCommand', function () {
             $result = Artisan::call('keep:history', [
                 'key' => 'TEST_SECRET',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'invalid',
             ]);
 
@@ -158,16 +158,16 @@ describe('HistoryCommand', function () {
     });
 
     describe('environment and vault handling', function () {
-        it('uses specified environment', function () {
+        it('uses specified stage', function () {
             // Set up secret in staging environment
-            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('staging');
+            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('staging');
             $stagingVault->set('STAGING_SECRET', 'staging-value');
             $stagingVault->set('STAGING_SECRET', 'staging-value-v2');
 
             $result = Artisan::call('keep:history', [
                 'key' => 'STAGING_SECRET',
                 '--vault' => 'test',
-                '--env' => 'staging',
+                '--stage' => 'staging',
                 '--format' => 'json',
                 '--unmask' => true,
             ]);
@@ -186,7 +186,7 @@ describe('HistoryCommand', function () {
             $result = Artisan::call('keep:history', [
                 'key' => 'TEST_SECRET',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'json',
                 '--unmask' => true,
             ]);
@@ -204,13 +204,13 @@ describe('HistoryCommand', function () {
     describe('masking functionality', function () {
         it('masks short values with ****', function () {
             // Set up a secret with a short value
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             $vault->set('SHORT_SECRET', 'abc');
 
             $result = Artisan::call('keep:history', [
                 'key' => 'SHORT_SECRET',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
             ]);
 
             expect($result)->toBe(0);
@@ -221,13 +221,13 @@ describe('HistoryCommand', function () {
 
         it('masks long values with first 4 chars + asterisks', function () {
             // Set up a secret with a long value
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             $vault->set('LONG_SECRET', 'very-long-secret-value');
 
             $result = Artisan::call('keep:history', [
                 'key' => 'LONG_SECRET',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
             ]);
 
             expect($result)->toBe(0);
@@ -240,13 +240,13 @@ describe('HistoryCommand', function () {
     describe('edge cases', function () {
         it('handles secret with empty value in history', function () {
             // Set up a secret with an empty value
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             $vault->set('EMPTY_SECRET', '');
 
             $result = Artisan::call('keep:history', [
                 'key' => 'EMPTY_SECRET',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
             ]);
 
             expect($result)->toBe(0);
@@ -259,7 +259,7 @@ describe('HistoryCommand', function () {
             $result = Artisan::call('keep:history', [
                 'key' => 'TEST_SECRET',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--limit' => 100,
                 '--format' => 'json',
             ]);
@@ -277,7 +277,7 @@ describe('HistoryCommand', function () {
             $result = Artisan::call('keep:history', [
                 'key' => 'TEST_SECRET',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--limit' => 1,
                 '--format' => 'json',
                 '--unmask' => true,

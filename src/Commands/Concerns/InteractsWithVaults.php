@@ -11,7 +11,7 @@ trait InteractsWithVaults
 
     public function vault(): AbstractVault
     {
-        return $this->vault ??= Keep::vault($this->vaultName())->forEnvironment($this->environment());
+        return $this->vault ??= Keep::vault($this->vaultName())->forStage($this->stage());
     }
 
     /**

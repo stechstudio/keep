@@ -9,7 +9,7 @@ describe('MergeCommand', function () {
         \STS\Keep\Facades\Keep::vault('test')->clear();
 
         // Set up test secrets
-        $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+        $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
         $vault->set('DB_HOST', 'localhost');
         $vault->set('DB_PORT', '3306');
         $vault->set('DB_NAME', 'myapp');
@@ -77,14 +77,14 @@ describe('MergeCommand', function () {
             $result = Artisan::call('keep:merge', [
                 'template' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
             expect($result)->toBe(0);
 
             $output = Artisan::output();
-            expect($output)->toContain('# ----- Base environment variables -----');
+            expect($output)->toContain('# ----- Base stage variables -----');
             expect($output)->toContain('DB_HOST=localhost');
             expect($output)->toContain('DB_PORT=3306');
             expect($output)->toContain('DB_NAME=myapp');
@@ -96,17 +96,17 @@ describe('MergeCommand', function () {
                 'template' => '/tmp/keeper-test/basic.env',
                 '--overlay' => '/tmp/keeper-test/overlay.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
             expect($result)->toBe(0);
 
             $output = Artisan::output();
-            expect($output)->toContain('# ----- Base environment variables -----');
+            expect($output)->toContain('# ----- Base stage variables -----');
             expect($output)->toContain('DB_HOST=localhost');
             expect($output)->toContain('# ----- Separator -----');
-            expect($output)->toContain('# Appending additional environment variables');
+            expect($output)->toContain('# Appending additional stage variables');
             expect($output)->toContain('MAIL_HOST="smtp.example.com"');
             expect($output)->toContain('CACHE_DRIVER=redis');
         });
@@ -118,7 +118,7 @@ describe('MergeCommand', function () {
                 'template' => '/tmp/keeper-test/basic.env',
                 '--output' => $outputFile,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -139,7 +139,7 @@ describe('MergeCommand', function () {
             $result = Artisan::call('keep:merge', [
                 'template' => '/tmp/keeper-test/missing.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -151,7 +151,7 @@ describe('MergeCommand', function () {
                 'template' => '/tmp/keeper-test/missing.env',
                 '--missing' => 'remove',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -169,7 +169,7 @@ describe('MergeCommand', function () {
                 'template' => '/tmp/keeper-test/missing.env',
                 '--missing' => 'blank',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -186,7 +186,7 @@ describe('MergeCommand', function () {
                 'template' => '/tmp/keeper-test/missing.env',
                 '--missing' => 'skip',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -204,7 +204,7 @@ describe('MergeCommand', function () {
             $result = Artisan::call('keep:merge', [
                 'template' => '/tmp/keeper-test/nonexistent.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -219,7 +219,7 @@ describe('MergeCommand', function () {
                 'template' => '/tmp/keeper-test/basic.env',
                 '--overlay' => '/tmp/keeper-test/nonexistent.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -238,7 +238,7 @@ describe('MergeCommand', function () {
                 '--output' => $outputFile,
                 '--overwrite' => true,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -258,7 +258,7 @@ describe('MergeCommand', function () {
                 '--output' => $outputFile,
                 '--append' => true,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -275,7 +275,7 @@ describe('MergeCommand', function () {
             $result = Artisan::call('keep:merge', [
                 'template' => '/tmp/keeper-test/complex.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -293,7 +293,7 @@ describe('MergeCommand', function () {
             $result = Artisan::call('keep:merge', [
                 'template' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -310,25 +310,25 @@ describe('MergeCommand', function () {
             $result = Artisan::call('keep:merge', [
                 'template' => '/tmp/keeper-test/empty.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
             expect($result)->toBe(0);
 
             $output = Artisan::output();
-            expect($output)->toContain('# ----- Base environment variables -----');
+            expect($output)->toContain('# ----- Base stage variables -----');
         });
     });
 
     describe('environment and vault handling', function () {
-        it('uses specified environment', function () {
+        it('uses specified stage', function () {
             // Note: This test has environment isolation issues with TestVault
-            // See DEV_PLAN.md item #17 - Fix TestVault Environment Isolation
+            // See DEV_PLAN.md item #17 - Fix TestVault Stage Isolation
             $result = Artisan::call('keep:merge', [
                 'template' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--env' => 'testing', // Use same environment for now
+                '--stage' => 'testing', // Use same environment for now
             ]);
 
             expect($result)->toBe(0);
@@ -341,7 +341,7 @@ describe('MergeCommand', function () {
             $result = Artisan::call('keep:merge', [
                 'template' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -351,7 +351,7 @@ describe('MergeCommand', function () {
             expect($output)->toContain('DB_HOST=localhost');
         });
 
-        // NOTE: Cannot test environment selection prompts in automated tests
+        // NOTE: Cannot test stage selection prompts in automated tests
         // because they hang waiting for user input. Interactive prompts
         // are not compatible with automated testing environments.
     });
@@ -366,7 +366,7 @@ describe('MergeCommand', function () {
             $result = Artisan::call('keep:merge', [
                 'template' => '/tmp/keeper-test/no-placeholders.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -378,7 +378,7 @@ describe('MergeCommand', function () {
         });
 
         it('handles template with unicode values', function () {
-            \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing')->set('UNICODE_KEY', 'Hello 世界 🚀');
+            \STS\Keep\Facades\Keep::vault('test')->forStage('testing')->set('UNICODE_KEY', 'Hello 世界 🚀');
 
             file_put_contents('/tmp/keeper-test/unicode.env',
                 "UNICODE_VALUE={test:UNICODE_KEY}\n"
@@ -387,7 +387,7 @@ describe('MergeCommand', function () {
             $result = Artisan::call('keep:merge', [
                 'template' => '/tmp/keeper-test/unicode.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -398,7 +398,7 @@ describe('MergeCommand', function () {
         });
 
         it('handles template with special characters in values', function () {
-            \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing')->set('SPECIAL_KEY', 'value with & symbols!');
+            \STS\Keep\Facades\Keep::vault('test')->forStage('testing')->set('SPECIAL_KEY', 'value with & symbols!');
 
             file_put_contents('/tmp/keeper-test/special.env',
                 "SPECIAL_VALUE={test:SPECIAL_KEY}\n"
@@ -407,7 +407,7 @@ describe('MergeCommand', function () {
             $result = Artisan::call('keep:merge', [
                 'template' => '/tmp/keeper-test/special.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -428,7 +428,7 @@ describe('MergeCommand', function () {
             $result = Artisan::call('keep:merge', [
                 'template' => '/tmp/keeper-test/large.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 

@@ -8,10 +8,10 @@ describe('GetCommand', function () {
         // Clear test vault before each test
         \STS\Keep\Facades\Keep::vault('test')->clear();
 
-        // Set up test secrets - now adding cross-environment setup
-        \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing')->set('TEST_SECRET', 'test-value');
-        \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing')->set('UNICODE_SECRET', 'Hello 世界 🚀');
-        \STS\Keep\Facades\Keep::vault('test')->forEnvironment('production')->set('PROD_SECRET', 'prod-value');
+        // Set up test secrets - now adding cross-stage setup
+        \STS\Keep\Facades\Keep::vault('test')->forStage('testing')->set('TEST_SECRET', 'test-value');
+        \STS\Keep\Facades\Keep::vault('test')->forStage('testing')->set('UNICODE_SECRET', 'Hello 世界 🚀');
+        \STS\Keep\Facades\Keep::vault('test')->forStage('production')->set('PROD_SECRET', 'prod-value');
     });
 
     describe('basic functionality', function () {
@@ -19,7 +19,7 @@ describe('GetCommand', function () {
             $result = Artisan::call('keep:get', [
                 'key' => 'TEST_SECRET',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -35,7 +35,7 @@ describe('GetCommand', function () {
             $result = Artisan::call('keep:get', [
                 'key' => 'TEST_SECRET',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'raw',
             ]);
 
@@ -49,7 +49,7 @@ describe('GetCommand', function () {
             $result = Artisan::call('keep:get', [
                 'key' => 'TEST_SECRET',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'json',
             ]);
 
@@ -68,7 +68,7 @@ describe('GetCommand', function () {
             $result = Artisan::call('keep:get', [
                 'key' => 'UNICODE_SECRET',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'raw',
             ]);
 
@@ -84,7 +84,7 @@ describe('GetCommand', function () {
             $result = Artisan::call('keep:get', [
                 'key' => 'NON_EXISTENT_KEY',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -95,12 +95,12 @@ describe('GetCommand', function () {
         });
     });
 
-    describe('environment handling', function () {
-        it('retrieves secret from specified environment', function () {
+    describe('stage handling', function () {
+        it('retrieves secret from specified stage', function () {
             $result = Artisan::call('keep:get', [
                 'key' => 'PROD_SECRET',
                 '--vault' => 'test',
-                '--env' => 'production',
+                '--stage' => 'production',
                 '--format' => 'raw',
                 '--no-interaction' => true,
             ]);
@@ -111,7 +111,7 @@ describe('GetCommand', function () {
             expect($output)->toBe('prod-value');
         });
 
-        // NOTE: Cannot test environment selection prompts in automated tests
+        // NOTE: Cannot test stage selection prompts in automated tests
         // because they hang waiting for user input. Interactive prompts
         // are not compatible with automated testing environments.
     });

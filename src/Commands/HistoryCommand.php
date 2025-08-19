@@ -13,7 +13,7 @@ class HistoryCommand extends AbstractCommand
         {--format=table : table|json} '
         .self::KEY_SIGNATURE
         .self::VAULT_SIGNATURE
-        .self::ENV_SIGNATURE
+        .self::STAGE_SIGNATURE
         .self::UNMASK_SIGNATURE;
 
     public $description = 'Display change history for a secret';

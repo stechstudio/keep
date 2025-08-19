@@ -17,9 +17,9 @@ class MergeCommand extends AbstractCommand
         {--append : Append to the output file if it exists} 
         {--missing=fail : How to handle missing secrets: fail|remove|blank|skip (default: fail) } '
         .self::VAULT_SIGNATURE
-        .self::ENV_SIGNATURE;
+        .self::STAGE_SIGNATURE;
 
-    public $description = 'Merge environment secrets into a template env file, replacing placeholders with actual secret values from a specified vault';
+    public $description = 'Merge stage secrets into a template env file, replacing placeholders with actual secret values from a specified vault';
 
     protected Template $baseTemplate;
 
@@ -69,7 +69,7 @@ class MergeCommand extends AbstractCommand
         $this->info("Using base template file [$template].");
         $this->baseTemplate = new Template(file_get_contents($template));
 
-        $overlayTemplate = $this->option('overlay') ?? $this->findEnvironmentOverlayTemplate();
+        $overlayTemplate = $this->option('overlay') ?? $this->findStageOverlayTemplate();
 
         if ($overlayTemplate) {
             if (! file_exists($overlayTemplate) || ! is_readable($overlayTemplate)) {
@@ -89,11 +89,11 @@ class MergeCommand extends AbstractCommand
 
     protected function mergeAndConcat(Template $base, Template $overlay, SecretsCollection $secrets, MissingSecretStrategy $strategy): string
     {
-        $output = "# ----- Base environment variables -----\n\n";
+        $output = "# ----- Base stage variables -----\n\n";
         $output .= $base->merge($this->vault()->slug(), $secrets, $strategy);
 
         if ($overlay->isNotEmpty()) {
-            $output .= "\n\n# ----- Separator -----\n\n# Appending additional environment variables\n\n";
+            $output .= "\n\n# ----- Separator -----\n\n# Appending additional stage variables\n\n";
             $output .= $overlay->merge($this->vault()->slug(), $secrets, $strategy);
         }
 

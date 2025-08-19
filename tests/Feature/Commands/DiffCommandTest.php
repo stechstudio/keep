@@ -12,9 +12,9 @@ describe('DiffCommand', function () {
     describe('basic functionality', function () {
         it('compares secrets across all configured environments by default', function () {
             // Set up test data across environments
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
-            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('staging');
-            $productionVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('production');
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
+            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('staging');
+            $productionVault = \STS\Keep\Facades\Keep::vault('test')->forStage('production');
 
             // Identical secret across all environments
             $testingVault->set('IDENTICAL_SECRET', 'same-value');
@@ -26,7 +26,7 @@ describe('DiffCommand', function () {
             $stagingVault->set('DIFFERENT_SECRET', 'staging-value');
             $productionVault->set('DIFFERENT_SECRET', 'production-value');
 
-            // Missing in some environments
+            // Missing in some stages
             $testingVault->set('INCOMPLETE_SECRET', 'only-in-testing');
             $stagingVault->set('INCOMPLETE_SECRET', 'only-in-staging');
             // Missing in production
@@ -49,15 +49,15 @@ describe('DiffCommand', function () {
         });
 
         it('displays values masked by default', function () {
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
-            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('staging');
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
+            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('staging');
 
             $testingVault->set('TEST_SECRET', 'long-secret-value');
             $stagingVault->set('TEST_SECRET', 'different-secret-value');
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'testing,staging',
+                '--stage' => 'testing,staging',
             ]);
 
             expect($result)->toBe(0);
@@ -68,15 +68,15 @@ describe('DiffCommand', function () {
         });
 
         it('displays full values with --unmask option', function () {
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
-            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('staging');
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
+            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('staging');
 
             $testingVault->set('TEST_SECRET', 'testing-value');
             $stagingVault->set('TEST_SECRET', 'staging-value');
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'testing,staging',
+                '--stage' => 'testing,staging',
                 '--unmask' => true,
             ]);
 
@@ -90,15 +90,15 @@ describe('DiffCommand', function () {
 
     describe('status indicators', function () {
         it('shows identical status for secrets with same values', function () {
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
-            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('staging');
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
+            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('staging');
 
             $testingVault->set('IDENTICAL_SECRET', 'same-value');
             $stagingVault->set('IDENTICAL_SECRET', 'same-value');
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'testing,staging',
+                '--stage' => 'testing,staging',
             ]);
 
             expect($result)->toBe(0);
@@ -108,15 +108,15 @@ describe('DiffCommand', function () {
         });
 
         it('shows different status for secrets with different values', function () {
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
-            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('staging');
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
+            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('staging');
 
             $testingVault->set('DIFFERENT_SECRET', 'testing-value');
             $stagingVault->set('DIFFERENT_SECRET', 'staging-value');
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'testing,staging',
+                '--stage' => 'testing,staging',
             ]);
 
             expect($result)->toBe(0);
@@ -126,14 +126,14 @@ describe('DiffCommand', function () {
         });
 
         it('shows incomplete status for missing secrets', function () {
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
 
             $testingVault->set('INCOMPLETE_SECRET', 'only-in-testing');
             // Missing in staging
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'testing,staging',
+                '--stage' => 'testing,staging',
             ]);
 
             expect($result)->toBe(0);
@@ -145,10 +145,10 @@ describe('DiffCommand', function () {
     });
 
     describe('environment filtering', function () {
-        it('compares only specified environments with --env option', function () {
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
-            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('staging');
-            $productionVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('production');
+        it('compares only specified stages with --stage option', function () {
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
+            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('staging');
+            $productionVault = \STS\Keep\Facades\Keep::vault('test')->forStage('production');
 
             $testingVault->set('TEST_SECRET', 'testing-value');
             $stagingVault->set('TEST_SECRET', 'staging-value');
@@ -156,7 +156,7 @@ describe('DiffCommand', function () {
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'testing,staging',
+                '--stage' => 'testing,staging',
             ]);
 
             expect($result)->toBe(0);
@@ -165,29 +165,29 @@ describe('DiffCommand', function () {
             expect($output)->toContain('testing');
             expect($output)->toContain('staging');
             expect($output)->not->toContain('production');
-            expect($output)->toContain('Environments compared: testing, staging');
+            expect($output)->toContain('Stages compared: testing, staging');
         });
 
         it('handles single environment comparison', function () {
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             $testingVault->set('TEST_SECRET', 'testing-value');
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
             ]);
 
             expect($result)->toBe(0);
 
             $output = Artisan::output();
             expect($output)->toContain('testing');
-            expect($output)->toContain('Environments compared: testing');
+            expect($output)->toContain('Stages compared: testing');
         });
 
         it('handles comma-separated environments correctly', function () {
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
-            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('staging');
-            $productionVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('production');
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
+            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('staging');
+            $productionVault = \STS\Keep\Facades\Keep::vault('test')->forStage('production');
 
             $testingVault->set('TEST_SECRET', 'testing-value');
             $stagingVault->set('TEST_SECRET', 'staging-value');
@@ -195,7 +195,7 @@ describe('DiffCommand', function () {
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'staging,production',
+                '--stage' => 'staging,production',
             ]);
 
             expect($result)->toBe(0);
@@ -204,33 +204,33 @@ describe('DiffCommand', function () {
             expect($output)->toContain('staging');
             expect($output)->toContain('production');
             expect($output)->not->toContain('testing');
-            expect($output)->toContain('Environments compared: staging, production');
+            expect($output)->toContain('Stages compared: staging, production');
             expect($output)->toContain('TEST_SECRET');
         });
 
         it('warns about invalid environments', function () {
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             $testingVault->set('TEST_SECRET', 'testing-value');
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'testing,invalid-env',
+                '--stage' => 'testing,invalid-env',
             ]);
 
             expect($result)->toBe(0);
 
             $output = Artisan::output();
-            expect($output)->toContain('Warning: Unknown environments specified: invalid-env');
+            expect($output)->toContain('Warning: Unknown stages specified: invalid-env');
         });
     });
 
     describe('vault filtering', function () {
         it('uses default vault when --vault not specified', function () {
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             $testingVault->set('TEST_SECRET', 'testing-value');
 
             $result = Artisan::call('keep:diff', [
-                '--env' => 'testing',
+                '--stage' => 'testing',
             ]);
 
             expect($result)->toBe(0);
@@ -242,7 +242,7 @@ describe('DiffCommand', function () {
         it('warns about invalid vaults', function () {
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test,invalid-vault',
-                '--env' => 'testing',
+                '--stage' => 'testing',
             ]);
 
             expect($result)->toBe(0);
@@ -254,8 +254,8 @@ describe('DiffCommand', function () {
 
     describe('summary statistics', function () {
         it('provides accurate summary with percentages', function () {
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
-            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('staging');
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
+            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('staging');
 
             // 1 identical
             $testingVault->set('IDENTICAL_SECRET', 'same-value');
@@ -270,25 +270,25 @@ describe('DiffCommand', function () {
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'testing,staging',
+                '--stage' => 'testing,staging',
             ]);
 
             expect($result)->toBe(0);
 
             $output = Artisan::output();
             expect($output)->toContain('Total secrets: 3');
-            expect($output)->toContain('Identical across all environments: 1 (33%)');
+            expect($output)->toContain('Identical across all stages: 1 (33%)');
             expect($output)->toContain('Different values: 1 (33%)');
-            expect($output)->toContain('Missing in some environments: 1 (33%)');
+            expect($output)->toContain('Missing in some stages: 1 (33%)');
         });
 
         it('shows legend for understanding results', function () {
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             $testingVault->set('TEST_SECRET', 'testing-value');
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
             ]);
 
             expect($result)->toBe(0);
@@ -303,13 +303,13 @@ describe('DiffCommand', function () {
         it('handles empty vault gracefully', function () {
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
             ]);
 
             expect($result)->toBe(0);
 
             $output = Artisan::output();
-            expect($output)->toContain('No secrets found in any of the specified vault/environment combinations.');
+            expect($output)->toContain('No secrets found in any of the specified vault/stage combinations.');
         });
 
         it('handles invalid option gracefully', function () {
@@ -317,7 +317,7 @@ describe('DiffCommand', function () {
             expect(function () {
                 Artisan::call('keep:diff', [
                     '--vault' => 'test',
-                    '--env' => 'testing',
+                    '--stage' => 'testing',
                     '--invalid-option' => 'test',
                 ]);
             })->toThrow(\Symfony\Component\Console\Exception\InvalidOptionException::class);
@@ -326,7 +326,7 @@ describe('DiffCommand', function () {
         it('handles no vaults available', function () {
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'nonexistent-vault',
-                '--env' => 'testing',
+                '--stage' => 'testing',
             ]);
 
             expect($result)->toBe(1);
@@ -338,27 +338,27 @@ describe('DiffCommand', function () {
         it('handles no environments available', function () {
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'nonexistent-env',
+                '--stage' => 'nonexistent-env',
             ]);
 
             expect($result)->toBe(1);
 
             $output = Artisan::output();
-            expect($output)->toContain('No environments available for comparison');
+            expect($output)->toContain('No stages available for comparison');
         });
     });
 
     describe('edge cases', function () {
         it('handles secrets with empty values', function () {
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
-            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('staging');
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
+            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('staging');
 
             $testingVault->set('EMPTY_SECRET', '');
             $stagingVault->set('EMPTY_SECRET', '');
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'testing,staging',
+                '--stage' => 'testing,staging',
                 '--unmask' => true,
             ]);
 
@@ -370,15 +370,15 @@ describe('DiffCommand', function () {
         });
 
         it('handles secrets with special characters', function () {
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
-            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('staging');
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
+            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('staging');
 
             $testingVault->set('SPECIAL_SECRET', 'value with spaces & symbols!');
             $stagingVault->set('SPECIAL_SECRET', 'value with spaces & symbols!');
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'testing,staging',
+                '--stage' => 'testing,staging',
             ]);
 
             expect($result)->toBe(0);
@@ -389,8 +389,8 @@ describe('DiffCommand', function () {
         });
 
         it('handles large number of secrets efficiently', function () {
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
-            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('staging');
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
+            $stagingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('staging');
 
             // Create 20 secrets
             for ($i = 1; $i <= 20; $i++) {
@@ -400,7 +400,7 @@ describe('DiffCommand', function () {
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'testing,staging',
+                '--stage' => 'testing,staging',
             ]);
 
             expect($result)->toBe(0);
@@ -411,7 +411,7 @@ describe('DiffCommand', function () {
         });
 
         it('sorts secrets alphabetically', function () {
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
 
             // Add secrets in non-alphabetical order
             $testingVault->set('ZEBRA_SECRET', 'value');
@@ -420,7 +420,7 @@ describe('DiffCommand', function () {
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
             ]);
 
             expect($result)->toBe(0);
@@ -463,12 +463,12 @@ describe('DiffCommand', function () {
         it('displays vault names in headers when multiple vaults specified', function () {
             // This test would require multiple vault configurations
             // For now, we'll test with a single vault but verify the column naming logic
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             $testingVault->set('TEST_SECRET', 'value');
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'testing,staging',
+                '--stage' => 'testing,staging',
             ]);
 
             expect($result)->toBe(0);
@@ -480,12 +480,12 @@ describe('DiffCommand', function () {
         });
 
         it('handles comma-separated vaults correctly', function () {
-            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $testingVault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             $testingVault->set('TEST_SECRET', 'test-value');
 
             $result = Artisan::call('keep:diff', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
             ]);
 
             expect($result)->toBe(0);

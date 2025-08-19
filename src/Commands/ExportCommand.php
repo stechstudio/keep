@@ -12,9 +12,9 @@ class ExportCommand extends AbstractCommand
         {--overwrite : Overwrite the output file if it exists} 
         {--append : Append to the output file if it exists} '
         .self::VAULT_SIGNATURE
-        .self::ENV_SIGNATURE;
+        .self::STAGE_SIGNATURE;
 
-    public $description = 'Export all environment secrets in a specified vault';
+    public $description = 'Export all stage secrets in a specified vault';
 
     public function process(): int
     {

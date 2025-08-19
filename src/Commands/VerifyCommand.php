@@ -9,7 +9,7 @@ use function Laravel\Prompts\table;
 
 class VerifyCommand extends AbstractCommand
 {
-    public $signature = 'keep:verify {--vault= : Test only this vault} {--env= : Test only this environment}';
+    public $signature = 'keep:verify {--vault= : Test only this vault} {--stage= : Test only this stage}';
 
     public $description = 'Verify vault access permissions for reading, writing, listing, and deleting secrets';
 
@@ -19,13 +19,13 @@ class VerifyCommand extends AbstractCommand
         $this->newLine();
 
         $vaults = $this->option('vault') ? [$this->option('vault')] : Keep::available();
-        $environments = $this->option('env') ? [$this->option('env')] : Keep::environments();
+        $stages = $this->option('stage') ? [$this->option('stage')] : Keep::stages();
 
         $results = [];
 
         foreach ($vaults as $vaultName) {
-            foreach ($environments as $environment) {
-                $results[] = $this->verifyVaultEnvironment($vaultName, $environment);
+            foreach ($stages as $stage) {
+                $results[] = $this->verifyVaultStage($vaultName, $stage);
             }
         }
 
@@ -34,14 +34,14 @@ class VerifyCommand extends AbstractCommand
         return self::SUCCESS;
     }
 
-    protected function verifyVaultEnvironment(string $vaultName, string $environment): array
+    protected function verifyVaultStage(string $vaultName, string $stage): array
     {
-        $vault = Keep::vault($vaultName)->forEnvironment($environment);
+        $vault = Keep::vault($vaultName)->forStage($stage);
         $testKey = 'keep-verify-'.Str::random(8);
 
         $result = [
             'vault' => $vaultName,
-            'environment' => $environment,
+            'stage' => $stage,
             'list' => false,
             'write' => false,
             'read' => null, // null = unknown/untestable, false = tested and failed, true = success
@@ -138,7 +138,7 @@ class VerifyCommand extends AbstractCommand
         foreach ($results as $result) {
             $rows[] = [
                 $result['vault'],
-                $result['environment'],
+                $result['stage'],
                 $this->formatResult($result['list']),
                 $this->formatResult($result['write']),
                 $this->formatResult($result['read']),
@@ -148,7 +148,7 @@ class VerifyCommand extends AbstractCommand
         }
 
         table(
-            ['Vault', 'Environment', 'List', 'Write', 'Read', 'History', 'Delete'],
+            ['Vault', 'Stage', 'List', 'Write', 'Read', 'History', 'Delete'],
             $rows
         );
 
@@ -187,7 +187,7 @@ class VerifyCommand extends AbstractCommand
         $cleanupIssues = collect($results)->filter(fn ($r) => $r['write'] && ! $r['cleanup'])->count();
 
         $this->info('Summary:');
-        $this->line("• Total vault/environment combinations tested: {$totalCombinations}");
+        $this->line("• Total vault/stage combinations tested: {$totalCombinations}");
         $this->line("• <fg=green>Full access</> (list + write + read + history): {$fullAccess}");
         $this->line("• <fg=blue>Read + History access</> (list + read + history): {$readHistoryOnly}");
         $this->line("• <fg=blue>Read-only access</> (list + read): {$readOnly}");

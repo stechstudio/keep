@@ -10,7 +10,7 @@ describe('VerifyCommand', function () {
     });
 
     describe('basic functionality', function () {
-        it('verifies all vault/environment combinations by default', function () {
+        it('verifies all vault/stage combinations by default', function () {
             $result = Artisan::call('keep:verify', [
                 '--no-interaction' => true,
             ]);
@@ -35,7 +35,7 @@ describe('VerifyCommand', function () {
 
             $output = Artisan::output();
             expect($output)->toContain('Vault');
-            expect($output)->toContain('Environment');
+            expect($output)->toContain('Stage');
             expect($output)->toContain('List');
             expect($output)->toContain('Write');
             expect($output)->toContain('Read');
@@ -63,7 +63,7 @@ describe('VerifyCommand', function () {
 
             $output = Artisan::output();
             expect($output)->toContain('Summary:');
-            expect($output)->toContain('Total vault/environment combinations tested:');
+            expect($output)->toContain('Total vault/stage combinations tested:');
             expect($output)->toContain('Full access');
             expect($output)->toContain('Legend:');
         });
@@ -88,9 +88,9 @@ describe('VerifyCommand', function () {
     });
 
     describe('environment filtering', function () {
-        it('verifies only specified environment when --env is provided', function () {
+        it('verifies only specified stage when --stage is provided', function () {
             $result = Artisan::call('keep:verify', [
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -113,7 +113,7 @@ describe('VerifyCommand', function () {
         it('verifies only specified vault and environment combination', function () {
             $result = Artisan::call('keep:verify', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -134,7 +134,7 @@ describe('VerifyCommand', function () {
         it('successfully performs list, write, read, and cleanup operations', function () {
             $result = Artisan::call('keep:verify', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -151,14 +151,14 @@ describe('VerifyCommand', function () {
 
         it('cleans up test secrets after verification', function () {
             // Get initial list of secrets
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             $initialSecrets = $vault->list();
             $initialCount = $initialSecrets->count();
 
             // Run verification
             Artisan::call('keep:verify', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -194,7 +194,7 @@ describe('VerifyCommand', function () {
         });
 
         it('tests read permissions against existing secrets when write fails', function () {
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
 
             // Set up an existing secret
             $vault->set('EXISTING_SECRET', 'existing-value');
@@ -203,7 +203,7 @@ describe('VerifyCommand', function () {
             // We'll simulate this by testing the logic indirectly
             $result = Artisan::call('keep:verify', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -220,14 +220,14 @@ describe('VerifyCommand', function () {
 
         it('shows unknown state for read when write fails and no existing secrets', function () {
             // Clear all secrets to create a scenario where read can't be tested
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('staging');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('staging');
             $vault->clear();
 
             // In our test environment, write operations work, so we need to test
             // the logic more directly or check the legend explanation
             $result = Artisan::call('keep:verify', [
                 '--vault' => 'test',
-                '--env' => 'staging',
+                '--stage' => 'staging',
                 '--no-interaction' => true,
             ]);
 
@@ -267,7 +267,7 @@ describe('VerifyCommand', function () {
 
         it('handles non-existent environment gracefully', function () {
             $result = Artisan::call('keep:verify', [
-                '--env' => 'non-existent-env',
+                '--stage' => 'non-existent-env',
                 '--no-interaction' => true,
             ]);
 
@@ -280,7 +280,7 @@ describe('VerifyCommand', function () {
         it('displays colorized success and failure indicators', function () {
             $result = Artisan::call('keep:verify', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -327,7 +327,7 @@ describe('VerifyCommand', function () {
 
     describe('integration scenarios', function () {
         it('works correctly after setting and deleting secrets', function () {
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
 
             // Set some existing secrets
             $vault->set('EXISTING_SECRET_1', 'value1');
@@ -335,7 +335,7 @@ describe('VerifyCommand', function () {
 
             $result = Artisan::call('keep:verify', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -362,7 +362,7 @@ describe('VerifyCommand', function () {
             $output = Artisan::output();
 
             // Should test exactly 3 environments (testing, staging, production)
-            expect($output)->toContain('Total vault/environment combinations tested: 3');
+            expect($output)->toContain('Total vault/stage combinations tested: 3');
         });
     });
 });

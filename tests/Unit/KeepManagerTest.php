@@ -11,17 +11,17 @@ describe('KeepManager', function () {
 
     describe('environment resolution', function () {
         it('uses custom resolver when provided', function () {
-            $result = $this->manager->resolveEnvironmentUsing(fn () => 'custom-environment');
+            $result = $this->manager->resolveStageUsing(fn () => 'custom-environment');
 
             expect($result)->toBe($this->manager); // fluent interface
-            expect($this->manager->environment())->toBe('custom-environment');
+            expect($this->manager->stage())->toBe('custom-environment');
         });
 
         it('checks if given environment matches current', function () {
-            $this->manager->resolveEnvironmentUsing(fn () => 'production');
+            $this->manager->resolveStageUsing(fn () => 'production');
 
-            expect($this->manager->environment('production'))->toBeTrue();
-            expect($this->manager->environment('staging'))->toBeFalse();
+            expect($this->manager->stage('production'))->toBeTrue();
+            expect($this->manager->stage('staging'))->toBeFalse();
         });
     });
 

@@ -11,7 +11,7 @@ class KeepException extends RuntimeException
 
     protected ?string $vault = null;
 
-    protected ?string $environment = null;
+    protected ?string $stage = null;
 
     protected ?string $key = null;
 
@@ -34,14 +34,14 @@ class KeepException extends RuntimeException
 
     public function withContext(
         ?string $vault = null,
-        ?string $environment = null,
+        ?string $stage = null,
         ?string $key = null,
         ?string $path = null,
         ?int $lineNumber = null,
         ?string $suggestion = null
     ): static {
         $this->vault = $vault;
-        $this->environment = $environment;
+        $this->stage = $stage;
         $this->key = $key;
         $this->path = $path;
         $this->lineNumber = $lineNumber;
@@ -57,7 +57,7 @@ class KeepException extends RuntimeException
         // Build context details
         $contextLines = array_filter([
             'Vault' => $this->vault,
-            'Environment' => $this->environment,
+            'Stage' => $this->stage,
             'Key' => $this->key,
             'Path' => $this->path,
             'Template line' => $this->lineNumber,

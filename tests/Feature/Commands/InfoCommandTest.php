@@ -37,12 +37,12 @@ describe('InfoCommand', function () {
 
             expect($json)->toBeArray();
             expect($json['namespace'])->toBe('test-app');
-            expect($json['environment'])->toBe('testing');
+            expect($json['stage'])->toBe('testing');
             expect($json['default_vault'])->toBe('test');
             expect($json['available_vaults'])->toContain('test');
-            expect($json['configured_environments'])->toContain('testing');
-            expect($json['configured_environments'])->toContain('staging');
-            expect($json['configured_environments'])->toContain('production');
+            expect($json['configured_stages'])->toContain('testing');
+            expect($json['configured_stages'])->toContain('staging');
+            expect($json['configured_stages'])->toContain('production');
         });
 
         it('displays vault configurations in table format', function () {
@@ -66,7 +66,7 @@ describe('InfoCommand', function () {
             expect($result)->toBe(0);
 
             $output = Artisan::output();
-            expect($output)->toContain('Configured Environments');
+            expect($output)->toContain('Configured Stages');
             expect($output)->toContain('testing');
             expect($output)->toContain('staging');
             expect($output)->toContain('production');
@@ -101,10 +101,10 @@ describe('InfoCommand', function () {
 
             expect($json)->toHaveKeys([
                 'namespace',
-                'environment',
+                'stage',
                 'default_vault',
                 'available_vaults',
-                'configured_environments',
+                'configured_stages',
                 'vault_configurations',
             ]);
         });

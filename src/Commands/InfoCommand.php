@@ -27,10 +27,10 @@ class InfoCommand extends AbstractCommand
     {
         return [
             'namespace' => Keep::namespace(),
-            'environment' => Keep::environment(),
+            'stage' => Keep::stage(),
             'default_vault' => Keep::getDefaultVault(),
             'available_vaults' => Keep::available(),
-            'configured_environments' => Keep::environments(),
+            'configured_stages' => Keep::stages(),
             'vault_configurations' => $this->getVaultConfigurations(),
         ];
     }
@@ -60,15 +60,15 @@ class InfoCommand extends AbstractCommand
         // Basic configuration
         table(['Setting', 'Value'], [
             ['Namespace', $info['namespace']],
-            ['Current Environment', $info['environment']],
+            ['Current Stage', $info['stage']],
             ['Default Vault', $info['default_vault']],
         ]);
 
         $this->newLine();
 
-        // Available environments
-        $this->info('Configured Environments');
-        table(['Environment'], array_map(fn ($env) => [$env], $info['configured_environments']));
+        // Available stages
+        $this->info('Configured Stages');
+        table(['Stage'], array_map(fn ($stage) => [$stage], $info['configured_stages']));
 
         $this->newLine();
 
