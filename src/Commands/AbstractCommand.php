@@ -7,7 +7,6 @@ use STS\Keep\Commands\Concerns\GathersInput;
 use STS\Keep\Commands\Concerns\InteractsWithFilesystem;
 use STS\Keep\Commands\Concerns\InteractsWithVaults;
 use STS\Keep\Exceptions\KeepException;
-use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 
 abstract class AbstractCommand extends Command
 {

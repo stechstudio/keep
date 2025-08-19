@@ -10,7 +10,9 @@ class SecretDiff implements Arrayable
     use MasksValues;
 
     public const string STATUS_IDENTICAL = 'identical';
+
     public const string STATUS_DIFFERENT = 'different';
+
     public const string STATUS_INCOMPLETE = 'incomplete';
 
     public function __construct(
@@ -47,13 +49,13 @@ class SecretDiff implements Arrayable
     public function getValueString(string $vaultEnv, bool $masked = true): string
     {
         $secret = $this->getValue($vaultEnv);
-        
+
         if ($secret === null) {
             return '<fg=red>—</>';
         }
 
         return $masked
-            ? "<fg=green>✓</> " . $this->maskValue($secret->value())
+            ? '<fg=green>✓</> '.$this->maskValue($secret->value())
             : $secret->value();
     }
 
@@ -75,22 +77,24 @@ class SecretDiff implements Arrayable
 
     protected function recalculateStatus(): void
     {
-        $nonNullValues = array_filter($this->values, fn($secret) => $secret !== null);
-        
+        $nonNullValues = array_filter($this->values, fn ($secret) => $secret !== null);
+
         // If any values are missing, it's incomplete
         if (count($nonNullValues) < count($this->values)) {
             $this->status = self::STATUS_INCOMPLETE;
+
             return;
         }
 
         // If no values exist at all, it's incomplete
         if (empty($nonNullValues)) {
             $this->status = self::STATUS_INCOMPLETE;
+
             return;
         }
 
         // Get all actual secret values
-        $secretValues = array_map(fn(Secret $secret) => $secret->value(), $nonNullValues);
+        $secretValues = array_map(fn (Secret $secret) => $secret->value(), $nonNullValues);
         $uniqueValues = array_unique($secretValues);
 
         // If all values are the same, it's identical
@@ -107,7 +111,7 @@ class SecretDiff implements Arrayable
             'key' => $this->key,
             'status' => $this->status,
             'values' => array_map(
-                fn(?Secret $secret) => $secret?->toArray(),
+                fn (?Secret $secret) => $secret?->toArray(),
                 $this->values
             ),
         ];

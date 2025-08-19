@@ -13,15 +13,15 @@ class DiffService
     {
         $allSecrets = $this->gatherSecrets($vaults, $environments);
         $allKeys = $this->extractAllKeys($allSecrets);
-        
+
         return $allKeys->map(function (string $key) use ($allSecrets) {
             $diff = new SecretDiff($key);
-            
+
             foreach ($allSecrets as $vaultEnv => $secrets) {
                 $secret = $secrets->getByKey($key);
                 $diff->setValue($vaultEnv, $secret);
             }
-            
+
             return $diff;
         })->sortBy('key')->values();
     }
@@ -29,9 +29,9 @@ class DiffService
     public function generateSummary(Collection $diffs, array $vaults, array $environments): array
     {
         $totalSecrets = $diffs->count();
-        $identical = $diffs->filter(fn(SecretDiff $diff) => $diff->status() === SecretDiff::STATUS_IDENTICAL)->count();
-        $different = $diffs->filter(fn(SecretDiff $diff) => $diff->status() === SecretDiff::STATUS_DIFFERENT)->count();
-        $incomplete = $diffs->filter(fn(SecretDiff $diff) => $diff->status() === SecretDiff::STATUS_INCOMPLETE)->count();
+        $identical = $diffs->filter(fn (SecretDiff $diff) => $diff->status() === SecretDiff::STATUS_IDENTICAL)->count();
+        $different = $diffs->filter(fn (SecretDiff $diff) => $diff->status() === SecretDiff::STATUS_DIFFERENT)->count();
+        $incomplete = $diffs->filter(fn (SecretDiff $diff) => $diff->status() === SecretDiff::STATUS_INCOMPLETE)->count();
 
         return [
             'total_secrets' => $totalSecrets,
@@ -49,11 +49,11 @@ class DiffService
     protected function gatherSecrets(array $vaults, array $environments): array
     {
         $allSecrets = [];
-        
+
         foreach ($vaults as $vaultName) {
             foreach ($environments as $environment) {
                 $vaultEnvKey = "{$vaultName}.{$environment}";
-                
+
                 try {
                     $allSecrets[$vaultEnvKey] = Keep::vault($vaultName)->forEnvironment($environment)->list();
                 } catch (\Exception $e) {
@@ -62,18 +62,18 @@ class DiffService
                 }
             }
         }
-        
+
         return $allSecrets;
     }
 
     protected function extractAllKeys(array $allSecrets): Collection
     {
         $allKeys = collect();
-        
+
         foreach ($allSecrets as $secrets) {
             $allKeys = $allKeys->merge($secrets->allKeys());
         }
-        
+
         return $allKeys->unique()->sort()->values();
     }
 }
