@@ -39,8 +39,6 @@ class Env
             return new Secret(
                 key: $entry->getName(),
                 value: $entry->getValue()->get()->getChars(),
-                secure: false, // Env file values are not encrypted
-                revision: 0     // New secrets start at revision 0
             );
         });
 

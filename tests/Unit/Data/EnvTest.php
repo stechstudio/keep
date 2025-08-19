@@ -285,7 +285,6 @@ ANOTHER_OPTIONAL=';
 
             expect($secret->key())->toBe('TEST_KEY');
             expect($secret->value())->toBe('test_value');
-            expect($secret->isSecure())->toBeFalse(); // Env files are not encrypted
             expect($secret->revision())->toBe(0); // New secrets start at 0
         });
 

@@ -53,6 +53,4 @@ abstract class AbstractVault
     abstract public function save(Secret $secret): Secret;
 
     abstract public function delete(string $key): bool;
-
-    abstract public function format(?string $key = null): string;
 }
