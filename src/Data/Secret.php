@@ -4,10 +4,13 @@ namespace STS\Keep\Data;
 
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Arr;
+use STS\Keep\Data\Concerns\MasksValues;
 use STS\Keep\Vaults\AbstractVault;
 
 class Secret implements Arrayable
 {
+    use MasksValues;
+
     protected string $key;
 
     public function __construct(
@@ -95,26 +98,17 @@ class Secret implements Arrayable
         return $this->vault;
     }
 
-    public function mask(): static
+    public function withMaskedValue(): static
     {
-        $this->value = $this->masked();
+        $masked = clone $this;
+        $masked->value = $this->masked();
 
-        return $this;
+        return $masked;
     }
 
     public function masked(): ?string
     {
-        if ($this->value === null) {
-            return null;
-        }
-
-        $length = strlen($this->value);
-
-        if ($length <= 8) {
-            return '****';
-        }
-
-        return substr($this->value, 0, 4).str_repeat('*', $length - 4);
+        return $this->maskValue($this->value);
     }
 
     public function only(array $keys): array

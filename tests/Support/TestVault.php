@@ -2,7 +2,10 @@
 
 namespace STS\Keep\Tests\Support;
 
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use STS\Keep\Data\Secret;
+use STS\Keep\Data\SecretHistory;
 use STS\Keep\Data\SecretsCollection;
 use STS\Keep\Exceptions\SecretNotFoundException;
 use STS\Keep\Vaults\AbstractVault;
@@ -20,6 +23,18 @@ class TestVault extends AbstractVault
      * ]
      */
     protected static array $storage = [];
+
+    /**
+     * History storage structure:
+     * [
+     *     'vault-name' => [
+     *         'environment' => [
+     *             'path' => [SecretHistory] // Array of history entries
+     *         ]
+     *     ]
+     * ]
+     */
+    protected static array $history = [];
 
     protected int $revision = 1;
 
@@ -50,6 +65,9 @@ class TestVault extends AbstractVault
 
         $secret = new Secret($key, $value, null, $secure, $this->environment, $revision, $path, $this);
         $this->setVaultEnvironmentSecret($path, $secret);
+
+        // Add to history
+        $this->addToHistory($path, $secret);
 
         return $secret;
     }
@@ -131,12 +149,69 @@ class TestVault extends AbstractVault
         self::$storage[$this->name()][$this->environment][$path] = $secret;
     }
 
+    public function history(string $key, int $limit = 10): Collection
+    {
+        $path = $this->format($key);
+        $historyEntries = $this->getVaultEnvironmentHistory($path);
+
+        if (empty($historyEntries)) {
+            throw new SecretNotFoundException("Secret [{$key}] not found in vault [{$this->name()}]");
+        }
+
+        return collect($historyEntries)
+            ->sortByDesc(fn ($entry) => $entry->version())
+            ->take($limit)
+            ->values();
+    }
+
+    /**
+     * Add a secret to history
+     */
+    protected function addToHistory(string $path, Secret $secret): void
+    {
+        if (! isset(self::$history[$this->name()])) {
+            self::$history[$this->name()] = [];
+        }
+
+        if (! isset(self::$history[$this->name()][$this->environment])) {
+            self::$history[$this->name()][$this->environment] = [];
+        }
+
+        if (! isset(self::$history[$this->name()][$this->environment][$path])) {
+            self::$history[$this->name()][$this->environment][$path] = [];
+        }
+
+        $historyEntry = new SecretHistory(
+            key: $secret->key(),
+            value: $secret->value(),
+            version: $secret->revision(),
+            lastModifiedDate: Carbon::now(),
+            lastModifiedUser: 'test-user',
+            dataType: 'text',
+            labels: [],
+            policies: null,
+            description: null,
+            secure: $secret->isSecure(),
+        );
+
+        self::$history[$this->name()][$this->environment][$path][] = $historyEntry;
+    }
+
+    /**
+     * Get history entries for a specific path
+     */
+    protected function getVaultEnvironmentHistory(string $path): array
+    {
+        return self::$history[$this->name()][$this->environment][$path] ?? [];
+    }
+
     /**
      * Clear all secrets from all vaults and environments (for test cleanup)
      */
     public static function clearAll(): void
     {
         self::$storage = [];
+        self::$history = [];
     }
 
     /**
@@ -145,5 +220,13 @@ class TestVault extends AbstractVault
     public static function getFullStorage(): array
     {
         return self::$storage;
+    }
+
+    /**
+     * Get the full history array (for debugging)
+     */
+    public static function getFullHistory(): array
+    {
+        return self::$history;
     }
 }

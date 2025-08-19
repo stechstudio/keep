@@ -2,8 +2,10 @@
 
 namespace STS\Keep\Vaults;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use STS\Keep\Data\Secret;
+use STS\Keep\Data\SecretHistory;
 use STS\Keep\Data\SecretsCollection;
 use STS\Keep\Facades\Keep;
 
@@ -53,4 +55,13 @@ abstract class AbstractVault
     abstract public function save(Secret $secret): Secret;
 
     abstract public function delete(string $key): bool;
+
+    /**
+     * Get the history for a specific secret key.
+     *
+     * @param  string  $key  The secret key to get history for
+     * @param  int  $limit  Maximum number of history entries to return
+     * @return Collection<SecretHistory>
+     */
+    abstract public function history(string $key, int $limit = 10): Collection;
 }
