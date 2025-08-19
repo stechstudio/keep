@@ -7,9 +7,11 @@ use Aws\Ssm\SsmClient;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use STS\Keep\Data\FilterCollection;
 use STS\Keep\Data\Secret;
 use STS\Keep\Data\SecretHistory;
-use STS\Keep\Data\SecretsCollection;
+use STS\Keep\Data\SecretHistoryCollection;
+use STS\Keep\Data\SecretCollection;
 use STS\Keep\Exceptions\AccessDeniedException;
 use STS\Keep\Exceptions\KeepException;
 use STS\Keep\Exceptions\SecretNotFoundException;
@@ -34,10 +36,10 @@ class AwsSsmVault extends AbstractVault
             ->toString();
     }
 
-    public function list(): SecretsCollection
+    public function list(): SecretCollection
     {
         try {
-            $secrets = new SecretsCollection;
+            $secrets = new SecretCollection;
             $nextToken = null;
 
             do {
@@ -163,31 +165,68 @@ class AwsSsmVault extends AbstractVault
         }
     }
 
-    public function history(string $key, int $limit = 10): Collection
+    public function history(string $key, FilterCollection $filters, ?int $limit = 10): SecretHistoryCollection
     {
+        // AWS doesn't provide query-time filtering for parameter history, we have to fetch all and filter manually
+        $fetchAll = $filters->isNotEmpty();
+
         try {
-            $result = $this->client()->getParameterHistory([
-                'Name' => $this->format($key),
-                'WithDecryption' => true,
-                'MaxResults' => $limit,
-            ]);
+            $histories = new SecretHistoryCollection;
+            $nextToken = null;
 
-            $parameters = $result->get('Parameters') ?? [];
+            do {
+                $params = [
+                    'Name' => $this->format($key),
+                    'WithDecryption' => true,
+                    'MaxResults' => 50, // AWS max for getParameterHistory
+                ];
 
-            return collect($parameters)->map(function ($parameter) use ($key) {
-                return new SecretHistory(
-                    key: $key,
-                    value: $parameter['Value'] ?? null,
-                    version: $parameter['Version'] ?? 1,
-                    lastModifiedDate: $parameter['LastModifiedDate'] ? Carbon::parse($parameter['LastModifiedDate']) : null,
-                    lastModifiedUser: $parameter['LastModifiedUser'] ?? null,
-                    dataType: $parameter['DataType'] ?? null,
-                    labels: $parameter['Labels'] ?? [],
-                    policies: $parameter['Policies'] ?? null,
-                    description: $parameter['Description'] ?? null,
-                    secure: ($parameter['Type'] ?? 'String') === 'SecureString',
-                );
-            })->sortByDesc('version')->values();
+                if ($nextToken) {
+                    $params['NextToken'] = $nextToken;
+                }
+
+                // If not fetching all and we have a limit, adjust MaxResults to avoid over-fetching
+                if (!$fetchAll && $limit) {
+                    $remaining = $limit - $histories->count();
+                    if ($remaining <= 0) {
+                        break;
+                    }
+                    $params['MaxResults'] = min(50, $remaining);
+                }
+
+                $result = $this->client()->getParameterHistory($params);
+                $parameters = $result->get('Parameters') ?? [];
+
+                foreach ($parameters as $parameter) {
+                    $histories->push(new SecretHistory(
+                        key: $key,
+                        value: $parameter['Value'] ?? null,
+                        version: $parameter['Version'] ?? 1,
+                        lastModifiedDate: $parameter['LastModifiedDate'] ? Carbon::parse($parameter['LastModifiedDate']) : null,
+                        lastModifiedUser: $parameter['LastModifiedUser'] ?? null,
+                        dataType: $parameter['DataType'] ?? null,
+                        labels: $parameter['Labels'] ?? [],
+                        policies: $parameter['Policies'] ?? null,
+                        description: $parameter['Description'] ?? null,
+                        secure: ($parameter['Type'] ?? 'String') === 'SecureString',
+                    ));
+
+                    // Break early if we have enough and not fetching all
+                    if (!$fetchAll && $limit && $histories->count() >= $limit) {
+                        break 2;
+                    }
+                }
+
+                $nextToken = $result->get('NextToken');
+                
+                // Continue only if there's more data and we either want all or haven't hit our limit
+            } while ($nextToken && ($fetchAll || !$limit || $histories->count() < $limit));
+
+            $histories = $histories->applyFilters($filters)->sortByVersionDesc();
+
+            // If we have a limit, slice the collection to that limit
+            return $limit !== null ? $histories->take($limit) : $histories;
+            
         } catch (SsmException $e) {
             if ($e->getAwsErrorCode() === 'ParameterNotFound') {
                 throw new SecretNotFoundException("Secret [{$key}] not found in vault [{$this->name()}]");

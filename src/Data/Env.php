@@ -33,7 +33,7 @@ class Env
         });
     }
 
-    public function secrets(): SecretsCollection
+    public function secrets(): SecretCollection
     {
         $secrets = $this->entries()->map(function ($entry) {
             return new Secret(
@@ -42,6 +42,6 @@ class Env
             );
         });
 
-        return new SecretsCollection($secrets->all());
+        return new SecretCollection($secrets->all());
     }
 }

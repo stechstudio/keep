@@ -264,7 +264,7 @@ ANOTHER_OPTIONAL=';
             $env = new Env("DB_HOST=localhost\nDB_PORT=3306\nAPI_KEY=secret");
             $secrets = $env->secrets();
 
-            expect($secrets)->toBeInstanceOf(\STS\Keep\Data\SecretsCollection::class);
+            expect($secrets)->toBeInstanceOf(\STS\Keep\Data\SecretCollection::class);
             expect($secrets->count())->toBe(3);
 
             // Check that secrets are properly created
@@ -292,7 +292,7 @@ ANOTHER_OPTIONAL=';
             $env = new Env('');
             $secrets = $env->secrets();
 
-            expect($secrets)->toBeInstanceOf(\STS\Keep\Data\SecretsCollection::class);
+            expect($secrets)->toBeInstanceOf(\STS\Keep\Data\SecretCollection::class);
             expect($secrets->count())->toBe(0);
         });
     });

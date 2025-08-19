@@ -3,7 +3,7 @@
 namespace STS\Keep\Commands;
 
 use STS\Keep\Data\Env;
-use STS\Keep\Data\SecretsCollection;
+use STS\Keep\Data\SecretCollection;
 use STS\Keep\Exceptions\KeepException;
 
 use function Laravel\Prompts\table;
@@ -65,7 +65,7 @@ class ImportCommand extends AbstractCommand
         return self::SUCCESS;
     }
 
-    protected function canImport(SecretsCollection $importSecrets, SecretsCollection $vaultSecrets): bool
+    protected function canImport(SecretCollection $importSecrets, SecretCollection $vaultSecrets): bool
     {
         // If any keys exist in the vault, we can only proceed if --overwrite or --skip-existing is set
         $existingKeys = $importSecrets->allKeys()->intersect($vaultSecrets->allKeys());
@@ -92,9 +92,9 @@ class ImportCommand extends AbstractCommand
         return true;
     }
 
-    protected function runImport(SecretsCollection $importSecrets, SecretsCollection $vaultSecrets): SecretsCollection
+    protected function runImport(SecretCollection $importSecrets, SecretCollection $vaultSecrets): SecretCollection
     {
-        $imported = new SecretsCollection;
+        $imported = new SecretCollection;
 
         foreach ($importSecrets as $secret) {
             if ($vaultSecrets->hasKey($secret->key()) && $this->option('skip-existing')) {
@@ -120,7 +120,7 @@ class ImportCommand extends AbstractCommand
         return $imported;
     }
 
-    protected function resultsTable(SecretsCollection $importSecrets, SecretsCollection $vaultSecrets, ?SecretsCollection $imported): array
+    protected function resultsTable(SecretCollection $importSecrets, SecretCollection $vaultSecrets, ?SecretCollection $imported): array
     {
         $rows = [];
 

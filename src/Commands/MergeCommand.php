@@ -2,7 +2,7 @@
 
 namespace STS\Keep\Commands;
 
-use STS\Keep\Data\SecretsCollection;
+use STS\Keep\Data\SecretCollection;
 use STS\Keep\Data\Template;
 use STS\Keep\Enums\MissingSecretStrategy;
 
@@ -87,7 +87,7 @@ class MergeCommand extends AbstractCommand
         return true;
     }
 
-    protected function mergeAndConcat(Template $base, Template $overlay, SecretsCollection $secrets, MissingSecretStrategy $strategy): string
+    protected function mergeAndConcat(Template $base, Template $overlay, SecretCollection $secrets, MissingSecretStrategy $strategy): string
     {
         $output = "# ----- Base stage variables -----\n\n";
         $output .= $base->merge($this->vault()->slug(), $secrets, $strategy);

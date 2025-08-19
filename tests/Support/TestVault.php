@@ -4,9 +4,11 @@ namespace STS\Keep\Tests\Support;
 
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use STS\Keep\Data\FilterCollection;
 use STS\Keep\Data\Secret;
 use STS\Keep\Data\SecretHistory;
-use STS\Keep\Data\SecretsCollection;
+use STS\Keep\Data\SecretHistoryCollection;
+use STS\Keep\Data\SecretCollection;
 use STS\Keep\Exceptions\SecretNotFoundException;
 use STS\Keep\Vaults\AbstractVault;
 
@@ -38,11 +40,11 @@ class TestVault extends AbstractVault
 
     protected int $revision = 1;
 
-    public function list(): SecretsCollection
+    public function list(): SecretCollection
     {
         $secrets = $this->getVaultStageSecrets();
 
-        return new SecretsCollection(collect($secrets)->values());
+        return new SecretCollection(collect($secrets)->values());
     }
 
     public function get(string $key): Secret
@@ -149,7 +151,7 @@ class TestVault extends AbstractVault
         self::$storage[$this->name()][$this->stage][$path] = $secret;
     }
 
-    public function history(string $key, int $limit = 10): Collection
+    public function history(string $key, FilterCollection $filters, ?int $limit = 10): SecretHistoryCollection
     {
         $path = $this->format($key);
         $historyEntries = $this->getVaultStageHistory($path);
@@ -158,10 +160,13 @@ class TestVault extends AbstractVault
             throw new SecretNotFoundException("Secret [{$key}] not found in vault [{$this->name()}]");
         }
 
-        return collect($historyEntries)
-            ->sortByDesc(fn ($entry) => $entry->version())
-            ->take($limit)
-            ->values();
+        $collection = new SecretHistoryCollection($historyEntries);
+        
+        // Apply filters first, then sort
+        $filtered = $collection->applyFilters($filters)->sortByVersionDesc();
+
+        // Apply limit if specified
+        return $limit !== null ? $filtered->take($limit) : $filtered;
     }
 
     /**
