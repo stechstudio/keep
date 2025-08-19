@@ -5,6 +5,7 @@ namespace STS\Keep\Commands;
 use Illuminate\Support\Str;
 use STS\Keep\Facades\Keep;
 
+use function Laravel\Prompts\spin;
 use function Laravel\Prompts\table;
 
 class VerifyCommand extends AbstractCommand
@@ -15,19 +16,18 @@ class VerifyCommand extends AbstractCommand
 
     public function process(): int
     {
-        $this->info('Keep Vault Verification');
-        $this->newLine();
+        $results = spin(function () {
+            $vaults = $this->option('vault') ? [$this->option('vault')] : Keep::available();
+            $stages = $this->option('stage') ? [$this->option('stage')] : Keep::stages();
+            $results = [];
 
-        $vaults = $this->option('vault') ? [$this->option('vault')] : Keep::available();
-        $stages = $this->option('stage') ? [$this->option('stage')] : Keep::stages();
-
-        $results = [];
-
-        foreach ($vaults as $vaultName) {
-            foreach ($stages as $stage) {
-                $results[] = $this->verifyVaultStage($vaultName, $stage);
+            foreach ($vaults as $vaultName) {
+                foreach ($stages as $stage) {
+                    $results[] = $this->verifyVaultStage($vaultName, $stage);
+                }
             }
-        }
+            return $results;
+        }, 'Checking vault access permissions...');
 
         $this->displayResults($results);
 
@@ -40,11 +40,11 @@ class VerifyCommand extends AbstractCommand
         $testKey = 'keep-verify-'.Str::random(8);
 
         $result = [
-            'vault' => $vaultName,
-            'stage' => $stage,
-            'list' => false,
-            'write' => false,
-            'read' => null, // null = unknown/untestable, false = tested and failed, true = success
+            'vault'   => $vaultName,
+            'stage'   => $stage,
+            'list'    => false,
+            'write'   => false,
+            'read'    => null, // null = unknown/untestable, false = tested and failed, true = success
             'history' => null, // null = unknown/untestable, false = tested and failed, true = success
             'cleanup' => false,
         ];
@@ -131,8 +131,7 @@ class VerifyCommand extends AbstractCommand
 
     protected function displayResults(array $results): void
     {
-        $this->info('Verification Results:');
-        $this->newLine();
+        $this->info('Keep Vault Verification Results');
 
         $rows = [];
         foreach ($results as $result) {
@@ -152,22 +151,21 @@ class VerifyCommand extends AbstractCommand
             $rows
         );
 
-        $this->newLine();
         $this->displaySummary($results);
     }
 
     protected function formatResult(?bool $result): string
     {
         return match ($result) {
-            true => '<fg=green>✓</>',
+            true  => '<fg=green>✓</>',
             false => '<fg=red>✗</>',
-            null => '<fg=blue>?</>',
+            null  => '<fg=blue>?</>',
         };
     }
 
     protected function formatCleanupResult(bool $cleanup, bool $writeSucceeded): string
     {
-        if (! $writeSucceeded) {
+        if (!$writeSucceeded) {
             return '<fg=gray>-</>';  // No cleanup needed if write failed
         }
 
@@ -177,14 +175,14 @@ class VerifyCommand extends AbstractCommand
     protected function displaySummary(array $results): void
     {
         $totalCombinations = count($results);
-        $fullAccess = collect($results)->filter(fn ($r) => $r['list'] && $r['write'] && $r['read'] === true && $r['history'] === true)->count();
-        $readHistoryOnly = collect($results)->filter(fn ($r) => $r['list'] && ! $r['write'] && $r['read'] === true && $r['history'] === true)->count();
-        $readOnly = collect($results)->filter(fn ($r) => $r['list'] && ! $r['write'] && $r['read'] === true && $r['history'] !== true)->count();
-        $listOnly = collect($results)->filter(fn ($r) => $r['list'] && ! $r['write'] && $r['read'] === false)->count();
-        $noAccess = collect($results)->filter(fn ($r) => ! $r['list'] && ! $r['write'] && in_array($r['read'], [false, null]))->count();
-        $unknownRead = collect($results)->filter(fn ($r) => $r['read'] === null)->count();
-        $unknownHistory = collect($results)->filter(fn ($r) => $r['history'] === null)->count();
-        $cleanupIssues = collect($results)->filter(fn ($r) => $r['write'] && ! $r['cleanup'])->count();
+        $fullAccess = collect($results)->filter(fn($r) => $r['list'] && $r['write'] && $r['read'] === true && $r['history'] === true)->count();
+        $readHistoryOnly = collect($results)->filter(fn($r) => $r['list'] && !$r['write'] && $r['read'] === true && $r['history'] === true)->count();
+        $readOnly = collect($results)->filter(fn($r) => $r['list'] && !$r['write'] && $r['read'] === true && $r['history'] !== true)->count();
+        $listOnly = collect($results)->filter(fn($r) => $r['list'] && !$r['write'] && $r['read'] === false)->count();
+        $noAccess = collect($results)->filter(fn($r) => !$r['list'] && !$r['write'] && in_array($r['read'], [false, null]))->count();
+        $unknownRead = collect($results)->filter(fn($r) => $r['read'] === null)->count();
+        $unknownHistory = collect($results)->filter(fn($r) => $r['history'] === null)->count();
+        $cleanupIssues = collect($results)->filter(fn($r) => $r['write'] && !$r['cleanup'])->count();
 
         $this->info('Summary:');
         $this->line("• Total vault/stage combinations tested: {$totalCombinations}");
