@@ -25,9 +25,9 @@ class DeleteCommand extends AbstractCommand
 
         // Show secret details
         $this->newLine();
-        $this->info("Secret to be deleted:");
+        $this->info('Secret to be deleted:');
         table(['Key', 'Environment', 'Vault'], [
-            [$secret->key(), $environment, $vaultName]
+            [$secret->key(), $environment, $vaultName],
         ]);
 
         // Confirmation prompt (unless --force is used)
@@ -40,6 +40,7 @@ class DeleteCommand extends AbstractCommand
 
             if (! $confirmed) {
                 $this->info('Secret deletion cancelled.');
+
                 return self::SUCCESS;
             }
         }

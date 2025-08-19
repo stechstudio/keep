@@ -37,7 +37,7 @@ class VerifyCommand extends AbstractCommand
     protected function verifyVaultEnvironment(string $vaultName, string $environment): array
     {
         $vault = Keep::vault($vaultName)->forEnvironment($environment);
-        $testKey = 'keep-verify-' . Str::random(8);
+        $testKey = 'keep-verify-'.Str::random(8);
 
         $result = [
             'vault' => $vaultName,
@@ -132,7 +132,7 @@ class VerifyCommand extends AbstractCommand
         $this->displaySummary($results);
     }
 
-    protected function formatResult(bool|null $result): string
+    protected function formatResult(?bool $result): string
     {
         return match ($result) {
             true => '<fg=green>✓</>',
@@ -143,22 +143,22 @@ class VerifyCommand extends AbstractCommand
 
     protected function formatCleanupResult(bool $cleanup, bool $writeSucceeded): string
     {
-        if (!$writeSucceeded) {
+        if (! $writeSucceeded) {
             return '<fg=gray>-</>';  // No cleanup needed if write failed
         }
-        
+
         return $cleanup ? '<fg=green>✓</>' : '<fg=yellow>⚠</>';
     }
 
     protected function displaySummary(array $results): void
     {
         $totalCombinations = count($results);
-        $fullAccess = collect($results)->filter(fn($r) => $r['list'] && $r['write'] && $r['read'] === true)->count();
-        $readOnly = collect($results)->filter(fn($r) => $r['list'] && !$r['write'] && $r['read'] === true)->count();
-        $listOnly = collect($results)->filter(fn($r) => $r['list'] && !$r['write'] && $r['read'] === false)->count();
-        $noAccess = collect($results)->filter(fn($r) => !$r['list'] && !$r['write'] && in_array($r['read'], [false, null]))->count();
-        $unknownRead = collect($results)->filter(fn($r) => $r['read'] === null)->count();
-        $cleanupIssues = collect($results)->filter(fn($r) => $r['write'] && !$r['cleanup'])->count();
+        $fullAccess = collect($results)->filter(fn ($r) => $r['list'] && $r['write'] && $r['read'] === true)->count();
+        $readOnly = collect($results)->filter(fn ($r) => $r['list'] && ! $r['write'] && $r['read'] === true)->count();
+        $listOnly = collect($results)->filter(fn ($r) => $r['list'] && ! $r['write'] && $r['read'] === false)->count();
+        $noAccess = collect($results)->filter(fn ($r) => ! $r['list'] && ! $r['write'] && in_array($r['read'], [false, null]))->count();
+        $unknownRead = collect($results)->filter(fn ($r) => $r['read'] === null)->count();
+        $cleanupIssues = collect($results)->filter(fn ($r) => $r['write'] && ! $r['cleanup'])->count();
 
         $this->info('Summary:');
         $this->line("• Total vault/environment combinations tested: {$totalCombinations}");
@@ -169,7 +169,7 @@ class VerifyCommand extends AbstractCommand
         if ($unknownRead > 0) {
             $this->line("• <fg=blue>Unknown read access</> (unable to test): {$unknownRead}");
         }
-        
+
         if ($cleanupIssues > 0) {
             $this->newLine();
             $this->line("<fg=yellow>⚠ Warning:</> {$cleanupIssues} test secret(s) could not be cleaned up.");
