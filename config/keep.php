@@ -75,7 +75,7 @@ return [
     | This set the default vault used for secrets.
     |
     */
-    'default' => env('KEEP_VAULT', 'aws_ssm'),
+    'default' => env('KEEP_VAULT', 'ssm'),
 
     /*
     |--------------------------------------------------------------------------
@@ -87,7 +87,7 @@ return [
     | vault. Otherwise, the default vault will be the only available one.
     |
     */
-    'available' => explode(',', env('KEEP_AVAILABLE_VAULTS', env('KEEP_VAULT', 'aws_ssm'))),
+    'available' => explode(',', env('KEEP_AVAILABLE_VAULTS', env('KEEP_VAULT', 'ssm'))),
 
     /*
     |--------------------------------------------------------------------------
@@ -100,8 +100,8 @@ return [
     |
     */
     'vaults' => [
-        'aws_ssm' => [
-            'driver' => 'aws_ssm',
+        'ssm' => [
+            'driver' => 'ssm',
             'prefix' => env('KEEP_SSM_PREFIX'),
             'region' => env('KEEP_AWS_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
         ],

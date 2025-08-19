@@ -28,12 +28,12 @@ describe('KeepManager', function () {
     describe('AWS SSM driver creation', function () {
         it('creates AwsSsmVault with correct parameters', function () {
             $config = [
-                'driver' => 'aws-ssm',
+                'driver' => 'ssm',
                 'region' => 'us-east-1',
                 'profile' => 'default',
             ];
 
-            $vault = $this->manager->createAwsSsmDriver('my-vault', $config);
+            $vault = $this->manager->createSsmDriver('my-vault', $config);
 
             expect($vault)->toBeInstanceOf(AwsSsmVault::class);
             expect($vault->name())->toBe('my-vault');
@@ -63,13 +63,13 @@ describe('KeepManager', function () {
                 ->toThrow(\InvalidArgumentException::class, 'Driver [unsupported-driver] is not supported.');
         });
 
-        it('resolves aws-ssm driver correctly', function () {
+        it('resolves ssm driver correctly', function () {
             $reflection = new ReflectionClass($this->manager);
             $resolve = $reflection->getMethod('resolve');
             $resolve->setAccessible(true);
 
             $config = [
-                'driver' => 'aws-ssm',
+                'driver' => 'ssm',
                 'region' => 'us-east-1',
             ];
 

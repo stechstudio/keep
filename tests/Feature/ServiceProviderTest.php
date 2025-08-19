@@ -69,8 +69,8 @@ describe('ServiceProviderTest', function () {
             expect($environments)->toContain('production');
 
             // Should have AWS SSM vault configured
-            expect(config('keep.vaults.aws_ssm'))->toBeArray();
-            expect(config('keep.vaults.aws_ssm.driver'))->toBe('aws_ssm');
+            expect(config('keep.vaults.ssm'))->toBeArray();
+            expect(config('keep.vaults.ssm.driver'))->toBe('ssm');
         });
 
         it('allows config override', function () {
@@ -158,35 +158,35 @@ describe('ServiceProviderTest', function () {
             // Override config with multiple vaults
             config([
                 'keep.vaults' => [
-                    'aws_ssm_prod' => [
-                        'driver' => 'aws_ssm',
+                    'ssm_prod' => [
+                        'driver' => 'ssm',
                         'prefix' => '/prod-secrets',
                         'region' => 'us-west-2',
                     ],
-                    'aws_ssm_dev' => [
-                        'driver' => 'aws_ssm',
+                    'ssm_dev' => [
+                        'driver' => 'ssm',
                         'prefix' => '/dev-secrets',
                         'region' => 'us-east-1',
                     ],
                 ],
-                'keep.available' => ['aws_ssm_prod', 'aws_ssm_dev'],
-                'keep.default' => 'aws_ssm_dev',
+                'keep.available' => ['ssm_prod', 'ssm_dev'],
+                'keep.default' => 'ssm_dev',
             ]);
 
             // Verify configuration is accessible
-            expect(config('keep.vaults'))->toHaveKey('aws_ssm_prod');
-            expect(config('keep.vaults'))->toHaveKey('aws_ssm_dev');
-            expect(config('keep.available'))->toContain('aws_ssm_prod');
-            expect(config('keep.available'))->toContain('aws_ssm_dev');
-            expect(config('keep.default'))->toBe('aws_ssm_dev');
+            expect(config('keep.vaults'))->toHaveKey('ssm_prod');
+            expect(config('keep.vaults'))->toHaveKey('ssm_dev');
+            expect(config('keep.available'))->toContain('ssm_prod');
+            expect(config('keep.available'))->toContain('ssm_dev');
+            expect(config('keep.default'))->toBe('ssm_dev');
         });
 
         it('manager can handle multiple vault configs', function () {
             // Set up multiple vault config
             config([
                 'keep.vaults' => [
-                    'vault1' => ['driver' => 'aws_ssm', 'prefix' => '/vault1'],
-                    'vault2' => ['driver' => 'aws_ssm', 'prefix' => '/vault2'],
+                    'vault1' => ['driver' => 'ssm', 'prefix' => '/vault1'],
+                    'vault2' => ['driver' => 'ssm', 'prefix' => '/vault2'],
                 ],
             ]);
 

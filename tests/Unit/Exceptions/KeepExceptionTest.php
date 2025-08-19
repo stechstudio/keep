@@ -43,7 +43,7 @@ describe('KeepException', function () {
 
         $exception = (new KeepException('Secret not found'))
             ->withContext(
-                vault: 'aws-ssm',
+                vault: 'ssm',
                 stage: 'production',
                 key: 'DB_PASSWORD',
                 path: '/app/production/DB_PASSWORD',
@@ -55,7 +55,7 @@ describe('KeepException', function () {
 
         expect($output)->toEqual([
             ['message' => 'Secret not found', 'style' => 'error'],
-            ['message' => '  Vault: aws-ssm', 'style' => 'line'],
+            ['message' => '  Vault: ssm', 'style' => 'line'],
             ['message' => '  Stage: production', 'style' => 'line'],
             ['message' => '  Key: DB_PASSWORD', 'style' => 'line'],
             ['message' => '  Path: /app/production/DB_PASSWORD', 'style' => 'line'],
@@ -94,7 +94,7 @@ describe('KeepException', function () {
 
         $exception = (new SecretNotFoundException('Secret not found'))
             ->withContext(
-                vault: 'aws-ssm',
+                vault: 'ssm',
                 key: 'SECRET_KEY'
             );
 
@@ -102,7 +102,7 @@ describe('KeepException', function () {
 
         expect($output)->toEqual([
             ['message' => 'Secret not found', 'style' => 'error'],
-            ['message' => '  Vault: aws-ssm', 'style' => 'line'],
+            ['message' => '  Vault: ssm', 'style' => 'line'],
             ['message' => '  Key: SECRET_KEY', 'style' => 'line'],
         ]);
     });

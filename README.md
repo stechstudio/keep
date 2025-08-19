@@ -42,11 +42,11 @@ Let's say you have three environments (local, staging, production) and you want 
 You can add secrets using the artisan command:
 
 ```bash
-# You will be prompted for the environment and secret value
+# You will be prompted for the stage and secret value
 php artisan keep:set DB_PASSWORD
 
-# Or specify the environment and value directly
-php artisan keep:set DB_PASSWORD --env=production --value="supersecretpassword"
+# Or specify the stage and value directly
+php artisan keep:set DB_PASSWORD --stage=production --value="supersecretpassword"
 ```
 
 This will store the `DB_PASSWORD` secret in AWS SSM under the path `/[app-name-slug]/production/DB_PASSWORD`.
@@ -55,19 +55,23 @@ Check that the secret was added:
 
 ```bash
 # Retrieve a single secret
-php artisan keep:get DB_PASSWORD --env=production
+php artisan keep:get DB_PASSWORD --stage=production
 
-# List all secrets for the production environment
-php artisan keep:list --env=production
+# List all secrets for production
+php artisan keep:list --stage=production
 ```
 
 ### Using secrets in your application
 
+#### Generate complete `.env` file from secrets
+
 If 100% of your .env variables are managed via Keep, you can export them all to a .env file as part of your deployment process:
 
 ```bash
-php artisan keep:export --env=production --output=.env
+php artisan keep:export --stage=production --output=.env
 ```
+
+#### Merge secrets into a base template `.env` file
 
 You can also have a template env file with some non-sensitive values and merge the secrets into it:
 
@@ -83,7 +87,7 @@ DB_PASSWORD={aws-ssm:DB_PASSWORD} # or just {aws-ssm} since the key matches the 
 Then run the merge command:
 
 ```bash
-php artisan keep:merge --template=.env.base --output=.env --env=production
+php artisan keep:merge --template=.env.base --output=.env --stage=production
 ```
 
 You will now have a `.env` file with all the values from the template and the secrets filled in.
