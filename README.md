@@ -35,6 +35,7 @@ Let's say you have three environments (local, staging, production) and you want 
 
 1. Install the package via composer (as shown above).
 2. Ensure you have AWS credentials configured in your environment, with permissions to access SSM Parameter Store (see docs for full example).
+3. Run `php artisan keep:verify` to check your setup, verify your vault configuration, and ensure you have necessary permissions.
 
 ### Manage secrets
 
