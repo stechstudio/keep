@@ -4,6 +4,7 @@ namespace STS\Keep;
 
 use Illuminate\Support\ServiceProvider;
 use STS\Keep\Commands\DeleteCommand;
+use STS\Keep\Commands\DiffCommand;
 use STS\Keep\Commands\ExportCommand;
 use STS\Keep\Commands\GetCommand;
 use STS\Keep\Commands\HistoryCommand;
@@ -40,6 +41,7 @@ class KeepServiceProvider extends ServiceProvider
                 DeleteCommand::class,
                 ListCommand::class,
                 HistoryCommand::class,
+                DiffCommand::class,
                 InfoCommand::class,
                 VerifyCommand::class,
                 MergeCommand::class,
