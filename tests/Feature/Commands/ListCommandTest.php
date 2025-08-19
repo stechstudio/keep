@@ -29,7 +29,7 @@ describe('ListCommand', function () {
     });
 
     describe('basic functionality', function () {
-        it('lists all secrets with default table format', function () {
+        it('lists all secrets with default table format (masked by default)', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--env' => 'testing',
@@ -43,8 +43,30 @@ describe('ListCommand', function () {
             expect($output)->toContain('Value');
             expect($output)->toContain('Revision');
             expect($output)->toContain('DB_HOST');
-            expect($output)->toContain('localhost');
+            expect($output)->toContain('loca*****'); // masked localhost (9 chars total)
             expect($output)->toContain('MAIL_HOST');
+            expect($output)->toContain('secr*********'); // masked secret-api-key (13 chars total)
+            expect($output)->toContain('API_KEY');
+        });
+
+        it('lists all secrets unmasked with --unmask option', function () {
+            $result = Artisan::call('keep:list', [
+                '--vault' => 'test',
+                '--env' => 'testing',
+                '--unmask' => true,
+                '--no-interaction' => true,
+            ]);
+
+            expect($result)->toBe(0);
+
+            $output = Artisan::output();
+            expect($output)->toContain('Key');
+            expect($output)->toContain('Value');
+            expect($output)->toContain('Revision');
+            expect($output)->toContain('DB_HOST');
+            expect($output)->toContain('localhost'); // full value
+            expect($output)->toContain('MAIL_HOST');
+            expect($output)->toContain('secret-api-key'); // full value
             expect($output)->toContain('API_KEY');
         });
 
@@ -75,11 +97,28 @@ describe('ListCommand', function () {
         });
         */
 
-        it('lists secrets in env format', function () {
+        it('lists secrets in env format (masked by default)', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--env' => 'testing',
                 '--format' => 'env',
+            ]);
+
+            expect($result)->toBe(0);
+
+            $output = Artisan::output();
+            expect($output)->toContain('DB_HOST="loca*****"');
+            expect($output)->toContain('DB_PORT="****"');
+            expect($output)->toContain('MAIL_HOST="smtp************"');
+            expect($output)->toContain('API_KEY="secr**********"');
+        });
+
+        it('lists secrets in env format unmasked with --unmask', function () {
+            $result = Artisan::call('keep:list', [
+                '--vault' => 'test',
+                '--env' => 'testing',
+                '--format' => 'env',
+                '--unmask' => true,
             ]);
 
             expect($result)->toBe(0);
@@ -92,6 +131,53 @@ describe('ListCommand', function () {
         });
     });
 
+    describe('value masking', function () {
+        it('masks values correctly based on length', function () {
+            // Set up secrets with different lengths to test masking logic
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault->set('SHORT', 'abc'); // 3 chars - should be ****
+            $vault->set('MEDIUM', 'abcdefgh'); // 8 chars - should be ****
+            $vault->set('LONG', 'abcdefghijklmnop'); // 16 chars - should be abcd************
+
+            $result = Artisan::call('keep:list', [
+                '--vault' => 'test',
+                '--env' => 'testing',
+                '--format' => 'env',
+                '--only' => 'SHORT,MEDIUM,LONG',
+            ]);
+
+            expect($result)->toBe(0);
+
+            $output = Artisan::output();
+            expect($output)->toContain('SHORT="****"'); // ≤8 chars gets ****
+            expect($output)->toContain('MEDIUM="****"'); // ≤8 chars gets ****
+            expect($output)->toContain('LONG="abcd************"'); // >8 chars gets first 4 + asterisks
+        });
+
+        it('shows full values with --unmask regardless of length', function () {
+            // Set up the same secrets again to ensure they exist
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault->set('SHORT', 'abc');
+            $vault->set('MEDIUM', 'abcdefgh');
+            $vault->set('LONG', 'abcdefghijklmnop');
+
+            $result = Artisan::call('keep:list', [
+                '--vault' => 'test',
+                '--env' => 'testing',
+                '--format' => 'env',
+                '--only' => 'SHORT,MEDIUM,LONG',
+                '--unmask' => true,
+            ]);
+
+            expect($result)->toBe(0);
+
+            $output = Artisan::output();
+            expect($output)->toContain('SHORT=abc');
+            expect($output)->toContain('MEDIUM=abcdefgh');
+            expect($output)->toContain('LONG=abcdefghijklmnop');
+        });
+    });
+
     describe('filtering with patterns', function () {
         it('filters secrets with --only pattern', function () {
             $result = Artisan::call('keep:list', [
@@ -99,6 +185,7 @@ describe('ListCommand', function () {
                 '--env' => 'testing',
                 '--format' => 'env',
                 '--only' => 'DB_*',
+                '--unmask' => true, // Use unmask to test filtering logic
             ]);
 
             expect($result)->toBe(0);
@@ -117,6 +204,7 @@ describe('ListCommand', function () {
                 '--env' => 'testing',
                 '--format' => 'env',
                 '--except' => 'DB_*',
+                '--unmask' => true,
             ]);
 
             expect($result)->toBe(0);
@@ -136,6 +224,7 @@ describe('ListCommand', function () {
                 '--env' => 'testing',
                 '--format' => 'env',
                 '--only' => 'DB_*,MAIL_*',
+                '--unmask' => true,
             ]);
 
             expect($result)->toBe(0);
@@ -170,6 +259,7 @@ describe('ListCommand', function () {
                 '--env' => 'testing',
                 '--format' => 'env',
                 '--only' => '*_HOST,*_PORT',
+                '--unmask' => true,
             ]);
 
             expect($result)->toBe(0);
@@ -225,6 +315,7 @@ describe('ListCommand', function () {
                 '--vault' => 'test',
                 '--env' => 'testing',
                 '--format' => 'env',
+                '--unmask' => true,
             ]);
 
             expect($result)->toBe(0);
@@ -238,6 +329,7 @@ describe('ListCommand', function () {
                 '--vault' => 'test',  // Always specify to avoid prompts
                 '--env' => 'testing',
                 '--format' => 'env',
+                '--unmask' => true,
             ]);
 
             expect($result)->toBe(0);
@@ -253,6 +345,7 @@ describe('ListCommand', function () {
                 '--vault' => 'test',
                 '--env' => 'testing',
                 '--format' => 'table',
+                '--unmask' => true,
             ]);
 
             expect($result)->toBe(0);
@@ -298,6 +391,7 @@ describe('ListCommand', function () {
                 '--vault' => 'test',
                 '--env' => 'testing',
                 '--format' => 'env',
+                '--unmask' => true,
             ]);
 
             expect($result)->toBe(0);
@@ -369,6 +463,7 @@ describe('ListCommand', function () {
                 '--env' => 'testing',
                 '--format' => 'env',
                 '--only' => 'SPECIAL_CHARS',
+                '--unmask' => true,
             ]);
 
             expect($result)->toBe(0);
@@ -383,6 +478,7 @@ describe('ListCommand', function () {
                 '--env' => 'testing',
                 '--format' => 'env',
                 '--only' => 'UNICODE_VALUE',
+                '--unmask' => true,
             ]);
 
             expect($result)->toBe(0);
@@ -415,6 +511,7 @@ describe('ListCommand', function () {
                 '--format' => 'env',
                 '--only' => 'DB_*,MAIL_*',
                 '--except' => '*_PORT',
+                '--unmask' => true,
             ]);
 
             expect($result)->toBe(0);
