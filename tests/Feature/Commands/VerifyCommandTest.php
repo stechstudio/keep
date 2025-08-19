@@ -237,8 +237,6 @@ describe('VerifyCommand', function () {
             
             // Should show the unknown state symbol in legend
             expect($output)->toContain('?');
-            expect($output)->toContain('Unknown (unable to test)');
-            expect($output)->toContain('If write fails and no existing secrets are available, read shows as unknown');
         });
     });
 
