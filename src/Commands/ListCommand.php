@@ -8,6 +8,7 @@ class ListCommand extends AbstractCommand
 {
     public $signature = 'keep:list {--format=table : table|json|env} {--unmask : Show full secret values instead of masked values} '
         .self::ONLY_EXCLUDE_SIGNATURE
+        .self::CONTEXT_SIGNATURE
         .self::VAULT_SIGNATURE
         .self::STAGE_SIGNATURE;
 
@@ -15,7 +16,8 @@ class ListCommand extends AbstractCommand
 
     public function process(): int
     {
-        $secrets = $this->vault()->list()->filterByPatterns(
+        $context = $this->context();
+        $secrets = $context->createVault()->list()->filterByPatterns(
             only: $this->option('only'),
             except: $this->option('except')
         );

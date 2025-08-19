@@ -9,6 +9,7 @@ class DeleteCommand extends AbstractCommand
 {
     public $signature = 'keep:delete {--force : Skip confirmation prompt} '
         .self::KEY_SIGNATURE
+        .self::CONTEXT_SIGNATURE
         .self::VAULT_SIGNATURE
         .self::STAGE_SIGNATURE;
 
@@ -17,17 +18,17 @@ class DeleteCommand extends AbstractCommand
     public function process(): int
     {
         $key = $this->key();
-        $vaultName = $this->vaultName();
-        $stage = $this->stage();
+        $context = $this->context();
+        $vault = $context->createVault();
 
         // Get the secret first to verify it exists
-        $secret = $this->vault()->get($key);
+        $secret = $vault->get($key);
 
         // Show secret details
         $this->newLine();
         $this->info('Secret to be deleted:');
         table(['Key', 'Stage', 'Vault'], [
-            [$secret->key(), $stage, $vaultName],
+            [$secret->key(), $context->stage, $context->vault],
         ]);
 
         // Confirmation prompt (unless --force is used)
@@ -46,10 +47,10 @@ class DeleteCommand extends AbstractCommand
         }
 
         // Delete the secret
-        $this->vault()->delete($key);
+        $vault->delete($key);
 
         $this->newLine();
-        $this->info("Secret [{$key}] has been permanently deleted from vault [{$vaultName}] in stage [{$stage}].");
+        $this->info("Secret [{$key}] has been permanently deleted from vault [{$context->vault}] in stage [{$context->stage}].");
 
         return self::SUCCESS;
     }

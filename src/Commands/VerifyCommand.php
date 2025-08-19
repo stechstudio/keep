@@ -3,6 +3,7 @@
 namespace STS\Keep\Commands;
 
 use Illuminate\Support\Str;
+use STS\Keep\Data\Context;
 use STS\Keep\Facades\Keep;
 
 use function Laravel\Prompts\spin;
@@ -10,13 +11,29 @@ use function Laravel\Prompts\table;
 
 class VerifyCommand extends AbstractCommand
 {
-    public $signature = 'keep:verify {--vault= : Test only this vault} {--stage= : Test only this stage}';
+    public $signature = 'keep:verify 
+        {--context= : Comma-separated list of contexts to verify (e.g., "vault1:stage1,vault2:stage2")}
+        {--vault= : Test only this vault} 
+        {--stage= : Test only this stage}';
 
     public $description = 'Verify vault access permissions for reading, writing, listing, and deleting secrets';
 
     public function process(): int
     {
         $results = spin(function () {
+            // If --context is provided, use specific contexts
+            if ($this->option('context')) {
+                $contexts = $this->parseContexts();
+                $results = [];
+                
+                foreach ($contexts as $context) {
+                    $results[] = $this->verifyVaultStage($context->vault, $context->stage);
+                }
+                
+                return $results;
+            }
+            
+            // Otherwise use existing logic
             $vaults = $this->option('vault') ? [$this->option('vault')] : Keep::available();
             $stages = $this->option('stage') ? [$this->option('stage')] : Keep::stages();
             $results = [];
@@ -211,5 +228,31 @@ class VerifyCommand extends AbstractCommand
         $this->line('<fg=blue>?</> = Unknown (unable to test)');
         $this->line('<fg=yellow>⚠</> = Cleanup failed (test secret may remain)');
         $this->line('<fg=gray>-</> = Not applicable');
+    }
+
+    protected function parseContexts(): array
+    {
+        $contextInputs = array_map('trim', explode(',', $this->option('context')));
+        $contexts = [];
+        
+        foreach ($contextInputs as $input) {
+            $context = Context::fromInput($input);
+            
+            // Validate vault exists
+            if (!in_array($context->vault, Keep::available())) {
+                $this->warn("Warning: Unknown vault '{$context->vault}' - skipping context '{$input}'");
+                continue;
+            }
+            
+            // Validate stage exists  
+            if (!in_array($context->stage, Keep::stages())) {
+                $this->warn("Warning: Unknown stage '{$context->stage}' - skipping context '{$input}'");
+                continue;
+            }
+            
+            $contexts[] = $context;
+        }
+        
+        return $contexts;
     }
 }

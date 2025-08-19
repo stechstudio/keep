@@ -16,6 +16,7 @@ class MergeCommand extends AbstractCommand
         {--overwrite : Overwrite the output file if it exists} 
         {--append : Append to the output file if it exists} 
         {--missing=fail : How to handle missing secrets: fail|remove|blank|skip (default: fail) } '
+        .self::CONTEXT_SIGNATURE
         .self::VAULT_SIGNATURE
         .self::STAGE_SIGNATURE;
 
@@ -31,13 +32,16 @@ class MergeCommand extends AbstractCommand
             return self::FAILURE;
         }
 
-        $secrets = $this->vault()->list();
+        $context = $this->context();
+        $vault = $context->createVault();
+        $secrets = $vault->list();
 
         $contents = $this->mergeAndConcat(
             $this->baseTemplate,
             $this->overlayTemplate,
             $secrets,
-            MissingSecretStrategy::from($this->option('missing'))
+            MissingSecretStrategy::from($this->option('missing')),
+            $vault
         );
 
         if ($this->option('output')) {
@@ -87,14 +91,14 @@ class MergeCommand extends AbstractCommand
         return true;
     }
 
-    protected function mergeAndConcat(Template $base, Template $overlay, SecretCollection $secrets, MissingSecretStrategy $strategy): string
+    protected function mergeAndConcat(Template $base, Template $overlay, SecretCollection $secrets, MissingSecretStrategy $strategy, $vault): string
     {
         $output = "# ----- Base stage variables -----\n\n";
-        $output .= $base->merge($this->vault()->slug(), $secrets, $strategy);
+        $output .= $base->merge($vault->slug(), $secrets, $strategy);
 
         if ($overlay->isNotEmpty()) {
             $output .= "\n\n# ----- Separator -----\n\n# Appending additional stage variables\n\n";
-            $output .= $overlay->merge($this->vault()->slug(), $secrets, $strategy);
+            $output .= $overlay->merge($vault->slug(), $secrets, $strategy);
         }
 
         return $output;
