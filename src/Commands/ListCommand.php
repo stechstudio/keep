@@ -21,19 +21,7 @@ class ListCommand extends AbstractCommand
         );
 
         if (! $this->option('unmask')) {
-            $secrets = $secrets->map(function ($secret) {
-                // Create a new Secret with masked value
-                return new \STS\Keep\Data\Secret(
-                    key: $secret->key(),
-                    value: $this->maskValue($secret->value()),
-                    encryptedValue: $secret->encryptedValue(),
-                    secure: $secret->isSecure(),
-                    environment: $secret->environment(),
-                    revision: $secret->revision(),
-                    path: $secret->path(),
-                    vault: $secret->vault()
-                );
-            });
+            $secrets = $secrets->map->mask();
         }
 
         match ($this->option('format')) {
@@ -44,16 +32,5 @@ class ListCommand extends AbstractCommand
         };
 
         return self::SUCCESS;
-    }
-
-    private function maskValue(string $value): string
-    {
-        $length = strlen($value);
-
-        if ($length <= 8) {
-            return '****';
-        }
-
-        return substr($value, 0, 4).str_repeat('*', $length - 4);
     }
 }
