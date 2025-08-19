@@ -20,7 +20,7 @@ return [
     |
     | This option defines the stage that Keep should consider as current
     | no matter what APP_ENV is set to. This can be useful when your secrets
-    | use a stage name that differs from your application.
+    | use a stage name that differs from your application environment.
     |
     */
     'stage' => env('KEEP_STAGE'),
@@ -103,7 +103,12 @@ return [
         'ssm' => [
             'driver' => 'ssm',
             'prefix' => env('KEEP_SSM_PREFIX'),
-            'region' => env('KEEP_AWS_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
+            'region' => env('KEEP_SSM_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
+        ],
+        'secretsmanager' => [
+            'driver' => 'secretsmanager',
+            'region' => env('KEEP_SECRETSMANAGER_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
+            'prefix' => env('KEEP_SECRETSMANAGER_PREFIX'),
         ],
     ],
 ];

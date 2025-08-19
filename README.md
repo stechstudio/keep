@@ -11,7 +11,7 @@
 
 **Key Features:**
 - **CLI Commands** - Manage individual secrets, import/export in bulk, view history and diffs, all via artisan commands
-- **Multi-Vault Support** - Driver-based system (AWS SSM Parameter Store, extensible for other providers)
+- **Multi-Vault Support** - Driver-based system (AWS SSM Parameter Store, AWS Secrets Manager, extensible for other providers)
 - **Environment Isolation** - Separate secrets by environment (local, staging, production) with access controls
 - **Template System** - Merge secrets into `.env` files using template placeholders
 - **Team Collaboration** - Share secret management across team members with proper access controls
@@ -29,7 +29,7 @@ composer require stechstudio/laravel-keep
 
 ## Quick Example
 
-Let's say you have three environments (local, staging, production) and you want to store secrets in AWS SSM with the default KMS encryption key, in the `us-east-1` region.
+Let's say you have three environments (local, staging, production) and you want to store secrets in AWS SSM Parameter Store with the default KMS encryption key, in the `us-east-1` region. (You can also use AWS Secrets Manager - see configuration docs for details.)
 
 ### Setup
 

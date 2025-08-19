@@ -2,3 +2,5 @@ composer.lock
 workbench/
 vendor/
 .env*
+*_PLAN.md
+.claude

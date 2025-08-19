@@ -13,6 +13,7 @@ use STS\Keep\Data\SecretHistory;
 use STS\Keep\Data\Collections\SecretHistoryCollection;
 use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Exceptions\AccessDeniedException;
+use STS\Keep\Exceptions\ExceptionFactory;
 use STS\Keep\Exceptions\KeepException;
 use STS\Keep\Exceptions\SecretNotFoundException;
 use STS\Keep\Facades\Keep;
@@ -106,7 +107,7 @@ class AwsSsmVault extends AbstractVault
             $parameter = $result->get('Parameter');
 
             if (! $parameter || ! is_array($parameter)) {
-                throw new SecretNotFoundException("Secret not found [{$this->format($key)}]");
+                throw ExceptionFactory::secretNotFound($key, $this->name());
             }
 
             return new Secret(
@@ -121,11 +122,11 @@ class AwsSsmVault extends AbstractVault
             );
         } catch (SsmException $e) {
             if ($e->getAwsErrorCode() === 'ParameterNotFound') {
-                throw new SecretNotFoundException("Secret not found [{$this->format($key)}]");
+                throw ExceptionFactory::secretNotFound($key, $this->name());
             } elseif ($e->getAwsErrorCode() === 'AccessDeniedException') {
                 throw new AccessDeniedException($e->getAwsErrorMessage());
             } else {
-                throw new KeepException($e->getAwsErrorMessage());
+                throw ExceptionFactory::awsError($e->getAwsErrorMessage(), $this->name(), $key);
             }
         }
     }

@@ -5,24 +5,42 @@ use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Data\Template;
 use STS\Keep\Enums\MissingSecretStrategy;
 use STS\Keep\Exceptions\SecretNotFoundException;
+use STS\Keep\Vaults\AbstractVault;
 
 beforeEach(function () {
+    // Create mock vault for SSM
+    $this->ssmVault = Mockery::mock(AbstractVault::class);
+    $this->ssmVault->shouldReceive('name')->andReturn('ssm');
+    
+    // Create mock vault for other vault names used in tests
+    $this->vaultOne = Mockery::mock(AbstractVault::class);
+    $this->vaultOne->shouldReceive('name')->andReturn('vault-one');
+    
+    $this->vaultTwo = Mockery::mock(AbstractVault::class);
+    $this->vaultTwo->shouldReceive('name')->andReturn('vault-two');
+    
+    $this->ssmProdVault = Mockery::mock(AbstractVault::class);
+    $this->ssmProdVault->shouldReceive('name')->andReturn('ssm-prod');
+    
+    // Create secrets with SSM vault attached
     $this->secrets = new SecretCollection([
-        new Secret('DB_PASSWORD', 'secret123'),
-        new Secret('DB_HOST', 'localhost'),
-        new Secret('API_KEY', 'api_secret_key'),
-        new Secret('MAIL_PASSWORD', 'mail_pass'),
-        new Secret('APP_KEY', 'base64:key123'),
-        new Secret('SPECIAL_CHARS', 'value with "quotes" and $pecial'),
-        new Secret('ALPHANUMERIC', 'abc123'),
-        new Secret('NUMERIC', '12345'),
-        new Secret('WITH_SPACES', 'value with spaces'),
-        new Secret('WITH_SINGLE_QUOTES', "value with 'quotes'"),
-        new Secret('WITH_DOUBLE_QUOTES', 'value with "quotes"'),
-        new Secret('WITH_BOTH_QUOTES', 'value with "double" and \'single\''),
-        new Secret('WITH_BACKSLASH', 'value\\with\\backslash'),
-        new Secret('EMPTY_VALUE', ''),
-        new Secret('NULL_VALUE', null),
+        new Secret('DB_PASSWORD', 'secret123', null, true, null, 0, null, $this->ssmVault),
+        new Secret('DB_HOST', 'localhost', null, true, null, 0, null, $this->ssmVault),
+        new Secret('API_KEY', 'api_secret_key', null, true, null, 0, null, $this->ssmVault),
+        new Secret('MAIL_PASSWORD', 'mail_pass', null, true, null, 0, null, $this->ssmVault),
+        new Secret('APP_KEY', 'base64:key123', null, true, null, 0, null, $this->ssmVault),
+        new Secret('SPECIAL_CHARS', 'value with "quotes" and $pecial', null, true, null, 0, null, $this->ssmVault),
+        new Secret('ALPHANUMERIC', 'abc123', null, true, null, 0, null, $this->ssmVault),
+        new Secret('NUMERIC', '12345', null, true, null, 0, null, $this->ssmVault),
+        new Secret('WITH_SPACES', 'value with spaces', null, true, null, 0, null, $this->ssmVault),
+        new Secret('WITH_SINGLE_QUOTES', "value with 'quotes'", null, true, null, 0, null, $this->ssmVault),
+        new Secret('WITH_DOUBLE_QUOTES', 'value with "quotes"', null, true, null, 0, null, $this->ssmVault),
+        new Secret('WITH_BOTH_QUOTES', 'value with "double" and \'single\'', null, true, null, 0, null, $this->ssmVault),
+        new Secret('WITH_BACKSLASH', 'value\\with\\backslash', null, true, null, 0, null, $this->ssmVault),
+        new Secret('EMPTY_VALUE', '', null, true, null, 0, null, $this->ssmVault),
+        new Secret('NULL_VALUE', null, null, true, null, 0, null, $this->ssmVault),
+        // Add secrets for ssm-prod vault
+        new Secret('DB_PASSWORD', 'secret123', null, true, null, 0, null, $this->ssmProdVault),
     ]);
 });
 
@@ -56,7 +74,7 @@ describe('Template', function () {
         it('merges basic placeholder format', function () {
             $template = new Template('DB_PASSWORD={ssm:DB_PASSWORD}');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe('DB_PASSWORD=secret123');
         });
@@ -64,7 +82,7 @@ describe('Template', function () {
         it('merges placeholder with quotes', function () {
             $template = new Template("API_KEY='{ssm:API_KEY}'");
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe('API_KEY="api_secret_key"');
         });
@@ -72,7 +90,7 @@ describe('Template', function () {
         it('merges placeholder with double quotes', function () {
             $template = new Template('MAIL_PASSWORD="{ssm:MAIL_PASSWORD}"');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe('MAIL_PASSWORD="mail_pass"');
         });
@@ -80,7 +98,7 @@ describe('Template', function () {
         it('merges placeholder without path (uses key as path)', function () {
             $template = new Template('DB_HOST={ssm}');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe('DB_HOST=localhost');
         });
@@ -88,7 +106,7 @@ describe('Template', function () {
         it('handles placeholders with attributes', function () {
             $template = new Template('API_KEY={ssm:API_KEY|label=primary|version=2}');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe('API_KEY="api_secret_key"');
         });
@@ -96,7 +114,7 @@ describe('Template', function () {
         it('preserves inline comments', function () {
             $template = new Template('DB_PASSWORD={ssm:DB_PASSWORD} # Database password');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe('DB_PASSWORD=secret123 # Database password');
         });
@@ -108,7 +126,7 @@ describe('Template', function () {
                 "API_KEY='{ssm:API_KEY}'"
             );
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe(
                 "DB_PASSWORD=secret123\n".
@@ -125,7 +143,7 @@ describe('Template', function () {
                 'API_KEY={ssm:API_KEY}'
             );
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe(
                 "# Comment line\n".
@@ -138,7 +156,7 @@ describe('Template', function () {
         it('preserves leading and trailing whitespace', function () {
             $template = new Template('   DB_PASSWORD={ssm:DB_PASSWORD}   ');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             // Whitespace should be preserved from the template
             expect($result)->toBe('   DB_PASSWORD=secret123   ');
@@ -147,7 +165,7 @@ describe('Template', function () {
         it('handles special characters in secret values', function () {
             $template = new Template('SPECIAL_CHARS={ssm:SPECIAL_CHARS}');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             // Quotes should now be properly escaped
             expect($result)->toBe('SPECIAL_CHARS=\'value with "quotes" and $pecial\'');
@@ -155,9 +173,9 @@ describe('Template', function () {
 
         it('properly escapes double quotes in values', function () {
             $secrets = new SecretCollection([
-                new Secret('QUOTES', 'value with "double" and \'single\' quotes'),
-                new Secret('JSON', '{"key": "value", "nested": {"item": "data"}}'),
-                new Secret('MIXED', 'Path: "C:\\Program Files\\App" and $HOME'),
+                new Secret('QUOTES', 'value with "double" and \'single\' quotes', null, true, null, 0, null, $this->ssmVault),
+                new Secret('JSON', '{"key": "value", "nested": {"item": "data"}}', null, true, null, 0, null, $this->ssmVault),
+                new Secret('MIXED', 'Path: "C:\\Program Files\\App" and $HOME', null, true, null, 0, null, $this->ssmVault),
             ]);
 
             $template = new Template(
@@ -166,7 +184,7 @@ describe('Template', function () {
                 'MIXED={ssm:MIXED}'
             );
 
-            $result = $template->merge('ssm', $secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($secrets, MissingSecretStrategy::FAIL);
 
             // Only double quotes are escaped for .env compatibility
             expect($result)->toBe(
@@ -182,7 +200,7 @@ describe('Template', function () {
                 'OTHER_SECRET={other-vault:OTHER_SECRET}'
             );
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::SKIP);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::SKIP);
 
             expect($result)->toBe(
                 "DB_PASSWORD=secret123\n".
@@ -196,10 +214,10 @@ describe('Template', function () {
             $template = new Template('MISSING_KEY={ssm:MISSING_KEY}');
 
             try {
-                $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+                $template->merge($this->secrets, MissingSecretStrategy::FAIL);
                 $this->fail('Expected SecretNotFoundException to be thrown');
             } catch (SecretNotFoundException $e) {
-                expect($e->getMessage())->toBe('Unable to find secret for key [MISSING_KEY]');
+                expect($e->getMessage())->toBe('Unable to find secret for key [MISSING_KEY] in vault [ssm]');
                 // We can't easily test the context properties directly in unit tests,
                 // but we can verify the exception is thrown with the correct message
             }
@@ -208,7 +226,7 @@ describe('Template', function () {
         it('removes line with REMOVE strategy', function () {
             $template = new Template('MISSING_KEY={ssm:MISSING_KEY}');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::REMOVE);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::REMOVE);
 
             expect($result)->toBe('# Removed missing secret: MISSING_KEY');
         });
@@ -216,7 +234,7 @@ describe('Template', function () {
         it('creates blank value with BLANK strategy', function () {
             $template = new Template('MISSING_KEY={ssm:MISSING_KEY}');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::BLANK);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::BLANK);
 
             expect($result)->toBe('MISSING_KEY=');
         });
@@ -224,7 +242,7 @@ describe('Template', function () {
         it('keeps placeholder with SKIP strategy', function () {
             $template = new Template('MISSING_KEY={ssm:MISSING_KEY}');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::SKIP);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::SKIP);
 
             expect($result)->toBe('MISSING_KEY={ssm:MISSING_KEY}');
         });
@@ -239,7 +257,7 @@ describe('Template', function () {
             );
 
             try {
-                $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+                $template->merge($this->secrets, MissingSecretStrategy::FAIL);
                 $this->fail('Expected SecretNotFoundException to be thrown');
             } catch (SecretNotFoundException $e) {
                 expect($e->getMessage())->toContain('MISSING_KEY');
@@ -253,19 +271,17 @@ describe('Template', function () {
                 'SECRET2={vault-two:different/path/SECRET2}'
             );
 
-            $result1 = $template->merge('vault-one', $this->secrets, MissingSecretStrategy::REMOVE);
-            $result2 = $template->merge('vault-two', $this->secrets, MissingSecretStrategy::REMOVE);
+            // With new multi-vault implementation, a single call processes all vaults
+            $result = $template->merge($this->secrets, MissingSecretStrategy::REMOVE);
 
-            // Should only show key names, not vault details or paths
-            expect($result1)->toBe(
+            // Should remove both missing secrets since no secrets from vault-one or vault-two exist
+            expect($result)->toBe(
                 "# Removed missing secret: SECRET1\n".
-                'SECRET2={vault-two:different/path/SECRET2}'
-            );
-
-            expect($result2)->toBe(
-                "SECRET1={vault-one:path/to/SECRET1|attr=value}\n".
                 '# Removed missing secret: SECRET2'
             );
+
+            // With the new implementation, both vault placeholders are processed in one call
+            // Since neither vault-one nor vault-two secrets exist, both should be removed
         });
 
         it('handles multiple missing keys with REMOVE strategy', function () {
@@ -276,7 +292,7 @@ describe('Template', function () {
                 'MISSING2={ssm:MISSING2}'
             );
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::REMOVE);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::REMOVE);
 
             expect($result)->toBe(
                 "DB_PASSWORD=secret123\n".
@@ -290,10 +306,10 @@ describe('Template', function () {
     describe('pattern edge cases', function () {
         it('handles lowercase and mixed-case env keys', function () {
             $secrets = new SecretCollection([
-                new Secret('lowercase_key', 'value1'),
-                new Secret('mixedCaseKey', 'value2'),
-                new Secret('camelCase_with_underscore', 'value3'),
-                new Secret('TRADITIONAL_UPPERCASE', 'value4'),
+                new Secret('lowercase_key', 'value1', null, true, null, 0, null, $this->ssmVault),
+                new Secret('mixedCaseKey', 'value2', null, true, null, 0, null, $this->ssmVault),
+                new Secret('camelCase_with_underscore', 'value3', null, true, null, 0, null, $this->ssmVault),
+                new Secret('TRADITIONAL_UPPERCASE', 'value4', null, true, null, 0, null, $this->ssmVault),
             ]);
 
             $template = new Template(
@@ -303,7 +319,7 @@ describe('Template', function () {
                 'TRADITIONAL_UPPERCASE={ssm:TRADITIONAL_UPPERCASE}'
             );
 
-            $result = $template->merge('ssm', $secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe(
                 "lowercase_key=value1\n".
@@ -317,7 +333,7 @@ describe('Template', function () {
             // Note: Secret class sanitizes keys and removes leading underscores,
             // but the template pattern should still match them
             $secrets = new SecretCollection([
-                new Secret('MY_underscore_start', 'value1'), // This becomes 'MY_underscore_start' after sanitization
+                new Secret('MY_underscore_start', 'value1', null, true, null, 0, null, $this->ssmVault), // This becomes 'MY_underscore_start' after sanitization
             ]);
 
             $template = new Template(
@@ -325,7 +341,7 @@ describe('Template', function () {
                 'NORMAL_KEY={ssm:NORMAL_KEY}'
             );
 
-            $result = $template->merge('ssm', $secrets, MissingSecretStrategy::SKIP);
+            $result = $template->merge($secrets, MissingSecretStrategy::SKIP);
 
             // The pattern should match _STARTS_WITH_UNDERSCORE
             expect($result)->toBe(
@@ -336,7 +352,7 @@ describe('Template', function () {
 
         it('does not match keys starting with numbers', function () {
             $secrets = new SecretCollection([
-                new Secret('valid_key', 'replaced'),
+                new Secret('valid_key', 'replaced', null, true, null, 0, null, $this->ssmVault),
             ]);
 
             $template = new Template(
@@ -345,7 +361,7 @@ describe('Template', function () {
                 '9starts_with_number={ssm:9starts_with_number}'
             );
 
-            $result = $template->merge('ssm', $secrets, MissingSecretStrategy::SKIP);
+            $result = $template->merge($secrets, MissingSecretStrategy::SKIP);
 
             // Keys starting with numbers should not be matched/processed
             expect($result)->toBe(
@@ -357,15 +373,15 @@ describe('Template', function () {
 
         it('handles paths with dots and slashes', function () {
             $secrets = new SecretCollection([
-                new Secret('app.production.db.password', 'prod_pass'),
-                new Secret('services/api/key', 'api_key_value'),
+                new Secret('app.production.db.password', 'prod_pass', null, true, null, 0, null, $this->ssmVault),
+                new Secret('services/api/key', 'api_key_value', null, true, null, 0, null, $this->ssmVault),
             ]);
 
             $template1 = new Template('DB_PASS={ssm:app.production.db.password}');
             $template2 = new Template('API_KEY={ssm:services/api/key}');
 
-            $result1 = $template1->merge('ssm', $secrets, MissingSecretStrategy::FAIL);
-            $result2 = $template2->merge('ssm', $secrets, MissingSecretStrategy::FAIL);
+            $result1 = $template1->merge($secrets, MissingSecretStrategy::FAIL);
+            $result2 = $template2->merge($secrets, MissingSecretStrategy::FAIL);
 
             expect($result1)->toBe('DB_PASS="prod_pass"');
             expect($result2)->toBe('API_KEY="api_key_value"');
@@ -373,8 +389,8 @@ describe('Template', function () {
 
         it('handles paths with underscores and hyphens', function () {
             $secrets = new SecretCollection([
-                new Secret('my-secret_key', 'value1'),
-                new Secret('another_secret-name', 'value2'),
+                new Secret('my-secret_key', 'value1', null, true, null, 0, null, $this->ssmVault),
+                new Secret('another_secret-name', 'value2', null, true, null, 0, null, $this->ssmVault),
             ]);
 
             $template = new Template(
@@ -382,7 +398,7 @@ describe('Template', function () {
                 'SECRET2={ssm:another_secret-name}'
             );
 
-            $result = $template->merge('ssm', $secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe(
                 "SECRET1=value1\n".
@@ -393,7 +409,7 @@ describe('Template', function () {
         it('handles slugs with hyphens', function () {
             $template = new Template('DB_PASSWORD={ssm-prod:DB_PASSWORD}');
 
-            $result = $template->merge('ssm-prod', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe('DB_PASSWORD=secret123');
         });
@@ -401,7 +417,7 @@ describe('Template', function () {
         it('ignores placeholders with leading slashes in path', function () {
             $template = new Template('INVALID={ssm:/absolute/path}');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::SKIP);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::SKIP);
 
             expect($result)->toBe('INVALID={ssm:/absolute/path}');
         });
@@ -409,7 +425,7 @@ describe('Template', function () {
         it('handles empty template', function () {
             $template = new Template('');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe('');
         });
@@ -422,7 +438,7 @@ describe('Template', function () {
                 "    \n"
             );
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe(
                 "# This is a comment\n".
@@ -437,9 +453,9 @@ describe('Template', function () {
             $template2 = new Template('API_KEY= {ssm:API_KEY}');
             $template3 = new Template('APP_KEY ={ssm:APP_KEY}');
 
-            $result1 = $template1->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
-            $result2 = $template2->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
-            $result3 = $template3->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result1 = $template1->merge($this->secrets, MissingSecretStrategy::FAIL);
+            $result2 = $template2->merge($this->secrets, MissingSecretStrategy::FAIL);
+            $result3 = $template3->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             // Spacing around equals should be preserved exactly
             expect($result1)->toBe('DB_PASSWORD = secret123');
@@ -458,13 +474,13 @@ describe('Template', function () {
             );
 
             $secrets = new SecretCollection([
-                new Secret('DB_HOST', 'localhost'),
-                new Secret('DB_PORT', '3306'),
-                new Secret('DB_NAME', 'myapp'),
-                new Secret('DB_PASSWORD', 'secret'),
+                new Secret('DB_HOST', 'localhost', null, true, null, 0, null, $this->ssmVault),
+                new Secret('DB_PORT', '3306', null, true, null, 0, null, $this->ssmVault),
+                new Secret('DB_NAME', 'myapp', null, true, null, 0, null, $this->ssmVault),
+                new Secret('DB_PASSWORD', 'secret', null, true, null, 0, null, $this->ssmVault),
             ]);
 
-            $result = $template->merge('ssm', $secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($secrets, MissingSecretStrategy::FAIL);
 
             // All original formatting should be preserved
             expect($result)->toBe(
@@ -479,10 +495,10 @@ describe('Template', function () {
     describe('consistency with SecretsCollection', function () {
         it('produces same escaping as SecretsCollection::toEnvString()', function () {
             $secrets = new SecretCollection([
-                new Secret('KEY1', 'simple value'),
-                new Secret('KEY2', 'value with "quotes"'),
-                new Secret('KEY3', null),
-                new Secret('KEY4', 'path\\with\\backslash'),
+                new Secret('KEY1', 'simple value', null, true, null, 0, null, $this->ssmVault),
+                new Secret('KEY2', 'value with "quotes"', null, true, null, 0, null, $this->ssmVault),
+                new Secret('KEY3', null, null, true, null, 0, null, $this->ssmVault),
+                new Secret('KEY4', 'path\\with\\backslash', null, true, null, 0, null, $this->ssmVault),
             ]);
 
             // Template approach (without extra whitespace so it matches)
@@ -492,7 +508,7 @@ describe('Template', function () {
                 "KEY3={ssm:KEY3}\n".
                 'KEY4={ssm:KEY4}'
             );
-            $templateResult = $template->merge('ssm', $secrets, MissingSecretStrategy::BLANK);
+            $templateResult = $template->merge($secrets, MissingSecretStrategy::BLANK);
 
             // SecretsCollection approach
             $collectionResult = $secrets->toEnvString();
@@ -533,16 +549,16 @@ describe('Template', function () {
             );
 
             $secrets = new SecretCollection([
-                new Secret('APP_KEY', 'base64:production_key'),
-                new Secret('DB_HOST', 'prod.db.example.com'),
-                new Secret('DB_PASSWORD', 'super_secret_pass'),
-                new Secret('MAIL_USERNAME', 'postmaster@example.com'),
-                new Secret('MAIL_PASSWORD', 'mail_secret'),
-                new Secret('STRIPE_KEY', 'pk_live_123'),
-                new Secret('STRIPE_SECRET', 'sk_live_456'),
+                new Secret('APP_KEY', 'base64:production_key', null, true, null, 0, null, $this->ssmVault),
+                new Secret('DB_HOST', 'prod.db.example.com', null, true, null, 0, null, $this->ssmVault),
+                new Secret('DB_PASSWORD', 'super_secret_pass', null, true, null, 0, null, $this->ssmVault),
+                new Secret('MAIL_USERNAME', 'postmaster@example.com', null, true, null, 0, null, $this->ssmVault),
+                new Secret('MAIL_PASSWORD', 'mail_secret', null, true, null, 0, null, $this->ssmVault),
+                new Secret('STRIPE_KEY', 'pk_live_123', null, true, null, 0, null, $this->ssmVault),
+                new Secret('STRIPE_SECRET', 'sk_live_456', null, true, null, 0, null, $this->ssmVault),
             ]);
 
-            $result = $template->merge('ssm', $secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toContain('APP_KEY="base64:production_key"');
             expect($result)->toContain('DB_HOST="prod.db.example.com"');
@@ -566,7 +582,7 @@ describe('Template', function () {
                 'NUMERIC={ssm:NUMERIC}'
             );
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe(
                 "ALPHANUMERIC=abc123\n".
@@ -577,7 +593,7 @@ describe('Template', function () {
         it('quotes values with spaces', function () {
             $template = new Template('WITH_SPACES={ssm:WITH_SPACES}');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe('WITH_SPACES="value with spaces"');
         });
@@ -585,7 +601,7 @@ describe('Template', function () {
         it('quotes values with special characters', function () {
             $template = new Template('APP_KEY={ssm:APP_KEY}');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe('APP_KEY="base64:key123"');
         });
@@ -593,7 +609,7 @@ describe('Template', function () {
         it('handles values with single quotes using double quotes', function () {
             $template = new Template('WITH_SINGLE_QUOTES={ssm:WITH_SINGLE_QUOTES}');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe('WITH_SINGLE_QUOTES="value with \'quotes\'"');
         });
@@ -601,7 +617,7 @@ describe('Template', function () {
         it('handles values with double quotes using single quotes and escaping', function () {
             $template = new Template('WITH_DOUBLE_QUOTES={ssm:WITH_DOUBLE_QUOTES}');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe('WITH_DOUBLE_QUOTES=\'value with "quotes"\'');
         });
@@ -609,7 +625,7 @@ describe('Template', function () {
         it('handles values with both quote types', function () {
             $template = new Template('WITH_BOTH_QUOTES={ssm:WITH_BOTH_QUOTES}');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe('WITH_BOTH_QUOTES=\'value with "double" and \\\'single\\\'\'');
         });
@@ -617,7 +633,7 @@ describe('Template', function () {
         it('properly escapes backslashes', function () {
             $template = new Template('WITH_BACKSLASH={ssm:WITH_BACKSLASH}');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe('WITH_BACKSLASH="value\\\\with\\\\backslash"');
         });
@@ -625,7 +641,7 @@ describe('Template', function () {
         it('handles empty values without quotes', function () {
             $template = new Template('EMPTY_VALUE={ssm:EMPTY_VALUE}');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe('EMPTY_VALUE=');
         });
@@ -633,9 +649,152 @@ describe('Template', function () {
         it('handles null values without quotes', function () {
             $template = new Template('NULL_VALUE={ssm:NULL_VALUE}');
 
-            $result = $template->merge('ssm', $this->secrets, MissingSecretStrategy::FAIL);
+            $result = $template->merge($this->secrets, MissingSecretStrategy::FAIL);
 
             expect($result)->toBe('NULL_VALUE=');
+        });
+    });
+
+    describe('vault reference extraction', function () {
+        it('extracts all referenced vaults from template placeholders', function () {
+            $template = new Template(
+                "DB_PASSWORD={ssm:DB_PASSWORD}\n".
+                "API_KEY={secretsmanager:API_KEY}\n".
+                "REDIS_URL={ssm-usw-2:REDIS_URL}\n".
+                "MAIL_PASSWORD={ssm:MAIL_PASSWORD}\n".
+                'STRIPE_KEY={secretsmanager:STRIPE_KEY}'
+            );
+
+            $vaults = $template->allReferencedVaults();
+
+            expect($vaults)->toHaveCount(3);
+            expect($vaults)->toContain('ssm');
+            expect($vaults)->toContain('secretsmanager');
+            expect($vaults)->toContain('ssm-usw-2');
+        });
+
+        it('returns empty array for template with no placeholders', function () {
+            $template = new Template(
+                "APP_NAME=MyApp\n".
+                "APP_ENV=production\n".
+                'APP_DEBUG=false'
+            );
+
+            $vaults = $template->allReferencedVaults();
+
+            expect($vaults)->toBeEmpty();
+        });
+
+        it('handles template with mixed placeholder and static values', function () {
+            $template = new Template(
+                "APP_NAME=MyApp\n".
+                "DB_PASSWORD={ssm:DB_PASSWORD}\n".
+                "APP_ENV=production\n".
+                'API_KEY={secretsmanager:API_KEY}'
+            );
+
+            $vaults = $template->allReferencedVaults();
+
+            expect($vaults)->toHaveCount(2);
+            expect($vaults)->toContain('ssm');
+            expect($vaults)->toContain('secretsmanager');
+        });
+    });
+
+    describe('multi-vault template scenarios', function () {
+        it('handles templates with placeholders from multiple vaults', function () {
+            // Create mock vaults for different providers
+            $secretsManagerVault = Mockery::mock(AbstractVault::class);
+            $secretsManagerVault->shouldReceive('name')->andReturn('secretsmanager');
+            
+            $ssmUsWest2Vault = Mockery::mock(AbstractVault::class);
+            $ssmUsWest2Vault->shouldReceive('name')->andReturn('ssm-usw-2');
+
+            // Create secrets from different vaults
+            $multiVaultSecrets = new SecretCollection([
+                new Secret('DB_PASSWORD', 'ssm_db_password', null, true, null, 0, null, $this->ssmVault),
+                new Secret('API_KEY', 'secretsmanager_api_key', null, true, null, 0, null, $secretsManagerVault),
+                new Secret('REDIS_URL', 'redis_from_usw2', null, true, null, 0, null, $ssmUsWest2Vault),
+            ]);
+
+            // Template with placeholders from multiple vaults
+            $template = new Template(
+                "# Database from main SSM\n".
+                "DB_PASSWORD={ssm:DB_PASSWORD}\n".
+                "\n".
+                "# API key from Secrets Manager\n".
+                "API_KEY={secretsmanager:API_KEY}\n".
+                "\n".
+                "# Redis from US West 2 SSM\n".
+                'REDIS_URL={ssm-usw-2:REDIS_URL}'
+            );
+
+            $result = $template->merge($multiVaultSecrets, MissingSecretStrategy::FAIL);
+
+            // Verify each secret is filled from the correct vault
+            expect($result)->toBe(
+                "# Database from main SSM\n".
+                "DB_PASSWORD=\"ssm_db_password\"\n".
+                "\n".
+                "# API key from Secrets Manager\n".
+                "API_KEY=\"secretsmanager_api_key\"\n".
+                "\n".
+                "# Redis from US West 2 SSM\n".
+                'REDIS_URL="redis_from_usw2"'
+            );
+        });
+
+        it('throws error when vault slug does not match secret vault', function () {
+            // Secret belongs to 'ssm' vault but placeholder references 'secretsmanager'
+            $wrongVaultSecrets = new SecretCollection([
+                new Secret('WRONG_VAULT_KEY', 'some_value', null, true, null, 0, null, $this->ssmVault),
+            ]);
+
+            $template = new Template('WRONG_VAULT_KEY={secretsmanager:WRONG_VAULT_KEY}');
+
+            expect(fn () => $template->merge($wrongVaultSecrets, MissingSecretStrategy::FAIL))
+                ->toThrow(SecretNotFoundException::class, 'Unable to find secret for key [WRONG_VAULT_KEY] in vault [secretsmanager]');
+        });
+
+        it('handles missing secrets from specific vaults correctly', function () {
+            $partialSecrets = new SecretCollection([
+                new Secret('EXISTS_IN_SSM', 'value_from_ssm', null, true, null, 0, null, $this->ssmVault),
+            ]);
+
+            $template = new Template(
+                "EXISTS_IN_SSM={ssm:EXISTS_IN_SSM}\n".
+                'MISSING_FROM_SECRETSMANAGER={secretsmanager:MISSING_KEY}'
+            );
+
+            $result = $template->merge($partialSecrets, MissingSecretStrategy::REMOVE);
+
+            expect($result)->toBe(
+                "EXISTS_IN_SSM=\"value_from_ssm\"\n".
+                '# Removed missing secret: MISSING_FROM_SECRETSMANAGER'
+            );
+        });
+
+        it('handles same key from different vaults', function () {
+            $secretsManagerVault = Mockery::mock(AbstractVault::class);
+            $secretsManagerVault->shouldReceive('name')->andReturn('secretsmanager');
+
+            // Same key name but from different vaults with different values
+            $sameKeySecrets = new SecretCollection([
+                new Secret('API_KEY', 'ssm_api_key', null, true, null, 0, null, $this->ssmVault),
+                new Secret('API_KEY', 'secretsmanager_api_key', null, true, null, 0, null, $secretsManagerVault),
+            ]);
+
+            $template = new Template(
+                "SSM_API_KEY={ssm:API_KEY}\n".
+                'SECRETSMANAGER_API_KEY={secretsmanager:API_KEY}'
+            );
+
+            $result = $template->merge($sameKeySecrets, MissingSecretStrategy::FAIL);
+
+            expect($result)->toBe(
+                "SSM_API_KEY=\"ssm_api_key\"\n".
+                'SECRETSMANAGER_API_KEY="secretsmanager_api_key"'
+            );
         });
     });
 });

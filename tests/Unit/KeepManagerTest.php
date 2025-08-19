@@ -40,6 +40,21 @@ describe('KeepManager', function () {
         });
     });
 
+    describe('AWS Secrets Manager driver creation', function () {
+        it('creates AwsSecretsManagerVault with correct parameters', function () {
+            $config = [
+                'driver' => 'secretsmanager',
+                'region' => 'us-west-2',
+                'prefix' => 'myapp',
+            ];
+
+            $vault = $this->manager->createSecretsmanagerDriver('my-secrets-vault', $config);
+
+            expect($vault)->toBeInstanceOf(\STS\Keep\Vaults\AwsSecretsManagerVault::class);
+            expect($vault->name())->toBe('my-secrets-vault');
+        });
+    });
+
     describe('vault resolution internals', function () {
         it('throws exception for vault without driver config', function () {
             $reflection = new ReflectionClass($this->manager);
@@ -77,6 +92,22 @@ describe('KeepManager', function () {
 
             expect($vault)->toBeInstanceOf(AwsSsmVault::class);
             expect($vault->name())->toBe('test-vault');
+        });
+
+        it('resolves secretsmanager driver correctly', function () {
+            $reflection = new ReflectionClass($this->manager);
+            $resolve = $reflection->getMethod('resolve');
+            $resolve->setAccessible(true);
+
+            $config = [
+                'driver' => 'secretsmanager',
+                'region' => 'us-west-2',
+            ];
+
+            $vault = $resolve->invoke($this->manager, 'test-secrets-vault', $config);
+
+            expect($vault)->toBeInstanceOf(\STS\Keep\Vaults\AwsSecretsManagerVault::class);
+            expect($vault->name())->toBe('test-secrets-vault');
         });
     });
 

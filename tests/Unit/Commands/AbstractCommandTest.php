@@ -87,7 +87,8 @@ describe('AbstractCommand', function () {
     it('renders exception with details correctly', function () {
         $output = [];
 
-        $exception = new KeepException('Main error', 'Additional details here');
+        $exception = (new KeepException('Main error'))
+            ->withContext(details: 'Additional details here');
 
         $exception->renderConsole(function ($message, $style = 'line') use (&$output) {
             $output[] = ['message' => $message, 'style' => $style];

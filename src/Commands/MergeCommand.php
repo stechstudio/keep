@@ -6,6 +6,7 @@ use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Data\Template;
 use STS\Keep\Enums\MissingSecretStrategy;
 
+use STS\Keep\Facades\Keep;
 use function Laravel\Prompts\text;
 
 class MergeCommand extends AbstractCommand
@@ -33,15 +34,13 @@ class MergeCommand extends AbstractCommand
         }
 
         $context = $this->context();
-        $vault = $context->createVault();
-        $secrets = $vault->list();
+        $secrets = $this->loadSecretsFromAllReferencedVaults($context);
 
         $contents = $this->mergeAndConcat(
             $this->baseTemplate,
             $this->overlayTemplate,
             $secrets,
-            MissingSecretStrategy::from($this->option('missing')),
-            $vault
+            MissingSecretStrategy::from($this->option('missing'))
         );
 
         if ($this->option('output')) {
@@ -91,16 +90,51 @@ class MergeCommand extends AbstractCommand
         return true;
     }
 
-    protected function mergeAndConcat(Template $base, Template $overlay, SecretCollection $secrets, MissingSecretStrategy $strategy, $vault): string
+    protected function mergeAndConcat(Template $base, Template $overlay, SecretCollection $secrets, MissingSecretStrategy $strategy): string
     {
         $output = "# ----- Base stage variables -----\n\n";
-        $output .= $base->merge($vault->slug(), $secrets, $strategy);
+        $output .= $base->merge($secrets, $strategy);
 
         if ($overlay->isNotEmpty()) {
             $output .= "\n\n# ----- Separator -----\n\n# Appending additional stage variables\n\n";
-            $output .= $overlay->merge($vault->slug(), $secrets, $strategy);
+            $output .= $overlay->merge($secrets, $strategy);
         }
 
         return $output;
+    }
+
+    /**
+     * Load secrets from all vaults referenced in template placeholders.
+     */
+    protected function loadSecretsFromAllReferencedVaults($context): SecretCollection
+    {
+        $vaultNames = $this->extractVaultNamesFromTemplates();
+        
+        // If no vault-specific placeholders found, fall back to context vault
+        if (empty($vaultNames)) {
+            $vault = $context->createVault();
+            return $vault->list();
+        }
+        
+        $allSecrets = new SecretCollection();
+        
+        foreach ($vaultNames as $vaultSlug) {
+            $vault = Keep::vault($vaultSlug)->forStage($context->stage);
+            $vaultSecrets = $vault->list();
+            $allSecrets = $allSecrets->merge($vaultSecrets);
+        }
+        
+        return $allSecrets;
+    }
+
+    /**
+     * Extract unique vault slugs from all template placeholders.
+     */
+    protected function extractVaultNamesFromTemplates(): array
+    {
+        return array_unique(array_merge(
+            $this->baseTemplate->allReferencedVaults(),
+            $this->overlayTemplate->allReferencedVaults()
+        ));
     }
 }
