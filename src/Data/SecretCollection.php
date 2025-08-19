@@ -6,7 +6,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use STS\Keep\Data\Concerns\FormatsEnvValues;
 
-class SecretsCollection extends Collection
+class SecretCollection extends Collection
 {
     use FormatsEnvValues;
 

@@ -2,7 +2,7 @@
 
 namespace STS\Keep\Commands;
 
-use STS\Keep\Data\SecretsCollection;
+use STS\Keep\Data\SecretCollection;
 
 class ExportCommand extends AbstractCommand
 {
@@ -34,7 +34,7 @@ class ExportCommand extends AbstractCommand
         return self::SUCCESS;
     }
 
-    protected function formatOutput(SecretsCollection $secrets): string
+    protected function formatOutput(SecretCollection $secrets): string
     {
         return $this->option('format') === 'json'
             ? $secrets

@@ -22,7 +22,7 @@ class Template
         return ! $this->isEmpty();
     }
 
-    public function merge(string $slug, SecretsCollection $secrets, MissingSecretStrategy $strategy): string
+    public function merge(string $slug, SecretCollection $secrets, MissingSecretStrategy $strategy): string
     {
         $pattern = $this->pattern($slug);
 

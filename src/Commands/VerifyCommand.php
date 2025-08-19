@@ -98,7 +98,7 @@ class VerifyCommand extends AbstractCommand
         if ($result['write']) {
             // If write succeeded, try to get history for our test secret
             try {
-                $vault->history($testKey, 1);
+                $vault->history($testKey, new \STS\Keep\Data\FilterCollection([]), 1);
                 $result['history'] = true;
             } catch (\Exception $e) {
                 $result['history'] = false; // Tested and failed
@@ -108,7 +108,7 @@ class VerifyCommand extends AbstractCommand
             // try to get history for the first existing secret
             try {
                 $firstSecret = $existingSecrets->first();
-                $vault->history($firstSecret->key(), 1);
+                $vault->history($firstSecret->key(), new \STS\Keep\Data\FilterCollection([]), 1);
                 $result['history'] = true;
             } catch (\Exception $e) {
                 $result['history'] = false; // Tested and failed

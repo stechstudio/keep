@@ -1,10 +1,10 @@
 <?php
 
 use STS\Keep\Data\Secret;
-use STS\Keep\Data\SecretsCollection;
+use STS\Keep\Data\SecretCollection;
 
 beforeEach(function () {
-    $this->secrets = new SecretsCollection([
+    $this->secrets = new SecretCollection([
         new Secret('DB_HOST', 'localhost'),
         new Secret('DB_PORT', '3306'),
         new Secret('DB_NAME', 'myapp'),
@@ -32,7 +32,7 @@ describe('SecretsCollection', function () {
         it('transforms secrets to key-value pairs', function () {
             $pairs = $this->secrets->toKeyValuePair();
 
-            expect($pairs)->toBeInstanceOf(SecretsCollection::class);
+            expect($pairs)->toBeInstanceOf(SecretCollection::class);
             expect($pairs->toArray())->toBe([
                 'DB_HOST' => 'localhost',
                 'DB_PORT' => '3306',
@@ -52,7 +52,7 @@ describe('SecretsCollection', function () {
         });
 
         it('handles null values', function () {
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('KEY1', 'value1'),
                 new Secret('KEY2', null),
                 new Secret('KEY3', 'value3'),
@@ -70,7 +70,7 @@ describe('SecretsCollection', function () {
 
     describe('toEnvString()', function () {
         it('converts collection to .env format string', function () {
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('DB_HOST', 'localhost'),
                 new Secret('DB_PORT', '3306'),
                 new Secret('DB_NAME', 'myapp'),
@@ -86,7 +86,7 @@ describe('SecretsCollection', function () {
         });
 
         it('handles null values in env string', function () {
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('KEY1', 'value1'),
                 new Secret('KEY2', null),
                 new Secret('KEY3', 'value3'),
@@ -102,7 +102,7 @@ describe('SecretsCollection', function () {
         });
 
         it('escapes quotes in values', function () {
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('QUOTED', 'value with "quotes"'),
                 new Secret('NORMAL', 'normal value'),
             ]);
@@ -116,13 +116,13 @@ describe('SecretsCollection', function () {
         });
 
         it('handles empty collection', function () {
-            $secrets = new SecretsCollection([]);
+            $secrets = new SecretCollection([]);
 
             expect($secrets->toEnvString())->toBe('');
         });
 
         it('uses smart quoting - leaves alphanumeric unquoted', function () {
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('ALPHA', 'abc123'),
                 new Secret('NUMERIC', '42'),
                 new Secret('UPPER', 'ABC'),
@@ -140,7 +140,7 @@ describe('SecretsCollection', function () {
         });
 
         it('uses smart quoting - quotes special characters', function () {
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('WITH_SPACES', 'value with spaces'),
                 new Secret('WITH_COLON', 'base64:key'),
                 new Secret('WITH_EQUALS', 'key=value'),
@@ -162,7 +162,7 @@ describe('SecretsCollection', function () {
         });
 
         it('chooses correct quote style based on content', function () {
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('SINGLE_QUOTES', "value with 'quotes'"),
                 new Secret('DOUBLE_QUOTES', 'value with "quotes"'),
                 new Secret('BOTH_QUOTES', 'has "double" and \'single\''),
@@ -178,7 +178,7 @@ describe('SecretsCollection', function () {
         });
 
         it('properly escapes backslashes', function () {
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('PATH', 'C:\\Windows\\System32'),
                 new Secret('REGEX', '\\d+\\w*'),
             ]);
@@ -192,7 +192,7 @@ describe('SecretsCollection', function () {
         });
 
         it('handles empty and null consistently', function () {
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('EMPTY', ''),
                 new Secret('NULL', null),
             ]);
@@ -210,7 +210,7 @@ describe('SecretsCollection', function () {
         it('filters by single only pattern', function () {
             $filtered = $this->secrets->filterByPatterns('DB_*');
 
-            expect($filtered)->toBeInstanceOf(SecretsCollection::class);
+            expect($filtered)->toBeInstanceOf(SecretCollection::class);
             expect($filtered->allKeys()->toArray())->toBe([
                 'DB_HOST',
                 'DB_PORT',
@@ -318,7 +318,7 @@ describe('SecretsCollection', function () {
         });
 
         it('uses case-sensitive matching', function () {
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('DB_HOST', 'localhost'),
                 new Secret('db_host', 'different'),
                 new Secret('Db_Host', 'another'),
@@ -369,7 +369,7 @@ describe('SecretsCollection', function () {
         it('returns collection of all keys', function () {
             $keys = $this->secrets->allKeys();
 
-            expect($keys)->toBeInstanceOf(SecretsCollection::class);
+            expect($keys)->toBeInstanceOf(SecretCollection::class);
             expect($keys->toArray())->toBe([
                 'DB_HOST',
                 'DB_PORT',
@@ -389,7 +389,7 @@ describe('SecretsCollection', function () {
         });
 
         it('handles empty collection', function () {
-            $secrets = new SecretsCollection([]);
+            $secrets = new SecretCollection([]);
             $keys = $secrets->allKeys();
 
             expect($keys->toArray())->toBe([]);
@@ -430,7 +430,7 @@ describe('SecretsCollection', function () {
         });
 
         it('returns first match when duplicates exist', function () {
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('DUPLICATE', 'first'),
                 new Secret('OTHER', 'value'),
                 new Secret('DUPLICATE', 'second'),
@@ -477,7 +477,7 @@ describe('SecretsCollection', function () {
 
     describe('edge cases', function () {
         it('handles secrets with special characters in keys', function () {
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('SPECIAL_!@#$', 'value1'),
                 new Secret('WITH.DOTS', 'value2'),
                 new Secret('WITH-DASHES', 'value3'),
@@ -489,7 +489,7 @@ describe('SecretsCollection', function () {
         });
 
         it('handles large collections efficiently', function () {
-            $largeSecrets = new SecretsCollection;
+            $largeSecrets = new SecretCollection;
             for ($i = 0; $i < 1000; $i++) {
                 $largeSecrets->push(new Secret("KEY_$i", "value_$i"));
             }

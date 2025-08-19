@@ -5,7 +5,7 @@ use Aws\Result;
 use Aws\Ssm\Exception\SsmException;
 use Aws\Ssm\SsmClient;
 use STS\Keep\Data\Secret;
-use STS\Keep\Data\SecretsCollection;
+use STS\Keep\Data\SecretCollection;
 use STS\Keep\Exceptions\AccessDeniedException;
 use STS\Keep\Exceptions\KeepException;
 use STS\Keep\Exceptions\SecretNotFoundException;
@@ -131,7 +131,7 @@ describe('AwsSsmVault', function () {
 
             $secrets = $this->vault->list();
 
-            expect($secrets)->toBeInstanceOf(SecretsCollection::class);
+            expect($secrets)->toBeInstanceOf(SecretCollection::class);
             expect($secrets->count())->toBe(3);
 
             // Check first secret
@@ -162,7 +162,7 @@ describe('AwsSsmVault', function () {
 
             $secrets = $this->vault->list();
 
-            expect($secrets)->toBeInstanceOf(SecretsCollection::class);
+            expect($secrets)->toBeInstanceOf(SecretCollection::class);
             expect($secrets->count())->toBe(0);
         });
 

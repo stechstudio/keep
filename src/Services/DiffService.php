@@ -4,7 +4,7 @@ namespace STS\Keep\Services;
 
 use Illuminate\Support\Collection;
 use STS\Keep\Data\SecretDiff;
-use STS\Keep\Data\SecretsCollection;
+use STS\Keep\Data\SecretCollection;
 use STS\Keep\Facades\Keep;
 
 class DiffService
@@ -58,7 +58,7 @@ class DiffService
                     $allSecrets[$vaultStageKey] = Keep::vault($vaultName)->forStage($stage)->list();
                 } catch (\Exception $e) {
                     // If we can't access a vault/stage combination, treat it as empty
-                    $allSecrets[$vaultStageKey] = new SecretsCollection([]);
+                    $allSecrets[$vaultStageKey] = new SecretCollection([]);
                 }
             }
         }

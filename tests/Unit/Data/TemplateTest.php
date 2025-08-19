@@ -1,13 +1,13 @@
 <?php
 
 use STS\Keep\Data\Secret;
-use STS\Keep\Data\SecretsCollection;
+use STS\Keep\Data\SecretCollection;
 use STS\Keep\Data\Template;
 use STS\Keep\Enums\MissingSecretStrategy;
 use STS\Keep\Exceptions\SecretNotFoundException;
 
 beforeEach(function () {
-    $this->secrets = new SecretsCollection([
+    $this->secrets = new SecretCollection([
         new Secret('DB_PASSWORD', 'secret123'),
         new Secret('DB_HOST', 'localhost'),
         new Secret('API_KEY', 'api_secret_key'),
@@ -154,7 +154,7 @@ describe('Template', function () {
         });
 
         it('properly escapes double quotes in values', function () {
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('QUOTES', 'value with "double" and \'single\' quotes'),
                 new Secret('JSON', '{"key": "value", "nested": {"item": "data"}}'),
                 new Secret('MIXED', 'Path: "C:\\Program Files\\App" and $HOME'),
@@ -289,7 +289,7 @@ describe('Template', function () {
 
     describe('pattern edge cases', function () {
         it('handles lowercase and mixed-case env keys', function () {
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('lowercase_key', 'value1'),
                 new Secret('mixedCaseKey', 'value2'),
                 new Secret('camelCase_with_underscore', 'value3'),
@@ -316,7 +316,7 @@ describe('Template', function () {
         it('handles keys starting with underscore', function () {
             // Note: Secret class sanitizes keys and removes leading underscores,
             // but the template pattern should still match them
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('MY_underscore_start', 'value1'), // This becomes 'MY_underscore_start' after sanitization
             ]);
 
@@ -335,7 +335,7 @@ describe('Template', function () {
         });
 
         it('does not match keys starting with numbers', function () {
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('valid_key', 'replaced'),
             ]);
 
@@ -356,7 +356,7 @@ describe('Template', function () {
         });
 
         it('handles paths with dots and slashes', function () {
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('app.production.db.password', 'prod_pass'),
                 new Secret('services/api/key', 'api_key_value'),
             ]);
@@ -372,7 +372,7 @@ describe('Template', function () {
         });
 
         it('handles paths with underscores and hyphens', function () {
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('my-secret_key', 'value1'),
                 new Secret('another_secret-name', 'value2'),
             ]);
@@ -457,7 +457,7 @@ describe('Template', function () {
                 'DB_PASSWORD={ssm:DB_PASSWORD}    # Production password'
             );
 
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('DB_HOST', 'localhost'),
                 new Secret('DB_PORT', '3306'),
                 new Secret('DB_NAME', 'myapp'),
@@ -478,7 +478,7 @@ describe('Template', function () {
 
     describe('consistency with SecretsCollection', function () {
         it('produces same escaping as SecretsCollection::toEnvString()', function () {
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('KEY1', 'simple value'),
                 new Secret('KEY2', 'value with "quotes"'),
                 new Secret('KEY3', null),
@@ -532,7 +532,7 @@ describe('Template', function () {
                 'STRIPE_SECRET={ssm:STRIPE_SECRET|environment=production|version=latest}'
             );
 
-            $secrets = new SecretsCollection([
+            $secrets = new SecretCollection([
                 new Secret('APP_KEY', 'base64:production_key'),
                 new Secret('DB_HOST', 'prod.db.example.com'),
                 new Secret('DB_PASSWORD', 'super_secret_pass'),
