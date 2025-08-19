@@ -23,7 +23,7 @@ describe('SetCommand', function () {
             expect($result)->toBe(0);
 
             $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
-            expect($vault->hasSecret('TEST_KEY'))->toBeTrue();
+            expect($vault->has('TEST_KEY'))->toBeTrue();
 
             $secret = $vault->get('TEST_KEY');
             expect($secret->key())->toBe('TEST_KEY');
@@ -193,7 +193,7 @@ describe('SetCommand', function () {
             ]);
 
             $vault = \STS\Keep\Facades\Keep::vault('test');
-            expect($vault->hasSecret('KEY_WITH_SPECIAL-CHARS.123'))->toBeTrue();
+            expect($vault->has('KEY_WITH_SPECIAL-CHARS.123'))->toBeTrue();
         });
 
         it('handles special characters in value', function () {

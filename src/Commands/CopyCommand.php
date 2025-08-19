@@ -40,7 +40,7 @@ class CopyCommand extends AbstractCommand
 
             // Check if destination exists
             $destinationVault = $destinationContext->createVault();
-            $destinationExists = $destinationVault->hasSecret($key);
+            $destinationExists = $destinationVault->has($key);
 
             // Handle overwrite protection
             if ($destinationExists && !$this->option('overwrite') && !$this->option('dry-run')) {

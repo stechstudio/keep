@@ -16,14 +16,14 @@ describe('Vault Delete Functionality', function () {
 
             // Set a secret first
             $vault->set('TEST_KEY', 'test-value');
-            expect($vault->hasSecret('TEST_KEY'))->toBeTrue();
+            expect($vault->has('TEST_KEY'))->toBeTrue();
 
             // Delete the secret
             $result = $vault->delete('TEST_KEY');
             expect($result)->toBeTrue();
 
             // Verify it's gone
-            expect($vault->hasSecret('TEST_KEY'))->toBeFalse();
+            expect($vault->has('TEST_KEY'))->toBeFalse();
         });
 
         it('throws SecretNotFoundException for non-existent secret', function () {
@@ -45,10 +45,10 @@ describe('Vault Delete Functionality', function () {
             $testingVault->delete('SHARED_KEY');
 
             // Verify testing environment secret is gone
-            expect($testingVault->hasSecret('SHARED_KEY'))->toBeFalse();
+            expect($testingVault->has('SHARED_KEY'))->toBeFalse();
 
             // Verify production environment secret still exists
-            expect($productionVault->hasSecret('SHARED_KEY'))->toBeTrue();
+            expect($productionVault->has('SHARED_KEY'))->toBeTrue();
             expect($productionVault->get('SHARED_KEY')->value())->toBe('production-value');
         });
 
@@ -64,8 +64,8 @@ describe('Vault Delete Functionality', function () {
             expect($vault->delete('SPECIAL_KEY_!@#'))->toBeTrue();
 
             // Verify they're gone
-            expect($vault->hasSecret('UNICODE_KEY_世界'))->toBeFalse();
-            expect($vault->hasSecret('SPECIAL_KEY_!@#'))->toBeFalse();
+            expect($vault->has('UNICODE_KEY_世界'))->toBeFalse();
+            expect($vault->has('SPECIAL_KEY_!@#'))->toBeFalse();
         });
 
         it('works with different vault instances', function () {
@@ -80,8 +80,8 @@ describe('Vault Delete Functionality', function () {
             $vault1->delete('SHARED_KEY');
 
             // Verify vault1 secret is gone, vault2 secret remains
-            expect($vault1->hasSecret('SHARED_KEY'))->toBeFalse();
-            expect($vault2->hasSecret('SHARED_KEY'))->toBeTrue();
+            expect($vault1->has('SHARED_KEY'))->toBeFalse();
+            expect($vault2->has('SHARED_KEY'))->toBeTrue();
             expect($vault2->get('SHARED_KEY')->value())->toBe('vault2-value');
         });
     });
@@ -99,8 +99,8 @@ describe('Vault Delete Functionality', function () {
             expect($vault->delete('PLAIN_KEY'))->toBeTrue();
 
             // Verify both are gone
-            expect($vault->hasSecret('SECURE_KEY'))->toBeFalse();
-            expect($vault->hasSecret('PLAIN_KEY'))->toBeFalse();
+            expect($vault->has('SECURE_KEY'))->toBeFalse();
+            expect($vault->has('PLAIN_KEY'))->toBeFalse();
         });
 
         it('handles deletion after multiple updates', function () {
@@ -116,7 +116,7 @@ describe('Vault Delete Functionality', function () {
 
             // Delete the secret
             expect($vault->delete('UPDATED_KEY'))->toBeTrue();
-            expect($vault->hasSecret('UPDATED_KEY'))->toBeFalse();
+            expect($vault->has('UPDATED_KEY'))->toBeFalse();
         });
 
         it('maintains isolation between environments after deletion', function () {
@@ -136,9 +136,9 @@ describe('Vault Delete Functionality', function () {
             $stagingVault->delete('ENV_KEY');
 
             // Verify proper isolation
-            expect($testingVault->hasSecret('ENV_KEY'))->toBeTrue();
-            expect($stagingVault->hasSecret('ENV_KEY'))->toBeFalse();
-            expect($productionVault->hasSecret('ENV_KEY'))->toBeTrue();
+            expect($testingVault->has('ENV_KEY'))->toBeTrue();
+            expect($stagingVault->has('ENV_KEY'))->toBeFalse();
+            expect($productionVault->has('ENV_KEY'))->toBeTrue();
 
             expect($testingVault->get('ENV_KEY')->value())->toBe('testing-value');
             expect($productionVault->get('ENV_KEY')->value())->toBe('production-value');
