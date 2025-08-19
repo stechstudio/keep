@@ -37,7 +37,7 @@ describe('EndToEndWorkflowTest', function () {
                 'key' => 'INTEGRATION_TEST_KEY',
                 'value' => 'integration-test-value',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -48,7 +48,7 @@ describe('EndToEndWorkflowTest', function () {
             $result = Artisan::call('keep:get', [
                 'key' => 'INTEGRATION_TEST_KEY',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'raw',
                 '--no-interaction' => true,
             ]);
@@ -59,7 +59,7 @@ describe('EndToEndWorkflowTest', function () {
             // Step 3: Verify secret appears in list
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'env',
                 '--no-interaction' => true,
             ]);
@@ -73,7 +73,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--output' => $exportFile,
                 '--format' => 'env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -92,7 +92,7 @@ describe('EndToEndWorkflowTest', function () {
             $result = Artisan::call('keep:import', [
                 'from' => $sourceFile,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -110,7 +110,7 @@ describe('EndToEndWorkflowTest', function () {
                 'template' => $templateFile,
                 '--output' => $mergedFile,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -134,7 +134,7 @@ describe('EndToEndWorkflowTest', function () {
                 'key' => 'DB_HOST',
                 'value' => 'localhost',
                 '--vault' => 'test',
-                '--env' => 'development',
+                '--stage' => 'development',
                 '--no-interaction' => true
             ]);
 
@@ -142,7 +142,7 @@ describe('EndToEndWorkflowTest', function () {
                 'key' => 'API_URL',
                 'value' => 'https://api-dev.example.com',
                 '--vault' => 'test',
-                '--env' => 'development',
+                '--stage' => 'development',
                 '--no-interaction' => true
             ]);
 
@@ -151,7 +151,7 @@ describe('EndToEndWorkflowTest', function () {
                 'key' => 'DB_HOST',
                 'value' => 'staging-db.example.com',
                 '--vault' => 'test',
-                '--env' => 'staging',
+                '--stage' => 'staging',
                 '--no-interaction' => true
             ]);
 
@@ -159,7 +159,7 @@ describe('EndToEndWorkflowTest', function () {
                 'key' => 'API_URL',
                 'value' => 'https://api-staging.example.com',
                 '--vault' => 'test',
-                '--env' => 'staging',
+                '--stage' => 'staging',
                 '--no-interaction' => true
             ]);
 
@@ -168,7 +168,7 @@ describe('EndToEndWorkflowTest', function () {
                 'key' => 'DB_HOST',
                 'value' => 'prod-cluster.example.com',
                 '--vault' => 'test',
-                '--env' => 'production',
+                '--stage' => 'production',
                 '--no-interaction' => true
             ]);
 
@@ -176,7 +176,7 @@ describe('EndToEndWorkflowTest', function () {
                 'key' => 'API_URL',
                 'value' => 'https://api.example.com',
                 '--vault' => 'test',
-                '--env' => 'production',
+                '--stage' => 'production',
                 '--no-interaction' => true
             ]);
 
@@ -184,7 +184,7 @@ describe('EndToEndWorkflowTest', function () {
             $result = Artisan::call('keep:get', [
                 'key' => 'DB_HOST',
                 '--vault' => 'test',
-                '--env' => 'development',
+                '--stage' => 'development',
                 '--format' => 'raw',
                 '--no-interaction' => true
             ]);
@@ -194,7 +194,7 @@ describe('EndToEndWorkflowTest', function () {
             $result = Artisan::call('keep:get', [
                 'key' => 'API_URL',
                 '--vault' => 'test',
-                '--env' => 'staging',
+                '--stage' => 'staging',
                 '--format' => 'raw',
                 '--no-interaction' => true
             ]);
@@ -204,7 +204,7 @@ describe('EndToEndWorkflowTest', function () {
             $result = Artisan::call('keep:get', [
                 'key' => 'DB_HOST',
                 '--vault' => 'test',
-                '--env' => 'production',
+                '--stage' => 'production',
                 '--format' => 'raw',
                 '--no-interaction' => true
             ]);
@@ -217,7 +217,7 @@ describe('EndToEndWorkflowTest', function () {
                     '--output' => $envFile,
                     '--format' => 'env',
                     '--vault' => 'test',
-                    '--env' => $env,
+                    '--stage' => $env,
                     '--no-interaction' => true
                 ]);
 
@@ -242,7 +242,7 @@ describe('EndToEndWorkflowTest', function () {
                 'key' => 'DB_HOST',
                 'value' => 'database.example.com',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true
             ]);
 
@@ -250,7 +250,7 @@ describe('EndToEndWorkflowTest', function () {
                 'key' => 'DB_PASSWORD',
                 'value' => 'secret123',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true
             ]);
 
@@ -258,7 +258,7 @@ describe('EndToEndWorkflowTest', function () {
                 'key' => 'REDIS_URL',
                 'value' => 'redis://redis.example.com:6379',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true
             ]);
 
@@ -299,7 +299,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--output' => $removeFile,
                 '--missing' => 'remove',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true
             ]);
 
@@ -318,7 +318,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--output' => $blankFile,
                 '--missing' => 'blank',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true
             ]);
 
@@ -335,7 +335,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--output' => $skipFile,
                 '--missing' => 'skip',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true
             ]);
 
@@ -396,7 +396,7 @@ describe('EndToEndWorkflowTest', function () {
                     'key' => $key,
                     'value' => $value,
                     '--vault' => 'test',
-                    '--env' => 'memberA',
+                    '--stage' => 'memberA',
                     '--no-interaction' => true
                 ]);
             }
@@ -418,7 +418,7 @@ describe('EndToEndWorkflowTest', function () {
                     'key' => $key,
                     'value' => $value,
                     '--vault' => 'test',
-                    '--env' => 'memberB',
+                    '--stage' => 'memberB',
                     '--no-interaction' => true
                 ]);
             }
@@ -429,7 +429,7 @@ describe('EndToEndWorkflowTest', function () {
                 'template' => $sharedTemplate,
                 '--output' => $memberAEnv,
                 '--vault' => 'test',
-                '--env' => 'memberA',
+                '--stage' => 'memberA',
                 '--no-interaction' => true
             ]);
 
@@ -438,7 +438,7 @@ describe('EndToEndWorkflowTest', function () {
                 'template' => $sharedTemplate,
                 '--output' => $memberBEnv,
                 '--vault' => 'test',
-                '--env' => 'memberB',
+                '--stage' => 'memberB',
                 '--no-interaction' => true
             ]);
 
@@ -481,7 +481,7 @@ describe('EndToEndWorkflowTest', function () {
             $result = Artisan::call('keep:import', [
                 'from' => $mixedFile,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true
             ]);
 
@@ -490,7 +490,7 @@ describe('EndToEndWorkflowTest', function () {
 
             // If it succeeded, verify valid entries were imported
             if ($result === 0) {
-                $vault = Keep::vault('test')->forEnvironment('testing');
+                $vault = Keep::vault('test')->forStage('testing');
                 expect($vault->hasSecret('VALID_KEY_1'))->toBeTrue();
                 expect($vault->hasSecret('VALID_KEY_2'))->toBeTrue();
                 expect($vault->hasSecret('VALID_KEY_3'))->toBeTrue();
@@ -504,7 +504,7 @@ describe('EndToEndWorkflowTest', function () {
                 'key' => 'VALID_SECRET',
                 'value' => 'valid_value',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true
             ]);
 
@@ -521,7 +521,7 @@ describe('EndToEndWorkflowTest', function () {
                 'template' => $templateFile,
                 '--missing' => 'fail',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true
             ]);
 
@@ -534,7 +534,7 @@ describe('EndToEndWorkflowTest', function () {
                 '--output' => $outputFile,
                 '--missing' => 'remove',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true
             ]);
 

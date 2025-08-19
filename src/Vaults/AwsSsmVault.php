@@ -22,13 +22,13 @@ class AwsSsmVault extends AbstractVault
     public function format(?string $key = null): string
     {
         if (is_callable($this->keyFormatter)) {
-            return call_user_func($this->keyFormatter, $key, $this->environment, $this->config);
+            return call_user_func($this->keyFormatter, $key, $this->stage, $this->config);
         }
 
         return Str::of($this->config['prefix'] ?? '')
             ->start('/')->finish('/')
             ->append(Keep::namespace().'/')
-            ->append($this->environment.'/')
+            ->append($this->stage.'/')
             ->append($key)
             ->rtrim('/')
             ->toString();
@@ -65,7 +65,7 @@ class AwsSsmVault extends AbstractVault
                         value: $parameter['Value'] ?? null,
                         encryptedValue: null,
                         secure: ($parameter['Type'] ?? 'String') === 'SecureString',
-                        environment: $this->environment,
+                        stage: $this->stage,
                         revision: $parameter['Version'] ?? 0,
                         path: $parameter['Name'],
                         vault: $this,
@@ -103,7 +103,7 @@ class AwsSsmVault extends AbstractVault
                 value: $parameter['Value'] ?? null,
                 encryptedValue: null,
                 secure: ($parameter['Type'] ?? 'String') === 'SecureString',
-                environment: $this->environment,
+                stage: $this->stage,
                 revision: $parameter['Version'] ?? 0,
                 path: $parameter['Name'],
                 vault: $this,

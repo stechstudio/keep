@@ -35,8 +35,8 @@ class TestCase extends Orchestra
 
         config()->set('keep.default', 'test');
         config()->set('keep.namespace', 'test-app');
-        config()->set('keep.environment', 'testing');
-        config()->set('keep.environments', ['testing', 'staging', 'production']);
+        config()->set('keep.stage', 'testing');
+        config()->set('keep.stages', ['testing', 'staging', 'production']);
         config()->set('keep.available', ['test']);
         config()->set('keep.vaults.test', [
             'driver' => 'test',

@@ -13,18 +13,18 @@ abstract class AbstractVault
 {
     protected $keyFormatter;
 
-    public function __construct(protected string $name, protected array $config, protected ?string $environment = null)
+    public function __construct(protected string $name, protected array $config, protected ?string $stage = null)
     {
-        // If none was provided, use the current resolved environment
-        if (! $this->environment) {
-            $this->environment = Keep::environment();
+        // If none was provided, use the current resolved stage
+        if (! $this->stage) {
+            $this->stage = Keep::stage();
         }
     }
 
-    public function forEnvironment(string $environment): static
+    public function forStage(string $stage): static
     {
         $clone = clone $this;
-        $clone->environment = $environment;
+        $clone->stage = $stage;
 
         return $clone;
     }

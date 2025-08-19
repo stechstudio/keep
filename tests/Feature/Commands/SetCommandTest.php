@@ -16,13 +16,13 @@ describe('SetCommand', function () {
                 'key' => 'TEST_KEY',
                 'value' => 'test-value',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
             expect($result)->toBe(0);
 
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             expect($vault->hasSecret('TEST_KEY'))->toBeTrue();
 
             $secret = $vault->get('TEST_KEY');
@@ -37,7 +37,7 @@ describe('SetCommand', function () {
                 'key' => 'SECURE_KEY',
                 'value' => 'secret-value',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -50,7 +50,7 @@ describe('SetCommand', function () {
                 'key' => 'PLAIN_KEY',
                 'value' => 'plain-value',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--plain' => true,
             ]);
 
@@ -64,11 +64,11 @@ describe('SetCommand', function () {
                 'key' => 'UPDATE_KEY',
                 'value' => 'original-value',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
-            $secret = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing')->get('UPDATE_KEY');
+            $secret = \STS\Keep\Facades\Keep::vault('test')->forStage('testing')->get('UPDATE_KEY');
             expect($secret->revision())->toBe(1);
             expect($secret->value())->toBe('original-value');
 
@@ -77,11 +77,11 @@ describe('SetCommand', function () {
                 'key' => 'UPDATE_KEY',
                 'value' => 'updated-value',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
-            $secret = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing')->get('UPDATE_KEY');
+            $secret = \STS\Keep\Facades\Keep::vault('test')->forStage('testing')->get('UPDATE_KEY');
 
             expect($secret->revision())->toBe(2);
             // TODO: Fix this - value should be 'updated-value' but TestVault has a bug
@@ -95,7 +95,7 @@ describe('SetCommand', function () {
                 'key' => 'NEW_KEY',
                 'value' => 'new-value',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -109,7 +109,7 @@ describe('SetCommand', function () {
                 'key' => 'EXISTING_KEY',
                 'value' => 'value1',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -118,7 +118,7 @@ describe('SetCommand', function () {
                 'key' => 'EXISTING_KEY',
                 'value' => 'value2',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -127,17 +127,17 @@ describe('SetCommand', function () {
         });
     });
 
-    describe('environment handling', function () {
-        it('uses specified environment', function () {
+    describe('stage handling', function () {
+        it('uses specified stage', function () {
             Artisan::call('keep:set', [
                 'key' => 'ENV_KEY',
                 'value' => 'env-value',
                 '--vault' => 'test',
-                '--env' => 'production',
+                '--stage' => 'production',
             ]);
 
-            $secret = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('production')->get('ENV_KEY');
-            expect($secret->environment())->toBe('production');
+            $secret = \STS\Keep\Facades\Keep::vault('test')->forStage('production')->get('ENV_KEY');
+            expect($secret->stage())->toBe('production');
         });
 
         it('uses default environment when not specified', function () {
@@ -145,12 +145,12 @@ describe('SetCommand', function () {
                 'key' => 'DEFAULT_ENV_KEY',
                 'value' => 'default-value',
                 '--vault' => 'test',
-                '--env' => 'testing',  // Always specify to avoid prompts
+                '--stage' => 'testing',  // Always specify to avoid prompts
             ]);
 
             // Should use the default environment from config (testing)
             $secret = \STS\Keep\Facades\Keep::vault('test')->get('DEFAULT_ENV_KEY');
-            expect($secret->environment())->toBe('testing');
+            expect($secret->stage())->toBe('testing');
         });
     });
 
@@ -160,7 +160,7 @@ describe('SetCommand', function () {
                 'key' => 'VAULT_KEY',
                 'value' => 'vault-value',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -174,7 +174,7 @@ describe('SetCommand', function () {
                 'key' => 'DEFAULT_VAULT_KEY',
                 'value' => 'default-vault-value',
                 '--vault' => 'test',  // Always specify to avoid prompts
-                '--env' => 'testing',
+                '--stage' => 'testing',
             ]);
 
             $secret = \STS\Keep\Facades\Keep::vault('test')->get('DEFAULT_VAULT_KEY');
@@ -188,7 +188,7 @@ describe('SetCommand', function () {
                 'key' => 'KEY_WITH_SPECIAL-CHARS.123',
                 'value' => 'special-value',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -203,7 +203,7 @@ describe('SetCommand', function () {
                 'key' => 'SPECIAL_VALUE_KEY',
                 'value' => $specialValue,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -216,7 +216,7 @@ describe('SetCommand', function () {
                 'key' => 'EMPTY_VALUE_KEY',
                 'value' => '',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -231,7 +231,7 @@ describe('SetCommand', function () {
                 'key' => 'UNICODE_KEY',
                 'value' => $unicodeValue,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 

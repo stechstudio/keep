@@ -13,11 +13,11 @@ class KeepManager
 
     protected array $customCreators = [];
 
-    protected $environmentResolver;
+    protected $stageResolver;
 
-    public function resolveEnvironmentUsing(callable $resolver): static
+    public function resolveStageUsing(callable $resolver): static
     {
-        $this->environmentResolver = $resolver;
+        $this->stageResolver = $resolver;
 
         return $this;
     }
@@ -32,26 +32,26 @@ class KeepManager
         return config('keep.available');
     }
 
-    public function environments(): array
+    public function stages(): array
     {
-        return config('keep.environments');
+        return config('keep.stages');
     }
 
-    public function environment($name = null): string|bool
+    public function stage($name = null): string|bool
     {
         if ($name) {
-            return $name === $this->environment();
+            return $name === $this->stage();
         }
 
-        if (is_callable($this->environmentResolver)) {
-            return call_user_func($this->environmentResolver);
+        if (is_callable($this->stageResolver)) {
+            return call_user_func($this->stageResolver);
         }
 
-        $environment = config('keep.environment') ?? app()->environment();
+        $stage = config('keep.stage') ?? app()->environment();
 
-        return in_array($environment, $this->environments())
-            ? $environment
-            : throw new InvalidArgumentException("Environment [{$environment}] is not supported by Keep.");
+        return in_array($stage, $this->stages())
+            ? $stage
+            : throw new InvalidArgumentException("Stage [{$stage}] is not supported by Keep.");
     }
 
     public function namespace(): string

@@ -85,7 +85,7 @@ describe('Secret', function () {
         expect($secret->key())->toBe('DB_PASSWORD');
         expect($secret->value())->toBe('secret123');
         expect($secret->isSecure())->toBeTrue();
-        expect($secret->environment())->toBeNull();
+        expect($secret->stage())->toBeNull();
         expect($secret->revision())->toBe(0);
         expect($secret->path())->toBeNull();
         expect($secret->vault())->toBeNull();
@@ -100,7 +100,7 @@ describe('Secret', function () {
             value: 'plaintext',
             encryptedValue: 'encrypted',
             secure: false,
-            environment: 'production',
+            stage: 'production',
             revision: 3,
             path: '/app/production/API_KEY',
             vault: $mockVault
@@ -110,7 +110,7 @@ describe('Secret', function () {
         expect($secret->value())->toBe('plaintext');
         expect($secret->encryptedValue())->toBe('encrypted');
         expect($secret->isSecure())->toBeFalse();
-        expect($secret->environment())->toBe('production');
+        expect($secret->stage())->toBe('production');
         expect($secret->revision())->toBe(3);
         expect($secret->path())->toBe('/app/production/API_KEY');
         expect($secret->vault())->toBe($mockVault);
@@ -136,7 +136,7 @@ describe('Secret', function () {
             value: 'localhost',
             encryptedValue: 'encrypted_localhost',
             secure: true,
-            environment: 'staging',
+            stage: 'staging',
             revision: 2,
             path: '/app/staging/DB_HOST',
             vault: $mockVault
@@ -149,7 +149,7 @@ describe('Secret', function () {
             'value' => 'localhost',
             'encryptedValue' => 'encrypted_localhost',
             'secure' => true,
-            'environment' => 'staging',
+            'stage' => 'staging',
             'revision' => 2,
             'path' => '/app/staging/DB_HOST',
             'vault' => 'test-vault',
@@ -172,7 +172,7 @@ describe('Secret', function () {
             key: 'APP_KEY',
             value: 'base64:key',
             secure: true,
-            environment: 'production',
+            stage: 'production',
             revision: 1
         );
 

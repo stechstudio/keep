@@ -8,10 +8,10 @@ class SetCommand extends AbstractCommand
         .self::KEY_SIGNATURE
         .self::VALUE_SIGNATURE
         .self::VAULT_SIGNATURE
-        .self::ENV_SIGNATURE
+        .self::STAGE_SIGNATURE
         .self::PLAIN_SIGNATURE;
 
-    public $description = 'Set the value of an environment secret in a specified vault';
+    public $description = 'Set the value of a stage secret in a specified vault';
 
     public function process(): int
     {

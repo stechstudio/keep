@@ -9,7 +9,7 @@ describe('ListCommand', function () {
         \STS\Keep\Facades\Keep::vault('test')->clear();
 
         // Set up test secrets for different scenarios
-        $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+        $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
         $vault->set('DB_HOST', 'localhost');
         $vault->set('DB_PORT', '3306');
         $vault->set('DB_NAME', 'myapp');
@@ -23,7 +23,7 @@ describe('ListCommand', function () {
 
         // COMMENTED OUT: Cross-environment setup causing TestVault isolation issues
         // Set up secrets in different environment
-        // $prodVault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('production');
+        // $prodVault = \STS\Keep\Facades\Keep::vault('test')->forStage('production');
         // $prodVault->set('PROD_DB_HOST', 'prod-db.example.com');
         // $prodVault->set('PROD_API_KEY', 'prod-api-key');
     });
@@ -32,7 +32,7 @@ describe('ListCommand', function () {
         it('lists all secrets with default table format (masked by default)', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -52,7 +52,7 @@ describe('ListCommand', function () {
         it('lists all secrets unmasked with --unmask option', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--unmask' => true,
                 '--no-interaction' => true,
             ]);
@@ -76,7 +76,7 @@ describe('ListCommand', function () {
         it('lists secrets in JSON format', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'json',
                 '--no-interaction' => true
             ]);
@@ -100,7 +100,7 @@ describe('ListCommand', function () {
         it('lists secrets in env format (masked by default)', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'env',
             ]);
 
@@ -116,7 +116,7 @@ describe('ListCommand', function () {
         it('lists secrets in env format unmasked with --unmask', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'env',
                 '--unmask' => true,
             ]);
@@ -134,14 +134,14 @@ describe('ListCommand', function () {
     describe('value masking', function () {
         it('masks values correctly based on length', function () {
             // Set up secrets with different lengths to test masking logic
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             $vault->set('SHORT', 'abc'); // 3 chars - should be ****
             $vault->set('MEDIUM', 'abcdefgh'); // 8 chars - should be ****
             $vault->set('LONG', 'abcdefghijklmnop'); // 16 chars - should be abcd************
 
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'env',
                 '--only' => 'SHORT,MEDIUM,LONG',
             ]);
@@ -156,14 +156,14 @@ describe('ListCommand', function () {
 
         it('shows full values with --unmask regardless of length', function () {
             // Set up the same secrets again to ensure they exist
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             $vault->set('SHORT', 'abc');
             $vault->set('MEDIUM', 'abcdefgh');
             $vault->set('LONG', 'abcdefghijklmnop');
 
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'env',
                 '--only' => 'SHORT,MEDIUM,LONG',
                 '--unmask' => true,
@@ -182,7 +182,7 @@ describe('ListCommand', function () {
         it('filters secrets with --only pattern', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'env',
                 '--only' => 'DB_*',
                 '--unmask' => true, // Use unmask to test filtering logic
@@ -201,7 +201,7 @@ describe('ListCommand', function () {
         it('filters secrets with --except pattern', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'env',
                 '--except' => 'DB_*',
                 '--unmask' => true,
@@ -221,7 +221,7 @@ describe('ListCommand', function () {
         it('filters with multiple comma-separated patterns', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'env',
                 '--only' => 'DB_*,MAIL_*',
                 '--unmask' => true,
@@ -240,7 +240,7 @@ describe('ListCommand', function () {
         it('handles case-sensitive filtering', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'env',
                 '--only' => 'db_*', // lowercase pattern
             ]);
@@ -256,7 +256,7 @@ describe('ListCommand', function () {
         it('filters with complex patterns', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'env',
                 '--only' => '*_HOST,*_PORT',
                 '--unmask' => true,
@@ -274,13 +274,13 @@ describe('ListCommand', function () {
         });
     });
 
-    // COMMENTED OUT: Environment isolation tests causing infinite loops due to TestVault bugs
+    // COMMENTED OUT: Stage isolation tests causing infinite loops due to TestVault bugs
     /*
-    describe('environment handling', function () {
-        it('lists secrets from specified environment', function () {
+    describe('stage handling', function () {
+        it('lists secrets from specified stage', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'production',
+                '--stage' => 'production',
                 '--format' => 'env'
             ]);
 
@@ -292,7 +292,7 @@ describe('ListCommand', function () {
             expect($output)->not->toContain('DB_HOST'); // testing env secret
         });
 
-        it('shows environment selection when not specified', function () {
+        it('shows stage selection when not specified', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
                 '--format' => 'env'
@@ -301,7 +301,7 @@ describe('ListCommand', function () {
             expect($result)->toBe(0);
 
             $output = Artisan::output();
-            expect($output)->toContain('Environment:');
+            expect($output)->toContain('Stage:');
             expect($output)->toContain('testing');
             expect($output)->toContain('staging');
             expect($output)->toContain('production');
@@ -313,7 +313,7 @@ describe('ListCommand', function () {
         it('uses specified vault', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'env',
                 '--unmask' => true,
             ]);
@@ -327,7 +327,7 @@ describe('ListCommand', function () {
         it('uses default vault when not specified', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',  // Always specify to avoid prompts
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'env',
                 '--unmask' => true,
             ]);
@@ -343,7 +343,7 @@ describe('ListCommand', function () {
         it('table format shows structured data with headers', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'table',
                 '--unmask' => true,
             ]);
@@ -365,7 +365,7 @@ describe('ListCommand', function () {
         it('json format is valid and contains all secrets', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'json',
                 '--no-interaction' => true
             ]);
@@ -389,7 +389,7 @@ describe('ListCommand', function () {
         it('env format produces valid .env file content', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'env',
                 '--unmask' => true,
             ]);
@@ -413,7 +413,7 @@ describe('ListCommand', function () {
         it('handles invalid format option', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'invalid',
             ]);
 
@@ -432,7 +432,7 @@ describe('ListCommand', function () {
             // Use staging environment which has no secrets
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'staging',
+                '--stage' => 'staging',
                 '--format' => 'env'
             ]);
 
@@ -446,7 +446,7 @@ describe('ListCommand', function () {
         it('handles empty values correctly', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'env',
                 '--only' => 'EMPTY_VALUE',
             ]);
@@ -460,7 +460,7 @@ describe('ListCommand', function () {
         it('handles special characters in values', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'env',
                 '--only' => 'SPECIAL_CHARS',
                 '--unmask' => true,
@@ -475,7 +475,7 @@ describe('ListCommand', function () {
         it('handles unicode values correctly', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'env',
                 '--only' => 'UNICODE_VALUE',
                 '--unmask' => true,
@@ -492,7 +492,7 @@ describe('ListCommand', function () {
         it('handles patterns with no matches', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'env',
                 '--only' => 'NONEXISTENT_*'
             ]);
@@ -507,7 +507,7 @@ describe('ListCommand', function () {
         it('handles combining --only and --except patterns', function () {
             $result = Artisan::call('keep:list', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--format' => 'env',
                 '--only' => 'DB_*,MAIL_*',
                 '--except' => '*_PORT',

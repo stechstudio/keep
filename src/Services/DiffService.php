@@ -9,24 +9,24 @@ use STS\Keep\Facades\Keep;
 
 class DiffService
 {
-    public function compare(array $vaults, array $environments): Collection
+    public function compare(array $vaults, array $stages): Collection
     {
-        $allSecrets = $this->gatherSecrets($vaults, $environments);
+        $allSecrets = $this->gatherSecrets($vaults, $stages);
         $allKeys = $this->extractAllKeys($allSecrets);
 
         return $allKeys->map(function (string $key) use ($allSecrets) {
             $diff = new SecretDiff($key);
 
-            foreach ($allSecrets as $vaultEnv => $secrets) {
+            foreach ($allSecrets as $vaultStage => $secrets) {
                 $secret = $secrets->getByKey($key);
-                $diff->setValue($vaultEnv, $secret);
+                $diff->setValue($vaultStage, $secret);
             }
 
             return $diff;
         })->sortBy('key')->values();
     }
 
-    public function generateSummary(Collection $diffs, array $vaults, array $environments): array
+    public function generateSummary(Collection $diffs, array $vaults, array $stages): array
     {
         $totalSecrets = $diffs->count();
         $identical = $diffs->filter(fn (SecretDiff $diff) => $diff->status() === SecretDiff::STATUS_IDENTICAL)->count();
@@ -41,24 +41,24 @@ class DiffService
             'identical_percentage' => $totalSecrets > 0 ? round(($identical / $totalSecrets) * 100) : 0,
             'different_percentage' => $totalSecrets > 0 ? round(($different / $totalSecrets) * 100) : 0,
             'incomplete_percentage' => $totalSecrets > 0 ? round(($incomplete / $totalSecrets) * 100) : 0,
-            'environments_compared' => implode(', ', $environments),
+            'stages_compared' => implode(', ', $stages),
             'vaults_compared' => implode(', ', $vaults),
         ];
     }
 
-    protected function gatherSecrets(array $vaults, array $environments): array
+    protected function gatherSecrets(array $vaults, array $stages): array
     {
         $allSecrets = [];
 
         foreach ($vaults as $vaultName) {
-            foreach ($environments as $environment) {
-                $vaultEnvKey = "{$vaultName}.{$environment}";
+            foreach ($stages as $stage) {
+                $vaultStageKey = "{$vaultName}.{$stage}";
 
                 try {
-                    $allSecrets[$vaultEnvKey] = Keep::vault($vaultName)->forEnvironment($environment)->list();
+                    $allSecrets[$vaultStageKey] = Keep::vault($vaultName)->forStage($stage)->list();
                 } catch (\Exception $e) {
-                    // If we can't access a vault/environment combination, treat it as empty
-                    $allSecrets[$vaultEnvKey] = new SecretsCollection([]);
+                    // If we can't access a vault/stage combination, treat it as empty
+                    $allSecrets[$vaultStageKey] = new SecretsCollection([]);
                 }
             }
         }

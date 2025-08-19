@@ -15,33 +15,33 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Explicit Keep environment
+    | Explicit Keep stage
     |--------------------------------------------------------------------------
     |
-    | This option defines the environment that Keep should consider as current
+    | This option defines the stage that Keep should consider as current
     | no matter what APP_ENV is set to. This can be useful when your secrets
-    | use an environment name that differs from your application.
+    | use a stage name that differs from your application.
     |
     */
-    'environment' => env('KEEP_ENV'),
+    'stage' => env('KEEP_STAGE'),
 
     /*
     |--------------------------------------------------------------------------
-    | Environment list
+    | Stage list
     |--------------------------------------------------------------------------
     |
-    | This defines all environments that Keep can interact with when
-    | managing secrets. This should generally match the environments your
+    | This defines all stages that Keep can interact with when
+    | managing secrets. This should generally match the stages your
     | application supports. However, limiting this list is useful for
-    | security to prevent accidental access to the wrong env.
+    | security to prevent accidental access to the wrong stage.
     |
     | For example, if a developer should never access production secrets,
-    | you can simply omit 'production' from this list in their env.
+    | you can simply omit 'production' from this list in their config.
     | To truly enforce this, you should also ensure that your IAM
-    | policies restrict access to only the environments needed.
+    | policies restrict access to only the stages needed.
     |
     */
-    'environments' => explode(',', env('KEEP_ENVS', 'local,staging,production')),
+    'stages' => explode(',', env('KEEP_STAGES', 'local,staging,production')),
 
     /*
     |--------------------------------------------------------------------------
@@ -56,16 +56,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Overlay environment-specific templates
+    | Overlay stage-specific templates
     |--------------------------------------------------------------------------
     |
-    | If set, this will scan for environment-specific template files to
+    | If set, this will scan for stage-specific template files to
     | overlay on top of the base template when merging secrets. For example,
-    | if the environment is 'production' and this is set to 'env', it will
+    | if the stage is 'production' and this is set to 'env', it will
     | look for a file named 'production.env' in the specified directory.
     |
     */
-    'environment_templates' => env('KEEP_ENV_TEMPLATES', 'env'),
+    'stage_templates' => env('KEEP_STAGE_TEMPLATES', 'env'),
 
     /*
     |--------------------------------------------------------------------------

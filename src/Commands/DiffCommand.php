@@ -13,16 +13,16 @@ use function Laravel\Prompts\table;
 class DiffCommand extends AbstractCommand
 {
     public $signature = 'keep:diff 
-        {--env= : Comma-separated list of environments to compare (defaults to all configured environments)}
+        {--stage= : Comma-separated list of stages to compare (defaults to all configured stages)}
         {--vault= : Comma-separated list of vaults to compare (defaults to current/default vault)}'
         .self::UNMASK_SIGNATURE;
 
-    public $description = 'Compare secrets across multiple environments and vaults in a matrix view';
+    public $description = 'Compare secrets across multiple stages and vaults in a matrix view';
 
     public function process(): int
     {
         $vaults = $this->getVaultsToCompare();
-        $environments = $this->getEnvironmentsToCompare();
+        $stages = $this->getStagesToCompare();
 
         if (empty($vaults)) {
             $this->error('No vaults available for comparison.');
@@ -30,22 +30,22 @@ class DiffCommand extends AbstractCommand
             return self::FAILURE;
         }
 
-        if (empty($environments)) {
-            $this->error('No environments available for comparison.');
+        if (empty($stages)) {
+            $this->error('No stages available for comparison.');
 
             return self::FAILURE;
         }
 
         $diffService = new DiffService;
-        $diffs = spin(fn () => $diffService->compare($vaults, $environments), 'Gathering secrets for comparison...');
+        $diffs = spin(fn () => $diffService->compare($vaults, $stages), 'Gathering secrets for comparison...');
 
         if ($diffs->isEmpty()) {
-            $this->info('No secrets found in any of the specified vault/environment combinations.');
+            $this->info('No secrets found in any of the specified vault/stage combinations.');
 
             return self::SUCCESS;
         }
 
-        $this->displayTable($diffs, $vaults, $environments, $diffService);
+        $this->displayTable($diffs, $vaults, $stages, $diffService);
 
         return self::SUCCESS;
     }
@@ -69,28 +69,28 @@ class DiffCommand extends AbstractCommand
         return [Keep::getDefaultVault()];
     }
 
-    protected function getEnvironmentsToCompare(): array
+    protected function getStagesToCompare(): array
     {
-        $envsOption = $this->option('env');
+        $stagesOption = $this->option('stage');
 
-        if ($envsOption) {
-            // Parse comma-separated environments and validate them
-            $requestedEnvs = array_map('trim', explode(',', $envsOption));
-            $availableEnvs = Keep::environments();
+        if ($stagesOption) {
+            // Parse comma-separated stages and validate them
+            $requestedStages = array_map('trim', explode(',', $stagesOption));
+            $availableStages = Keep::stages();
 
-            $invalidEnvs = array_diff($requestedEnvs, $availableEnvs);
-            if (! empty($invalidEnvs)) {
-                $this->warn('Warning: Unknown environments specified: '.implode(', ', $invalidEnvs));
+            $invalidStages = array_diff($requestedStages, $availableStages);
+            if (! empty($invalidStages)) {
+                $this->warn('Warning: Unknown stages specified: '.implode(', ', $invalidStages));
             }
 
-            return array_intersect($requestedEnvs, $availableEnvs);
+            return array_intersect($requestedStages, $availableStages);
         }
 
-        // Default to all configured environments
-        return Keep::environments();
+        // Default to all configured stages
+        return Keep::stages();
     }
 
-    protected function displayTable(Collection $diffs, array $vaults, array $environments, DiffService $diffService): bool
+    protected function displayTable(Collection $diffs, array $vaults, array $stages, DiffService $diffService): bool
     {
         $this->newLine();
         $this->info('Secret Comparison Matrix');
@@ -100,23 +100,23 @@ class DiffCommand extends AbstractCommand
         $vaultEnvCombinations = [];
 
         foreach ($vaults as $vault) {
-            foreach ($environments as $env) {
-                $columnHeader = count($vaults) > 1 ? "{$vault}.{$env}" : $env;
+            foreach ($stages as $stage) {
+                $columnHeader = count($vaults) > 1 ? "{$vault}.{$stage}" : $stage;
                 $headers[] = $columnHeader;
-                $vaultEnvCombinations[] = "{$vault}.{$env}";
+                $vaultStageCombinations[] = "{$vault}.{$stage}";
             }
         }
 
         $headers[] = 'Status';
 
         // Build table rows
-        $rows = $diffs->map(function (SecretDiff $diff) use ($vaultEnvCombinations) {
+        $rows = $diffs->map(function (SecretDiff $diff) use ($vaultStageCombinations) {
             $row = [$diff->key()];
 
             $masked = ! $this->option('unmask');
 
-            foreach ($vaultEnvCombinations as $vaultEnv) {
-                $row[] = $diff->getValueString($vaultEnv, $masked);
+            foreach ($vaultStageCombinations as $vaultStage) {
+                $row[] = $diff->getValueString($vaultStage, $masked);
             }
 
             $row[] = $diff->getStatusLabel();
@@ -126,25 +126,25 @@ class DiffCommand extends AbstractCommand
 
         table($headers, $rows);
 
-        $this->displaySummary($diffs, $vaults, $environments, $diffService);
+        $this->displaySummary($diffs, $vaults, $stages, $diffService);
 
         return true;
     }
 
-    protected function displaySummary(Collection $diffs, array $vaults, array $environments, DiffService $diffService): void
+    protected function displaySummary(Collection $diffs, array $vaults, array $stages, DiffService $diffService): void
     {
-        $summary = $diffService->generateSummary($diffs, $vaults, $environments);
+        $summary = $diffService->generateSummary($diffs, $vaults, $stages);
 
         $this->info('Summary:');
         $this->line("• Total secrets: {$summary['total_secrets']}");
 
         if ($summary['total_secrets'] > 0) {
-            $this->line("• Identical across all environments: {$summary['identical']} ({$summary['identical_percentage']}%)");
+            $this->line("• Identical across all stages: {$summary['identical']} ({$summary['identical_percentage']}%)");
             $this->line("• Different values: {$summary['different']} ({$summary['different_percentage']}%)");
-            $this->line("• Missing in some environments: {$summary['incomplete']} ({$summary['incomplete_percentage']}%)");
+            $this->line("• Missing in some stages: {$summary['incomplete']} ({$summary['incomplete_percentage']}%)");
         }
 
-        $this->line("• Environments compared: {$summary['environments_compared']}");
+        $this->line("• Stages compared: {$summary['stages_compared']}");
 
         if (count($vaults) > 1) {
             $this->line("• Vaults compared: {$summary['vaults_compared']}");

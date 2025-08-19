@@ -17,7 +17,7 @@ class SecretDiff implements Arrayable
 
     public function __construct(
         protected string $key,
-        protected array $values = [], // ['vault.env' => Secret|null]
+        protected array $values = [], // ['vault.stage' => Secret|null]
         protected string $status = self::STATUS_INCOMPLETE,
     ) {}
 
@@ -36,19 +36,19 @@ class SecretDiff implements Arrayable
         return $this->status;
     }
 
-    public function hasValue(string $vaultEnv): bool
+    public function hasValue(string $vaultStage): bool
     {
-        return isset($this->values[$vaultEnv]) && $this->values[$vaultEnv] !== null;
+        return isset($this->values[$vaultStage]) && $this->values[$vaultStage] !== null;
     }
 
-    public function getValue(string $vaultEnv): ?Secret
+    public function getValue(string $vaultStage): ?Secret
     {
-        return $this->values[$vaultEnv] ?? null;
+        return $this->values[$vaultStage] ?? null;
     }
 
-    public function getValueString(string $vaultEnv, bool $masked = true): string
+    public function getValueString(string $vaultStage, bool $masked = true): string
     {
-        $secret = $this->getValue($vaultEnv);
+        $secret = $this->getValue($vaultStage);
 
         if ($secret === null) {
             return '<fg=red>—</>';
@@ -59,9 +59,9 @@ class SecretDiff implements Arrayable
             : $secret->value();
     }
 
-    public function setValue(string $vaultEnv, ?Secret $secret): void
+    public function setValue(string $vaultStage, ?Secret $secret): void
     {
-        $this->values[$vaultEnv] = $secret;
+        $this->values[$vaultStage] = $secret;
         $this->recalculateStatus();
     }
 

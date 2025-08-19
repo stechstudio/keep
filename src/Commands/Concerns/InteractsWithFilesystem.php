@@ -33,13 +33,13 @@ trait InteractsWithFilesystem
         return self::SUCCESS;
     }
 
-    protected function findEnvironmentOverlayTemplate(): ?string
+    protected function findStageOverlayTemplate(): ?string
     {
-        if (! config('keep.environment_templates')) {
+        if (! config('keep.stage_templates')) {
             return null;
         }
 
-        $path = config('keep.environment_templates').'/'.$this->environment().'.env';
+        $path = config('keep.stage_templates').'/'.$this->stage().'.env';
 
         return file_exists($path) && is_readable($path) ? $path : null;
     }

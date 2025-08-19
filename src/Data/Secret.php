@@ -18,7 +18,7 @@ class Secret implements Arrayable
         protected ?string $value = null,
         protected ?string $encryptedValue = null,
         protected bool $secure = true,
-        protected ?string $environment = null,
+        protected ?string $stage = null,
         protected ?int $revision = 0,
         protected ?string $path = null,
         protected ?AbstractVault $vault = null,
@@ -78,9 +78,9 @@ class Secret implements Arrayable
         return $this->secure;
     }
 
-    public function environment(): ?string
+    public function stage(): ?string
     {
-        return $this->environment;
+        return $this->stage;
     }
 
     public function revision(): ?int
@@ -123,7 +123,7 @@ class Secret implements Arrayable
             'value' => $this->value,
             'encryptedValue' => $this->encryptedValue,
             'secure' => $this->secure,
-            'environment' => $this->environment,
+            'stage' => $this->stage,
             'revision' => $this->revision,
             'path' => $this->path,
             'vault' => $this->vault?->name(),

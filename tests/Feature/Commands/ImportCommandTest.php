@@ -74,14 +74,14 @@ describe('ImportCommand', function () {
             $result = Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
             expect($result)->toBe(0);
 
             // Verify secrets were imported
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             expect($vault->hasSecret('DB_HOST'))->toBeTrue();
             expect($vault->hasSecret('DB_PORT'))->toBeTrue();
             expect($vault->hasSecret('DB_NAME'))->toBeTrue();
@@ -104,14 +104,14 @@ describe('ImportCommand', function () {
                 'from' => '/tmp/keeper-test/basic.env',
                 '--dry-run' => true,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
             expect($result)->toBe(0);
 
             // Verify no secrets were imported
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             expect($vault->hasSecret('DB_HOST'))->toBeFalse();
 
             // But output should show what would be imported
@@ -124,13 +124,13 @@ describe('ImportCommand', function () {
             $result = Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/quoted.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
             expect($result)->toBe(0);
 
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             expect($vault->get('APP_NAME')->value())->toBe('My Application');
             expect($vault->get('APP_DESC')->value())->toBe('A great app');
             expect($vault->get('SPECIAL_CHARS')->value())->toBe('value with & symbols!');
@@ -140,13 +140,13 @@ describe('ImportCommand', function () {
             $result = Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/unicode.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
             expect($result)->toBe(0);
 
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             expect($vault->get('UNICODE_VALUE')->value())->toBe('Hello 世界 🚀');
             expect($vault->get('EMOJI_VALUE')->value())->toBe('🔐 Secure Password 🔐');
         });
@@ -158,7 +158,7 @@ describe('ImportCommand', function () {
             Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -166,7 +166,7 @@ describe('ImportCommand', function () {
             $result = Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -180,14 +180,14 @@ describe('ImportCommand', function () {
 
         it('overwrites existing secrets with --overwrite flag', function () {
             // Set up existing secret
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             $vault->set('DB_HOST', 'old-value');
 
             $result = Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--overwrite' => true,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -205,14 +205,14 @@ describe('ImportCommand', function () {
 
         it('skips existing secrets with --skip-existing flag', function () {
             // Set up existing secret
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             $vault->set('DB_HOST', 'existing-value');
 
             $result = Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--skip-existing' => true,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -235,7 +235,7 @@ describe('ImportCommand', function () {
                 '--overwrite' => true,
                 '--skip-existing' => true,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -251,7 +251,7 @@ describe('ImportCommand', function () {
             $result = Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/nonexistent.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -267,14 +267,14 @@ describe('ImportCommand', function () {
             $result = Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/empty.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
             expect($result)->toBe(0);
 
             // Should succeed but import nothing
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             expect($vault->list()->count())->toBe(0);
         });
 
@@ -284,7 +284,7 @@ describe('ImportCommand', function () {
             $result = Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/malformed.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -293,7 +293,7 @@ describe('ImportCommand', function () {
 
             if ($result === 0) {
                 // If it succeeded, verify valid entries were imported
-                $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+                $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
                 expect($vault->hasSecret('VALID_KEY'))->toBeTrue();
                 expect($vault->get('VALID_KEY')->value())->toBe('valid_value');
             }
@@ -306,13 +306,13 @@ describe('ImportCommand', function () {
                 'from' => '/tmp/keeper-test/basic.env',
                 '--only' => 'DB_*',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
             expect($result)->toBe(0);
 
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             expect($vault->hasSecret('DB_HOST'))->toBeTrue();
             expect($vault->hasSecret('DB_PORT'))->toBeTrue();
             expect($vault->hasSecret('DB_NAME'))->toBeTrue();
@@ -324,13 +324,13 @@ describe('ImportCommand', function () {
                 'from' => '/tmp/keeper-test/basic.env',
                 '--except' => 'API_*',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
             expect($result)->toBe(0);
 
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             expect($vault->hasSecret('DB_HOST'))->toBeTrue();
             expect($vault->hasSecret('DB_PORT'))->toBeTrue();
             expect($vault->hasSecret('DB_NAME'))->toBeTrue();
@@ -342,13 +342,13 @@ describe('ImportCommand', function () {
                 'from' => '/tmp/keeper-test/basic.env',
                 '--only' => 'DB_HOST,API_*',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
             expect($result)->toBe(0);
 
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             expect($vault->hasSecret('DB_HOST'))->toBeTrue();
             expect($vault->hasSecret('API_KEY'))->toBeTrue();
             expect($vault->hasSecret('DB_PORT'))->toBeFalse(); // Should be filtered out
@@ -357,17 +357,17 @@ describe('ImportCommand', function () {
     });
 
     describe('environment and vault handling', function () {
-        it('imports to specified environment', function () {
+        it('imports to specified stage', function () {
             $result = Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
             expect($result)->toBe(0);
 
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             expect($vault->hasSecret('DB_HOST'))->toBeTrue();
         });
 
@@ -375,13 +375,13 @@ describe('ImportCommand', function () {
             $result = Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
             expect($result)->toBe(0);
 
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             expect($vault->hasSecret('DB_HOST'))->toBeTrue();
         });
 
@@ -389,16 +389,16 @@ describe('ImportCommand', function () {
             $result = Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',  // Always specify to avoid prompts
-                '--env' => 'testing',
+                '--stage' => 'testing',
             ]);
 
             expect($result)->toBe(0);
 
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             expect($vault->hasSecret('DB_HOST'))->toBeTrue();
         });
 
-        // NOTE: Cannot test environment selection prompts in automated tests
+        // NOTE: Cannot test stage selection prompts in automated tests
         // because they hang waiting for user input. Interactive prompts
         // are not compatible with automated testing environments.
     });
@@ -408,13 +408,13 @@ describe('ImportCommand', function () {
             $result = Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/mixed.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
             expect($result)->toBe(0);
 
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
 
             // Empty values should be skipped with warning
             $output = Artisan::output();
@@ -431,13 +431,13 @@ describe('ImportCommand', function () {
             $result = Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/large.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
             expect($result)->toBe(0);
 
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             expect($vault->hasSecret('VAR_1'))->toBeTrue();
             expect($vault->hasSecret('VAR_20'))->toBeTrue();
             expect($vault->get('VAR_1')->value())->toBe('value_1');
@@ -446,14 +446,14 @@ describe('ImportCommand', function () {
 
         it('provides detailed results table', function () {
             // Set up existing secret to test different statuses
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             $vault->set('DB_HOST', 'existing-value');
 
             $result = Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--skip-existing' => true,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -474,7 +474,7 @@ describe('ImportCommand', function () {
             $result = Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -491,7 +491,7 @@ describe('ImportCommand', function () {
             $result1 = Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -500,7 +500,7 @@ describe('ImportCommand', function () {
             // Export data
             $result2 = Artisan::call('keep:export', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -513,14 +513,14 @@ describe('ImportCommand', function () {
 
         it('handles partial import with conflicts', function () {
             // Set up one existing secret
-            $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+            $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
             $vault->set('DB_HOST', 'existing-value');
 
             $result = Artisan::call('keep:import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--skip-existing' => true,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 

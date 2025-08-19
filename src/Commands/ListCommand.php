@@ -9,9 +9,9 @@ class ListCommand extends AbstractCommand
     public $signature = 'keep:list {--format=table : table|json|env} {--unmask : Show full secret values instead of masked values} '
         .self::ONLY_EXCLUDE_SIGNATURE
         .self::VAULT_SIGNATURE
-        .self::ENV_SIGNATURE;
+        .self::STAGE_SIGNATURE;
 
-    public $description = 'Get the list of environment secrets in a specified vault';
+    public $description = 'Get the list of stage secrets in a specified vault';
 
     public function process(): int
     {

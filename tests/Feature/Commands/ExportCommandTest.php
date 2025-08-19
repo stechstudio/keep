@@ -9,7 +9,7 @@ describe('ExportCommand', function () {
         \STS\Keep\Facades\Keep::vault('test')->clear();
 
         // Set up test secrets for export
-        $vault = \STS\Keep\Facades\Keep::vault('test')->forEnvironment('testing');
+        $vault = \STS\Keep\Facades\Keep::vault('test')->forStage('testing');
         $vault->set('DB_HOST', 'localhost');
         $vault->set('DB_PORT', '3306');
         $vault->set('DB_NAME', 'myapp');
@@ -45,7 +45,7 @@ describe('ExportCommand', function () {
         it('exports secrets in env format to stdout by default', function () {
             $result = Artisan::call('keep:export', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -64,7 +64,7 @@ describe('ExportCommand', function () {
             $result = Artisan::call('keep:export', [
                 '--format' => 'json',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -87,7 +87,7 @@ describe('ExportCommand', function () {
             $result = Artisan::call('keep:export', [
                 '--output' => $outputFile,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -110,7 +110,7 @@ describe('ExportCommand', function () {
                 '--output' => $outputFile,
                 '--overwrite' => true,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -135,7 +135,7 @@ describe('ExportCommand', function () {
                 '--output' => $outputFile,
                 '--overwrite' => true,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -154,7 +154,7 @@ describe('ExportCommand', function () {
                 '--output' => $outputFile,
                 '--append' => true,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -174,7 +174,7 @@ describe('ExportCommand', function () {
             $result = Artisan::call('keep:export', [
                 '--output' => $outputFile,
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -189,7 +189,7 @@ describe('ExportCommand', function () {
             $result = Artisan::call('keep:export', [
                 '--format' => 'env',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -210,7 +210,7 @@ describe('ExportCommand', function () {
             $result = Artisan::call('keep:export', [
                 '--format' => 'json',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -231,7 +231,7 @@ describe('ExportCommand', function () {
             $result = Artisan::call('keep:export', [
                 '--format' => 'invalid',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -245,12 +245,12 @@ describe('ExportCommand', function () {
     });
 
     describe('environment and vault handling', function () {
-        it('exports from specified environment', function () {
+        it('exports from specified stage', function () {
             // Note: Due to TestVault environment isolation issues,
             // this test uses the same environment as setup
             $result = Artisan::call('keep:export', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -263,7 +263,7 @@ describe('ExportCommand', function () {
         it('uses specified vault', function () {
             $result = Artisan::call('keep:export', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -276,7 +276,7 @@ describe('ExportCommand', function () {
         it('uses default vault when not specified', function () {
             $result = Artisan::call('keep:export', [
                 '--vault' => 'test',  // Always specify to avoid prompts
-                '--env' => 'testing',
+                '--stage' => 'testing',
             ]);
 
             expect($result)->toBe(0);
@@ -285,7 +285,7 @@ describe('ExportCommand', function () {
             expect($output)->toContain('DB_HOST=localhost');
         });
 
-        // NOTE: Cannot test environment selection prompts in automated tests
+        // NOTE: Cannot test stage selection prompts in automated tests
         // because they hang waiting for user input. Interactive prompts
         // are not compatible with automated testing environments.
     });
@@ -295,7 +295,7 @@ describe('ExportCommand', function () {
             // Use staging environment which should be empty
             $result = Artisan::call('keep:export', [
                 '--vault' => 'test',
-                '--env' => 'staging', // Empty environment
+                '--stage' => 'staging', // Empty environment
             ]);
 
             expect($result)->toBe(0);
@@ -309,7 +309,7 @@ describe('ExportCommand', function () {
         it('handles secrets with empty values', function () {
             $result = Artisan::call('keep:export', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -322,7 +322,7 @@ describe('ExportCommand', function () {
         it('handles secrets with unicode values', function () {
             $result = Artisan::call('keep:export', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -335,7 +335,7 @@ describe('ExportCommand', function () {
         it('handles secrets with special characters', function () {
             $result = Artisan::call('keep:export', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -350,7 +350,7 @@ describe('ExportCommand', function () {
             // we'll just verify the command succeeds with existing secrets
             $result = Artisan::call('keep:export', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -371,14 +371,14 @@ describe('ExportCommand', function () {
             // Run export twice and compare order
             $result1 = Artisan::call('keep:export', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
             $output1 = Artisan::output();
 
             $result2 = Artisan::call('keep:export', [
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
             $output2 = Artisan::output();
@@ -399,7 +399,7 @@ describe('ExportCommand', function () {
             $result = Artisan::call('keep:export', [
                 '--format' => 'json',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 
@@ -423,7 +423,7 @@ describe('ExportCommand', function () {
             $result = Artisan::call('keep:export', [
                 '--format' => 'json',
                 '--vault' => 'test',
-                '--env' => 'testing',
+                '--stage' => 'testing',
                 '--no-interaction' => true,
             ]);
 

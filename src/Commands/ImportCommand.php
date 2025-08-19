@@ -17,9 +17,9 @@ class ImportCommand extends AbstractCommand
         {--dry-run : Show what would be imported without actually importing} '
         .self::ONLY_EXCLUDE_SIGNATURE
         .self::VAULT_SIGNATURE
-        .self::ENV_SIGNATURE;
+        .self::STAGE_SIGNATURE;
 
-    public $description = 'Import a .env file and store as environment secrets in a specified vault';
+    public $description = 'Import a .env file and store as stage secrets in a specified vault';
 
     public function process(): int
     {
