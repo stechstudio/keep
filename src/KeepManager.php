@@ -96,7 +96,7 @@ class KeepManager
         return $this;
     }
 
-    public function createAwsSsmDriver(string $name, array $config): AwsSsmVault
+    public function createSsmDriver(string $name, array $config): AwsSsmVault
     {
         return new AwsSsmVault($name, $config);
     }

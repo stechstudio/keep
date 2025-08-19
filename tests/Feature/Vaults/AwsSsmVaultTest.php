@@ -25,7 +25,7 @@ describe('AwsSsmVault', function () {
 
         // Create vault instance with test config
         $this->vault = new AwsSsmVault('test-vault', [
-            'driver' => 'aws-ssm',
+            'driver' => 'ssm',
             'prefix' => '/app-secrets',
         ], 'testing');
 
@@ -55,7 +55,7 @@ describe('AwsSsmVault', function () {
 
         it('handles missing prefix in config', function () {
             $vault = new AwsSsmVault('test-vault', [
-                'driver' => 'aws-ssm',
+                'driver' => 'ssm',
             ], 'testing');
 
             $path = $vault->format('API_KEY');

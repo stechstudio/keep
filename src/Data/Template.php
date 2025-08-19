@@ -67,9 +67,9 @@ class Template
      * Provides a regex pattern to match env keys with placeholders in the env template.
      * Placeholder syntax: {SLUG[:PATH][|ATTR[|ATTR...]]}
      * Examples:
-     * - DB_PASSWORD={aws-ssm:DB_PASSWORD}
-     * - API_KEY='{aws-ssm:API_KEY|label=primary}'
-     * - MAIL_PASSWORD="{aws-ssm}"
+     * - DB_PASSWORD={ssm:DB_PASSWORD}
+     * - API_KEY='{ssm:API_KEY|label=primary}'
+     * - MAIL_PASSWORD="{ssm}"
      */
     protected function pattern(string $slug)
     {

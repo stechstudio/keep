@@ -14,7 +14,7 @@ abstract class AbstractCommand extends Command
 
     public function handle(): int
     {
-        if($this->option('env')) {
+        if($this->input && $this->option('env')) {
             $this->error('The --env option is not to be used with Keep commands, as it changes the Laravel runtime environment. Use --stage to manage your environment-specific secrets.');
             return self::FAILURE;
         }
