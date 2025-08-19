@@ -5,7 +5,7 @@ namespace STS\Keep\Data;
 use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Data\Concerns\FormatsEnvValues;
 use STS\Keep\Enums\MissingSecretStrategy;
-use STS\Keep\Exceptions\SecretNotFoundException;
+use STS\Keep\Exceptions\ExceptionFactory;
 
 class Template
 {
@@ -23,28 +23,31 @@ class Template
         return ! $this->isEmpty();
     }
 
-    public function merge(string $slug, SecretCollection $secrets, MissingSecretStrategy $strategy): string
+    public function merge(SecretCollection $secrets, MissingSecretStrategy $strategy): string
     {
-        $pattern = $this->pattern($slug);
+        $pattern = $this->pattern();
 
-        return preg_replace_callback($pattern, function ($matches) use ($secrets, $strategy, $slug) {
+        return preg_replace_callback($pattern, function ($matches) use ($secrets, $strategy) {
             // Calculate line number by counting newlines before this match
             $beforeMatch = strstr($this->contents, $matches[0], true);
             $lineNumber = $beforeMatch !== false ? substr_count($beforeMatch, "\n") + 1 : 1;
 
+            $vaultName = $matches['vault'];
             $path = $matches['path'] ?: $matches['key'];
-            $secret = $secrets->firstWhere(fn (Secret $secret) => $secret->key() === $path);
+            
+            // Find secret that matches both key and vault name
+            $secret = $secrets->firstWhere(function (Secret $secret) use ($path, $vaultName) {
+                return $secret->key() === $path && $secret->vault()?->name() === $vaultName;
+            });
 
             if (! $secret) {
                 return match ($strategy) {
-                    MissingSecretStrategy::FAIL => throw (new SecretNotFoundException("Unable to find secret for key [{$path}]"))
-                        ->withContext(
-                            vault: $slug,
-                            key: $matches['key'],
-                            path: $path,
-                            lineNumber: $lineNumber,
-                            suggestion: "Check if this secret exists using 'php artisan keeper:list --vault={$slug}'"
-                        ),
+                    MissingSecretStrategy::FAIL => throw ExceptionFactory::secretNotFoundInTemplate(
+                        $matches['key'], 
+                        $vaultName, 
+                        $path, 
+                        $lineNumber
+                    ),
                     MissingSecretStrategy::REMOVE => '# Removed missing secret: '.$matches['key'],
                     MissingSecretStrategy::BLANK => $matches['key'].'=',
                     MissingSecretStrategy::SKIP => $matches[0],
@@ -65,25 +68,42 @@ class Template
     }
 
     /**
+     * Extract all vault names referenced in this template's placeholders.
+     * 
+     * @return array<string> Unique vault names found in placeholders
+     */
+    public function allReferencedVaults(): array
+    {
+        if($this->isEmpty()) {
+            return [];
+        }
+
+        $pattern = '/\{([A-Za-z0-9_-]+)(?::[^}]*)?\}/';
+        preg_match_all($pattern, $this->contents, $matches);
+        
+        return array_unique($matches[1] ?? []);
+    }
+
+    /**
      * Provides a regex pattern to match env keys with placeholders in the env template.
-     * Placeholder syntax: {SLUG[:PATH][|ATTR[|ATTR...]]}
+     * Placeholder syntax: {VAULT_SLUG[:PATH][|ATTR[|ATTR...]]}
      * Examples:
      * - DB_PASSWORD={ssm:DB_PASSWORD}
-     * - API_KEY='{ssm:API_KEY|label=primary}'
-     * - MAIL_PASSWORD="{ssm}"
+     * - API_KEY='{secretsmanager:API_KEY|label=primary}'
+     * - MAIL_PASSWORD="{ssm-usw-2}"
      */
-    protected function pattern(string $slug)
+    protected function pattern()
     {
         return '~^
             (?P<lead>\s*)                                  # leading whitespace
             (?P<key>[A-Za-z_][A-Za-z0-9_]*)                # ENV KEY (cannot start with number)
             (?P<mid>\s*=\s*)                               # equals w/ optional spacing
             (?P<quote>["\'])?                              # optional opening quote
-            \{'.$slug.'                                    # {slug  (driver slug)
+            \{(?P<vault>[A-Za-z0-9_-]+)                   # {vault_slug (capture any vault name)
                 (?:                                        # OPTIONAL :PATH[|ATTR...]
                     :(?P<path>(?!\/)[A-Za-z0-9_.\-\/]+)    # relative PATH (no leading /)
                     (?P<attrblock>(?:\|[^}|]+)*)           # |ATTR or |k:v, zero or more
-                )?                                         # path/attrs block optional (allows {slug})
+                )?                                         # path/attrs block optional (allows {vault})
             \}                                             # closing brace
             (?P=quote)?                                    # optional matching close-quote
             (?P<trail>[ \t]*)                              # trailing spaces

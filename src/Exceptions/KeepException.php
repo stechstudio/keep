@@ -7,8 +7,6 @@ use Throwable;
 
 class KeepException extends RuntimeException
 {
-    protected string $details = '';
-
     protected ?string $vault = null;
 
     protected ?string $stage = null;
@@ -21,15 +19,11 @@ class KeepException extends RuntimeException
 
     protected ?string $suggestion = null;
 
-    public function __construct(string $message = '', string $details = '', int $code = 0, ?Throwable $previous = null)
+    protected ?string $details = null;
+
+    public function __construct(string $message = '', int $code = 0, ?Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
-        $this->details = $details;
-    }
-
-    public function getDetails(): string
-    {
-        return $this->details;
     }
 
     public function withContext(
@@ -38,14 +32,16 @@ class KeepException extends RuntimeException
         ?string $key = null,
         ?string $path = null,
         ?int $lineNumber = null,
-        ?string $suggestion = null
+        ?string $suggestion = null,
+        ?string $details = null
     ): static {
-        $this->vault = $vault;
-        $this->stage = $stage;
-        $this->key = $key;
-        $this->path = $path;
-        $this->lineNumber = $lineNumber;
-        $this->suggestion = $suggestion;
+        if ($vault !== null) $this->vault = $vault;
+        if ($stage !== null) $this->stage = $stage;
+        if ($key !== null) $this->key = $key;
+        if ($path !== null) $this->path = $path;
+        if ($lineNumber !== null) $this->lineNumber = $lineNumber;
+        if ($suggestion !== null) $this->suggestion = $suggestion;
+        if ($details !== null) $this->details = $details;
 
         return $this;
     }

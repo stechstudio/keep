@@ -5,6 +5,7 @@ namespace STS\Keep;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use STS\Keep\Vaults\AbstractVault;
+use STS\Keep\Vaults\AwsSecretsManagerVault;
 use STS\Keep\Vaults\AwsSsmVault;
 
 class KeepManager
@@ -99,6 +100,11 @@ class KeepManager
     public function createSsmDriver(string $name, array $config): AwsSsmVault
     {
         return new AwsSsmVault($name, $config);
+    }
+
+    public function createSecretsmanagerDriver(string $name, array $config): AwsSecretsManagerVault
+    {
+        return new AwsSecretsManagerVault($name, $config);
     }
 
     /**

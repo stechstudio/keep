@@ -25,7 +25,8 @@ describe('KeepException', function () {
             $output[] = ['message' => $message, 'style' => $style];
         };
 
-        $exception = new KeepException('Error occurred', 'Additional details about the error');
+        $exception = (new KeepException('Error occurred'))
+            ->withContext(details: 'Additional details about the error');
         $exception->renderConsole($outputCallback);
 
         expect($output)->toEqual([
@@ -121,14 +122,15 @@ describe('KeepException', function () {
             $output[] = ['message' => $message, 'style' => $style];
         };
 
-        $exception = (new KeepException('Error', 'Extra details'))
+        $exception = (new KeepException('Error'))
             ->withContext(
                 vault: 'vault-name',
                 stage: 'staging',
                 key: 'KEY_NAME',
                 path: '/full/path',
                 lineNumber: 42,
-                suggestion: 'Try this instead'
+                suggestion: 'Try this instead',
+                details: 'Extra details'
             );
 
         $exception->renderConsole($outputCallback);
