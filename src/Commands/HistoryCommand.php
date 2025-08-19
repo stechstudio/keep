@@ -19,6 +19,7 @@ class HistoryCommand extends AbstractCommand
         {--since= : Filter entries since this date (e.g., "7 days ago", "2024-01-01")}
         {--before= : Filter entries before this date (e.g., "2024-12-31")} '
     .self::KEY_SIGNATURE
+    .self::CONTEXT_SIGNATURE
     .self::VAULT_SIGNATURE
     .self::STAGE_SIGNATURE
     .self::UNMASK_SIGNATURE;
@@ -29,9 +30,10 @@ class HistoryCommand extends AbstractCommand
     {
         $key = $this->key();
         $limit = (int) $this->option('limit');
+        $context = $this->context();
+        $vault = $context->createVault();
 
-
-        $historyCollection = $this->vault()->history($key, new FilterCollection(array_filter([
+        $historyCollection = $vault->history($key, new FilterCollection(array_filter([
             'user'   => $this->option('user') ? new StringFilter($this->option('user')) : null,
             'since'  => $this->option('since') ? new DateFilter($this->option('since')) : null,
             'before' => $this->option('before') ? new DateFilter($this->option('before')) : null,

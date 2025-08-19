@@ -2,6 +2,7 @@
 
 namespace STS\Keep\Commands\Concerns;
 
+use STS\Keep\Data\Context;
 use STS\Keep\Facades\Keep;
 
 use function Laravel\Prompts\select;
@@ -23,6 +24,8 @@ trait GathersInput
         {--except= : Exclude keys matching this pattern (e.g. MAIL_*)}';
 
     protected const string UNMASK_SIGNATURE = '{--unmask : Show full secret values instead of masked values}';
+
+    protected const string CONTEXT_SIGNATURE = '{--context= : Context in format "vault:stage" or just "stage"}';
 
     protected string $key;
 
@@ -96,6 +99,17 @@ trait GathersInput
             (bool) $this->option('to') => $this->option('to'),
             default => $this->vaultName('To (vault)', 'toVaultName').':'.$this->stage('To (stage)', 'toStage'),
         };
+    }
+
+    protected function context(?string $vaultPrompt = null, ?string $stagePrompt = null): Context
+    {
+        // If --context option is provided, use it
+        if ($this->hasOption('context') && $this->option('context')) {
+            return Context::fromInput($this->option('context'));
+        }
+        
+        // Fall back to separate vault/stage prompting
+        return new Context($this->vaultName($vaultPrompt), $this->stage($stagePrompt));
     }
 
     protected function secure(): bool

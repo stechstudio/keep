@@ -16,6 +16,7 @@ class ImportCommand extends AbstractCommand
         {--skip-existing : Skip existing secrets}  
         {--dry-run : Show what would be imported without actually importing} '
         .self::ONLY_EXCLUDE_SIGNATURE
+        .self::CONTEXT_SIGNATURE
         .self::VAULT_SIGNATURE
         .self::STAGE_SIGNATURE;
 
@@ -44,7 +45,9 @@ class ImportCommand extends AbstractCommand
             except: $this->option('except')
         );
 
-        $vaultSecrets = $this->vault()->list();
+        $context = $this->context();
+        $vault = $context->createVault();
+        $vaultSecrets = $vault->list();
 
         if (! $this->canImport($importSecrets, $vaultSecrets)) {
             return self::FAILURE;
@@ -53,7 +56,7 @@ class ImportCommand extends AbstractCommand
         if ($this->option('dry-run')) {
             $imported = null;
         } else {
-            $imported = $this->runImport($importSecrets, $vaultSecrets);
+            $imported = $this->runImport($importSecrets, $vaultSecrets, $vault);
         }
 
         table(['Key', 'Status', 'Rev'], $this->resultsTable($importSecrets, $vaultSecrets, $imported));
@@ -92,7 +95,7 @@ class ImportCommand extends AbstractCommand
         return true;
     }
 
-    protected function runImport(SecretCollection $importSecrets, SecretCollection $vaultSecrets): SecretCollection
+    protected function runImport(SecretCollection $importSecrets, SecretCollection $vaultSecrets, $vault): SecretCollection
     {
         $imported = new SecretCollection;
 
@@ -109,7 +112,7 @@ class ImportCommand extends AbstractCommand
 
             try {
                 $imported->push(
-                    $importedSecret = $this->vault()->set($secret->key(), $secret->value())
+                    $importedSecret = $vault->set($secret->key(), $secret->value())
                 );
                 $this->info("Imported key [{$importedSecret->key()}]");
             } catch (KeepException $e) {

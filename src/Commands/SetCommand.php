@@ -7,6 +7,7 @@ class SetCommand extends AbstractCommand
     public $signature = 'keep:set '
         .self::KEY_SIGNATURE
         .self::VALUE_SIGNATURE
+        .self::CONTEXT_SIGNATURE
         .self::VAULT_SIGNATURE
         .self::STAGE_SIGNATURE
         .self::PLAIN_SIGNATURE;
@@ -15,7 +16,8 @@ class SetCommand extends AbstractCommand
 
     public function process(): int
     {
-        $secret = $this->vault()->set($this->key(), $this->value(), $this->secure());
+        $context = $this->context();
+        $secret = $context->createVault()->set($this->key(), $this->value(), $this->secure());
 
         $this->info(
             sprintf('Secret [%s] %s in vault [%s].',

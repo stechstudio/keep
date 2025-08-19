@@ -11,6 +11,7 @@ class ExportCommand extends AbstractCommand
         {--output= : File where to save the output (defaults to stdout)} 
         {--overwrite : Overwrite the output file if it exists} 
         {--append : Append to the output file if it exists} '
+        .self::CONTEXT_SIGNATURE
         .self::VAULT_SIGNATURE
         .self::STAGE_SIGNATURE;
 
@@ -18,7 +19,8 @@ class ExportCommand extends AbstractCommand
 
     public function process(): int
     {
-        $secrets = $this->vault()->list();
+        $context = $this->context();
+        $secrets = $context->createVault()->list();
 
         if ($this->option('output')) {
             return $this->writeToFile(
