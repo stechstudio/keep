@@ -16,6 +16,7 @@ use STS\Keep\Exceptions\AccessDeniedException;
 use STS\Keep\Exceptions\KeepException;
 use STS\Keep\Exceptions\SecretNotFoundException;
 use STS\Keep\Facades\Keep;
+use STS\Keep\Prompts\TextPrompt;
 
 class AwsSecretsManagerVault extends AbstractVault
 {
@@ -23,6 +24,27 @@ class AwsSecretsManagerVault extends AbstractVault
     public const string NAME = 'AWS Secrets Manager';
 
     protected SecretsManagerClient $client;
+    
+    public static function configure(array $existingSettings = []): array
+    {
+        return [
+            'region' => new TextPrompt(
+                label: 'AWS Region',
+                default: $existingSettings['region'] ?? 'us-east-1',
+                hint: 'The AWS region where your secrets will be stored'
+            ),
+            'prefix' => new TextPrompt(
+                label: 'Secret name prefix',
+                default: $existingSettings['prefix'] ?? 'app-secrets',
+                hint: 'Prefix for all your secret names'
+            ),
+            'key' => new TextPrompt(
+                label: 'KMS Key ID (optional)',
+                default: $existingSettings['key'] ?? '',
+                hint: 'Leave empty to use the default AWS managed key'
+            )
+        ];
+    }
 
     public function format(?string $key = null): string
     {

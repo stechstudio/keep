@@ -19,14 +19,12 @@ class KeepManager
 
     public function __construct(protected array $settings, protected array $configuredVaults)
     {
-
     }
     
     public function isInitialized(): bool
     {
         return !empty($this->settings) && 
-               isset($this->settings['app_name']) && 
-               !empty($this->configuredVaults);
+               isset($this->settings['app_name']);
     }
     
     public function getSettings(): array
@@ -37,6 +35,11 @@ class KeepManager
     public function getSetting(string $key, mixed $default = null): mixed
     {
         return $this->settings[$key] ?? $default;
+    }
+
+    public function getAvailableVaults(): array
+    {
+        return $this->availableVaults;
     }
     
     public function getConfiguredVaults(): array
