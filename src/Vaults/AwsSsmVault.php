@@ -7,6 +7,7 @@ use Aws\Ssm\SsmClient;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Laravel\Prompts\TextPrompt;
 use STS\Keep\Data\Collections\FilterCollection;
 use STS\Keep\Data\Secret;
 use STS\Keep\Data\SecretHistory;
@@ -23,6 +24,27 @@ class AwsSsmVault extends AbstractVault
     public const string NAME = 'AWS Systems Manager Parameter Store';
 
     protected SsmClient $client;
+    
+    public static function configure(array $existingSettings = []): array
+    {
+        return [
+            'region' => new TextPrompt(
+                label: 'AWS Region',
+                default: $existingSettings['region'] ?? 'us-east-1',
+                hint: 'The AWS region where your parameters will be stored'
+            ),
+            'prefix' => new TextPrompt(
+                label: 'Parameter prefix (optional)',
+                default: $existingSettings['prefix'] ?? '',
+                hint: 'Base path for all your parameters (e.g., /[prefix]/myapp/production/DB_PASSWORD)'
+            ),
+            'key' => new TextPrompt(
+                label: 'KMS Key ID (optional)',
+                default: $existingSettings['key'] ?? '',
+                hint: 'Leave empty to use the default AWS managed key'
+            )
+        ];
+    }
 
     public function format(?string $key = null): string
     {

@@ -21,8 +21,10 @@ class KeepApplication extends Application
         // Working Symfony Console commands
         $this->add(new InfoCommand());
         $this->add(new DemoCommand());
-        $this->add((new Commands\InitCommand())->setManager($this->manager));
-        $this->add((new Commands\TestCommand())->setManager($this->manager));
+        $this->add((new Commands\ConfigureCommand())->setManager($this->manager));
+        $this->add((new Commands\VaultAddCommand())->setManager($this->manager));
+        $this->add((new Commands\VaultEditCommand())->setManager($this->manager));
+        $this->add((new Commands\VaultListCommand())->setManager($this->manager));
         
         // TODO: Refactor these Laravel commands to Symfony Console:
         // - AbstractCommand.php (base class needs complete rewrite)

@@ -24,7 +24,7 @@ abstract class BaseCommand extends Command
         // Check if Keep is initialized (unless this command doesn't require it)
         if ($this->requiresInitialization() && !$this->manager->isInitialized()) {
             error('Keep is not initialized in this directory.');
-            note('Run: keep init');
+            note('Run: keep configure');
             return Command::FAILURE;
         }
         
