@@ -2,6 +2,7 @@
 
 namespace STS\Keep\Commands\Concerns;
 
+use STS\Keep\Facades\Keep;
 use function Laravel\Prompts\confirm;
 
 trait InteractsWithFilesystem
@@ -35,11 +36,13 @@ trait InteractsWithFilesystem
 
     protected function findStageOverlayTemplate(): ?string
     {
-        if (! config('keep.stage_templates')) {
+        $stageTemplatesPath = Keep::getSetting('stage_templates');
+        
+        if (! $stageTemplatesPath) {
             return null;
         }
 
-        $path = config('keep.stage_templates').'/'.$this->stage().'.env';
+        $path = $stageTemplatesPath.'/'.$this->stage().'.env';
 
         return file_exists($path) && is_readable($path) ? $path : null;
     }
