@@ -2,6 +2,8 @@
 
 namespace STS\Keep\Commands;
 
+use function Laravel\Prompts\table;
+
 class GetCommand extends BaseCommand
 {
     public $signature = 'get {--format=table : table|json|raw} '
@@ -18,7 +20,7 @@ class GetCommand extends BaseCommand
         $secret = $context->createVault()->get($this->key());
 
         match ($this->option('format')) {
-            'table' => $this->table(['Key', 'Value', 'Rev'], [$secret->only(['key', 'value', 'revision'])]),
+            'table' => table(['Key', 'Value', 'Rev'], [$secret->only(['key', 'value', 'revision'])]),
             'json' => $this->line(json_encode($secret->only(['key', 'value', 'revision']), JSON_PRETTY_PRINT)),
             'raw' => $this->line($secret->value()),
             default => $this->error('Invalid format option. Supported formats are: table, json, raw.'),

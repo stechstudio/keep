@@ -17,6 +17,7 @@ use STS\Keep\Exceptions\AccessDeniedException;
 use STS\Keep\Exceptions\ExceptionFactory;
 use STS\Keep\Exceptions\KeepException;
 use STS\Keep\Exceptions\SecretNotFoundException;
+use STS\Keep\Facades\Keep;
 
 class AwsSsmVault extends AbstractVault
 {
@@ -54,7 +55,7 @@ class AwsSsmVault extends AbstractVault
 
         return Str::of($this->config['prefix'] ?? '')
             ->start('/')->finish('/')
-            ->append('app/') // TODO: Get from configuration
+            ->append(Keep::getNamespace() . '/')
             ->append($this->stage.'/')
             ->append($key)
             ->rtrim('/')

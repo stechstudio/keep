@@ -30,6 +30,12 @@ class KeepApplication extends Application
         
         // Initialize KeepManager with loaded configuration
         $this->manager = new KeepManager($this->loadSettings(), $this->loadVaults());
+        
+        // Register KeepManager in container for global access
+        $container->instance(KeepManager::class, $this->manager);
+        
+        // Set container as global instance
+        KeepContainer::setInstance($container);
 
         $this->add((new InfoCommand()));
         $this->add(new DemoCommand());

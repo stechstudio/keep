@@ -18,20 +18,8 @@ abstract class AbstractVault
 
     protected $keyFormatter;
 
-    public function __construct(protected string $name, protected array $config, protected ?string $stage = null)
+    public function __construct(protected string $name, protected array $config, protected string $stage)
     {
-        // If none was provided, use the current resolved stage
-        if (! $this->stage) {
-            $this->stage = Keep::stage();
-        }
-    }
-
-    public function forStage(string $stage): static
-    {
-        $clone = clone $this;
-        $clone->stage = $stage;
-
-        return $clone;
     }
 
     public function formatKeyUsing(callable $formatter): static

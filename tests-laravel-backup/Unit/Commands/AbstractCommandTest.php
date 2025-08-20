@@ -80,7 +80,7 @@ describe('AbstractCommand', function () {
             ['message' => '  Vault: test-vault', 'style' => 'line'],
             ['message' => '  Key: TEST_KEY', 'style' => 'line'],
             ['message' => '', 'style' => 'line'],
-            ['message' => '💡 Try something else', 'style' => 'comment'],
+            ['message' => '💡  Try something else', 'style' => 'comment'],
         ]);
     });
 

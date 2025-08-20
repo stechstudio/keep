@@ -62,7 +62,7 @@ describe('KeepException', function () {
             ['message' => '  Path: /app/production/DB_PASSWORD', 'style' => 'line'],
             ['message' => '  Template line: 15', 'style' => 'line'],
             ['message' => '', 'style' => 'line'],
-            ['message' => "💡 Check if this secret exists using 'php artisan keeper:list'", 'style' => 'comment'],
+            ['message' => "💡  Check if this secret exists using 'keep list'", 'style' => 'comment'],
         ]);
     });
 
@@ -145,7 +145,7 @@ describe('KeepException', function () {
             ['message' => '', 'style' => 'line'],
             ['message' => 'Extra details', 'style' => 'line'],
             ['message' => '', 'style' => 'line'],
-            ['message' => '💡 Try this instead', 'style' => 'comment'],
+            ['message' => '💡  Try this instead', 'style' => 'comment'],
         ]);
     });
 });
