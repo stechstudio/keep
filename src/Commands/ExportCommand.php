@@ -4,9 +4,9 @@ namespace STS\Keep\Commands;
 
 use STS\Keep\Data\Collections\SecretCollection;
 
-class ExportCommand extends AbstractCommand
+class ExportCommand extends BaseCommand
 {
-    public $signature = 'keep:export 
+    public $signature = 'export 
         {--format=env : json|env} 
         {--output= : File where to save the output (defaults to stdout)} 
         {--overwrite : Overwrite the output file if it exists} 
@@ -17,7 +17,7 @@ class ExportCommand extends AbstractCommand
 
     public $description = 'Export all stage secrets in a specified vault';
 
-    public function process(): int
+    public function process()
     {
         $context = $this->context();
         $secrets = $context->createVault()->list();
@@ -32,8 +32,6 @@ class ExportCommand extends AbstractCommand
         }
 
         $this->line($this->formatOutput($secrets));
-
-        return self::SUCCESS;
     }
 
     protected function formatOutput(SecretCollection $secrets): string

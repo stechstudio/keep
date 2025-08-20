@@ -5,9 +5,9 @@ namespace STS\Keep\Commands;
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\table;
 
-class DeleteCommand extends AbstractCommand
+class DeleteCommand extends BaseCommand
 {
-    public $signature = 'keep:delete {--force : Skip confirmation prompt} '
+    public $signature = 'delete {--force : Skip confirmation prompt} '
         .self::KEY_SIGNATURE
         .self::CONTEXT_SIGNATURE
         .self::VAULT_SIGNATURE
