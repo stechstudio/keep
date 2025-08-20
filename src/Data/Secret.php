@@ -23,39 +23,51 @@ class Secret implements Arrayable
         protected ?string $path = null,
         protected ?AbstractVault $vault = null,
     ) {
-        $this->key = $this->sanitizeKey($key);
+        $this->key = $this->validateKey($key);
     }
 
     /**
-     * Sanitize a secret key by removing dangerous characters and normalizing format.
+     * Validate a secret key using strict whitelist validation.
+     * Only allows letters, digits, and underscores (standard .env format).
      *
-     * @param  string  $key  The raw key to sanitize
-     * @return string The sanitized key
+     * @param  string  $key  The raw key to validate
+     * @return string The validated key
+     * @throws \InvalidArgumentException If key contains invalid characters
      */
-    protected function sanitizeKey(string $key): string
+    protected function validateKey(string $key): string
     {
-        // 1. Trim whitespace
-        $sanitized = trim($key);
-
-        // 2. Remove null bytes and control characters
-        $sanitized = preg_replace('/[\x00-\x1F\x7F]/', '', $sanitized);
-
-        // 3. Replace spaces with underscores (common in env vars)
-        $sanitized = str_replace(' ', '_', $sanitized);
-
-        // 4. Collapse multiple underscores/dashes to single
-        $sanitized = preg_replace('/[_-]{2,}/', '_', $sanitized);
-
-        // 5. Remove leading/trailing underscores/dashes
-        $sanitized = trim($sanitized, '_-');
-
-        if (empty($sanitized)) {
+        $trimmed = trim($key);
+        
+        // Strict whitelist: Only allow letters, digits, and underscores
+        if (!preg_match('/^[A-Za-z0-9_]+$/', $trimmed)) {
             throw new \InvalidArgumentException(
-                "Secret key '{$key}' is invalid after sanitization (resulted in empty string)"
+                "Secret key '{$key}' contains invalid characters. " .
+                "Only letters, numbers, and underscores are allowed."
             );
         }
-
-        return $sanitized;
+        
+        // Length validation (reasonable limits for secret names)
+        if (strlen($trimmed) < 1 || strlen($trimmed) > 255) {
+            throw new \InvalidArgumentException(
+                "Secret key '{$key}' must be 1-255 characters long."
+            );
+        }
+        
+        // Cannot start with underscore (poor practice, could conflict with system vars)
+        if (str_starts_with($trimmed, '_')) {
+            throw new \InvalidArgumentException(
+                "Secret key '{$key}' cannot start with underscore."
+            );
+        }
+        
+        // Cannot start with digit (invalid variable name in most languages)
+        if (preg_match('/^[0-9]/', $trimmed)) {
+            throw new \InvalidArgumentException(
+                "Secret key '{$key}' cannot start with a number."
+            );
+        }
+        
+        return $trimmed;
     }
 
     public function key()

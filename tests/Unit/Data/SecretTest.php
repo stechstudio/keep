@@ -5,74 +5,114 @@ use STS\Keep\Vaults\AbstractVault;
 
 describe('Secret', function () {
 
-    describe('key sanitization', function () {
-        it('sanitizes keys correctly', function ($input, $expected) {
-            $secret = new Secret($input, 'value');
-            expect($secret->key())->toBe($expected);
+    describe('key validation', function () {
+        it('accepts valid keys', function ($key) {
+            $secret = new Secret($key, 'value');
+            expect($secret->key())->toBe($key);
         })->with([
-            'trims whitespace' => ['  DB_HOST  ', 'DB_HOST'],
-            'replaces spaces' => ['DB HOST', 'DB_HOST'],
-            'multiple spaces' => ['MY API KEY', 'MY_API_KEY'],
-            'collapses underscores' => ['DB___HOST', 'DB_HOST'],
-            'many underscores' => ['API____KEY', 'API_KEY'],
-            'removes leading underscore' => ['_DB_HOST', 'DB_HOST'],
-            'removes trailing underscore' => ['DB_HOST_', 'DB_HOST'],
-            'removes both' => ['_DB_HOST_', 'DB_HOST'],
-            'multiple leading/trailing' => ['___API_KEY___', 'API_KEY'],
+            'simple uppercase' => ['DB_HOST'],
+            'simple lowercase' => ['api_key'],
+            'mixed case' => ['MyAppKey'],
+            'with numbers' => ['API_KEY_V2'],
+            'numbers in middle' => ['APP_123_KEY'],
+            'multiple underscores' => ['LONG_SECRET_KEY_NAME'],
+            'ending with number' => ['DATABASE_PORT_3306'],
         ]);
 
-        it('removes control characters and null bytes', function () {
-            $secret = new Secret("DB_HOST\x00", 'localhost');
+        it('trims whitespace from valid keys', function () {
+            $secret = new Secret('  DB_HOST  ', 'value');
             expect($secret->key())->toBe('DB_HOST');
-
-            $secret2 = new Secret("API\x1FKEY", 'value');
-            expect($secret2->key())->toBe('APIKEY');
         });
 
-        it('handles complex sanitization', function () {
-            $secret = new Secret('  __DB   HOST__  ', 'localhost');
-            expect($secret->key())->toBe('DB_HOST');
-
-            $secret2 = new Secret(' MY -- API -- KEY ', 'value');
-            expect($secret2->key())->toBe('MY_API_KEY');
-        });
-
-        it('preserves valid special characters', function () {
-            $secret = new Secret('my-api-key', 'value');
-            expect($secret->key())->toBe('my-api-key');
-
-            $secret2 = new Secret('user.email', 'value');
-            expect($secret2->key())->toBe('user.email');
-
-            $secret3 = new Secret('app/config', 'value');
-            expect($secret3->key())->toBe('app/config');
-        });
-
-        it('throws exception for invalid keys', function ($key) {
+        it('rejects keys with spaces', function ($key) {
             expect(fn () => new Secret($key, 'value'))
-                ->toThrow(\InvalidArgumentException::class, "Secret key '$key' is invalid after sanitization");
+                ->toThrow(\InvalidArgumentException::class, "contains invalid characters");
+        })->with([
+            'single space' => ['DB HOST'],
+            'multiple spaces' => ['MY API KEY'],
+        ]);
+
+        it('rejects keys with hyphens', function ($key) {
+            expect(fn () => new Secret($key, 'value'))
+                ->toThrow(\InvalidArgumentException::class, "contains invalid characters");
+        })->with([
+            'single hyphen' => ['my-api-key'],
+            'multiple hyphens' => ['user-email-address'],
+            'hyphen and underscore' => ['app-config_key'],
+        ]);
+
+        it('rejects keys with special characters', function ($key) {
+            expect(fn () => new Secret($key, 'value'))
+                ->toThrow(\InvalidArgumentException::class, "contains invalid characters");
+        })->with([
+            'dot notation' => ['user.email'],
+            'slash separator' => ['app/config'],
+            'path traversal' => ['../secret'],
+            'control characters' => ["DB\x00HOST"],
+            'unicode' => ['APP_名前'],
+            'emoji' => ['API_🔑'],
+            'special symbols' => ['key@domain'],
+            'parentheses' => ['key(test)'],
+            'brackets' => ['key[0]'],
+            'braces' => ['key{test}'],
+            'percent' => ['key%value'],
+            'ampersand' => ['key&value'],
+            'asterisk' => ['key*value'],
+            'plus' => ['key+value'],
+            'equals' => ['key=value'],
+            'question' => ['key?value'],
+            'exclamation' => ['key!value'],
+            'colon' => ['key:value'],
+            'semicolon' => ['key;value'],
+            'comma' => ['key,value'],
+            'less than' => ['key<value'],
+            'greater than' => ['key>value'],
+            'pipe' => ['key|value'],
+            'backslash' => ['key\\value'],
+            'quotes' => ['key"value'],
+            'apostrophe' => ["key'value"],
+            'backtick' => ['key`value'],
+            'tilde' => ['key~value'],
+        ]);
+
+        it('rejects keys starting with underscore', function ($key) {
+            expect(fn () => new Secret($key, 'value'))
+                ->toThrow(\InvalidArgumentException::class, "cannot start with underscore");
+        })->with([
+            'single underscore' => ['_SECRET'],
+            'multiple underscores' => ['__PRIVATE'],
+            'underscore with valid chars' => ['_DB_HOST'],
+        ]);
+
+        it('rejects keys starting with numbers', function ($key) {
+            expect(fn () => new Secret($key, 'value'))
+                ->toThrow(\InvalidArgumentException::class, "cannot start with a number");
+        })->with([
+            'single digit' => ['1KEY'],
+            'multiple digits' => ['123_SECRET'],
+            'number with underscore' => ['1_API_KEY'],
+        ]);
+
+        it('rejects empty or too short keys', function ($key) {
+            expect(fn () => new Secret($key, 'value'))
+                ->toThrow(\InvalidArgumentException::class);
         })->with([
             'empty string' => [''],
             'only spaces' => ['   '],
-            'only underscores' => ['___'],
-            'only dashes' => ['---'],
-            'spaces and underscores' => ['  __  '],
+            'only tabs' => ["\t\t"],
+            'only newlines' => ["\n\n"],
         ]);
 
-        it('handles unicode characters', function () {
-            $secret = new Secret('APP_名前', 'value');
-            expect($secret->key())->toBe('APP_名前');
-
-            $secret2 = new Secret('مفتاح_API', 'value');
-            expect($secret2->key())->toBe('مفتاح_API');
+        it('rejects keys that are too long', function () {
+            $longKey = str_repeat('A', 256); // 256 characters
+            expect(fn () => new Secret($longKey, 'value'))
+                ->toThrow(\InvalidArgumentException::class, "must be 1-255 characters long");
         });
 
-        it('handles mixed case keys', function () {
-            $secret = new Secret('myApiKey', 'value');
-            expect($secret->key())->toBe('myApiKey');
-
-            $secret2 = new Secret('MyApp_Config', 'value');
-            expect($secret2->key())->toBe('MyApp_Config');
+        it('accepts maximum length keys', function () {
+            $maxKey = str_repeat('A', 255); // 255 characters
+            $secret = new Secret($maxKey, 'value');
+            expect($secret->key())->toBe($maxKey);
         });
     });
 
@@ -170,7 +210,7 @@ describe('Secret', function () {
     it('can filter array output with only()', function () {
         $secret = new Secret(
             key: 'APP_KEY',
-            value: 'base64:key',
+            value: 'base64_key',
             secure: true,
             stage: 'production',
             revision: 1
@@ -182,7 +222,7 @@ describe('Secret', function () {
         expect($filtered)->toHaveCount(2);
         expect($filtered)->toHaveKeys(['key', 'value']);
         expect($filtered['key'])->toBe('APP_KEY');
-        expect($filtered['value'])->toBe('base64:key');
+        expect($filtered['value'])->toBe('base64_key');
     });
 
     it('handles empty only() filter', function () {
@@ -220,8 +260,7 @@ describe('Secret', function () {
     });
 
     it('handles very long keys and values', function () {
-        $longKey = str_repeat('LONG_KEY_', 100);
-        $expectedKey = rtrim($longKey, '_'); // Sanitization removes trailing underscore
+        $longKey = str_repeat('LONG_KEY_', 28) . 'END'; // 255 characters (at 255 limit)
         $longValue = str_repeat('This is a very long value. ', 1000);
 
         $secret = new Secret(
@@ -229,9 +268,9 @@ describe('Secret', function () {
             value: $longValue
         );
 
-        expect($secret->key())->toBe($expectedKey);
+        expect($secret->key())->toBe($longKey);
         expect($secret->value())->toBe($longValue);
-        expect(strlen($secret->key()))->toBe(899); // One char less due to trailing _ removal
+        expect(strlen($secret->key()))->toBe(255);
         expect(strlen($secret->value()))->toBe(27000);
     });
 
@@ -267,19 +306,19 @@ describe('Secret', function () {
 
     it('handles revision number edge cases', function () {
         $secret1 = new Secret(
-            key: 'REV_TEST',
+            key: 'REV_TEST_0',
             value: 'test',
             revision: 0
         );
 
         $secret2 = new Secret(
-            key: 'REV_TEST',
+            key: 'REV_TEST_MAX',
             value: 'test',
             revision: 999999
         );
 
         $secret3 = new Secret(
-            key: 'REV_TEST',
+            key: 'REV_TEST_NULL',
             value: 'test',
             revision: null
         );
@@ -331,9 +370,9 @@ describe('Secret', function () {
             $testCases = [
                 'abcdefghi' => 'abcd*****',
                 'localhost' => 'loca*****',
-                'secret-api-key' => 'secr**********',
-                'smtp.example.com' => 'smtp************',
-                'very-long-password-value' => 'very********************',
+                'secret_api_key' => 'secr**********',
+                'smtp_example_com' => 'smtp************',
+                'very_long_password_value' => 'very********************',
             ];
 
             foreach ($testCases as $value => $expected) {
@@ -352,7 +391,7 @@ describe('Secret', function () {
         });
 
         it('handles unicode characters in masking', function () {
-            $value = 'Hello 世界 🚀 مرحبا';
+            $value = 'Hello_world_test_unicode';
             $secret = new Secret(
                 key: 'UNICODE_VALUE',
                 value: $value
