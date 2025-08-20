@@ -3,7 +3,6 @@
 namespace STS\Keep\Commands\Concerns;
 
 use STS\Keep\Data\Context;
-use STS\Keep\Facades\Keep;
 
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
@@ -61,8 +60,8 @@ trait GathersInput
     {
         return $this->{$cacheName} ??= match (true) {
             $this->hasOption('vault') && (bool) $this->option('vault') => $this->option('vault'),
-            count(Keep::available()) === 1 => Keep::getDefaultVault(),
-            default => select($prompt, Keep::available(), Keep::getDefaultVault()),
+            count($this->manager->getConfiguredVaults()) === 1 => $this->manager->getDefaultVault(),
+            default => select($prompt, $this->manager->getConfiguredVaults(), $this->manager->getDefaultVault()),
         };
     }
 
@@ -70,8 +69,8 @@ trait GathersInput
     {
         return $this->{$cacheName} ??= match (true) {
             $this->hasOption('stage') && (bool) $this->option('stage') => $this->option('stage'),
-            count(Keep::stages()) === 1 => Keep::stages()[0],
-            default => select($prompt, Keep::stages(), Keep::stage()),
+            count($this->manager->getStages()) === 1 => $this->manager->getStages()[0],
+            default => select($prompt, $this->manager->getStages()),
         };
     }
 
@@ -101,7 +100,7 @@ trait GathersInput
         };
     }
 
-    protected function context(?string $vaultPrompt = null, ?string $stagePrompt = null): Context
+    protected function context(string $vaultPrompt = "Vault", string $stagePrompt = "Stage"): Context
     {
         // If --context option is provided, use it
         if ($this->hasOption('context') && $this->option('context')) {

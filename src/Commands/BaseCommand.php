@@ -25,6 +25,8 @@ abstract class BaseCommand extends Command
     
     public function handle(): int
     {
+        $this->manager = $this->getApplication()->getManager();
+
         // Check if Keep is initialized (unless this command doesn't require it)
         if ($this->requiresInitialization() && !$this->manager->isInitialized()) {
             error('Keep is not initialized in this directory.');
