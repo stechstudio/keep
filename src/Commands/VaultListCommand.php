@@ -7,11 +7,8 @@ use function Laravel\Prompts\info;
 
 class VaultListCommand extends BaseCommand
 {
-    protected function configure(): void
-    {
-        $this->setName('vault:list')
-             ->setDescription('List all configured vaults');
-    }
+    protected $signature = 'vault:list';
+    protected $description = 'List all configured vaults';
     
     protected function process(): int
     {

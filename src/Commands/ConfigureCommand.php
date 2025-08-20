@@ -10,15 +10,12 @@ use function Laravel\Prompts\note;
 
 class ConfigureCommand extends BaseCommand
 {
+    protected $signature = 'configure';
+    protected $description = 'Configure Keep settings for your project';
+    
     protected function requiresInitialization(): bool
     {
         return false; // configure command should work whether initialized or not
-    }
-    
-    protected function configure(): void
-    {
-        $this->setName('configure')
-             ->setDescription('Configure Keep settings for your project');
     }
     
     protected function process(): int

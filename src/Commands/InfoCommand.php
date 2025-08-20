@@ -8,11 +8,8 @@ use function Laravel\Prompts\table;
 
 class InfoCommand extends BaseCommand
 {
-    protected function configure(): void
-    {
-        $this->setName('info')
-             ->setDescription('Show Keep information and status');
-    }
+    protected $signature = 'info';
+    protected $description = 'Show Keep information and status';
     
     protected function process(): int
     {
