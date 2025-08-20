@@ -86,14 +86,10 @@ class SecretHistory implements Arrayable
         return $this->secure;
     }
 
-    public function formattedDate(?string $timezone = null): ?string
+    public function formattedDate(): ?string
     {
         if (! $this->lastModifiedDate) {
             return null;
-        }
-
-        if ($timezone) {
-            return $this->lastModifiedDate->setTimezone($timezone)->format('Y-m-d H:i:s T');
         }
 
         return $this->lastModifiedDate->format('Y-m-d H:i:s T');

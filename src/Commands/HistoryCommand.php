@@ -10,9 +10,9 @@ use STS\Keep\Data\Collections\SecretHistoryCollection;
 
 use function Laravel\Prompts\table;
 
-class HistoryCommand extends AbstractCommand
+class HistoryCommand extends BaseCommand
 {
-    public $signature = 'keep:history 
+    public $signature = 'history 
         {--limit=10 : Maximum number of history entries to return} 
         {--format=table : table|json}
         {--user= : Filter by user who modified the secret (partial match)}
@@ -26,7 +26,7 @@ class HistoryCommand extends AbstractCommand
 
     public $description = 'Display change history for a secret';
 
-    public function process(): int
+    public function process()
     {
         $key = $this->key();
         $limit = (int) $this->option('limit');
@@ -66,22 +66,18 @@ class HistoryCommand extends AbstractCommand
 
             return self::FAILURE;
         }
-
-        return self::SUCCESS;
     }
 
     protected function displayTable(SecretHistoryCollection $historyCollection, string $key): bool
     {
-        $timezone = config('keep.display_timezone', config('app.timezone', 'UTC'));
-
         $this->line("History for secret: <info>{$key}</info>");
 
-        $rows = $historyCollection->map(function (SecretHistory $history) use ($timezone, $historyCollection) {
+        $rows = $historyCollection->map(function (SecretHistory $history) use ($historyCollection) {
             return [
                 'Version'       => $history->version(),
                 'Value'         => $history->value() ?? '<null>',
                 'Type'          => $history->dataType(),
-                'Modified Date' => $history->formattedDate($timezone),
+                'Modified Date' => $history->formattedDate(),
                 'Modified By'   => $history->lastModifiedUser() ?? '<unknown>',
             ];
         })->toArray();

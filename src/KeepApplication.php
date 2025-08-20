@@ -44,8 +44,12 @@ class KeepApplication extends Application
 
         $this->add((new Commands\GetCommand()));
         $this->add((new Commands\SetCommand()));
-        $this->add((new Commands\ListCommand()));
         $this->add((new Commands\CopyCommand()));
+        $this->add((new Commands\DeleteCommand()));
+        $this->add((new Commands\HistoryCommand()));
+
+        $this->add((new Commands\ListCommand()));
+        $this->add((new Commands\ExportCommand()));
 
         $this->add((new Commands\DiffCommand()));
 

@@ -32,19 +32,25 @@ class DiffCommand extends BaseCommand
         }
 
         if (empty($vaults)) {
-            return $this->error('No vaults available for comparison.');
+            $this->error('No vaults available for comparison.');
+            return self::FAILURE;
         }
 
         if (empty($stages)) {
-            return $this->error('No stages available for comparison.');
+            $this->error('No stages available for comparison.');
+            return self::FAILURE;
         }
 
         $diffService = new DiffService;
         $diffs = spin(fn () => $diffService->compare($vaults, $stages), 'Gathering secrets for comparison...');
 
-        return $diffs->isNotEmpty()
-            ? $this->displayTable($diffs, $vaults, $stages, $diffService)
-            : $this->info('No secrets found in any of the specified vault/stage combinations.');
+        if ($diffs->isNotEmpty()) {
+            $this->displayTable($diffs, $vaults, $stages, $diffService);
+            return self::SUCCESS;
+        } else {
+            $this->info('No secrets found in any of the specified vault/stage combinations.');
+            return self::SUCCESS;
+        }
     }
 
     protected function getVaultsToCompare(): array
@@ -87,14 +93,14 @@ class DiffCommand extends BaseCommand
         return Keep::getStages();
     }
 
-    protected function displayTable(Collection $diffs, array $vaults, array $stages, DiffService $diffService): bool
+    protected function displayTable(Collection $diffs, array $vaults, array $stages, DiffService $diffService): void
     {
         $this->newLine();
         $this->info('Secret Comparison Matrix');
 
         // Build column headers
         $headers = ['Key'];
-        $vaultEnvCombinations = [];
+        $vaultStageCombinations = [];
 
         foreach ($vaults as $vault) {
             foreach ($stages as $stage) {
@@ -124,8 +130,6 @@ class DiffCommand extends BaseCommand
         table($headers, $rows);
 
         $this->displaySummary($diffs, $vaults, $stages, $diffService);
-
-        return true;
     }
 
     protected function displaySummary(Collection $diffs, array $vaults, array $stages, DiffService $diffService): void
