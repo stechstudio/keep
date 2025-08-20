@@ -27,7 +27,7 @@ class MergeCommand extends BaseCommand
 
     protected Template $overlayTemplate;
 
-    public function process(): int
+    public function process()
     {
         if (! $this->prepareTemplateContents()) {
             return self::FAILURE;
@@ -117,7 +117,7 @@ class MergeCommand extends BaseCommand
         $allSecrets = new SecretCollection();
         
         foreach ($vaultNames as $vaultSlug) {
-            $vault = Keep::vault($vaultSlug)->forStage($context->stage);
+            $vault = Keep::vault($vaultSlug, $context->stage);
             $vaultSecrets = $vault->list();
             $allSecrets = $allSecrets->merge($vaultSecrets);
         }

@@ -25,9 +25,7 @@ class ImportCommand extends BaseCommand
     public function process()
     {
         if ($this->option('overwrite') && $this->option('skip-existing')) {
-            $this->error('You cannot use --overwrite and --skip-existing together.');
-
-            return self::FAILURE;
+            return $this->error('You cannot use --overwrite and --skip-existing together.');
         }
 
         $envFilePath = $this->argument('from') ?? text('Path to .env file', required: true);
