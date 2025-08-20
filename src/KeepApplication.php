@@ -2,12 +2,14 @@
 
 namespace STS\Keep;
 
+use Illuminate\Support\Arr;
 use STS\Keep\Enums\KeepInstall;
 use Illuminate\Console\Application;
 use STS\Keep\KeepContainer;
 use Illuminate\Events\Dispatcher;
 use STS\Keep\Commands\InfoCommand;
 use STS\Keep\Commands\DemoCommand;
+use Symfony\Component\Console\Input\InputDefinition;
 
 class KeepApplication extends Application
 {
@@ -95,5 +97,13 @@ class KeepApplication extends Application
         }
         
         return $vaults;
+    }
+
+    #[\Override]
+    protected function getDefaultInputDefinition(): InputDefinition
+    {
+        return tap(parent::getDefaultInputDefinition(), function ($definitions) {
+            $definitions->setOptions(Arr::except($definitions->getOptions(), ['env']));
+        });
     }
 }
