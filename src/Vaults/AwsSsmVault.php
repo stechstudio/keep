@@ -16,10 +16,12 @@ use STS\Keep\Exceptions\AccessDeniedException;
 use STS\Keep\Exceptions\ExceptionFactory;
 use STS\Keep\Exceptions\KeepException;
 use STS\Keep\Exceptions\SecretNotFoundException;
-use STS\Keep\Facades\Keep;
 
 class AwsSsmVault extends AbstractVault
 {
+    public const string DRIVER = 'ssm';
+    public const string NAME = 'AWS Systems Manager Parameter Store';
+
     protected SsmClient $client;
 
     public function format(?string $key = null): string
@@ -30,7 +32,7 @@ class AwsSsmVault extends AbstractVault
 
         return Str::of($this->config['prefix'] ?? '')
             ->start('/')->finish('/')
-            ->append(Keep::namespace().'/')
+            ->append('app/') // TODO: Get from configuration
             ->append($this->stage.'/')
             ->append($key)
             ->rtrim('/')

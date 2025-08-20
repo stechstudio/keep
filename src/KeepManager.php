@@ -10,101 +10,38 @@ use STS\Keep\Vaults\AwsSsmVault;
 
 class KeepManager
 {
-    protected array $vaults = [];
+    protected array $availableVaults = [
+        AwsSsmVault::class,
+        AwsSecretsManagerVault::class,
+    ];
 
-    protected array $customCreators = [];
+    protected array $loadedVaults = [];
 
-    protected $stageResolver;
-
-    public function resolveStageUsing(callable $resolver): static
+    public function __construct(protected array $settings, protected array $configuredVaults)
     {
-        $this->stageResolver = $resolver;
 
-        return $this;
     }
-
-    public function getDefaultVault()
+    
+    public function isInitialized(): bool
     {
-        return config('keep.default');
+        return !empty($this->settings) && 
+               isset($this->settings['app_name']) && 
+               !empty($this->configuredVaults);
     }
-
-    public function available(): array
+    
+    public function getSettings(): array
     {
-        return config('keep.available');
+        return $this->settings;
     }
-
-    public function stages(): array
+    
+    public function getSetting(string $key, mixed $default = null): mixed
     {
-        return config('keep.stages');
+        return $this->settings[$key] ?? $default;
     }
-
-    public function stage($name = null): string|bool
+    
+    public function getConfiguredVaults(): array
     {
-        if ($name) {
-            return $name === $this->stage();
-        }
-
-        if (is_callable($this->stageResolver)) {
-            return call_user_func($this->stageResolver);
-        }
-
-        $stage = config('keep.stage') ?? app()->environment();
-
-        return in_array($stage, $this->stages())
-            ? $stage
-            : throw new InvalidArgumentException("Stage [{$stage}] is not supported by Keep.");
-    }
-
-    public function namespace(): string
-    {
-        return Str::slug(config('keep.namespace'));
-    }
-
-    public function vault($name = null): AbstractVault
-    {
-        $name = $name ?: $this->getDefaultVault();
-
-        return $this->vaults[$name] ??= $this->resolve($name);
-    }
-
-    protected function resolve($name, $config = null): AbstractVault
-    {
-        $config ??= config("keep.vaults.$name", []);
-
-        if (empty($config['driver'])) {
-            throw new InvalidArgumentException("Vault [{$name}] does not have a configured driver.");
-        }
-
-        $driver = $config['driver'];
-
-        if (isset($this->customCreators[$driver])) {
-            return $this->customCreators[$driver]($name, $config);
-        }
-
-        $driverMethod = 'create'.Str::pascal($driver).'Driver';
-
-        if (! method_exists($this, $driverMethod)) {
-            throw new InvalidArgumentException("Driver [{$driver}] is not supported.");
-        }
-
-        return $this->{$driverMethod}($name, $config);
-    }
-
-    public function extend(string $driver, callable $creator): static
-    {
-        $this->customCreators[$driver] = $creator;
-
-        return $this;
-    }
-
-    public function createSsmDriver(string $name, array $config): AwsSsmVault
-    {
-        return new AwsSsmVault($name, $config);
-    }
-
-    public function createSecretsmanagerDriver(string $name, array $config): AwsSecretsManagerVault
-    {
-        return new AwsSecretsManagerVault($name, $config);
+        return $this->configuredVaults;
     }
 
     /**
@@ -112,7 +49,7 @@ class KeepManager
      */
     public function clearVaultCache(): static
     {
-        $this->vaults = [];
+        $this->loadedVaults = [];
         return $this;
     }
 }

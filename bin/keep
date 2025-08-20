@@ -1,0 +1,21 @@
+#!/usr/bin/env php
+<?php
+
+// Handle global vs local installation
+if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    $install = 'local';
+    require_once __DIR__ . '/../vendor/autoload.php';
+} elseif (file_exists(__DIR__ . '/../../../autoload.php')) {
+    $install = 'global';
+    require_once __DIR__ . '/../../../autoload.php';
+} else {
+    echo "Composer autoloader not found. Please run 'composer install'.\n";
+    exit(1);
+}
+
+use STS\Keep\KeepApplication;
+use STS\Keep\Enums\KeepInstall;
+
+// Create and run the application
+$app = new KeepApplication(KeepInstall::from($install));
+exit($app->run());

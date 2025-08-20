@@ -4,3 +4,4 @@ vendor/
 .env*
 *_PLAN.md
 .claude
+.keep

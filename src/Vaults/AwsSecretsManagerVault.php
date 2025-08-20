@@ -19,6 +19,9 @@ use STS\Keep\Facades\Keep;
 
 class AwsSecretsManagerVault extends AbstractVault
 {
+    public const string DRIVER = 'secretsmanager';
+    public const string NAME = 'AWS Secrets Manager';
+
     protected SecretsManagerClient $client;
 
     public function format(?string $key = null): string
@@ -29,7 +32,7 @@ class AwsSecretsManagerVault extends AbstractVault
 
         return Str::of($this->config['prefix'] ?? '')
             ->append('/')
-            ->append(Keep::namespace())
+            ->append('app') // TODO: Get from configuration
             ->append('/')
             ->append($this->stage)
             ->append('/')

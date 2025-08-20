@@ -2,98 +2,47 @@
 
 namespace STS\Keep\Commands;
 
-use STS\Keep\Facades\Keep;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
-use function Laravel\Prompts\table;
-
-class InfoCommand extends AbstractCommand
+class InfoCommand extends Command
 {
-    public $signature = 'keep:info {--format=table : table|json}';
-
-    public $description = 'Display Keep configuration and status information';
-
-    public function process(): int
+    protected function configure(): void
     {
-        $info = $this->gatherInfo();
-
-        return match ($this->option('format')) {
-            'table' => $this->displayTable($info) ?: self::SUCCESS,
-            'json' => $this->line(json_encode($info, JSON_PRETTY_PRINT)) ?: self::SUCCESS,
-            default => $this->error('Invalid format option. Supported formats are: table, json.') ?: self::FAILURE,
-        };
+        $this->setName('info')
+             ->setDescription('Show Keep information and status');
     }
-
-    protected function gatherInfo(): array
+    
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        return [
-            'namespace' => Keep::namespace(),
-            'stage' => Keep::stage(),
-            'default_vault' => Keep::getDefaultVault(),
-            'available_vaults' => Keep::available(),
-            'configured_stages' => Keep::stages(),
-            'vault_configurations' => $this->getVaultConfigurations(),
-        ];
-    }
-
-    protected function getVaultConfigurations(): array
-    {
-        $configurations = [];
-
-        foreach (Keep::available() as $vaultName) {
-            $config = config("keep.vaults.$vaultName", []);
-            $configurations[$vaultName] = [
-                'driver' => $config['driver'] ?? 'Unknown',
-                'region' => $config['region'] ?? null,
-                'prefix' => $config['prefix'] ?? null,
-            ];
+        $io = new SymfonyStyle($input, $output);
+        
+        $io->title('Keep Secret Management Tool');
+        
+        $io->definitionList(
+            ['Version' => $this->getApplication()->getVersion()],
+            ['Working Directory' => getcwd()],
+            ['PHP Version' => PHP_VERSION],
+            ['Binary Path' => $_SERVER['argv'][0] ?? 'unknown']
+        );
+        
+        // Check if we're in a Laravel project
+        if (file_exists(getcwd() . '/artisan')) {
+            $io->success('Laravel project detected');
+        } else {
+            $io->note('No Laravel project detected');
         }
-
-        return $configurations;
-    }
-
-    protected function displayTable(array $info): void
-    {
-        $this->newLine();
-        $this->info('Keep Configuration');
-        $this->newLine();
-
-        // Basic configuration
-        table(['Setting', 'Value'], [
-            ['Namespace', $info['namespace']],
-            ['Current Stage', $info['stage']],
-            ['Default Vault', $info['default_vault']],
-        ]);
-
-        $this->newLine();
-
-        // Available stages
-        $this->info('Configured Stages');
-        table(['Stage'], array_map(fn ($stage) => [$stage], $info['configured_stages']));
-
-        $this->newLine();
-
-        // Vault configurations
-        $this->info('Vault Configurations');
-        $vaultRows = [];
-        foreach ($info['vault_configurations'] as $name => $config) {
-            $details = [];
-            if ($config['driver']) {
-                $details[] = "driver: {$config['driver']}";
-            }
-            if ($config['region']) {
-                $details[] = "region: {$config['region']}";
-            }
-            if ($config['prefix']) {
-                $details[] = "prefix: {$config['prefix']}";
-            }
-
-            $vaultRows[] = [
-                $name,
-                $config['driver'],
-                implode(', ', array_filter([$config['region'], $config['prefix']])),
-            ];
+        
+        // Check for .keep directory
+        if (is_dir(getcwd() . '/.keep')) {
+            $io->success('.keep configuration directory found');
+        } else {
+            $io->warning('.keep configuration directory not found');
+            $io->text('Run "keep configure" to set up vault configuration');
         }
-
-        table(['Vault', 'Driver', 'Configuration'], $vaultRows);
+        
+        return Command::SUCCESS;
     }
 }
