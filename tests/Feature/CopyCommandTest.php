@@ -12,7 +12,7 @@ describe('CopyCommand', function () {
         $settings = [
             'app_name' => 'test-app',
             'namespace' => 'test-app',
-            'default_vault' => 'ssm',
+            'default_vault' => 'test',
             'stages' => ['testing', 'production'],
             'created_at' => date('c'),
             'version' => '1.0'
@@ -20,15 +20,14 @@ describe('CopyCommand', function () {
         
         file_put_contents('.keep/settings.json', json_encode($settings, JSON_PRETTY_PRINT));
         
-        // Create SSM vault configuration for testing
+        // Create test vault configuration for testing (never hits AWS)
         $vaultConfig = [
-            'driver' => 'ssm',
-            'name' => 'Test SSM Vault',
-            'region' => 'us-east-1',
-            'prefix' => 'test'
+            'driver' => 'test',
+            'name' => 'Test Vault',
+            'namespace' => 'test-app'
         ];
         
-        file_put_contents('.keep/vaults/ssm.json', json_encode($vaultConfig, JSON_PRETTY_PRINT));
+        file_put_contents('.keep/vaults/test.json', json_encode($vaultConfig, JSON_PRETTY_PRINT));
     });
 
     describe('command structure and signature', function () {

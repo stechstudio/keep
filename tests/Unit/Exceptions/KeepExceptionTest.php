@@ -49,7 +49,7 @@ describe('KeepException', function () {
                 key: 'DB_PASSWORD',
                 path: '/app/production/DB_PASSWORD',
                 lineNumber: 15,
-                suggestion: "Check if this secret exists using 'php artisan keeper:list'"
+                suggestion: "Check if this secret exists using 'keep list'"
             );
 
         $exception->renderConsole($outputCallback);

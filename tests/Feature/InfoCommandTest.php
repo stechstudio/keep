@@ -98,7 +98,7 @@ it('shows configured vaults when they exist', function () {
     
     // Create a test vault
     $vaultConfig = [
-        'driver' => 'ssm',
+        'driver' => 'test',
         'name' => 'Test Vault',
         'region' => 'us-east-1'
     ];
@@ -113,7 +113,7 @@ it('shows configured vaults when they exist', function () {
     expect($output)->toContain('Configured Vaults');
     expect($output)->toContain('test-vault (default)');
     expect($output)->toContain('Test Vault');
-    expect($output)->toContain('ssm');
+    expect($output)->toContain('test');
     
     cleanupTempDir($tempDir);
 });

@@ -3,6 +3,7 @@
 use Symfony\Component\Console\Tester\CommandTester;
 use STS\Keep\KeepApplication;
 use STS\Keep\Enums\KeepInstall;
+use STS\Keep\Tests\Support\TestVault;
 
 uses()->in('Feature');
 uses()->in('Unit');
@@ -24,6 +25,13 @@ function createKeepApp(): KeepApplication
 function runCommand(string $commandName, array $input = []): CommandTester
 {
     $app = createKeepApp();
+    
+    // Register TestVault driver for testing to avoid hitting real AWS services
+    $app->getManager()->addVaultDriver(TestVault::class);
+    
+    // Clear test vault storage before each command
+    TestVault::clearAll();
+    
     $command = $app->find($commandName);
     $commandTester = new CommandTester($command);
     
@@ -65,4 +73,44 @@ function cleanupTempDir(string $tempDir): void
 function stripAnsi(string $text): string
 {
     return preg_replace('/\x1b\[[0-9;]*m/', '', $text);
+}
+
+/**
+ * Helper to set up KeepManager for unit tests
+ */
+function setupKeepManager(array $settings = [], array $vaults = []): \STS\Keep\KeepManager
+{
+    // Default test settings
+    $defaultSettings = [
+        'app_name' => 'test-app',
+        'namespace' => 'test-app',
+        'default_vault' => 'test',
+        'stages' => ['testing', 'production'],
+    ];
+    
+    // Default test vault
+    $defaultVaults = [
+        'test' => [
+            'driver' => 'test',
+            'name' => 'Test Vault',
+            'namespace' => 'test-app',
+        ]
+    ];
+    
+    $settings = array_merge($defaultSettings, $settings);
+    $vaults = array_merge($defaultVaults, $vaults);
+    
+    // Create KeepManager
+    $manager = new \STS\Keep\KeepManager($settings, $vaults);
+    
+    // Register TestVault driver
+    $manager->addVaultDriver(TestVault::class);
+    
+    // Clear any existing TestVault storage
+    TestVault::clearAll();
+    
+    // Bind to container
+    \STS\Keep\KeepContainer::getInstance()->singleton(\STS\Keep\KeepManager::class, fn() => $manager);
+    
+    return $manager;
 }

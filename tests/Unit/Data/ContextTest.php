@@ -1,6 +1,13 @@
 <?php
 
 use STS\Keep\Data\Context;
+use STS\Keep\Facades\Keep;
+use STS\Keep\KeepContainer;
+
+beforeEach(function () {
+    // Set up KeepManager for unit tests
+    setupKeepManager();
+});
 
 describe('Context', function () {
     describe('fromInput parsing', function () {
@@ -12,7 +19,7 @@ describe('Context', function () {
         });
 
         it('uses default vault when no prefix provided', function () {
-            config()->set('keep.default', 'test-vault');
+            Keep::setSetting('default_vault', 'test-vault');
             
             $context = Context::fromInput('development');
             
@@ -78,7 +85,7 @@ describe('Context', function () {
 
     describe('real-world usage patterns', function () {
         it('handles typical single-vault scenarios', function () {
-            config()->set('keep.default', 'main-vault');
+            Keep::setSetting('default_vault', 'main-vault');
             
             // Most common: stage only
             $context = Context::fromInput('production');

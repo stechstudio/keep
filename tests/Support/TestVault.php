@@ -14,6 +14,7 @@ use STS\Keep\Vaults\AbstractVault;
 
 class TestVault extends AbstractVault
 {
+    public const string DRIVER = 'test';
     /**
      * Vault and stage-aware storage structure:
      * [
