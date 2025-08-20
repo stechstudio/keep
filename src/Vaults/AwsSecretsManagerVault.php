@@ -193,6 +193,7 @@ class AwsSecretsManagerVault extends AbstractVault
                     'Name' => $secretName,
                     'SecretString' => $value,
                     'Description' => "Keep secret: {$key} for stage {$this->stage}",
+                    'KmsKeyId' => $this->config['key'] ?? null,
                 ]);
             }
 

@@ -144,6 +144,7 @@ class AwsSsmVault extends AbstractVault
                 'Value' => $value,
                 'Type' => $secure ? 'SecureString' : 'String',
                 'Overwrite' => true,
+                'KeyId' => $this->config['key'] ?? null,
             ]);
 
             return $this->get($key);

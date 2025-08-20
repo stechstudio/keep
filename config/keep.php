@@ -11,7 +11,7 @@ return [
     | If not defined, the APP_NAME will be used.
     |
     */
-    'namespace' => env('KEEP_NAMESPACE', env('APP_NAME', 'keep')),
+    'namespace'       => env('KEEP_NAMESPACE', env('APP_NAME', 'keep')),
 
     /*
     |--------------------------------------------------------------------------
@@ -23,7 +23,7 @@ return [
     | use a stage name that differs from your application environment.
     |
     */
-    'stage' => env('KEEP_STAGE'),
+    'stage'           => env('KEEP_STAGE'),
 
     /*
     |--------------------------------------------------------------------------
@@ -41,7 +41,7 @@ return [
     | policies restrict access to only the stages needed.
     |
     */
-    'stages' => explode(',', env('KEEP_STAGES', 'local,staging,production')),
+    'stages'          => explode(',', env('KEEP_STAGES', 'local,staging,production')),
 
     /*
     |--------------------------------------------------------------------------
@@ -52,7 +52,7 @@ return [
     | and generating env files.
     |
     */
-    'template' => env('KEEP_TEMPLATE', base_path('.env.template')),
+    'template'        => env('KEEP_TEMPLATE', base_path('.env.template')),
 
     /*
     |--------------------------------------------------------------------------
@@ -75,7 +75,7 @@ return [
     | This set the default vault used for secrets.
     |
     */
-    'default' => env('KEEP_VAULT', 'ssm'),
+    'default'         => env('KEEP_VAULT', 'ssm'),
 
     /*
     |--------------------------------------------------------------------------
@@ -87,7 +87,7 @@ return [
     | vault. Otherwise, the default vault will be the only available one.
     |
     */
-    'available' => explode(',', env('KEEP_AVAILABLE_VAULTS', env('KEEP_VAULT', 'ssm'))),
+    'available'       => explode(',', env('KEEP_AVAILABLE_VAULTS', env('KEEP_VAULT', 'ssm'))),
 
     /*
     |--------------------------------------------------------------------------
@@ -99,14 +99,16 @@ return [
     | using the same driver with different settings.
     |
     */
-    'vaults' => [
-        'ssm' => [
+    'vaults'          => [
+        'ssm'            => [
             'driver' => 'ssm',
+            'key'    => env('KEEP_SSM_KMS_KEY'),
             'prefix' => env('KEEP_SSM_PREFIX'),
             'region' => env('KEEP_SSM_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
         ],
         'secretsmanager' => [
             'driver' => 'secretsmanager',
+            'key'    => env('KEEP_SECRETSMANAGER_KMS_KEY'),
             'region' => env('KEEP_SECRETSMANAGER_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
             'prefix' => env('KEEP_SECRETSMANAGER_PREFIX'),
         ],
