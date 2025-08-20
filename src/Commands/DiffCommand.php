@@ -11,9 +11,9 @@ use STS\Keep\Services\DiffService;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\table;
 
-class DiffCommand extends AbstractCommand
+class DiffCommand extends BaseCommand
 {
-    public $signature = 'keep:diff 
+    public $signature = 'diff 
         {--context= : Comma-separated list of contexts to compare (e.g., "vault1:stage1,vault2:stage2")}
         {--stage= : Comma-separated list of stages to compare (defaults to all configured stages)}
         {--vault= : Comma-separated list of vaults to compare (defaults to current/default vault)}'
@@ -21,7 +21,7 @@ class DiffCommand extends AbstractCommand
 
     public $description = 'Compare secrets across multiple stages and vaults in a matrix view';
 
-    public function process(): int
+    public function process()
     {
         // If --context is provided, use it to get vaults and stages
         if ($this->option('context')) {
@@ -32,29 +32,19 @@ class DiffCommand extends AbstractCommand
         }
 
         if (empty($vaults)) {
-            $this->error('No vaults available for comparison.');
-
-            return self::FAILURE;
+            return $this->error('No vaults available for comparison.');
         }
 
         if (empty($stages)) {
-            $this->error('No stages available for comparison.');
-
-            return self::FAILURE;
+            return $this->error('No stages available for comparison.');
         }
 
         $diffService = new DiffService;
         $diffs = spin(fn () => $diffService->compare($vaults, $stages), 'Gathering secrets for comparison...');
 
-        if ($diffs->isEmpty()) {
-            $this->info('No secrets found in any of the specified vault/stage combinations.');
-
-            return self::SUCCESS;
-        }
-
-        $this->displayTable($diffs, $vaults, $stages, $diffService);
-
-        return self::SUCCESS;
+        return $diffs->isNotEmpty()
+            ? $this->displayTable($diffs, $vaults, $stages, $diffService)
+            : $this->info('No secrets found in any of the specified vault/stage combinations.');
     }
 
     protected function getVaultsToCompare(): array
@@ -64,12 +54,12 @@ class DiffCommand extends AbstractCommand
         if ($vaultOption) {
             $requestedVaults = array_map('trim', explode(',', $vaultOption));
 
-            $invalidVaults = array_diff($requestedVaults, Keep::available());
+            $invalidVaults = array_diff($requestedVaults, Keep::getConfiguredVaults());
             if (! empty($invalidVaults)) {
                 $this->warn('Warning: Unknown vaults specified: '.implode(', ', $invalidVaults));
             }
 
-            return array_intersect($requestedVaults, Keep::available());
+            return array_intersect($requestedVaults, Keep::getConfiguredVaults());
         }
 
         // Default to current/default vault only
@@ -83,7 +73,7 @@ class DiffCommand extends AbstractCommand
         if ($stagesOption) {
             // Parse comma-separated stages and validate them
             $requestedStages = array_map('trim', explode(',', $stagesOption));
-            $availableStages = Keep::stages();
+            $availableStages = Keep::getStages();
 
             $invalidStages = array_diff($requestedStages, $availableStages);
             if (! empty($invalidStages)) {
@@ -94,7 +84,7 @@ class DiffCommand extends AbstractCommand
         }
 
         // Default to all configured stages
-        return Keep::stages();
+        return Keep::getStages();
     }
 
     protected function displayTable(Collection $diffs, array $vaults, array $stages, DiffService $diffService): bool
@@ -169,17 +159,17 @@ class DiffCommand extends AbstractCommand
         $stages = $contexts->pluck('stage')->unique()->values()->toArray();
         
         // Validate vaults exist
-        $invalidVaults = array_diff($vaults, Keep::available());
+        $invalidVaults = array_diff($vaults, Keep::getConfiguredVaults());
         if (!empty($invalidVaults)) {
             $this->warn('Warning: Unknown vaults specified: ' . implode(', ', $invalidVaults));
-            $vaults = array_intersect($vaults, Keep::available());
+            $vaults = array_intersect($vaults, Keep::getConfiguredVaults());
         }
         
         // Validate stages exist
-        $invalidStages = array_diff($stages, Keep::stages());
+        $invalidStages = array_diff($stages, Keep::getStages());
         if (!empty($invalidStages)) {
             $this->warn('Warning: Unknown stages specified: ' . implode(', ', $invalidStages));
-            $stages = array_intersect($stages, Keep::stages());
+            $stages = array_intersect($stages, Keep::getStages());
         }
         
         return [$vaults, $stages];

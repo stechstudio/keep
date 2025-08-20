@@ -55,7 +55,7 @@ class DiffService
                 $vaultStageKey = "{$vaultName}.{$stage}";
 
                 try {
-                    $allSecrets[$vaultStageKey] = Keep::vault($vaultName)->forStage($stage)->list();
+                    $allSecrets[$vaultStageKey] = Keep::vault($vaultName, $stage)->list();
                 } catch (\Exception $e) {
                     // If we can't access a vault/stage combination, treat it as empty
                     $allSecrets[$vaultStageKey] = new SecretCollection([]);
