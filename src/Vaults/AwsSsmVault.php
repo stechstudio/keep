@@ -5,6 +5,7 @@ namespace STS\Keep\Vaults;
 use Aws\Ssm\Exception\SsmException;
 use Aws\Ssm\SsmClient;
 use Carbon\Carbon;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Laravel\Prompts\TextPrompt;
@@ -164,13 +165,13 @@ class AwsSsmVault extends AbstractVault
     public function set(string $key, string $value, bool $secure = true): Secret
     {
         try {
-            $this->client()->putParameter([
+            $this->client()->putParameter(Arr::whereNotNull([
                 'Name' => $this->format($key),
                 'Value' => $value,
                 'Type' => $secure ? 'SecureString' : 'String',
                 'Overwrite' => true,
                 'KeyId' => $this->config['key'] ?? null,
-            ]);
+            ]));
 
             return $this->get($key);
         } catch (SsmException $e) {

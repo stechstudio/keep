@@ -1,5 +1,5 @@
 {
-    "name": "stechstudio/keep",
+    "name": "stechstudio/laravel-keep",
     "description": "Standalone secret management tool for any PHP project with support for AWS SSM, Secrets Manager, and more.",
     "keywords": [
         "secrets",

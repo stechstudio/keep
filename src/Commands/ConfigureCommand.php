@@ -18,7 +18,7 @@ class ConfigureCommand extends BaseCommand
         return false; // configure command should work whether initialized or not
     }
     
-    protected function process(): int
+    protected function process()
     {
         // Welcome message
         info('🔐  Keep Configuration');
@@ -67,8 +67,6 @@ class ConfigureCommand extends BaseCommand
         } else {
             note('Your configuration has been updated.');
         }
-        
-        return self::SUCCESS;
     }
     
     private function detectAppName(): string
