@@ -2,7 +2,6 @@
 
 namespace STS\Keep\Commands;
 
-use Symfony\Component\Console\Input\InputArgument;
 use function Laravel\Prompts\text;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\info;
@@ -10,12 +9,8 @@ use function Laravel\Prompts\error;
 
 class VaultEditCommand extends BaseCommand
 {
-    protected function configure(): void
-    {
-        $this->setName('vault:edit')
-             ->setDescription('Edit an existing vault configuration')
-             ->addArgument('slug', InputArgument::OPTIONAL, 'Slug of the vault to edit');
-    }
+    protected $signature = 'vault:edit {slug? : Slug of the vault to edit}';
+    protected $description = 'Edit an existing vault configuration';
     
     protected function process(): int
     {

@@ -10,11 +10,8 @@ use function Laravel\Prompts\error;
 
 class VaultAddCommand extends BaseCommand
 {
-    protected function configure(): void
-    {
-        $this->setName('vault:add')
-             ->setDescription('Add a new vault configuration');
-    }
+    protected $signature = 'vault:add';
+    protected $description = 'Add a new vault configuration';
     
     protected function process(): int
     {
