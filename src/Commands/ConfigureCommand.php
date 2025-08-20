@@ -3,8 +3,6 @@
 namespace STS\Keep\Commands;
 
 use Illuminate\Support\Str;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use function Laravel\Prompts\text;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\info;
@@ -23,7 +21,7 @@ class ConfigureCommand extends BaseCommand
              ->setDescription('Configure Keep settings for your project');
     }
     
-    protected function handle(InputInterface $input, OutputInterface $output): int
+    protected function process(): int
     {
         // Welcome message
         info('🔐  Keep Configuration');

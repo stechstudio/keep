@@ -3,8 +3,6 @@
 namespace STS\Keep\Commands;
 
 use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use function Laravel\Prompts\text;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\info;
@@ -19,7 +17,7 @@ class VaultEditCommand extends BaseCommand
              ->addArgument('slug', InputArgument::OPTIONAL, 'Slug of the vault to edit');
     }
     
-    protected function handle(InputInterface $input, OutputInterface $output): int
+    protected function process(): int
     {
         info('🔧  Edit Vault Configuration');
         
@@ -32,7 +30,7 @@ class VaultEditCommand extends BaseCommand
         }
         
         // Get vault slug from argument or prompt user to select
-        $slug = $input->getArgument('slug');
+        $slug = $this->argument('slug');
         
         if (!$slug) {
             // Build options for vault selection

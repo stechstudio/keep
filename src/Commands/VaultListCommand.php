@@ -2,8 +2,6 @@
 
 namespace STS\Keep\Commands;
 
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use function Laravel\Prompts\table;
 use function Laravel\Prompts\info;
 
@@ -15,7 +13,7 @@ class VaultListCommand extends BaseCommand
              ->setDescription('List all configured vaults');
     }
     
-    protected function handle(InputInterface $input, OutputInterface $output): int
+    protected function process(): int
     {
         $configuredVaults = $this->manager->getConfiguredVaults();
         
@@ -38,7 +36,7 @@ class VaultListCommand extends BaseCommand
             ];
         }
         
-        info('🗄️ Configured Vaults');
+        info('🗄️  Configured Vaults');
         table(
             headers: ['Slug', 'Name', 'Driver', 'Default'],
             rows: $rows
