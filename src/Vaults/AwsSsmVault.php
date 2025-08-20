@@ -253,7 +253,7 @@ class AwsSsmVault extends AbstractVault
     {
         return $this->client ??= new SsmClient([
             'version' => 'latest',
-            'region' => config('keep.aws.region'),
+            'region' => $this->config['region'] ?? 'us-east-1',
         ]);
     }
 }
