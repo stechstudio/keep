@@ -63,8 +63,10 @@ class KeepManager
 
     public function vault(string $name, string $stage): AbstractVault
     {
-        if (isset($this->loadedVaults[$name])) {
-            return $this->loadedVaults[$name];
+        $cacheKey = "{$name}:{$stage}";
+
+        if (isset($this->loadedVaults[$cacheKey])) {
+            return $this->loadedVaults[$cacheKey];
         }
 
         if (!isset($this->configuredVaults[$name])) {
@@ -83,7 +85,7 @@ class KeepManager
         }
 
         $vault = new $driverClass($name, $config, $stage);
-        $this->loadedVaults[$name] = $vault;
+        $this->loadedVaults[$cacheKey] = $vault;
 
         return $vault;
     }
