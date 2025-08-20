@@ -2,9 +2,9 @@
 
 namespace STS\Keep\Commands;
 
-class GetCommand extends AbstractCommand
+class GetCommand extends BaseCommand
 {
-    public $signature = 'keep:get {--format=table : table|json|raw} '
+    public $signature = 'get {--format=table : table|json|raw} '
         .self::KEY_SIGNATURE
         .self::CONTEXT_SIGNATURE
         .self::VAULT_SIGNATURE

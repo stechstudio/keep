@@ -20,7 +20,7 @@ class KeepApplication extends Application
         // Create a minimal container for Laravel console commands
         $container = new KeepContainer();
         $container->instance(KeepContainer::class, $container);
-        
+
         // Create event dispatcher
         $events = new Dispatcher($container);
         $container->instance(Dispatcher::class, $events);
@@ -30,14 +30,16 @@ class KeepApplication extends Application
         
         // Initialize KeepManager with loaded configuration
         $this->manager = new KeepManager($this->loadSettings(), $this->loadVaults());
-        
-        // Working Symfony Console commands
-        $this->add((new InfoCommand())->setManager($this->manager));
+
+        $this->add((new InfoCommand()));
         $this->add(new DemoCommand());
-        $this->add((new Commands\ConfigureCommand())->setManager($this->manager));
-        $this->add((new Commands\VaultAddCommand())->setManager($this->manager));
-        $this->add((new Commands\VaultEditCommand())->setManager($this->manager));
-        $this->add((new Commands\VaultListCommand())->setManager($this->manager));
+        $this->add((new Commands\ConfigureCommand()));
+
+        $this->add((new Commands\VaultAddCommand()));
+        $this->add((new Commands\VaultEditCommand()));
+        $this->add((new Commands\VaultListCommand()));
+
+        $this->add((new Commands\GetCommand()));
         
         // TODO: Refactor these Laravel commands to Symfony Console:
         // - AbstractCommand.php (base class needs complete rewrite)

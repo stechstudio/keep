@@ -47,6 +47,16 @@ class KeepManager
         return $this->configuredVaults;
     }
 
+    public function getDefaultVault(): ?string
+    {
+        return $this->settings['default_vault'] ?? null;
+    }
+
+    public function getStages(): array
+    {
+        return $this->settings['stages'] ?? [];
+    }
+
     /**
      * Clear the vault cache - useful for testing
      */
