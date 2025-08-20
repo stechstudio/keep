@@ -57,9 +57,7 @@ class MergeCommand extends BaseCommand
 
     protected function prepareTemplateContents(): bool
     {
-        $template = $this->argument('template')
-            ?? Keep::getSetting('template')
-            ?? text('Template file with placeholders', required: true);
+        $template = $this->argument('template') ?? text('Template file with placeholders', required: true);
 
         if (! file_exists($template) || ! is_readable($template)) {
             $this->error("Template file [$template] does not exist or is not readable.");
@@ -70,7 +68,7 @@ class MergeCommand extends BaseCommand
         $this->info("Using base template file [$template].");
         $this->baseTemplate = new Template(file_get_contents($template));
 
-        $overlayTemplate = $this->option('overlay') ?? $this->findStageOverlayTemplate();
+        $overlayTemplate = $this->option('overlay');
 
         if ($overlayTemplate) {
             if (! file_exists($overlayTemplate) || ! is_readable($overlayTemplate)) {
