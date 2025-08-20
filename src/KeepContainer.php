@@ -3,6 +3,7 @@
 namespace STS\Keep;
 
 use Illuminate\Container\Container;
+use STS\Keep\KeepManager;
 
 class KeepContainer extends Container
 {
@@ -23,5 +24,13 @@ class KeepContainer extends Container
         }
         
         return in_array($env, $environments);
+    }
+    
+    /**
+     * Get the global KeepManager instance
+     */
+    public static function manager(): KeepManager
+    {
+        return static::getInstance()->make(KeepManager::class);
     }
 }

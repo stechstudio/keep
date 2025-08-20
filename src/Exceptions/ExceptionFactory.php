@@ -17,7 +17,7 @@ class ExceptionFactory
             ->withContext(
                 vault: $vault,
                 key: $key,
-                suggestion: $suggestion ?: ($vault ? "Check if this secret exists using 'php artisan keeper:list --vault={$vault}'" : null)
+                suggestion: $suggestion ?: ($vault ? "Check if this secret exists using 'keep list'" : null)
             );
     }
 
@@ -38,7 +38,7 @@ class ExceptionFactory
                 key: $key,
                 path: $path,
                 lineNumber: $lineNumber,
-                suggestion: "Check if this secret exists using 'php artisan keeper:list --vault={$vault}'"
+                suggestion: "Check if this secret exists using 'keep list'"
             );
     }
 

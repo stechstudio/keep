@@ -2,8 +2,7 @@
 
 namespace STS\Keep;
 
-use Illuminate\Support\Str;
-use InvalidArgumentException;
+use Illuminate\Support\Arr;
 use STS\Keep\Vaults\AbstractVault;
 use STS\Keep\Vaults\AwsSecretsManagerVault;
 use STS\Keep\Vaults\AwsSsmVault;
@@ -25,6 +24,11 @@ class KeepManager
     {
         return !empty($this->settings) && 
                isset($this->settings['app_name']);
+    }
+
+    public function getNamespace(): string
+    {
+        return $this->settings['namespace'] ?? 'default';
     }
     
     public function getSettings(): array
@@ -55,6 +59,38 @@ class KeepManager
     public function getStages(): array
     {
         return $this->settings['stages'] ?? [];
+    }
+
+    public function vault(string $name, string $stage): AbstractVault
+    {
+        if (isset($this->loadedVaults[$name])) {
+            return $this->loadedVaults[$name];
+        }
+
+        if (!isset($this->configuredVaults[$name])) {
+            throw new \InvalidArgumentException("Vault '{$name}' is not configured.");
+        }
+
+        $config = $this->configuredVaults[$name];
+        $driver = $config['driver'] ?? null;
+
+        if (!$driver) {
+            throw new \InvalidArgumentException("Vault '{$name}' does not have a driver configured.");
+        }
+
+        if(!$driverClass = $this->driverClass($driver)) {
+            throw new \InvalidArgumentException("Vault driver '{$driver}' for '{$name}' is not available.");
+        }
+
+        $vault = new $driverClass($name, $config, $stage);
+        $this->loadedVaults[$name] = $vault;
+
+        return $vault;
+    }
+
+    protected function driverClass($name): ?string
+    {
+        return Arr::first($this->availableVaults, fn($class) => $class::DRIVER === $name);
     }
 
     /**

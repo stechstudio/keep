@@ -46,7 +46,6 @@ class Context
      */
     public function createVault(): \STS\Keep\Vaults\AbstractVault
     {
-
-        return Keep::vault($this->vault)->forStage($this->stage);
+        return Keep::vault($this->vault, $this->stage);
     }
 }

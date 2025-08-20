@@ -77,7 +77,7 @@ class KeepException extends RuntimeException
         // Output suggestion if provided
         if ($this->suggestion) {
             $output('');
-            $output('💡 '.$this->suggestion, 'comment');
+            $output('💡  '.$this->suggestion, 'comment');
         }
     }
 }
