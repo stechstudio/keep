@@ -11,13 +11,11 @@ class InfoCommand extends BaseCommand
     protected $signature = 'info';
     protected $description = 'Show Keep information and status';
     
-    protected function process(): int
+    protected function process()
     {
         $this->showSystemInfo();
         $this->showConfiguration();
         $this->showVaults();
-        
-        return self::SUCCESS;
     }
     
     private function showSystemInfo(): void

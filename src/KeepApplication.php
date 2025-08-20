@@ -7,8 +7,6 @@ use STS\Keep\Enums\KeepInstall;
 use Illuminate\Console\Application;
 use STS\Keep\KeepContainer;
 use Illuminate\Events\Dispatcher;
-use STS\Keep\Commands\InfoCommand;
-use STS\Keep\Commands\DemoCommand;
 use Symfony\Component\Console\Input\InputDefinition;
 
 class KeepApplication extends Application
@@ -37,8 +35,7 @@ class KeepApplication extends Application
         // Set container as global instance
         KeepContainer::setInstance($container);
 
-        $this->add((new InfoCommand()));
-        $this->add(new DemoCommand());
+        $this->add((new Commands\InfoCommand()));
         $this->add((new Commands\ConfigureCommand()));
 
         $this->add((new Commands\VaultAddCommand()));
@@ -46,6 +43,7 @@ class KeepApplication extends Application
         $this->add((new Commands\VaultListCommand()));
 
         $this->add((new Commands\GetCommand()));
+        $this->add((new Commands\SetCommand()));
         
         // TODO: Refactor these Laravel commands to Symfony Console:
         // - AbstractCommand.php (base class needs complete rewrite)

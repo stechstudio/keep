@@ -14,7 +14,7 @@ class GetCommand extends BaseCommand
 
     public $description = 'Get the value of a stage secret in a specified vault';
 
-    public function process(): int
+    public function process()
     {
         $context = $this->context();
         $secret = $context->createVault()->get($this->key());
@@ -25,7 +25,5 @@ class GetCommand extends BaseCommand
             'raw' => $this->line($secret->value()),
             default => $this->error('Invalid format option. Supported formats are: table, json, raw.'),
         };
-
-        return self::SUCCESS;
     }
 }

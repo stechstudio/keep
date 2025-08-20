@@ -50,7 +50,7 @@ abstract class BaseCommand extends Command
         }
     }
     
-    abstract protected function process(): int;
+    abstract protected function process();
     
     protected function requiresInitialization(): bool
     {

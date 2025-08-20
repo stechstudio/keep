@@ -1,8 +1,8 @@
 # Keep
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/stechstudio/keep.svg?style=flat-square)](https://packagist.org/packages/stechstudio/keep)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/stechstudio/laravel-keep.svg?style=flat-square)](https://packagist.org/packages/stechstudio/laravel-keep)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
-[![Tests](https://img.shields.io/github/actions/workflow/status/stechstudio/keep/tests.yml?branch=main&style=flat-square)](https://github.com/stechstudio/keep/actions/workflows/tests.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/stechstudio/laravel-keep/tests.yml?branch=main&style=flat-square)](https://github.com/stechstudio/laravel-keep/actions/workflows/tests.yml)
 
 
 **Keep** is your toolkit for collaborative, secure management of secrets across applications, environments, and teams.
@@ -15,7 +15,7 @@
 - **Team Collaboration** - Share secret management across team members with proper access controls
 - **CI/CD Integration** - Export secrets for deployment pipelines and automated workflows
 
-The package provides a secure, organized way to manage Laravel application secrets without storing them in version control or sharing them insecurely.
+The package provides a secure, organized way to manage application secrets without storing them in version control or sharing them insecurely.
 
 ## Installation
 

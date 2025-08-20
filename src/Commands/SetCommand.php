@@ -2,9 +2,9 @@
 
 namespace STS\Keep\Commands;
 
-class SetCommand extends AbstractCommand
+class SetCommand extends BaseCommand
 {
-    public $signature = 'keep:set '
+    public $signature = 'set '
         .self::KEY_SIGNATURE
         .self::VALUE_SIGNATURE
         .self::CONTEXT_SIGNATURE
@@ -14,7 +14,7 @@ class SetCommand extends AbstractCommand
 
     public $description = 'Set the value of a stage secret in a specified vault';
 
-    public function process(): int
+    public function process()
     {
         $context = $this->context();
         $secret = $context->createVault()->set($this->key(), $this->value(), $this->secure());
@@ -26,7 +26,5 @@ class SetCommand extends AbstractCommand
                 $secret->vault()->name()
             )
         );
-
-        return self::SUCCESS;
     }
 }
