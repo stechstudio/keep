@@ -16,6 +16,13 @@ class ListCommand extends BaseCommand
 
     public function process(): int
     {
+        $format = $this->option('format');
+        
+        if (!in_array($format, ['table', 'env', 'json'])) {
+            $this->error('Invalid format option. Supported formats are: table, json, env.');
+            return self::FAILURE;
+        }
+
         $context = $this->context();
         $secrets = $context->createVault()->list()->filterByPatterns(
             only: $this->option('only'),
@@ -26,11 +33,10 @@ class ListCommand extends BaseCommand
             $secrets = $secrets->map->withMaskedValue();
         }
 
-        match ($this->option('format')) {
+        match ($format) {
             'table' => table(['Key', 'Value', 'Revision'], $secrets->map->only(['key', 'value', 'revision'])),
             'env' => $this->line($secrets->toEnvString()),
             'json' => $this->line($secrets->only(['key', 'value', 'revision'])->toJson(JSON_PRETTY_PRINT)),
-            default => $this->error('Invalid format option. Supported formats are: table, json, env.'),
         };
 
         return self::SUCCESS;

@@ -8,9 +8,9 @@ use STS\Keep\Exceptions\SecretNotFoundException;
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\table;
 
-class CopyCommand extends AbstractCommand
+class CopyCommand extends BaseCommand
 {
-    public $signature = 'keep:copy
+    public $signature = 'copy
         {--from= : Source context in format "vault:stage" or just "stage"}
         {--to= : Destination context in format "vault:stage" or just "stage"}
         {--overwrite : Overwrite destination if it exists}
@@ -38,7 +38,7 @@ class CopyCommand extends AbstractCommand
             $sourceVault = $sourceContext->createVault();
             $sourceSecret = $sourceVault->get($key);
 
-            // Check if destination exists
+            // Check if the destination exists
             $destinationVault = $destinationContext->createVault();
             $destinationExists = $destinationVault->has($key);
 
