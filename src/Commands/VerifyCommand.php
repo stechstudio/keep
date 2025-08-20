@@ -9,16 +9,16 @@ use STS\Keep\Facades\Keep;
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\table;
 
-class VerifyCommand extends AbstractCommand
+class VerifyCommand extends BaseCommand
 {
-    public $signature = 'keep:verify 
+    public $signature = 'verify 
         {--context= : Comma-separated list of contexts to verify (e.g., "vault1:stage1,vault2:stage2")}
         {--vault= : Test only this vault} 
         {--stage= : Test only this stage}';
 
     public $description = 'Verify vault access permissions for reading, writing, listing, and deleting secrets';
 
-    public function process(): int
+    public function process()
     {
         $results = spin(function () {
             // If --context is provided, use specific contexts
@@ -34,11 +34,11 @@ class VerifyCommand extends AbstractCommand
             }
             
             // Otherwise use existing logic
-            $vaults = $this->option('vault') ? [$this->option('vault')] : Keep::available();
-            $stages = $this->option('stage') ? [$this->option('stage')] : Keep::stages();
+            $vaults = $this->option('vault') ? [$this->option('vault')] : Keep::getConfiguredVaults();
+            $stages = $this->option('stage') ? [$this->option('stage')] : Keep::getStages();
             $results = [];
 
-            foreach ($vaults as $vaultName) {
+            foreach ($vaults as $vaultName => $config) {
                 foreach ($stages as $stage) {
                     $results[] = $this->verifyVaultStage($vaultName, $stage);
                 }
@@ -47,13 +47,11 @@ class VerifyCommand extends AbstractCommand
         }, 'Checking vault access permissions...');
 
         $this->displayResults($results);
-
-        return self::SUCCESS;
     }
 
     protected function verifyVaultStage(string $vaultName, string $stage): array
     {
-        $vault = Keep::vault($vaultName)->forStage($stage);
+        $vault = Keep::vault($vaultName, $stage);
         $testKey = 'keep-verify-'.Str::random(8);
 
         $result = [

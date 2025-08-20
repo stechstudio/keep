@@ -9,9 +9,9 @@ use STS\Keep\Exceptions\KeepException;
 use function Laravel\Prompts\table;
 use function Laravel\Prompts\text;
 
-class ImportCommand extends AbstractCommand
+class ImportCommand extends BaseCommand
 {
-    public $signature = 'keep:import {from? : Env file to import from}
+    public $signature = 'import {from? : Env file to import from}
         {--overwrite : Overwrite existing secrets} 
         {--skip-existing : Skip existing secrets}  
         {--dry-run : Show what would be imported without actually importing} '
@@ -22,7 +22,7 @@ class ImportCommand extends AbstractCommand
 
     public $description = 'Import a .env file and store as stage secrets in a specified vault';
 
-    public function process(): int
+    public function process()
     {
         if ($this->option('overwrite') && $this->option('skip-existing')) {
             $this->error('You cannot use --overwrite and --skip-existing together.');
@@ -32,9 +32,7 @@ class ImportCommand extends AbstractCommand
 
         $envFilePath = $this->argument('from') ?? text('Path to .env file', required: true);
         if (! file_exists($envFilePath) || ! is_readable($envFilePath)) {
-            $this->error("Env file [$envFilePath] does not exist or is not readable.");
-
-            return self::FAILURE;
+            return $this->error("Env file [$envFilePath] does not exist or is not readable.");
         }
 
         $env = new Env(file_get_contents($envFilePath));
@@ -64,8 +62,6 @@ class ImportCommand extends AbstractCommand
         if ($this->option('dry-run')) {
             $this->info('This was a dry run. No secrets were imported.');
         }
-
-        return self::SUCCESS;
     }
 
     protected function canImport(SecretCollection $importSecrets, SecretCollection $vaultSecrets): bool

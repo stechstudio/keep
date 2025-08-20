@@ -14,13 +14,12 @@ class ListCommand extends BaseCommand
 
     public $description = 'Get the list of stage secrets in a specified vault';
 
-    public function process(): int
+    public function process()
     {
         $format = $this->option('format');
         
         if (!in_array($format, ['table', 'env', 'json'])) {
-            $this->error('Invalid format option. Supported formats are: table, json, env.');
-            return self::FAILURE;
+            return $this->error('Invalid format option. Supported formats are: table, json, env.');
         }
 
         $context = $this->context();
@@ -38,7 +37,5 @@ class ListCommand extends BaseCommand
             'env' => $this->line($secrets->toEnvString()),
             'json' => $this->line($secrets->only(['key', 'value', 'revision'])->toJson(JSON_PRETTY_PRINT)),
         };
-
-        return self::SUCCESS;
     }
 }
