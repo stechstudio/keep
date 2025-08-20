@@ -13,6 +13,9 @@ use STS\Keep\Facades\Keep;
 
 abstract class AbstractVault
 {
+    public const string DRIVER = '';
+    public const string NAME = '';
+
     protected $keyFormatter;
 
     public function __construct(protected string $name, protected array $config, protected ?string $stage = null)

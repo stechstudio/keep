@@ -1,13 +1,11 @@
-<img width="1492" height="713" alt="keep" src="https://github.com/user-attachments/assets/17b4b25e-df55-459e-b835-5377cb1834ee" />
+# Keep
 
-# Laravel Keep
-
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/stechstudio/laravel-keep.svg?style=flat-square)](https://packagist.org/packages/stechstudio/laravel-keep)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/stechstudio/keep.svg?style=flat-square)](https://packagist.org/packages/stechstudio/keep)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
-[![Tests](https://img.shields.io/github/actions/workflow/status/stechstudio/laravel-keep/tests.yml?branch=main&style=flat-square)](https://github.com/stechstudio/laravel-keep/actions/workflows/tests.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/stechstudio/keep/tests.yml?branch=main&style=flat-square)](https://github.com/stechstudio/keep/actions/workflows/tests.yml)
 
 
-**Laravel Keep** is a toolkit for managing application secrets across environments and teams.
+**Keep** is your toolkit for collaborative, secure management of secrets across applications, environments, and teams.
 
 **Key Features:**
 - **CLI Commands** - Manage individual secrets, import/export in bulk, view history and diffs, all via artisan commands
