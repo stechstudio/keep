@@ -47,6 +47,8 @@ class KeepApplication extends Application
         $this->add((new Commands\ListCommand()));
         $this->add((new Commands\CopyCommand()));
 
+        $this->add((new Commands\DiffCommand()));
+
         
         // TODO: Refactor these Laravel commands to Symfony Console:
         // - AbstractCommand.php (base class needs complete rewrite)
