@@ -33,7 +33,7 @@ describe('DiffCommand', function () {
     describe('command structure and signature', function () {
         it('accepts context option for specifying vault:stage combinations', function () {
             $commandTester = runCommand('diff', [
-                '--context' => 'ssm:testing,ssm:production'
+                '--context' => 'test:testing,test:production'
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());

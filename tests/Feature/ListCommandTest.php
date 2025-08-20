@@ -264,11 +264,9 @@ describe('ListCommand', function () {
                 '--stage' => 'testing'
             ]);
 
-            // If we get auth errors, they should be handled gracefully
-            if ($commandTester->getStatusCode() === 1) {
-                $output = stripAnsi($commandTester->getDisplay());
-                expect($output)->toMatch('/(not authorized|error)/i');
-            }
+            // With TestVault, we shouldn't get auth errors, but command should complete gracefully
+            $output = stripAnsi($commandTester->getDisplay());
+            expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
     });
 
