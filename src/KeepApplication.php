@@ -19,7 +19,7 @@ class KeepApplication extends Application
         $this->manager = new KeepManager($this->loadSettings(), $this->loadVaults());
         
         // Working Symfony Console commands
-        $this->add(new InfoCommand());
+        $this->add((new InfoCommand())->setManager($this->manager));
         $this->add(new DemoCommand());
         $this->add((new Commands\ConfigureCommand())->setManager($this->manager));
         $this->add((new Commands\VaultAddCommand())->setManager($this->manager));
