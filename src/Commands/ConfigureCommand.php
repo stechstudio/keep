@@ -3,13 +3,17 @@
 namespace STS\Keep\Commands;
 
 use Illuminate\Support\Str;
+use STS\Keep\Commands\Concerns\ConfiguresVaults;
 use function Laravel\Prompts\text;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\note;
+use function Laravel\Prompts\confirm;
 
 class ConfigureCommand extends BaseCommand
 {
+    use ConfiguresVaults;
+    
     protected $signature = 'configure';
     protected $description = 'Configure Keep settings for your project';
     
@@ -41,14 +45,14 @@ class ConfigureCommand extends BaseCommand
         $stages = multiselect(
             label: 'Which environments/stages do you want to manage secrets for?',
             options: [
-                'development' => 'Development (local dev)',
+                'local' => 'Local (development)',
                 'qa' => 'QA (test team validation)',
                 'uat' => 'UAT (stakeholder testing)',
                 'staging' => 'Staging (pre-production)',
                 'sandbox' => 'Sandbox (demos / experiments)',
                 'production' => 'Production (live)'
             ],
-            default: $existingSettings['stages'] ?? ['development', 'staging', 'production'],
+            default: $existingSettings['stages'] ?? ['local', 'staging', 'production'],
             scroll: 6,
             hint: 'You can add more later. Toggle with space bar, confirm with enter.',
         );
@@ -59,13 +63,29 @@ class ConfigureCommand extends BaseCommand
         
         info('✅ Configuration updated successfully!');
         
-        // Show next steps
-        if (empty($this->manager->getConfiguredVaults())) {
-            note('Next steps:');
-            note('• Add your first vault: keep vault:add');
-            note('• Set your first secret: keep set MY_SECRET');
+        // Offer to create first vault if none exist (but not in non-interactive mode)
+        if (empty($this->manager->getConfiguredVaults()) && !$this->option('no-interaction')) {
+            info('🗄️  Vault Setup');
+            note('You\'ll need at least one vault to store your secrets.');
+            
+            if (confirm('Would you like to set up your first vault now?', true)) {
+                $result = $this->configureNewVault();
+                
+                if ($result) {
+                    note('🎉 All set! Your Keep configuration is ready to use.');
+                    note('Next step: Set your first secret with: keep set MY_SECRET');
+                } else {
+                    note('No worries! You can add a vault later with: keep vault:add');
+                }
+            } else {
+                note('No worries! You can add a vault later with: keep vault:add');
+            }
         } else {
-            note('Your configuration has been updated.');
+            if (empty($this->manager->getConfiguredVaults())) {
+                note('Next steps:');
+                note('• Add your first vault: keep vault:add');
+                note('• Set your first secret: keep set MY_SECRET');
+            }
         }
     }
     

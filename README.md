@@ -17,46 +17,50 @@
 
 The package provides a secure, organized way to manage application secrets without storing them in version control or sharing them insecurely.
 
-## Installation
+## Quick Start
 
-You can install the package via composer:
+### Install and configure Keep
+
+Install the package via composer:
 
 ```bash
 composer require stechstudio/laravel-keep
 ```
 
-## Quick Example
+This will install a command in your `vendor/bin` directory called `keep`. Run `keep configure` to configure Keep and your first vault.
 
-Let's say you have three environments (local, staging, production) and you want to store secrets in AWS SSM Parameter Store with the default KMS encryption key, in the `us-east-1` region. (You can also use AWS Secrets Manager - see configuration docs for details.)
+```bash
+./vendor/bin/keep configure
+```
 
-### Setup
+You should now have Keep configured with a default vault. Run `keep verify` to check your setup and ensure you have necessary permissions.
 
-1. Install the package via composer (as shown above).
-2. Ensure you have AWS credentials configured in your environment, with permissions to access SSM Parameter Store (see docs for full example).
-3. Run `php artisan keep:verify` to check your setup, verify your vault configuration, and ensure you have necessary permissions.
+```bash
+./vendor/bin/keep verify
+```
 
 ### Manage secrets
 
-You can add secrets using the artisan command:
+You can add secrets using `keep set`:
 
 ```bash
 # You will be prompted for the stage and secret value
-php artisan keep:set DB_PASSWORD
+./vendor/bin/keep set DB_PASSWORD
 
 # Or specify the stage and value directly
-php artisan keep:set DB_PASSWORD --stage=production --value="supersecretpassword"
+./vendor/bin/keep set DB_PASSWORD --stage=production --value="supersecretpassword"
 ```
 
-This will store the `DB_PASSWORD` secret in AWS SSM under the path `/[app-name-slug]/production/DB_PASSWORD`.
+This will store the `DB_PASSWORD` secret in AWS SSM under the path `/[namespace]/production/DB_PASSWORD`.
 
 Check that the secret was added:
 
 ```bash
 # Retrieve a single secret
-php artisan keep:get DB_PASSWORD --stage=production
+./vendor/bin/keep get DB_PASSWORD --stage=production
 
 # List all secrets for production
-php artisan keep:list --stage=production
+./vendor/bin/keep list --stage=production
 ```
 
 ### Using secrets in your application
@@ -66,7 +70,7 @@ php artisan keep:list --stage=production
 If 100% of your .env variables are managed via Keep, you can export them all to a .env file as part of your deployment process:
 
 ```bash
-php artisan keep:export --stage=production --output=.env
+./vendor/bin/keep export --stage=production --output=.env
 ```
 
 #### Merge secrets into a base template `.env` file
@@ -85,7 +89,7 @@ DB_PASSWORD={ssm:DB_PASSWORD} # or just {ssm} since the key matches the variable
 Then run the merge command:
 
 ```bash
-php artisan keep:merge --template=.env.base --output=.env --stage=production
+./vendor/bin/keep merge --template=.env.base --output=.env --stage=production
 ```
 
 You will now have a `.env` file with all the values from the template and the secrets filled in.
