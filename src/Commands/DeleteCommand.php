@@ -15,7 +15,7 @@ class DeleteCommand extends BaseCommand
 
     public $description = 'Delete a stage secret from a specified vault';
 
-    public function process(): int
+    public function process()
     {
         $key = $this->key();
         $context = $this->context();
@@ -40,9 +40,7 @@ class DeleteCommand extends BaseCommand
             );
 
             if (! $confirmed) {
-                $this->info('Secret deletion cancelled.');
-
-                return self::SUCCESS;
+                return $this->info('Secret deletion cancelled.');
             }
         }
 
@@ -51,7 +49,5 @@ class DeleteCommand extends BaseCommand
 
         $this->newLine();
         $this->info("Secret [{$key}] has been permanently deleted from vault [{$context->vault}] in stage [{$context->stage}].");
-
-        return self::SUCCESS;
     }
 }

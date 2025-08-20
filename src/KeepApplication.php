@@ -52,21 +52,7 @@ class KeepApplication extends Application
         $this->add((new Commands\ExportCommand()));
 
         $this->add((new Commands\DiffCommand()));
-
-        
-        // TODO: Refactor these Laravel commands to Symfony Console:
-        // - AbstractCommand.php (base class needs complete rewrite)
-        // - ListCommand.php (needs Symfony Console refactor)  
-        // - GetCommand.php (needs Symfony Console refactor)
-        // - SetCommand.php (needs Symfony Console refactor)
-        // - DeleteCommand.php (needs Symfony Console refactor)
-        // - HistoryCommand.php (needs Symfony Console refactor)
-        // - DiffCommand.php (needs Symfony Console refactor)
-        // - MergeCommand.php (needs Symfony Console refactor)
-        // - ExportCommand.php (needs Symfony Console refactor)
-        // - ImportCommand.php (needs Symfony Console refactor)
-        // - VerifyCommand.php (needs Symfony Console refactor)
-        // - CopyCommand.php (needs Symfony Console refactor)
+        $this->add((new Commands\VerifyCommand()));
     }
     
     public function getManager(): KeepManager

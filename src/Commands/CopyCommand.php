@@ -19,7 +19,7 @@ class CopyCommand extends BaseCommand
 
     public $description = 'Copy a secret between stages or vaults';
 
-    public function process(): int
+    public function process()
     {
         $key = $this->key();
         
@@ -69,15 +69,8 @@ class CopyCommand extends BaseCommand
             $destinationVault->set($key, $sourceSecret->value(), $sourceSecret->isSecure());
 
             $this->info("Successfully copied secret [{$key}] from {$sourceContext->toString()} to {$destinationContext->toString()}");
-
-            return self::SUCCESS;
-
         } catch (SecretNotFoundException $e) {
-            $this->error("Source secret [{$key}] not found in {$sourceContext->toString()}");
-            return self::FAILURE;
-        } catch (\Exception $e) {
-            $this->error("Copy failed: {$e->getMessage()}");
-            return self::FAILURE;
+            return $this->error("Source secret [{$key}] not found in {$sourceContext->toString()}");
         }
     }
 

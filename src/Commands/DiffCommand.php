@@ -32,13 +32,11 @@ class DiffCommand extends BaseCommand
         }
 
         if (empty($vaults)) {
-            $this->error('No vaults available for comparison.');
-            return self::FAILURE;
+            return $this->error('No vaults available for comparison.');
         }
 
         if (empty($stages)) {
-            $this->error('No stages available for comparison.');
-            return self::FAILURE;
+            return $this->error('No stages available for comparison.');
         }
 
         $diffService = new DiffService;
@@ -46,10 +44,8 @@ class DiffCommand extends BaseCommand
 
         if ($diffs->isNotEmpty()) {
             $this->displayTable($diffs, $vaults, $stages, $diffService);
-            return self::SUCCESS;
         } else {
             $this->info('No secrets found in any of the specified vault/stage combinations.');
-            return self::SUCCESS;
         }
     }
 

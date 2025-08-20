@@ -9,9 +9,9 @@ use STS\Keep\Enums\MissingSecretStrategy;
 use STS\Keep\Facades\Keep;
 use function Laravel\Prompts\text;
 
-class MergeCommand extends AbstractCommand
+class MergeCommand extends BaseCommand
 {
-    public $signature = 'keep:merge {template? : Template env file with placeholders}
+    public $signature = 'merge {template? : Template env file with placeholders}
         {--overlay= : Optional env file to overlay on top of the template} 
         {--output= : File where to save the output (defaults to stdout)} 
         {--overwrite : Overwrite the output file if it exists} 
@@ -53,14 +53,12 @@ class MergeCommand extends AbstractCommand
         }
 
         $this->line($contents);
-
-        return self::SUCCESS;
     }
 
     protected function prepareTemplateContents(): bool
     {
         $template = $this->argument('template')
-            ?? config('keep.template')
+            ?? Keep::getSetting('template')
             ?? text('Template file with placeholders', required: true);
 
         if (! file_exists($template) || ! is_readable($template)) {
