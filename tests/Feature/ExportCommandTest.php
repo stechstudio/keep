@@ -12,7 +12,7 @@ describe('ExportCommand', function () {
         $settings = [
             'app_name' => 'test-app',
             'namespace' => 'test-app',
-            'default_vault' => 'ssm',
+            'default_vault' => 'test',
             'stages' => ['testing', 'production'],
             'created_at' => date('c'),
             'version' => '1.0'
@@ -20,15 +20,14 @@ describe('ExportCommand', function () {
         
         file_put_contents('.keep/settings.json', json_encode($settings, JSON_PRETTY_PRINT));
         
-        // Create SSM vault configuration for testing
+        // Create test vault configuration for testing (never hits AWS)
         $vaultConfig = [
-            'driver' => 'ssm',
-            'name' => 'Test SSM Vault',
-            'region' => 'us-east-1',
-            'prefix' => 'test'
+            'driver' => 'test',
+            'name' => 'Test Vault',
+            'namespace' => 'test-app'
         ];
         
-        file_put_contents('.keep/vaults/ssm.json', json_encode($vaultConfig, JSON_PRETTY_PRINT));
+        file_put_contents('.keep/vaults/test.json', json_encode($vaultConfig, JSON_PRETTY_PRINT));
     });
 
     describe('command structure and signature', function () {
@@ -38,7 +37,7 @@ describe('ExportCommand', function () {
             foreach ($formats as $format) {
                 $commandTester = runCommand('export', [
                     '--format' => $format,
-                    '--vault' => 'ssm',
+                    '--vault' => 'test',
                     '--stage' => 'testing'
                 ]);
 
@@ -52,7 +51,7 @@ describe('ExportCommand', function () {
         it('accepts output file option', function () {
             $commandTester = runCommand('export', [
                 '--output' => '/tmp/test-export.env',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--overwrite' => true
             ]);
@@ -66,7 +65,7 @@ describe('ExportCommand', function () {
         it('accepts overwrite flag option', function () {
             $commandTester = runCommand('export', [
                 '--overwrite' => true,
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -79,7 +78,7 @@ describe('ExportCommand', function () {
         it('accepts append flag option', function () {
             $commandTester = runCommand('export', [
                 '--append' => true,
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -93,7 +92,7 @@ describe('ExportCommand', function () {
     describe('format handling', function () {
         it('defaults to env format when not specified', function () {
             $commandTester = runCommand('export', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -106,7 +105,7 @@ describe('ExportCommand', function () {
         it('handles json format option', function () {
             $commandTester = runCommand('export', [
                 '--format' => 'json',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -119,7 +118,7 @@ describe('ExportCommand', function () {
         it('produces output in specified format', function () {
             $commandTester = runCommand('export', [
                 '--format' => 'env',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -131,7 +130,7 @@ describe('ExportCommand', function () {
     describe('output destination handling', function () {
         it('outputs to stdout by default', function () {
             $commandTester = runCommand('export', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -146,7 +145,7 @@ describe('ExportCommand', function () {
                 $commandTester = runCommand('export', [
                     '--output' => $tempFile,
                     '--overwrite' => true,
-                    '--vault' => 'ssm',
+                    '--vault' => 'test',
                     '--stage' => 'testing'
                 ]);
 
@@ -171,7 +170,7 @@ describe('ExportCommand', function () {
                 $commandTester = runCommand('export', [
                     '--output' => $tempFile,
                     '--overwrite' => true,
-                    '--vault' => 'ssm',
+                    '--vault' => 'test',
                     '--stage' => 'testing'
                 ]);
 
@@ -194,7 +193,7 @@ describe('ExportCommand', function () {
                 $commandTester = runCommand('export', [
                     '--output' => $tempFile,
                     '--append' => true,
-                    '--vault' => 'ssm',
+                    '--vault' => 'test',
                     '--stage' => 'testing'
                 ]);
 
@@ -213,7 +212,7 @@ describe('ExportCommand', function () {
     describe('error handling', function () {
         it('handles vault connection issues gracefully', function () {
             $commandTester = runCommand('export', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -226,7 +225,7 @@ describe('ExportCommand', function () {
         
         it('handles invalid stage gracefully', function () {
             $commandTester = runCommand('export', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'invalid-stage'
             ]);
 
@@ -237,7 +236,7 @@ describe('ExportCommand', function () {
         
         it('handles empty vault gracefully', function () {
             $commandTester = runCommand('export', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -249,7 +248,7 @@ describe('ExportCommand', function () {
     describe('stage and vault handling', function () {
         it('uses specified vault parameter', function () {
             $commandTester = runCommand('export', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -261,7 +260,7 @@ describe('ExportCommand', function () {
         
         it('uses specified stage parameter', function () {
             $commandTester = runCommand('export', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -273,7 +272,7 @@ describe('ExportCommand', function () {
         
         it('handles production stage parameter', function () {
             $commandTester = runCommand('export', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'production'
             ]);
 
@@ -288,7 +287,7 @@ describe('ExportCommand', function () {
         it('handles env format output structure', function () {
             $commandTester = runCommand('export', [
                 '--format' => 'env',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -301,7 +300,7 @@ describe('ExportCommand', function () {
         it('handles json format output structure', function () {
             $commandTester = runCommand('export', [
                 '--format' => 'json',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -314,7 +313,7 @@ describe('ExportCommand', function () {
         it('produces valid output structure', function () {
             $commandTester = runCommand('export', [
                 '--format' => 'env',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -326,7 +325,7 @@ describe('ExportCommand', function () {
     describe('edge cases and special scenarios', function () {
         it('handles context creation appropriately', function () {
             $commandTester = runCommand('export', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -339,7 +338,7 @@ describe('ExportCommand', function () {
         it('handles secret collection processing', function () {
             $commandTester = runCommand('export', [
                 '--format' => 'json',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -353,7 +352,7 @@ describe('ExportCommand', function () {
             $commandTester = runCommand('export', [
                 '--output' => '/tmp/test-export-validation.env',
                 '--overwrite' => true,
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -372,7 +371,7 @@ describe('ExportCommand', function () {
     describe('integration functionality', function () {
         it('handles vault listing operation', function () {
             $commandTester = runCommand('export', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -383,7 +382,7 @@ describe('ExportCommand', function () {
         it('handles format conversion operations', function () {
             $commandTester = runCommand('export', [
                 '--format' => 'json',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -393,7 +392,7 @@ describe('ExportCommand', function () {
         
         it('provides appropriate completion status', function () {
             $commandTester = runCommand('export', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 

@@ -12,7 +12,7 @@ describe('ListCommand', function () {
         $settings = [
             'app_name' => 'test-app',
             'namespace' => 'test-app',
-            'default_vault' => 'ssm',
+            'default_vault' => 'test',
             'stages' => ['testing', 'production'],
             'created_at' => date('c'),
             'version' => '1.0'
@@ -20,15 +20,14 @@ describe('ListCommand', function () {
         
         file_put_contents('.keep/settings.json', json_encode($settings, JSON_PRETTY_PRINT));
         
-        // Create SSM vault configuration for testing
+        // Create test vault configuration for testing (never hits AWS)
         $vaultConfig = [
-            'driver' => 'ssm',
-            'name' => 'Test SSM Vault',
-            'region' => 'us-east-1',
-            'prefix' => 'test'
+            'driver' => 'test',
+            'name' => 'Test Vault',
+            'namespace' => 'test-app'
         ];
         
-        file_put_contents('.keep/vaults/ssm.json', json_encode($vaultConfig, JSON_PRETTY_PRINT));
+        file_put_contents('.keep/vaults/test.json', json_encode($vaultConfig, JSON_PRETTY_PRINT));
     });
 
     describe('command structure and format options', function () {
@@ -37,7 +36,7 @@ describe('ListCommand', function () {
             
             foreach ($formats as $format) {
                 $commandTester = runCommand('list', [
-                    '--vault' => 'ssm',
+                    '--vault' => 'test',
                     '--stage' => 'testing',
                     '--format' => $format
                 ]);
@@ -50,7 +49,7 @@ describe('ListCommand', function () {
         
         it('validates format option and shows error for invalid formats', function () {
             $commandTester = runCommand('list', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'invalid'
             ]);
@@ -64,7 +63,7 @@ describe('ListCommand', function () {
         
         it('accepts unmask flag option', function () {
             $commandTester = runCommand('list', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--unmask' => true
             ]);
@@ -76,7 +75,7 @@ describe('ListCommand', function () {
         
         it('accepts filtering options', function () {
             $commandTester = runCommand('list', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--only' => 'DB_*'
             ]);
@@ -86,7 +85,7 @@ describe('ListCommand', function () {
             expect($output)->not->toMatch('/(invalid.*only|unknown.*only)/i');
             
             $commandTester = runCommand('list', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--except' => 'TEMP_*'
             ]);
@@ -100,7 +99,7 @@ describe('ListCommand', function () {
     describe('parameter validation', function () {
         it('validates vault and stage parameters', function () {
             $commandTester = runCommand('list', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -113,7 +112,7 @@ describe('ListCommand', function () {
         
         it('handles vault parameter validation', function () {
             $commandTester = runCommand('list', [
-                '--vault' => 'ssm', // Valid vault from our config
+                '--vault' => 'test', // Valid vault from our config
                 '--stage' => 'testing'
             ]);
 
@@ -127,7 +126,7 @@ describe('ListCommand', function () {
     describe('output format structure', function () {
         it('table format shows appropriate headers and structure', function () {
             $commandTester = runCommand('list', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'table'
             ]);
@@ -142,7 +141,7 @@ describe('ListCommand', function () {
         
         it('env format produces valid structure when successful', function () {
             $commandTester = runCommand('list', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'env'
             ]);
@@ -166,7 +165,7 @@ describe('ListCommand', function () {
         
         it('json format produces valid JSON structure when successful', function () {
             $commandTester = runCommand('list', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'json'
             ]);
@@ -189,7 +188,7 @@ describe('ListCommand', function () {
             
             foreach ($patterns as $pattern) {
                 $commandTester = runCommand('list', [
-                    '--vault' => 'ssm',
+                    '--vault' => 'test',
                     '--stage' => 'testing',
                     '--format' => 'env',
                     '--only' => $pattern
@@ -205,7 +204,7 @@ describe('ListCommand', function () {
             
             foreach ($patterns as $pattern) {
                 $commandTester = runCommand('list', [
-                    '--vault' => 'ssm',
+                    '--vault' => 'test',
                     '--stage' => 'testing',
                     '--format' => 'env',
                     '--except' => $pattern
@@ -218,7 +217,7 @@ describe('ListCommand', function () {
         
         it('handles combination of only and except patterns', function () {
             $commandTester = runCommand('list', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'env',
                 '--only' => 'DB_*,MAIL_*',
@@ -233,7 +232,7 @@ describe('ListCommand', function () {
     describe('error handling', function () {
         it('handles vault connection issues gracefully', function () {
             $commandTester = runCommand('list', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'env'
             ]);
@@ -248,7 +247,7 @@ describe('ListCommand', function () {
         it('handles empty results appropriately', function () {
             // Use a pattern that's unlikely to match anything
             $commandTester = runCommand('list', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'env',
                 '--only' => 'NONEXISTENT_UNLIKELY_PATTERN_*'
@@ -261,7 +260,7 @@ describe('ListCommand', function () {
         
         it('handles auth errors gracefully', function () {
             $commandTester = runCommand('list', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -277,7 +276,7 @@ describe('ListCommand', function () {
         it('handles unmask flag appropriately', function () {
             // Test with unmask flag
             $commandTester = runCommand('list', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'env',
                 '--unmask' => true
@@ -288,7 +287,7 @@ describe('ListCommand', function () {
             
             // Test without unmask flag (default masked)
             $commandTester = runCommand('list', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'env'
             ]);

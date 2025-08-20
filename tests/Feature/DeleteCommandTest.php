@@ -12,7 +12,7 @@ describe('DeleteCommand', function () {
         $settings = [
             'app_name' => 'test-app',
             'namespace' => 'test-app',
-            'default_vault' => 'ssm',
+            'default_vault' => 'test',
             'stages' => ['testing', 'production'],
             'created_at' => date('c'),
             'version' => '1.0'
@@ -20,22 +20,21 @@ describe('DeleteCommand', function () {
         
         file_put_contents('.keep/settings.json', json_encode($settings, JSON_PRETTY_PRINT));
         
-        // Create SSM vault configuration for testing
+        // Create test vault configuration for testing (never hits AWS)
         $vaultConfig = [
-            'driver' => 'ssm',
-            'name' => 'Test SSM Vault',
-            'region' => 'us-east-1',
-            'prefix' => 'test'
+            'driver' => 'test',
+            'name' => 'Test Vault',
+            'namespace' => 'test-app'
         ];
         
-        file_put_contents('.keep/vaults/ssm.json', json_encode($vaultConfig, JSON_PRETTY_PRINT));
+        file_put_contents('.keep/vaults/test.json', json_encode($vaultConfig, JSON_PRETTY_PRINT));
     });
 
     describe('command structure and signature', function () {
         it('accepts force flag option', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'TEST_KEY',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--force' => true
             ]);
@@ -49,7 +48,7 @@ describe('DeleteCommand', function () {
         it('validates key argument is provided', function () {
             // Try to run delete command without key
             $commandTester = runCommand('delete', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--force' => true
             ]);
@@ -65,7 +64,7 @@ describe('DeleteCommand', function () {
         it('accepts vault and stage parameters', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'TEST_KEY',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--force' => true
             ]);
@@ -81,7 +80,7 @@ describe('DeleteCommand', function () {
         it('handles non-existent secrets gracefully', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'NONEXISTENT_KEY',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--force' => true
             ]);
@@ -95,7 +94,7 @@ describe('DeleteCommand', function () {
         it('handles vault connection issues gracefully', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'CONNECTION_TEST_KEY',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--force' => true
             ]);
@@ -110,7 +109,7 @@ describe('DeleteCommand', function () {
         it('validates stage parameters exist in configuration', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'STAGE_TEST_KEY',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing', // Valid stage from our config
                 '--force' => true
             ]);
@@ -126,7 +125,7 @@ describe('DeleteCommand', function () {
         it('accepts force flag without prompting', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'FORCE_TEST_KEY',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--force' => true
             ]);
@@ -140,7 +139,7 @@ describe('DeleteCommand', function () {
         it('shows appropriate deletion message format', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'MESSAGE_TEST_KEY',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--force' => true
             ]);
@@ -156,7 +155,7 @@ describe('DeleteCommand', function () {
         it('uses specified vault parameter', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'VAULT_TEST_KEY',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--force' => true
             ]);
@@ -170,7 +169,7 @@ describe('DeleteCommand', function () {
         it('uses specified stage parameter', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'STAGE_TEST_KEY',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--force' => true
             ]);
@@ -184,7 +183,7 @@ describe('DeleteCommand', function () {
         it('handles production stage parameter', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'PROD_TEST_KEY',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'production', // Valid stage from our config
                 '--force' => true
             ]);
@@ -200,7 +199,7 @@ describe('DeleteCommand', function () {
         it('shows secret details appropriately', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'DETAILS_TEST_KEY',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--force' => true
             ]);
@@ -214,7 +213,7 @@ describe('DeleteCommand', function () {
         it('handles table display formatting', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'TABLE_TEST_KEY',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--force' => true
             ]);
@@ -230,7 +229,7 @@ describe('DeleteCommand', function () {
         it('handles special characters in key names', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'KEY_WITH_SPECIAL-CHARS.123',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--force' => true
             ]);
@@ -245,7 +244,7 @@ describe('DeleteCommand', function () {
             // Test command without --force to test confirmation logic path
             $commandTester = runCommand('delete', [
                 'key' => 'CANCEL_TEST_KEY',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
                 // Note: no --force flag, so would normally prompt
             ]);
@@ -259,7 +258,7 @@ describe('DeleteCommand', function () {
         it('handles context creation appropriately', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'CONTEXT_TEST_KEY',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--force' => true
             ]);
@@ -275,7 +274,7 @@ describe('DeleteCommand', function () {
         it('handles secret retrieval for verification', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'VERIFY_TEST_KEY',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--force' => true
             ]);
@@ -288,7 +287,7 @@ describe('DeleteCommand', function () {
         it('provides appropriate completion status', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'COMPLETION_TEST_KEY',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--force' => true
             ]);

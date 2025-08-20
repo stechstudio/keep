@@ -41,6 +41,12 @@ class KeepManager
         return $this->settings[$key] ?? $default;
     }
 
+    public function setSetting(string $key, mixed $value): static
+    {
+        $this->settings[$key] = $value;
+        return $this;
+    }
+
     public function getAvailableVaults(): array
     {
         return $this->availableVaults;
@@ -93,6 +99,15 @@ class KeepManager
     protected function driverClass($name): ?string
     {
         return Arr::first($this->availableVaults, fn($class) => $class::DRIVER === $name);
+    }
+    
+    /**
+     * Add a vault driver class to available vaults (useful for testing)
+     */
+    public function addVaultDriver(string $driverClass): static
+    {
+        $this->availableVaults[] = $driverClass;
+        return $this;
     }
 
     /**

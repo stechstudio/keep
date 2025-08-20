@@ -36,7 +36,11 @@ abstract class BaseCommand extends Command
         try {
             $result = $this->process();
 
-            return is_int($result) || is_bool($result) ? $result : self::SUCCESS;
+            return match(true) {
+                is_int($result) => $result,
+                is_bool($result) => $result ? self::SUCCESS : self::FAILURE,
+                default => self::SUCCESS,
+            };
         } catch (KeepException $e) {
             $this->enhanceExceptionWithCommandContext($e);
             $e->renderConsole($this->line(...));

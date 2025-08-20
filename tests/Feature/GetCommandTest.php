@@ -12,7 +12,7 @@ describe('GetCommand', function () {
         $settings = [
             'app_name' => 'test-app',
             'namespace' => 'test-app',
-            'default_vault' => 'ssm',
+            'default_vault' => 'test',
             'stages' => ['testing', 'production'],
             'created_at' => date('c'),
             'version' => '1.0'
@@ -20,15 +20,14 @@ describe('GetCommand', function () {
         
         file_put_contents('.keep/settings.json', json_encode($settings, JSON_PRETTY_PRINT));
         
-        // Create SSM vault configuration for testing (using existing SSM vault)
+        // Create test vault configuration for testing (never hits AWS)
         $vaultConfig = [
-            'driver' => 'ssm',
-            'name' => 'Test SSM Vault',
-            'region' => 'us-east-1',
-            'prefix' => 'test'
+            'driver' => 'test',
+            'name' => 'Test Vault',
+            'namespace' => 'test-app'
         ];
         
-        file_put_contents('.keep/vaults/ssm.json', json_encode($vaultConfig, JSON_PRETTY_PRINT));
+        file_put_contents('.keep/vaults/test.json', json_encode($vaultConfig, JSON_PRETTY_PRINT));
     });
 
     describe('command structure and formats', function () {
@@ -38,7 +37,7 @@ describe('GetCommand', function () {
             foreach ($formats as $format) {
                 $commandTester = runCommand('get', [
                     'key' => 'TEST_KEY',
-                    '--vault' => 'ssm',
+                    '--vault' => 'test',
                     '--stage' => 'testing',
                     '--format' => $format
                 ]);
@@ -52,7 +51,7 @@ describe('GetCommand', function () {
         it('handles format option validation', function () {
             $commandTester = runCommand('get', [
                 'key' => 'TEST_KEY',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'invalid'
             ]);
@@ -70,7 +69,7 @@ describe('GetCommand', function () {
         it('handles non-existent secrets appropriately', function () {
             $commandTester = runCommand('get', [
                 'key' => 'NON_EXISTENT_KEY_THAT_SHOULD_NOT_EXIST',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -85,7 +84,7 @@ describe('GetCommand', function () {
         it('validates vault and stage parameters', function () {
             $commandTester = runCommand('get', [
                 'key' => 'ANY_KEY',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -101,7 +100,7 @@ describe('GetCommand', function () {
         it('validates required key argument', function () {
             // Try to run get command without a key
             $commandTester = runCommand('get', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 

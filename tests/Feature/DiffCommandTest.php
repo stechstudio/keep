@@ -12,7 +12,7 @@ describe('DiffCommand', function () {
         $settings = [
             'app_name' => 'test-app',
             'namespace' => 'test-app',
-            'default_vault' => 'ssm',
+            'default_vault' => 'test',
             'stages' => ['testing', 'staging', 'production'],
             'created_at' => date('c'),
             'version' => '1.0'
@@ -20,15 +20,14 @@ describe('DiffCommand', function () {
         
         file_put_contents('.keep/settings.json', json_encode($settings, JSON_PRETTY_PRINT));
         
-        // Create SSM vault configuration for testing
+        // Create test vault configuration for testing (never hits AWS)
         $vaultConfig = [
-            'driver' => 'ssm',
-            'name' => 'Test SSM Vault',
-            'region' => 'us-east-1',
-            'prefix' => 'test'
+            'driver' => 'test',
+            'name' => 'Test Vault',
+            'namespace' => 'test-app'
         ];
         
-        file_put_contents('.keep/vaults/ssm.json', json_encode($vaultConfig, JSON_PRETTY_PRINT));
+        file_put_contents('.keep/vaults/test.json', json_encode($vaultConfig, JSON_PRETTY_PRINT));
     });
 
     describe('command structure and signature', function () {
@@ -67,7 +66,7 @@ describe('DiffCommand', function () {
         
         it('accepts unmask flag option', function () {
             $commandTester = runCommand('diff', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing,production',
                 '--unmask' => true
             ]);
@@ -82,7 +81,7 @@ describe('DiffCommand', function () {
     describe('parameter validation', function () {
         it('handles valid vault and stage combinations', function () {
             $commandTester = runCommand('diff', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing,production'
             ]);
 
@@ -151,7 +150,7 @@ describe('DiffCommand', function () {
         
         it('handles vault connection issues gracefully', function () {
             $commandTester = runCommand('diff', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing,production'
             ]);
 
@@ -164,7 +163,7 @@ describe('DiffCommand', function () {
         
         it('handles empty vault conditions appropriately', function () {
             $commandTester = runCommand('diff', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -177,7 +176,7 @@ describe('DiffCommand', function () {
     describe('output format and display', function () {
         it('shows comparison matrix structure', function () {
             $commandTester = runCommand('diff', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing,production'
             ]);
 
@@ -190,7 +189,7 @@ describe('DiffCommand', function () {
         
         it('displays summary information', function () {
             $commandTester = runCommand('diff', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing,staging'
             ]);
 
@@ -202,7 +201,7 @@ describe('DiffCommand', function () {
         
         it('handles unmask flag appropriately', function () {
             $commandTester = runCommand('diff', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing,production',
                 '--unmask' => true
             ]);
@@ -275,7 +274,7 @@ describe('DiffCommand', function () {
         
         it('handles single stage comparison', function () {
             $commandTester = runCommand('diff', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -289,7 +288,7 @@ describe('DiffCommand', function () {
     describe('edge cases and special scenarios', function () {
         it('handles special characters in options', function () {
             $commandTester = runCommand('diff', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -312,7 +311,7 @@ describe('DiffCommand', function () {
         
         it('processes multiple vault combinations', function () {
             $commandTester = runCommand('diff', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing,production'
             ]);
 
@@ -324,7 +323,7 @@ describe('DiffCommand', function () {
         
         it('handles spinner and loading states appropriately', function () {
             $commandTester = runCommand('diff', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -337,7 +336,7 @@ describe('DiffCommand', function () {
     describe('integration with diff service', function () {
         it('handles diff service responses appropriately', function () {
             $commandTester = runCommand('diff', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing,production'
             ]);
 
@@ -349,7 +348,7 @@ describe('DiffCommand', function () {
         
         it('displays appropriate messages for empty results', function () {
             $commandTester = runCommand('diff', [
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 

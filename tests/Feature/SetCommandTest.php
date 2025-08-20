@@ -12,7 +12,7 @@ describe('SetCommand', function () {
         $settings = [
             'app_name' => 'test-app',
             'namespace' => 'test-app',
-            'default_vault' => 'ssm',
+            'default_vault' => 'test',
             'stages' => ['testing', 'production'],
             'created_at' => date('c'),
             'version' => '1.0'
@@ -20,15 +20,14 @@ describe('SetCommand', function () {
         
         file_put_contents('.keep/settings.json', json_encode($settings, JSON_PRETTY_PRINT));
         
-        // Create SSM vault configuration for testing
+        // Create test vault configuration for testing (never hits AWS)
         $vaultConfig = [
-            'driver' => 'ssm',
-            'name' => 'Test SSM Vault',
-            'region' => 'us-east-1',
-            'prefix' => 'test'
+            'driver' => 'test',
+            'name' => 'Test Vault',
+            'namespace' => 'test-app'
         ];
         
-        file_put_contents('.keep/vaults/ssm.json', json_encode($vaultConfig, JSON_PRETTY_PRINT));
+        file_put_contents('.keep/vaults/test.json', json_encode($vaultConfig, JSON_PRETTY_PRINT));
     });
 
     describe('command structure', function () {
@@ -36,7 +35,7 @@ describe('SetCommand', function () {
             // Try to run set command without key
             $commandTester = runCommand('set', [
                 'value' => 'test-value',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -52,7 +51,7 @@ describe('SetCommand', function () {
             $commandTester = runCommand('set', [
                 'key' => 'TEST_KEY',
                 'value' => 'test-value',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -67,7 +66,7 @@ describe('SetCommand', function () {
             $commandTester = runCommand('set', [
                 'key' => 'TEST_KEY',
                 'value' => 'test-value',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing',
                 '--plain' => true
             ]);
@@ -85,7 +84,7 @@ describe('SetCommand', function () {
             $commandTester = runCommand('set', [
                 'key' => 'MESSAGE_TEST_KEY',
                 'value' => 'message-test-value',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -102,7 +101,7 @@ describe('SetCommand', function () {
             $commandTester = runCommand('set', [
                 'key' => 'ERROR_TEST_KEY',
                 'value' => 'error-test-value',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -117,7 +116,7 @@ describe('SetCommand', function () {
             $commandTester = runCommand('set', [
                 'key' => 'STAGE_TEST_KEY', 
                 'value' => 'stage-test-value',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing' // Valid stage from our config
             ]);
 
@@ -133,7 +132,7 @@ describe('SetCommand', function () {
             $commandTester = runCommand('set', [
                 'key' => 'KEY_WITH_SPECIAL-CHARS.123',
                 'value' => 'special-char-value',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -149,7 +148,7 @@ describe('SetCommand', function () {
             $commandTester = runCommand('set', [
                 'key' => 'SPECIAL_VALUE_KEY',
                 'value' => $specialValue,
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -163,7 +162,7 @@ describe('SetCommand', function () {
             $commandTester = runCommand('set', [
                 'key' => 'EMPTY_VALUE_KEY',
                 'value' => '',
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 
@@ -180,7 +179,7 @@ describe('SetCommand', function () {
             $commandTester = runCommand('set', [
                 'key' => 'UNICODE_KEY',
                 'value' => $unicodeValue,
-                '--vault' => 'ssm',
+                '--vault' => 'test',
                 '--stage' => 'testing'
             ]);
 

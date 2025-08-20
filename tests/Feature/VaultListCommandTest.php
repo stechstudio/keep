@@ -49,13 +49,13 @@ it('lists configured vaults', function () {
     
     // Create test vaults
     $primaryVault = [
-        'driver' => 'ssm',
+        'driver' => 'test',
         'name' => 'Primary Vault',
         'region' => 'us-east-1'
     ];
     
     $secondaryVault = [
-        'driver' => 'secretsmanager',
+        'driver' => 'test',
         'name' => 'Secondary Vault',
         'region' => 'us-west-2'
     ];
@@ -71,10 +71,10 @@ it('lists configured vaults', function () {
     expect($output)->toContain('Configured Vaults');
     expect($output)->toContain('primary');
     expect($output)->toContain('Primary Vault');
-    expect($output)->toContain('ssm');
+    expect($output)->toContain('test');
     expect($output)->toContain('secondary');
     expect($output)->toContain('Secondary Vault');
-    expect($output)->toContain('secretsmanager');
+    expect($output)->toContain('test');
     expect($output)->toContain('✓'); // Default vault indicator
     
     cleanupTempDir($tempDir);
