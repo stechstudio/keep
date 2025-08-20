@@ -24,8 +24,8 @@ class SecretCollection extends Collection
 
     public function filterByPatterns(?string $only = null, ?string $except = null): static
     {
-        $onlyPatterns = collect(array_filter(array_map('trim', explode(',', $only))));
-        $exceptPatterns = collect(array_filter(array_map('trim', explode(',', $except))));
+        $onlyPatterns = collect(array_filter(array_map('trim', explode(',', $only ?? ''))));
+        $exceptPatterns = collect(array_filter(array_map('trim', explode(',', $except ?? ''))));
 
         return $this->filter(function (Secret $secret) use ($onlyPatterns, $exceptPatterns) {
             $key = $secret->key();
