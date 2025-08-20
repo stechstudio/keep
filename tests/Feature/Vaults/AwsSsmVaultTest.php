@@ -281,6 +281,7 @@ describe('AwsSsmVault', function () {
                     'Value' => 'new-secret-value',
                     'Type' => 'SecureString',
                     'Overwrite' => true,
+                    'KeyId' => null,
                 ])
                 ->andReturn(new Result([]));
 
@@ -313,6 +314,7 @@ describe('AwsSsmVault', function () {
                     'Value' => 'plain-value',
                     'Type' => 'String',
                     'Overwrite' => true,
+                    'KeyId' => null,
                 ])
                 ->andReturn(new Result([]));
 
@@ -364,6 +366,9 @@ describe('AwsSsmVault', function () {
             // Mock the putParameter and getParameter calls that set() will make
             $this->mockClient->shouldReceive('putParameter')
                 ->once()
+                ->with(\Mockery::on(function ($params) {
+                    return $params['KeyId'] === null;
+                }))
                 ->andReturn(new Result([]));
 
             $getResult = new Result([
@@ -407,7 +412,7 @@ describe('AwsSsmVault', function () {
             $this->mockClient->shouldReceive('putParameter')
                 ->once()
                 ->with(\Mockery::on(function ($params) use ($unicodeValue) {
-                    return $params['Value'] === $unicodeValue;
+                    return $params['Value'] === $unicodeValue && $params['KeyId'] === null;
                 }))
                 ->andReturn(new Result([]));
 
@@ -433,7 +438,7 @@ describe('AwsSsmVault', function () {
             $this->mockClient->shouldReceive('putParameter')
                 ->once()
                 ->with(\Mockery::on(function ($params) {
-                    return $params['Value'] === '';
+                    return $params['Value'] === '' && $params['KeyId'] === null;
                 }))
                 ->andReturn(new Result([]));
 
