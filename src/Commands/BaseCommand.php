@@ -2,15 +2,16 @@
 
 namespace STS\Keep\Commands;
 
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Illuminate\Console\Command;
+use Illuminate\Console\Concerns\ConfiguresPrompts;
 use STS\Keep\KeepManager;
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\note;
 
 abstract class BaseCommand extends Command
 {
+    use ConfiguresPrompts;
+    
     protected KeepManager $manager;
     
     public function setManager(KeepManager $manager): self
@@ -19,24 +20,23 @@ abstract class BaseCommand extends Command
         return $this;
     }
     
-    final protected function execute(InputInterface $input, OutputInterface $output): int
+    public function handle(): int
     {
         // Check if Keep is initialized (unless this command doesn't require it)
         if ($this->requiresInitialization() && !$this->manager->isInitialized()) {
             error('Keep is not initialized in this directory.');
             note('Run: keep configure');
-            return Command::FAILURE;
+            return self::FAILURE;
         }
         
-        $result = $this->handle($input, $output);
+        $result = $this->process();
 
-        return match (true) {
-            is_bool($result) || is_int($result) => $result,
-            default => 1
-        };
+        return (is_int($result) || is_bool($result))
+            ? (int) $result
+            : self::SUCCESS;
     }
     
-    abstract protected function handle(InputInterface $input, OutputInterface $output);
+    abstract protected function process(): int;
     
     protected function requiresInitialization(): bool
     {

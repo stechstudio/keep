@@ -2,8 +2,6 @@
 
 namespace STS\Keep\Commands;
 
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use function Laravel\Prompts\note;
 use function Laravel\Prompts\text;
 use function Laravel\Prompts\select;
@@ -18,7 +16,7 @@ class VaultAddCommand extends BaseCommand
              ->setDescription('Add a new vault configuration');
     }
     
-    protected function handle(InputInterface $input, OutputInterface $output): int
+    protected function process(): int
     {
         info('🗄️  Add New Vault');
         note('Configure a new vault to store your secrets.');

@@ -3,7 +3,9 @@
 namespace STS\Keep;
 
 use STS\Keep\Enums\KeepInstall;
-use Symfony\Component\Console\Application;
+use Illuminate\Console\Application;
+use STS\Keep\KeepContainer;
+use Illuminate\Events\Dispatcher;
 use STS\Keep\Commands\InfoCommand;
 use STS\Keep\Commands\DemoCommand;
 
@@ -13,7 +15,16 @@ class KeepApplication extends Application
 
     public function __construct(protected KeepInstall $install)
     {
-        parent::__construct('Keep', '1.0.0-alpha');
+        // Create a minimal container for Laravel console commands
+        $container = new KeepContainer();
+        $container->instance(KeepContainer::class, $container);
+        
+        // Create event dispatcher
+        $events = new Dispatcher($container);
+        $container->instance(Dispatcher::class, $events);
+        
+        parent::__construct($container, $events, '1.0.0-alpha');
+        $this->setName('Keep');
         
         // Initialize KeepManager with loaded configuration
         $this->manager = new KeepManager($this->loadSettings(), $this->loadVaults());

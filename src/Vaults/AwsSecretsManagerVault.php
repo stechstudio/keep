@@ -7,6 +7,7 @@ use Aws\SecretsManager\SecretsManagerClient;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Laravel\Prompts\TextPrompt;
 use STS\Keep\Data\Collections\FilterCollection;
 use STS\Keep\Data\Secret;
 use STS\Keep\Data\SecretHistory;
@@ -15,8 +16,6 @@ use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Exceptions\AccessDeniedException;
 use STS\Keep\Exceptions\KeepException;
 use STS\Keep\Exceptions\SecretNotFoundException;
-use STS\Keep\Facades\Keep;
-use STS\Keep\Prompts\TextPrompt;
 
 class AwsSecretsManagerVault extends AbstractVault
 {
