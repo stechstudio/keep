@@ -2,6 +2,8 @@
 
 namespace STS\Keep\Commands;
 
+use STS\Keep\Commands\Concerns\ConfiguresVaults;
+use STS\Keep\Data\VaultConfig;
 use STS\Keep\Facades\Keep;
 use function Laravel\Prompts\text;
 use function Laravel\Prompts\select;
@@ -10,6 +12,8 @@ use function Laravel\Prompts\error;
 
 class VaultEditCommand extends BaseCommand
 {
+    use ConfiguresVaults;
+    
     protected $signature = 'vault:edit {slug? : Slug of the vault to edit}';
     protected $description = 'Edit an existing vault configuration';
     
@@ -19,7 +23,7 @@ class VaultEditCommand extends BaseCommand
         
         $configuredVaults = Keep::getConfiguredVaults();
         
-        if (empty($configuredVaults)) {
+        if ($configuredVaults->isEmpty()) {
             error('No vaults are configured yet.');
             info('Add your first vault with: keep vault:add');
             return self::FAILURE;
@@ -29,12 +33,12 @@ class VaultEditCommand extends BaseCommand
         $slug = $this->argument('slug');
         
         if (!$slug) {
-            // Build options for vault selection
+            // Build options for vault selection with slug as key
             $vaultOptions = [];
-            foreach ($configuredVaults as $vaultSlug => $config) {
-                $vaultOptions[$vaultSlug] = "{$config['name']} ({$vaultSlug})";
+            foreach ($configuredVaults as $config) {
+                $vaultOptions[$config->slug()] = "{$config->name()} ({$config->slug()})";
             }
-            
+
             $slug = select(
                 label: 'Which vault would you like to edit?',
                 options: $vaultOptions
@@ -42,19 +46,20 @@ class VaultEditCommand extends BaseCommand
         }
         
         // Validate vault exists
-        if (!isset($configuredVaults[$slug])) {
+        if (!$configuredVaults->has($slug)) {
             error("Vault '{$slug}' does not exist.");
             return self::FAILURE;
         }
+
+        /** @var VaultConfig $existingConfig */
+        $existingConfig = $configuredVaults->get($slug);
         
-        $existingConfig = $configuredVaults[$slug];
-        
-        info("Editing vault: {$existingConfig['name']} ({$slug})");
+        info("Editing vault: {$existingConfig->name()} ({$slug})");
         
         // Find the vault class for this driver
-        $vaultClass = $this->findVaultClass($existingConfig['driver']);
+        $vaultClass = $this->findVaultClass($existingConfig->driver());
         if (!$vaultClass) {
-            error("Unknown vault driver: {$existingConfig['driver']}");
+            error("Unknown vault driver: {$existingConfig->driver()}");
             return self::FAILURE;
         }
         
@@ -67,7 +72,7 @@ class VaultEditCommand extends BaseCommand
         
         $friendlyName = text(
             label: 'Friendly name for this vault',
-            default: $existingConfig['name'],
+            default: $existingConfig->name(),
             hint: 'A descriptive name to identify this vault configuration'
         );
         
@@ -77,24 +82,36 @@ class VaultEditCommand extends BaseCommand
         // Handle slug changes
         if ($newSlug !== $slug) {
             // Check if new slug already exists
-            if (isset($configuredVaults[$newSlug])) {
+            if ($configuredVaults->has($newSlug)) {
                 error("A vault with slug '{$newSlug}' already exists!");
                 return self::FAILURE;
             }
             
-            // Delete old vault file and save with new slug
-            $this->deleteVaultConfig($slug);
-            $this->saveVaultConfig($newSlug, $updatedConfig);
+            // Delete old vault file by removing it
+            $oldVaultPath = getcwd() . "/.keep/vaults/{$slug}.json";
+            if (file_exists($oldVaultPath)) {
+                unlink($oldVaultPath);
+            }
+            
+            // Create new VaultConfig with updated slug and save it
+            $updatedConfig['slug'] = $newSlug;
+            $newVaultConfig = VaultConfig::fromArray($updatedConfig);
+            $newVaultConfig->save();
             
             // Update default vault if this was the default
             if (Keep::getSetting('default_vault') === $slug) {
-                $this->setDefaultVault($newSlug);
+                $settings = Keep::getSettings();
+                $settings = array_merge($settings, ['default_vault' => $newSlug]);
+                $settingsObject = \STS\Keep\Data\Settings::fromArray($settings);
+                $settingsObject->save();
             }
             
             info("✅ Vault configuration updated and renamed from '{$slug}' to '{$newSlug}'");
         } else {
             // Save with same slug
-            $this->saveVaultConfig($slug, $updatedConfig);
+            $updatedConfig['slug'] = $slug;
+            $vaultConfig = VaultConfig::fromArray($updatedConfig);
+            $vaultConfig->save();
             info("✅ Vault '{$slug}' configuration updated successfully");
         }
         
@@ -114,12 +131,12 @@ class VaultEditCommand extends BaseCommand
         return null;
     }
     
-    private function editVaultConfig(string $vaultClass, string $friendlyName, array $existingConfig): array
+    private function editVaultConfig(string $vaultClass, string $friendlyName, VaultConfig $existingConfig): array
     {
         info("Configuring {$friendlyName}...");
         
-        // Get dynamic prompts from the vault class, passing existing settings
-        $prompts = $vaultClass::configure($existingConfig);
+        // Get dynamic prompts from the vault class, passing existing settings as array
+        $prompts = $vaultClass::configure($existingConfig->toArray());
         $config = [
             'driver' => $vaultClass::DRIVER,
             'name' => $friendlyName
@@ -138,25 +155,4 @@ class VaultEditCommand extends BaseCommand
         return $config;
     }
     
-    private function saveVaultConfig(string $slug, array $config): void
-    {
-        $vaultPath = getcwd() . "/.keep/vaults/{$slug}.json";
-        file_put_contents($vaultPath, json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-    }
-    
-    private function deleteVaultConfig(string $slug): void
-    {
-        $vaultPath = getcwd() . "/.keep/vaults/{$slug}.json";
-        if (file_exists($vaultPath)) {
-            unlink($vaultPath);
-        }
-    }
-    
-    private function setDefaultVault(string $vaultSlug): void
-    {
-        $settingsPath = getcwd() . '/.keep/settings.json';
-        $settings = json_decode(file_get_contents($settingsPath), true);
-        $settings['default_vault'] = $vaultSlug;
-        file_put_contents($settingsPath, json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-    }
 }
