@@ -5,8 +5,8 @@ namespace STS\Keep\Commands;
 use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Data\Template;
 use STS\Keep\Enums\MissingSecretStrategy;
-
 use STS\Keep\Facades\Keep;
+
 use function Laravel\Prompts\text;
 
 class MergeCommand extends BaseCommand
@@ -105,21 +105,22 @@ class MergeCommand extends BaseCommand
     protected function loadSecretsFromAllReferencedVaults($context): SecretCollection
     {
         $vaultNames = $this->extractVaultNamesFromTemplates();
-        
+
         // If no vault-specific placeholders found, fall back to context vault
         if (empty($vaultNames)) {
             $vault = $context->createVault();
+
             return $vault->list();
         }
-        
-        $allSecrets = new SecretCollection();
-        
+
+        $allSecrets = new SecretCollection;
+
         foreach ($vaultNames as $vaultSlug) {
             $vault = Keep::vault($vaultSlug, $context->stage);
             $vaultSecrets = $vault->list();
             $allSecrets = $allSecrets->merge($vaultSecrets);
         }
-        
+
         return $allSecrets;
     }
 

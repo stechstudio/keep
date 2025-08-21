@@ -4,29 +4,29 @@ describe('VerifyCommand', function () {
 
     beforeEach(function () {
         createTempKeepDir();
-        
+
         // Create .keep directory and settings to initialize Keep
         mkdir('.keep');
         mkdir('.keep/vaults');
-        
+
         $settings = [
             'app_name' => 'test-app',
             'namespace' => 'test-app',
             'default_vault' => 'test',
             'stages' => ['testing', 'staging', 'production'],
             'created_at' => date('c'),
-            'version' => '1.0'
+            'version' => '1.0',
         ];
-        
+
         file_put_contents('.keep/settings.json', json_encode($settings, JSON_PRETTY_PRINT));
-        
+
         // Create test vault configuration for testing (never hits AWS)
         $vaultConfig = [
             'driver' => 'test',
             'name' => 'Test Vault',
-            'namespace' => 'test-app'
+            'namespace' => 'test-app',
         ];
-        
+
         file_put_contents('.keep/vaults/test.json', json_encode($vaultConfig, JSON_PRETTY_PRINT));
     });
 
@@ -35,7 +35,7 @@ describe('VerifyCommand', function () {
             $commandTester = runCommand('verify');
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should show verification results
             expect($output)->toMatch('/(verification|results|vault)/i');
         });
@@ -44,7 +44,7 @@ describe('VerifyCommand', function () {
             $commandTester = runCommand('verify');
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should display verification table structure
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
@@ -60,7 +60,7 @@ describe('VerifyCommand', function () {
             $commandTester = runCommand('verify');
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should reference test vault in output
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
@@ -71,29 +71,29 @@ describe('VerifyCommand', function () {
             $commandTester = runCommand('verify');
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should accept command without validation error
             expect($output)->not->toMatch('/(invalid.*option|unknown.*option)/i');
         });
 
         it('handles vault parameter if supported', function () {
             $commandTester = runCommand('verify', [
-                '--vault' => 'test'
+                '--vault' => 'test',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should handle vault parameter without error
             expect($output)->not->toMatch('/(invalid.*vault|unknown.*option)/i');
         });
 
         it('handles stage parameter if supported', function () {
             $commandTester = runCommand('verify', [
-                '--stage' => 'testing'
+                '--stage' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should handle stage parameter without error
             expect($output)->not->toMatch('/(invalid.*stage|unknown.*option)/i');
         });
@@ -104,7 +104,7 @@ describe('VerifyCommand', function () {
             $commandTester = runCommand('verify');
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should test listing without crashing
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
@@ -113,7 +113,7 @@ describe('VerifyCommand', function () {
             $commandTester = runCommand('verify');
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should test read operations without crashing
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
@@ -122,7 +122,7 @@ describe('VerifyCommand', function () {
             $commandTester = runCommand('verify');
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should test write operations without crashing
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
@@ -131,7 +131,7 @@ describe('VerifyCommand', function () {
             $commandTester = runCommand('verify');
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should handle cleanup without crashing
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
@@ -143,7 +143,7 @@ describe('VerifyCommand', function () {
 
             // Command should complete (success or controlled failure)
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should not crash or show unhandled exceptions
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
@@ -153,11 +153,11 @@ describe('VerifyCommand', function () {
             if (file_exists('.keep/vaults/test.json')) {
                 unlink('.keep/vaults/test.json');
             }
-            
+
             $commandTester = runCommand('verify');
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should handle missing config without crashing
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
@@ -175,7 +175,7 @@ describe('VerifyCommand', function () {
             $commandTester = runCommand('verify');
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should display results in readable format
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
@@ -184,7 +184,7 @@ describe('VerifyCommand', function () {
             $commandTester = runCommand('verify');
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should show status indicators
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
@@ -193,7 +193,7 @@ describe('VerifyCommand', function () {
             $commandTester = runCommand('verify');
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should provide useful error information
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
@@ -202,44 +202,44 @@ describe('VerifyCommand', function () {
     describe('stage and vault handling', function () {
         it('verifies testing stage', function () {
             $commandTester = runCommand('verify', [
-                '--stage' => 'testing'
+                '--stage' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should handle testing stage without error
             expect($output)->not->toMatch('/(invalid.*stage|error)/i');
         });
 
         it('verifies staging stage', function () {
             $commandTester = runCommand('verify', [
-                '--stage' => 'staging'
+                '--stage' => 'staging',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should handle staging stage without error
             expect($output)->not->toMatch('/(invalid.*stage|error)/i');
         });
 
         it('verifies production stage', function () {
             $commandTester = runCommand('verify', [
-                '--stage' => 'production'
+                '--stage' => 'production',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should handle production stage without error
             expect($output)->not->toMatch('/(invalid.*stage|error)/i');
         });
 
         it('uses test vault for verification', function () {
             $commandTester = runCommand('verify', [
-                '--vault' => 'test'
+                '--vault' => 'test',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should use test vault without crashing
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
@@ -250,7 +250,7 @@ describe('VerifyCommand', function () {
             $commandTester = runCommand('verify');
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should verify multiple stages
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
@@ -259,7 +259,7 @@ describe('VerifyCommand', function () {
             $commandTester = runCommand('verify');
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should provide complete verification report
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
@@ -291,12 +291,12 @@ describe('VerifyCommand', function () {
             $commandTester = runCommand('verify');
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should handle context creation without error
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
     });
-    
+
     // Tests migrated from Laravel-style tests to new architecture.
     // Focus on command structure, verification operations, error handling, and output formatting
     // rather than full integration tests that depend on external AWS services and pre-populated data.

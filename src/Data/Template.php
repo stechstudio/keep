@@ -2,10 +2,9 @@
 
 namespace STS\Keep\Data;
 
-use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Data\Collections\PlaceholderCollection;
+use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Data\Concerns\FormatsEnvValues;
-use STS\Keep\Data\Placeholder;
 use STS\Keep\Enums\MissingSecretStrategy;
 use STS\Keep\Exceptions\ExceptionFactory;
 
@@ -36,7 +35,7 @@ class Template
 
             $vaultName = $matches['vault'];
             $path = $matches['path'] ?: $matches['key'];
-            
+
             // Find secret that matches both key and vault name
             $secret = $secrets->firstWhere(function (Secret $secret) use ($path, $vaultName) {
                 return $secret->key() === $path && $secret->vault()?->name() === $vaultName;
@@ -45,9 +44,9 @@ class Template
             if (! $secret) {
                 return match ($strategy) {
                     MissingSecretStrategy::FAIL => throw ExceptionFactory::secretNotFoundInTemplate(
-                        $matches['key'], 
-                        $vaultName, 
-                        $path, 
+                        $matches['key'],
+                        $vaultName,
+                        $path,
                         $lineNumber
                     ),
                     MissingSecretStrategy::REMOVE => '# Removed missing secret: '.$matches['key'],
@@ -71,30 +70,30 @@ class Template
 
     /**
      * Extract all vault names referenced in this template's placeholders.
-     * 
+     *
      * @return array<string> Unique vault names found in placeholders
      */
     public function allReferencedVaults(): array
     {
-        if($this->isEmpty()) {
+        if ($this->isEmpty()) {
             return [];
         }
 
         $pattern = '/\{([A-Za-z0-9_-]+)(?::[^}]*)?\}/';
         preg_match_all($pattern, $this->contents, $matches);
-        
+
         return array_unique($matches[1] ?? []);
     }
 
     /**
      * Extract all placeholders from the template content.
-     * 
+     *
      * @return PlaceholderCollection Collection of Placeholder objects
      */
     public function placeholders(): PlaceholderCollection
     {
         if ($this->isEmpty()) {
-            return new PlaceholderCollection();
+            return new PlaceholderCollection;
         }
 
         $placeholders = [];

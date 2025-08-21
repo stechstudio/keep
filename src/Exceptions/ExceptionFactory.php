@@ -9,7 +9,7 @@ class ExceptionFactory
      */
     public static function secretNotFound(string $key, ?string $vault = null, ?string $suggestion = null): SecretNotFoundException
     {
-        $message = $vault 
+        $message = $vault
             ? "Unable to find secret for key [{$key}] in vault [{$vault}]"
             : "Unable to find secret for key [{$key}]";
 
@@ -25,13 +25,14 @@ class ExceptionFactory
      * Create a SecretNotFoundException for template processing with line context.
      */
     public static function secretNotFoundInTemplate(
-        string $key, 
-        string $vault, 
-        ?string $path = null, 
+        string $key,
+        string $vault,
+        ?string $path = null,
         ?int $lineNumber = null
     ): SecretNotFoundException {
         // Use path (secret key) in message if available, otherwise use env var key
         $secretKey = $path ?: $key;
+
         return (new SecretNotFoundException("Unable to find secret for key [{$secretKey}] in vault [{$vault}]"))
             ->withContext(
                 vault: $vault,

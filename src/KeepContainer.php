@@ -3,7 +3,6 @@
 namespace STS\Keep;
 
 use Illuminate\Container\Container;
-use STS\Keep\KeepManager;
 
 class KeepContainer extends Container
 {
@@ -14,18 +13,18 @@ class KeepContainer extends Container
                getenv('LARAVEL_PROMPTS_INTERACT') === '0' ||
                defined('PHPUNIT_COMPOSER_INSTALL');
     }
-    
+
     public function environment(...$environments): bool
     {
         $env = $_ENV['APP_ENV'] ?? getenv('APP_ENV') ?: 'production';
-        
+
         if (empty($environments)) {
             return $env;
         }
-        
+
         return in_array($env, $environments);
     }
-    
+
     /**
      * Get the global KeepManager instance
      */

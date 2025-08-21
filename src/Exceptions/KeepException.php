@@ -35,13 +35,27 @@ class KeepException extends RuntimeException
         ?string $suggestion = null,
         ?string $details = null
     ): static {
-        if ($vault !== null) $this->vault = $vault;
-        if ($stage !== null) $this->stage = $stage;
-        if ($key !== null) $this->key = $key;
-        if ($path !== null) $this->path = $path;
-        if ($lineNumber !== null) $this->lineNumber = $lineNumber;
-        if ($suggestion !== null) $this->suggestion = $suggestion;
-        if ($details !== null) $this->details = $details;
+        if ($vault !== null) {
+            $this->vault = $vault;
+        }
+        if ($stage !== null) {
+            $this->stage = $stage;
+        }
+        if ($key !== null) {
+            $this->key = $key;
+        }
+        if ($path !== null) {
+            $this->path = $path;
+        }
+        if ($lineNumber !== null) {
+            $this->lineNumber = $lineNumber;
+        }
+        if ($suggestion !== null) {
+            $this->suggestion = $suggestion;
+        }
+        if ($details !== null) {
+            $this->details = $details;
+        }
 
         return $this;
     }

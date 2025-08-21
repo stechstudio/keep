@@ -2,25 +2,21 @@
 
 namespace STS\Keep\Vaults;
 
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use STS\Keep\Data\Collections\FilterCollection;
-use STS\Keep\Data\Secret;
-use STS\Keep\Data\SecretHistory;
-use STS\Keep\Data\Collections\SecretHistoryCollection;
 use STS\Keep\Data\Collections\SecretCollection;
-use STS\Keep\Facades\Keep;
+use STS\Keep\Data\Collections\SecretHistoryCollection;
+use STS\Keep\Data\Secret;
 
 abstract class AbstractVault
 {
     public const string DRIVER = '';
+
     public const string NAME = '';
 
     protected $keyFormatter;
 
-    public function __construct(protected string $name, protected array $config, protected string $stage)
-    {
-    }
+    public function __construct(protected string $name, protected array $config, protected string $stage) {}
 
     public function formatKeyUsing(callable $formatter): static
     {

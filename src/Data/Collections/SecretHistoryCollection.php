@@ -2,10 +2,8 @@
 
 namespace STS\Keep\Data\Collections;
 
-use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use STS\Keep\Data\Collections\FilterCollection;
 use STS\Keep\Data\Filters\DateFilter;
 use STS\Keep\Data\Filters\StringFilter;
 use STS\Keep\Data\SecretHistory;
@@ -17,12 +15,12 @@ class SecretHistoryCollection extends Collection
      */
     public function filterByUser(?StringFilter $filter): static
     {
-        if (!$filter) {
+        if (! $filter) {
             return $this;
         }
 
         return $this->filter(
-            fn(SecretHistory $history) => $history->lastModifiedUser() && Str::contains(strtolower($history->lastModifiedUser()), strtolower($filter->value()))
+            fn (SecretHistory $history) => $history->lastModifiedUser() && Str::contains(strtolower($history->lastModifiedUser()), strtolower($filter->value()))
         );
     }
 
@@ -31,12 +29,11 @@ class SecretHistoryCollection extends Collection
      */
     public function filterSince(?DateFilter $since): static
     {
-        if (!$since) {
+        if (! $since) {
             return $this;
         }
 
-        return $this->filter(fn (SecretHistory $history) =>
-            $history->lastModifiedDate() && $history->lastModifiedDate()->gte($since->value())
+        return $this->filter(fn (SecretHistory $history) => $history->lastModifiedDate() && $history->lastModifiedDate()->gte($since->value())
         );
     }
 
@@ -45,11 +42,11 @@ class SecretHistoryCollection extends Collection
      */
     public function filterBefore(?DateFilter $before): static
     {
-        if (!$before) {
+        if (! $before) {
             return $this;
         }
-        return $this->filter(fn (SecretHistory $history) =>
-            $history->lastModifiedDate() && $history->lastModifiedDate()->lte($before->value())
+
+        return $this->filter(fn (SecretHistory $history) => $history->lastModifiedDate() && $history->lastModifiedDate()->lte($before->value())
         );
     }
 
@@ -69,7 +66,7 @@ class SecretHistoryCollection extends Collection
      */
     public function withMaskedValues(): static
     {
-        return $this->map(fn(SecretHistory $history) => $history->withMaskedValue());
+        return $this->map(fn (SecretHistory $history) => $history->withMaskedValue());
     }
 
     /**

@@ -1,7 +1,7 @@
 <?php
 
-use STS\Keep\Data\Secret;
 use STS\Keep\Data\Collections\SecretCollection;
+use STS\Keep\Data\Secret;
 use STS\Keep\Data\Template;
 use STS\Keep\Enums\MissingSecretStrategy;
 use STS\Keep\Exceptions\SecretNotFoundException;
@@ -11,17 +11,17 @@ beforeEach(function () {
     // Create mock vault for SSM
     $this->ssmVault = Mockery::mock(AbstractVault::class);
     $this->ssmVault->shouldReceive('name')->andReturn('ssm');
-    
+
     // Create mock vault for other vault names used in tests
     $this->vaultOne = Mockery::mock(AbstractVault::class);
     $this->vaultOne->shouldReceive('name')->andReturn('vault-one');
-    
+
     $this->vaultTwo = Mockery::mock(AbstractVault::class);
     $this->vaultTwo->shouldReceive('name')->andReturn('vault-two');
-    
+
     $this->ssmProdVault = Mockery::mock(AbstractVault::class);
     $this->ssmProdVault->shouldReceive('name')->andReturn('ssm-prod');
-    
+
     // Create secrets with SSM vault attached
     $this->secrets = new SecretCollection([
         new Secret('DB_PASSWORD', 'secret123', null, true, null, 0, null, $this->ssmVault),
@@ -706,7 +706,7 @@ describe('Template', function () {
             // Create mock vaults for different providers
             $secretsManagerVault = Mockery::mock(AbstractVault::class);
             $secretsManagerVault->shouldReceive('name')->andReturn('secretsmanager');
-            
+
             $ssmUsWest2Vault = Mockery::mock(AbstractVault::class);
             $ssmUsWest2Vault->shouldReceive('name')->andReturn('ssm-usw-2');
 
@@ -802,15 +802,15 @@ describe('Template', function () {
         it('extracts placeholders with vault:key format', function () {
             $template = new Template("DB_HOST={ssm:DB_HOST}\nAPI_KEY={vault:API_KEY}");
             $placeholders = $template->placeholders();
-            
+
             expect($placeholders)->toHaveCount(2);
-            
+
             $firstPlaceholder = $placeholders[0];
             expect($firstPlaceholder->line)->toBe(1);
             expect($firstPlaceholder->envKey)->toBe('DB_HOST');
             expect($firstPlaceholder->vault)->toBe('ssm');
             expect($firstPlaceholder->key)->toBe('DB_HOST');
-            
+
             $secondPlaceholder = $placeholders[1];
             expect($secondPlaceholder->line)->toBe(2);
             expect($secondPlaceholder->envKey)->toBe('API_KEY');
@@ -819,9 +819,9 @@ describe('Template', function () {
         });
 
         it('extracts simple placeholders without vault prefix', function () {
-            $template = new Template("API_KEY={API_KEY}");
+            $template = new Template('API_KEY={API_KEY}');
             $placeholders = $template->placeholders();
-            
+
             expect($placeholders)->toHaveCount(1);
             $placeholder = $placeholders[0];
             expect($placeholder->line)->toBe(1);
@@ -833,21 +833,21 @@ describe('Template', function () {
         it('returns empty collection for templates with no placeholders', function () {
             $template = new Template("# Just a comment\nSTATIC_VALUE=hello");
             $placeholders = $template->placeholders();
-            
+
             expect($placeholders)->toBeEmpty();
         });
 
         it('returns empty collection for empty templates', function () {
-            $template = new Template("");
+            $template = new Template('');
             $placeholders = $template->placeholders();
-            
+
             expect($placeholders)->toBeEmpty();
         });
 
         it('includes line numbers and raw line content', function () {
             $template = new Template("# Comment\nDB_HOST={ssm:DB_HOST}\n\nAPI_KEY={API_KEY}");
             $placeholders = $template->placeholders();
-            
+
             expect($placeholders)->toHaveCount(2);
             expect($placeholders[0]->line)->toBe(2);
             expect($placeholders[0]->rawLine)->toBe('DB_HOST={ssm:DB_HOST}');

@@ -9,10 +9,10 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Laravel\Prompts\TextPrompt;
 use STS\Keep\Data\Collections\FilterCollection;
+use STS\Keep\Data\Collections\SecretCollection;
+use STS\Keep\Data\Collections\SecretHistoryCollection;
 use STS\Keep\Data\Secret;
 use STS\Keep\Data\SecretHistory;
-use STS\Keep\Data\Collections\SecretHistoryCollection;
-use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Exceptions\AccessDeniedException;
 use STS\Keep\Exceptions\KeepException;
 use STS\Keep\Exceptions\SecretNotFoundException;
@@ -20,10 +20,11 @@ use STS\Keep\Exceptions\SecretNotFoundException;
 class AwsSecretsManagerVault extends AbstractVault
 {
     public const string DRIVER = 'secretsmanager';
+
     public const string NAME = 'AWS Secrets Manager';
 
     protected SecretsManagerClient $client;
-    
+
     public static function configure(array $existingSettings = []): array
     {
         return [
@@ -41,7 +42,7 @@ class AwsSecretsManagerVault extends AbstractVault
                 label: 'KMS Key ID (optional)',
                 default: $existingSettings['key'] ?? '',
                 hint: 'Leave empty to use the default AWS managed key'
-            )
+            ),
         ];
     }
 
@@ -76,8 +77,8 @@ class AwsSecretsManagerVault extends AbstractVault
                     'Filters' => [
                         [
                             'Key' => 'name',
-                            'Values' => [$prefix . '*']
-                        ]
+                            'Values' => [$prefix.'*'],
+                        ],
                     ],
                     'IncludePlannedDeletion' => false,
                 ];
@@ -90,14 +91,14 @@ class AwsSecretsManagerVault extends AbstractVault
 
                 foreach ($result->get('SecretList') as $secret) {
                     $secretName = $secret['Name'];
-                    
+
                     // Extract the key from the full secret name
                     $key = Str::of($secretName)
-                        ->after($prefix . '/')
+                        ->after($prefix.'/')
                         ->toString();
 
                     // Skip if this doesn't match our prefix pattern exactly
-                    if (!Str::startsWith($secretName, $prefix . '/')) {
+                    if (! Str::startsWith($secretName, $prefix.'/')) {
                         continue;
                     }
 
@@ -158,7 +159,7 @@ class AwsSecretsManagerVault extends AbstractVault
 
             $value = $result->get('SecretString');
             $versionId = $result->get('VersionId');
-            
+
             if ($value === null) {
                 throw new SecretNotFoundException("Secret not found [{$this->format($key)}]");
             }
@@ -193,7 +194,7 @@ class AwsSecretsManagerVault extends AbstractVault
     {
         try {
             $secretName = $this->format($key);
-            
+
             // Check if secret exists
             $exists = false;
             try {
@@ -265,7 +266,7 @@ class AwsSecretsManagerVault extends AbstractVault
             ]);
 
             $versions = $result->get('Versions') ?? [];
-            
+
             foreach ($versions as $version) {
                 try {
                     // Get the actual secret value for this version
@@ -296,7 +297,7 @@ class AwsSecretsManagerVault extends AbstractVault
 
             // If we have a limit, slice the collection to that limit
             return $limit !== null ? $histories->take($limit) : $histories;
-            
+
         } catch (SecretsManagerException $e) {
             if ($e->getAwsErrorCode() === 'ResourceNotFoundException') {
                 throw new SecretNotFoundException("Secret [{$key}] not found in vault [{$this->name()}]");

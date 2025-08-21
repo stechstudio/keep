@@ -3,5 +3,6 @@ workbench/
 vendor/
 .env*
 *_PLAN.md
+CLAUDE.md
 .claude
 .keep

@@ -113,14 +113,14 @@ describe('Settings', function () {
     describe('file operations', function () {
         beforeEach(function () {
             // Create temp directory for test files
-            $this->tempDir = '/tmp/keep-settings-test-' . uniqid();
+            $this->tempDir = '/tmp/keep-settings-test-'.uniqid();
             mkdir($this->tempDir, 0755, true);
         });
 
         afterEach(function () {
             // Clean up temp directory
             if (is_dir($this->tempDir)) {
-                array_map('unlink', glob($this->tempDir . '/*'));
+                array_map('unlink', glob($this->tempDir.'/*'));
                 rmdir($this->tempDir);
             }
         });
@@ -133,7 +133,7 @@ describe('Settings', function () {
                 defaultVault: 'primary'
             );
 
-            $filePath = $this->tempDir . '/settings.json';
+            $filePath = $this->tempDir.'/settings.json';
             $original->saveToFile($filePath);
 
             expect(file_exists($filePath))->toBeTrue();
@@ -148,8 +148,8 @@ describe('Settings', function () {
         });
 
         it('creates directory if not exists', function () {
-            $nestedPath = $this->tempDir . '/nested/deep/settings.json';
-            
+            $nestedPath = $this->tempDir.'/nested/deep/settings.json';
+
             $settings = new Settings('app', 'namespace', ['stage']);
             $settings->saveToFile($nestedPath);
 
@@ -158,14 +158,14 @@ describe('Settings', function () {
         });
 
         it('handles missing file gracefully', function () {
-            $missingPath = $this->tempDir . '/missing.json';
+            $missingPath = $this->tempDir.'/missing.json';
 
             expect(fn () => Settings::fromFile($missingPath))
                 ->toThrow(RuntimeException::class, 'File does not exist');
         });
 
         it('handles corrupted JSON', function () {
-            $corruptPath = $this->tempDir . '/corrupt.json';
+            $corruptPath = $this->tempDir.'/corrupt.json';
             file_put_contents($corruptPath, '{"invalid": json}');
 
             expect(fn () => Settings::fromFile($corruptPath))
@@ -173,7 +173,7 @@ describe('Settings', function () {
         });
 
         it('handles non-object JSON', function () {
-            $arrayPath = $this->tempDir . '/array.json';
+            $arrayPath = $this->tempDir.'/array.json';
             file_put_contents($arrayPath, '["not", "an", "object"]');
 
             expect(fn () => Settings::fromFile($arrayPath))
@@ -181,7 +181,7 @@ describe('Settings', function () {
         });
 
         it('handles incomplete settings data', function () {
-            $incompletePath = $this->tempDir . '/incomplete.json';
+            $incompletePath = $this->tempDir.'/incomplete.json';
             file_put_contents($incompletePath, '{"app_name": "test"}');
 
             expect(fn () => Settings::fromFile($incompletePath))
@@ -258,9 +258,9 @@ describe('Settings', function () {
     describe('timestamps', function () {
         it('sets timestamps automatically', function () {
             $before = date('c');
-            
+
             $settings = new Settings('app', 'namespace', ['stage']);
-            
+
             $after = date('c');
 
             expect($settings->createdAt())->toBeGreaterThanOrEqual($before);
@@ -271,7 +271,7 @@ describe('Settings', function () {
 
         it('preserves created_at when provided', function () {
             $fixedTime = '2024-01-01T12:00:00+00:00';
-            
+
             $settings = Settings::fromArray([
                 'app_name' => 'app',
                 'namespace' => 'namespace',

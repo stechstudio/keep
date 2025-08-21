@@ -57,7 +57,7 @@ trait GathersInput
         return $this->value ??= $this->argument('value') ?? text('Value', required: true);
     }
 
-    protected function vaultName($prompt = "Vault", $cacheName = 'vaultName')
+    protected function vaultName($prompt = 'Vault', $cacheName = 'vaultName')
     {
         return $this->{$cacheName} ??= match (true) {
             $this->hasOption('vault') && (bool) $this->option('vault') => $this->option('vault'),
@@ -66,7 +66,7 @@ trait GathersInput
         };
     }
 
-    protected function stage($prompt = "Stage", $cacheName = 'stage')
+    protected function stage($prompt = 'Stage', $cacheName = 'stage')
     {
         return $this->{$cacheName} ??= match (true) {
             $this->hasOption('stage') && (bool) $this->option('stage') => $this->option('stage'),
@@ -85,7 +85,7 @@ trait GathersInput
 
     protected function from()
     {
-        return match(true) {
+        return match (true) {
             isset($this->from) => $this->from,
             (bool) $this->option('from') => $this->option('from'),
             default => $this->vaultName('From (vault)', 'fromVaultName').':'.$this->stage('From (stage)', 'fromStage'),
@@ -94,20 +94,20 @@ trait GathersInput
 
     protected function to()
     {
-        return match(true) {
+        return match (true) {
             isset($this->to) => $this->to,
             (bool) $this->option('to') => $this->option('to'),
             default => $this->vaultName('To (vault)', 'toVaultName').':'.$this->stage('To (stage)', 'toStage'),
         };
     }
 
-    protected function context(string $vaultPrompt = "Vault", string $stagePrompt = "Stage"): Context
+    protected function context(string $vaultPrompt = 'Vault', string $stagePrompt = 'Stage'): Context
     {
         // If --context option is provided, use it
         if ($this->hasOption('context') && $this->option('context')) {
             return Context::fromInput($this->option('context'));
         }
-        
+
         // Fall back to separate vault/stage prompting
         return new Context($this->vaultName($vaultPrompt), $this->stage($stagePrompt));
     }

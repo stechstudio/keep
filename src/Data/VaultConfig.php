@@ -8,6 +8,7 @@ use STS\Keep\Data\Concerns\InteractsWithJsonFiles;
 class VaultConfig
 {
     use InteractsWithJsonFiles;
+
     public function __construct(
         protected string $slug,
         protected string $driver,
@@ -22,7 +23,7 @@ class VaultConfig
         // Validate required fields exist
         $required = ['slug', 'driver', 'name'];
         foreach ($required as $field) {
-            if (!isset($data[$field])) {
+            if (! isset($data[$field])) {
                 throw new InvalidArgumentException("Missing required field: {$field}");
             }
         }
@@ -50,7 +51,6 @@ class VaultConfig
         ], $this->config);
     }
 
-
     protected function validate(): void
     {
         // Validate slug
@@ -58,7 +58,7 @@ class VaultConfig
             throw new InvalidArgumentException('Slug cannot be empty');
         }
 
-        if (!preg_match('/^[a-z0-9_-]+$/', $this->slug)) {
+        if (! preg_match('/^[a-z0-9_-]+$/', $this->slug)) {
             throw new InvalidArgumentException(
                 'Slug must contain only lowercase letters, numbers, underscores, and hyphens'
             );
@@ -73,7 +73,7 @@ class VaultConfig
             throw new InvalidArgumentException('Driver cannot be empty');
         }
 
-        if (!preg_match('/^[a-z0-9_-]+$/', $this->driver)) {
+        if (! preg_match('/^[a-z0-9_-]+$/', $this->driver)) {
             throw new InvalidArgumentException(
                 'Driver must contain only lowercase letters, numbers, underscores, and hyphens'
             );
@@ -102,17 +102,17 @@ class VaultConfig
             $currentPath = $path ? "{$path}.{$key}" : $key;
 
             // Validate key names
-            if (!is_string($key) || empty(trim($key))) {
+            if (! is_string($key) || empty(trim($key))) {
                 throw new InvalidArgumentException("Configuration key '{$currentPath}' must be a non-empty string");
             }
 
             // Validate value types
             if (is_array($value)) {
                 $this->validateConfigStructure($value, $currentPath);
-            } elseif (!is_scalar($value) && $value !== null) {
+            } elseif (! is_scalar($value) && $value !== null) {
                 throw new InvalidArgumentException(
-                    "Configuration value at '{$currentPath}' must be scalar, array, or null. " .
-                    "Got: " . gettype($value)
+                    "Configuration value at '{$currentPath}' must be scalar, array, or null. ".
+                    'Got: '.gettype($value)
                 );
             }
 
@@ -159,14 +159,14 @@ class VaultConfig
     // Save method - VaultConfiguration knows how to save itself
     public function save(): void
     {
-        $vaultDir = getcwd() . '/.keep/vaults';
-        
+        $vaultDir = getcwd().'/.keep/vaults';
+
         // Ensure directory exists
-        if (!is_dir($vaultDir)) {
+        if (! is_dir($vaultDir)) {
             mkdir($vaultDir, 0755, true);
         }
-        
-        $filePath = $vaultDir . '/' . $this->slug . '.json';
+
+        $filePath = $vaultDir.'/'.$this->slug.'.json';
         $this->saveToFile($filePath);
     }
 

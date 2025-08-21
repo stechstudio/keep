@@ -26,7 +26,7 @@ describe('Secret', function () {
 
         it('rejects keys with spaces', function ($key) {
             expect(fn () => new Secret($key, 'value'))
-                ->toThrow(\InvalidArgumentException::class, "contains invalid characters");
+                ->toThrow(\InvalidArgumentException::class, 'contains invalid characters');
         })->with([
             'single space' => ['DB HOST'],
             'multiple spaces' => ['MY API KEY'],
@@ -34,7 +34,7 @@ describe('Secret', function () {
 
         it('rejects keys with hyphens', function ($key) {
             expect(fn () => new Secret($key, 'value'))
-                ->toThrow(\InvalidArgumentException::class, "contains invalid characters");
+                ->toThrow(\InvalidArgumentException::class, 'contains invalid characters');
         })->with([
             'single hyphen' => ['my-api-key'],
             'multiple hyphens' => ['user-email-address'],
@@ -43,7 +43,7 @@ describe('Secret', function () {
 
         it('rejects keys with special characters', function ($key) {
             expect(fn () => new Secret($key, 'value'))
-                ->toThrow(\InvalidArgumentException::class, "contains invalid characters");
+                ->toThrow(\InvalidArgumentException::class, 'contains invalid characters');
         })->with([
             'dot notation' => ['user.email'],
             'slash separator' => ['app/config'],
@@ -77,7 +77,7 @@ describe('Secret', function () {
 
         it('rejects keys starting with underscore', function ($key) {
             expect(fn () => new Secret($key, 'value'))
-                ->toThrow(\InvalidArgumentException::class, "cannot start with underscore");
+                ->toThrow(\InvalidArgumentException::class, 'cannot start with underscore');
         })->with([
             'single underscore' => ['_SECRET'],
             'multiple underscores' => ['__PRIVATE'],
@@ -86,7 +86,7 @@ describe('Secret', function () {
 
         it('rejects keys starting with numbers', function ($key) {
             expect(fn () => new Secret($key, 'value'))
-                ->toThrow(\InvalidArgumentException::class, "cannot start with a number");
+                ->toThrow(\InvalidArgumentException::class, 'cannot start with a number');
         })->with([
             'single digit' => ['1KEY'],
             'multiple digits' => ['123_SECRET'],
@@ -106,7 +106,7 @@ describe('Secret', function () {
         it('rejects keys that are too long', function () {
             $longKey = str_repeat('A', 256); // 256 characters
             expect(fn () => new Secret($longKey, 'value'))
-                ->toThrow(\InvalidArgumentException::class, "must be 1-255 characters long");
+                ->toThrow(\InvalidArgumentException::class, 'must be 1-255 characters long');
         });
 
         it('accepts maximum length keys', function () {
@@ -260,7 +260,7 @@ describe('Secret', function () {
     });
 
     it('handles very long keys and values', function () {
-        $longKey = str_repeat('LONG_KEY_', 28) . 'END'; // 255 characters (at 255 limit)
+        $longKey = str_repeat('LONG_KEY_', 28).'END'; // 255 characters (at 255 limit)
         $longValue = str_repeat('This is a very long value. ', 1000);
 
         $secret = new Secret(

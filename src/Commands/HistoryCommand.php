@@ -3,10 +3,10 @@
 namespace STS\Keep\Commands;
 
 use STS\Keep\Data\Collections\FilterCollection;
+use STS\Keep\Data\Collections\SecretHistoryCollection;
 use STS\Keep\Data\Filters\DateFilter;
 use STS\Keep\Data\Filters\StringFilter;
 use STS\Keep\Data\SecretHistory;
-use STS\Keep\Data\Collections\SecretHistoryCollection;
 
 use function Laravel\Prompts\table;
 
@@ -18,11 +18,11 @@ class HistoryCommand extends BaseCommand
         {--user= : Filter by user who modified the secret (partial match)}
         {--since= : Filter entries since this date (e.g., "7 days ago", "2024-01-01")}
         {--before= : Filter entries before this date (e.g., "2024-12-31")} '
-    .self::KEY_SIGNATURE
-    .self::CONTEXT_SIGNATURE
-    .self::VAULT_SIGNATURE
-    .self::STAGE_SIGNATURE
-    .self::UNMASK_SIGNATURE;
+        .self::KEY_SIGNATURE
+        .self::CONTEXT_SIGNATURE
+        .self::VAULT_SIGNATURE
+        .self::STAGE_SIGNATURE
+        .self::UNMASK_SIGNATURE;
 
     public $description = 'Display change history for a secret';
 
@@ -34,8 +34,8 @@ class HistoryCommand extends BaseCommand
         $vault = $context->createVault();
 
         $historyCollection = $vault->history($key, new FilterCollection(array_filter([
-            'user'   => $this->option('user') ? new StringFilter($this->option('user')) : null,
-            'since'  => $this->option('since') ? new DateFilter($this->option('since')) : null,
+            'user' => $this->option('user') ? new StringFilter($this->option('user')) : null,
+            'since' => $this->option('since') ? new DateFilter($this->option('since')) : null,
             'before' => $this->option('before') ? new DateFilter($this->option('before')) : null,
         ])), $limit);
 
@@ -46,18 +46,18 @@ class HistoryCommand extends BaseCommand
             } else {
                 $this->info("No history found for secret [{$key}]");
             }
-            
+
             return self::SUCCESS;
         }
 
         // Apply masking if not unmasked
-        if (!$this->option('unmask')) {
+        if (! $this->option('unmask')) {
             $historyCollection = $historyCollection->withMaskedValues();
         }
 
         $result = match ($this->option('format')) {
             'table' => $this->displayTable($historyCollection, $key),
-            'json'  => $this->displayJson($historyCollection),
+            'json' => $this->displayJson($historyCollection),
             default => false,
         };
 
@@ -72,13 +72,13 @@ class HistoryCommand extends BaseCommand
     {
         $this->line("History for secret: <info>{$key}</info>");
 
-        $rows = $historyCollection->map(function (SecretHistory $history) use ($historyCollection) {
+        $rows = $historyCollection->map(function (SecretHistory $history) {
             return [
-                'Version'       => $history->version(),
-                'Value'         => $history->value() ?? '<null>',
-                'Type'          => $history->dataType(),
+                'Version' => $history->version(),
+                'Value' => $history->value() ?? '<null>',
+                'Type' => $history->dataType(),
                 'Modified Date' => $history->formattedDate(),
-                'Modified By'   => $history->lastModifiedUser() ?? '<unknown>',
+                'Modified By' => $history->lastModifiedUser() ?? '<unknown>',
             ];
         })->toArray();
 

@@ -3,8 +3,8 @@
 namespace STS\Keep\Services;
 
 use Illuminate\Support\Collection;
-use STS\Keep\Data\SecretDiff;
 use STS\Keep\Data\Collections\SecretCollection;
+use STS\Keep\Data\SecretDiff;
 use STS\Keep\Facades\Keep;
 
 class DiffService

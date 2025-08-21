@@ -154,26 +154,26 @@ class DiffCommand extends BaseCommand
     protected function parseContextsToVaultsAndStages(): array
     {
         $contextInputs = array_map('trim', explode(',', $this->option('context')));
-        $contexts = collect($contextInputs)->map(fn($input) => Context::fromInput($input));
-        
+        $contexts = collect($contextInputs)->map(fn ($input) => Context::fromInput($input));
+
         $vaults = $contexts->pluck('vault')->unique()->values()->toArray();
         $stages = $contexts->pluck('stage')->unique()->values()->toArray();
-        
+
         // Validate vaults exist
         $configuredVaultNames = Keep::getConfiguredVaults()->keys()->toArray();
         $invalidVaults = array_diff($vaults, $configuredVaultNames);
-        if (!empty($invalidVaults)) {
-            $this->warn('Warning: Unknown vaults specified: ' . implode(', ', $invalidVaults));
+        if (! empty($invalidVaults)) {
+            $this->warn('Warning: Unknown vaults specified: '.implode(', ', $invalidVaults));
             $vaults = array_intersect($vaults, $configuredVaultNames);
         }
-        
+
         // Validate stages exist
         $invalidStages = array_diff($stages, Keep::getStages());
-        if (!empty($invalidStages)) {
-            $this->warn('Warning: Unknown stages specified: ' . implode(', ', $invalidStages));
+        if (! empty($invalidStages)) {
+            $this->warn('Warning: Unknown stages specified: '.implode(', ', $invalidStages));
             $stages = array_intersect($stages, Keep::getStages());
         }
-        
+
         return [$vaults, $stages];
     }
 }
