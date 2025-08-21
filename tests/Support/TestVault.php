@@ -3,24 +3,24 @@
 namespace STS\Keep\Tests\Support;
 
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 use STS\Keep\Data\Collections\FilterCollection;
+use STS\Keep\Data\Collections\SecretCollection;
+use STS\Keep\Data\Collections\SecretHistoryCollection;
 use STS\Keep\Data\Secret;
 use STS\Keep\Data\SecretHistory;
-use STS\Keep\Data\Collections\SecretHistoryCollection;
-use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Exceptions\SecretNotFoundException;
 use STS\Keep\Vaults\AbstractVault;
 
 class TestVault extends AbstractVault
 {
     public const string DRIVER = 'test';
-    
+
     public static function configure(array $existingSettings = []): array
     {
         // Return empty array for test vault since it doesn't need configuration
         return [];
     }
+
     /**
      * Vault and stage-aware storage structure:
      * [
@@ -168,7 +168,7 @@ class TestVault extends AbstractVault
         }
 
         $collection = new SecretHistoryCollection($historyEntries);
-        
+
         // Apply filters first, then sort
         $filtered = $collection->applyFilters($filters)->sortByVersionDesc();
 

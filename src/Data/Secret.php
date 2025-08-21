@@ -32,41 +32,42 @@ class Secret implements Arrayable
      *
      * @param  string  $key  The raw key to validate
      * @return string The validated key
+     *
      * @throws \InvalidArgumentException If key contains invalid characters
      */
     protected function validateKey(string $key): string
     {
         $trimmed = trim($key);
-        
+
         // Strict whitelist: Only allow letters, digits, and underscores
-        if (!preg_match('/^[A-Za-z0-9_]+$/', $trimmed)) {
+        if (! preg_match('/^[A-Za-z0-9_]+$/', $trimmed)) {
             throw new \InvalidArgumentException(
-                "Secret key '{$key}' contains invalid characters. " .
-                "Only letters, numbers, and underscores are allowed."
+                "Secret key '{$key}' contains invalid characters. ".
+                'Only letters, numbers, and underscores are allowed.'
             );
         }
-        
+
         // Length validation (reasonable limits for secret names)
         if (strlen($trimmed) < 1 || strlen($trimmed) > 255) {
             throw new \InvalidArgumentException(
                 "Secret key '{$key}' must be 1-255 characters long."
             );
         }
-        
+
         // Cannot start with underscore (poor practice, could conflict with system vars)
         if (str_starts_with($trimmed, '_')) {
             throw new \InvalidArgumentException(
                 "Secret key '{$key}' cannot start with underscore."
             );
         }
-        
+
         // Cannot start with digit (invalid variable name in most languages)
         if (preg_match('/^[0-9]/', $trimmed)) {
             throw new \InvalidArgumentException(
                 "Secret key '{$key}' cannot start with a number."
             );
         }
-        
+
         return $trimmed;
     }
 

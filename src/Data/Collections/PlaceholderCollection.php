@@ -21,10 +21,11 @@ class PlaceholderCollection extends Collection
     /**
      * Get all placeholders that reference a specific vault
      */
-    public function forVault(string $vaultName, string $defaultVault = null): static
+    public function forVault(string $vaultName, ?string $defaultVault = null): static
     {
         return $this->filter(function (Placeholder $placeholder) use ($vaultName, $defaultVault) {
             $effectiveVault = $placeholder->vault ?? $defaultVault;
+
             return $effectiveVault === $vaultName;
         });
     }
@@ -35,9 +36,9 @@ class PlaceholderCollection extends Collection
     public function getReferencedVaults(string $defaultVault): array
     {
         return $this->map(fn (Placeholder $placeholder) => $placeholder->getEffectiveVault($defaultVault))
-                    ->unique()
-                    ->values()
-                    ->toArray();
+            ->unique()
+            ->values()
+            ->toArray();
     }
 
     /**
@@ -46,9 +47,9 @@ class PlaceholderCollection extends Collection
     public function getReferencedKeys(): array
     {
         return $this->map(fn (Placeholder $placeholder) => $placeholder->key)
-                    ->unique()
-                    ->values()
-                    ->toArray();
+            ->unique()
+            ->values()
+            ->toArray();
     }
 
     /**
@@ -57,10 +58,10 @@ class PlaceholderCollection extends Collection
     public function getReferencedKeysForVault(string $vaultName, string $defaultVault): array
     {
         return $this->filter(fn (Placeholder $placeholder) => $placeholder->getEffectiveVault($defaultVault) === $vaultName)
-                    ->map(fn (Placeholder $placeholder) => $placeholder->key)
-                    ->unique()
-                    ->values()
-                    ->toArray();
+            ->map(fn (Placeholder $placeholder) => $placeholder->key)
+            ->unique()
+            ->values()
+            ->toArray();
     }
 
     /**

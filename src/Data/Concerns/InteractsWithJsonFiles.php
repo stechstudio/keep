@@ -7,11 +7,12 @@ use RuntimeException;
 trait InteractsWithJsonFiles
 {
     abstract public function toArray(): array;
+
     abstract public static function fromArray(array $data): static;
 
     public static function fromFile(string $path): static
     {
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             throw new RuntimeException("File does not exist: {$path}");
         }
 
@@ -21,14 +22,14 @@ trait InteractsWithJsonFiles
         }
 
         $data = json_decode($contents, true);
-        
+
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new RuntimeException(
-                "Invalid JSON in file {$path}: " . json_last_error_msg()
+                "Invalid JSON in file {$path}: ".json_last_error_msg()
             );
         }
 
-        if (!is_array($data)) {
+        if (! is_array($data)) {
             throw new RuntimeException("File must contain a JSON object: {$path}");
         }
 
@@ -39,16 +40,16 @@ trait InteractsWithJsonFiles
     {
         // Ensure directory exists
         $directory = dirname($path);
-        if (!is_dir($directory)) {
-            if (!mkdir($directory, 0755, true) && !is_dir($directory)) {
+        if (! is_dir($directory)) {
+            if (! mkdir($directory, 0755, true) && ! is_dir($directory)) {
                 throw new RuntimeException("Cannot create directory: {$directory}");
             }
         }
 
         $json = json_encode($this->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-        
+
         if ($json === false) {
-            throw new RuntimeException("Cannot encode data to JSON: " . json_last_error_msg());
+            throw new RuntimeException('Cannot encode data to JSON: '.json_last_error_msg());
         }
 
         if (file_put_contents($path, $json) === false) {

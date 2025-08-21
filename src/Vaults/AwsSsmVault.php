@@ -10,10 +10,10 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Laravel\Prompts\TextPrompt;
 use STS\Keep\Data\Collections\FilterCollection;
+use STS\Keep\Data\Collections\SecretCollection;
+use STS\Keep\Data\Collections\SecretHistoryCollection;
 use STS\Keep\Data\Secret;
 use STS\Keep\Data\SecretHistory;
-use STS\Keep\Data\Collections\SecretHistoryCollection;
-use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Exceptions\AccessDeniedException;
 use STS\Keep\Exceptions\ExceptionFactory;
 use STS\Keep\Exceptions\KeepException;
@@ -23,10 +23,11 @@ use STS\Keep\Facades\Keep;
 class AwsSsmVault extends AbstractVault
 {
     public const string DRIVER = 'ssm';
+
     public const string NAME = 'AWS Systems Manager Parameter Store';
 
     protected SsmClient $client;
-    
+
     public static function configure(array $existingSettings = []): array
     {
         return [
@@ -44,7 +45,7 @@ class AwsSsmVault extends AbstractVault
                 label: 'KMS Key ID (optional)',
                 default: $existingSettings['key'] ?? '',
                 hint: 'Leave empty to use the default AWS managed key'
-            )
+            ),
         ];
     }
 
@@ -56,7 +57,7 @@ class AwsSsmVault extends AbstractVault
 
         return Str::of($this->config['prefix'] ?? '')
             ->start('/')->finish('/')
-            ->append(Keep::getNamespace() . '/')
+            ->append(Keep::getNamespace().'/')
             ->append($this->stage.'/')
             ->append($key)
             ->rtrim('/')
@@ -223,7 +224,7 @@ class AwsSsmVault extends AbstractVault
                 }
 
                 // If not fetching all and we have a limit, adjust MaxResults to avoid over-fetching
-                if (!$fetchAll && $limit) {
+                if (! $fetchAll && $limit) {
                     $remaining = $limit - $histories->count();
                     if ($remaining <= 0) {
                         break;
@@ -249,21 +250,21 @@ class AwsSsmVault extends AbstractVault
                     ));
 
                     // Break early if we have enough and not fetching all
-                    if (!$fetchAll && $limit && $histories->count() >= $limit) {
+                    if (! $fetchAll && $limit && $histories->count() >= $limit) {
                         break 2;
                     }
                 }
 
                 $nextToken = $result->get('NextToken');
-                
+
                 // Continue only if there's more data and we either want all or haven't hit our limit
-            } while ($nextToken && ($fetchAll || !$limit || $histories->count() < $limit));
+            } while ($nextToken && ($fetchAll || ! $limit || $histories->count() < $limit));
 
             $histories = $histories->applyFilters($filters)->sortByVersionDesc();
 
             // If we have a limit, slice the collection to that limit
             return $limit !== null ? $histories->take($limit) : $histories;
-            
+
         } catch (SsmException $e) {
             if ($e->getAwsErrorCode() === 'ParameterNotFound') {
                 throw new SecretNotFoundException("Secret [{$key}] not found in vault [{$this->name()}]");

@@ -11,7 +11,7 @@ class VaultConfigCollection extends Collection
     {
         $vaultsDir = getcwd().'/.keep/vaults';
 
-        if (!is_dir($vaultsDir)) {
+        if (! is_dir($vaultsDir)) {
             return new static;
         }
 
@@ -26,7 +26,7 @@ class VaultConfigCollection extends Collection
 
                 // Load raw data and ensure slug is set
                 $rawData = json_decode(file_get_contents($file), true);
-                if (!isset($rawData['slug'])) {
+                if (! isset($rawData['slug'])) {
                     $rawData['slug'] = $vaultName;
                 }
 

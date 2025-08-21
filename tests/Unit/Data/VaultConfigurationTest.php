@@ -5,7 +5,7 @@ use STS\Keep\Data\VaultConfig;
 describe('VaultConfiguration', function () {
     beforeEach(function () {
         // Create temp directory for test files
-        $this->tempDir = '/tmp/keep-vault-test-' . uniqid();
+        $this->tempDir = '/tmp/keep-vault-test-'.uniqid();
         mkdir($this->tempDir, 0755, true);
         chdir($this->tempDir);
         mkdir('.keep/vaults', 0755, true);
@@ -14,7 +14,7 @@ describe('VaultConfiguration', function () {
     afterEach(function () {
         // Clean up temp directory
         if (is_dir($this->tempDir)) {
-            exec("rm -rf " . escapeshellarg($this->tempDir));
+            exec('rm -rf '.escapeshellarg($this->tempDir));
         }
     });
 
@@ -22,7 +22,7 @@ describe('VaultConfiguration', function () {
         it('requires slug field', function () {
             expect(fn () => VaultConfig::fromArray([
                 'driver' => 'test',
-                'name' => 'Test Vault'
+                'name' => 'Test Vault',
             ]))->toThrow(InvalidArgumentException::class, 'Missing required field: slug');
         });
 
@@ -59,7 +59,7 @@ describe('VaultConfiguration', function () {
             $config->save();
 
             expect(file_exists('.keep/vaults/test-vault.json'))->toBeTrue();
-            
+
             $saved = json_decode(file_get_contents('.keep/vaults/test-vault.json'), true);
             expect($saved['slug'])->toBe('test-vault');
             expect($saved['driver'])->toBe('test');

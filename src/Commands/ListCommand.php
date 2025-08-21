@@ -17,8 +17,8 @@ class ListCommand extends BaseCommand
     public function process()
     {
         $format = $this->option('format');
-        
-        if (!in_array($format, ['table', 'env', 'json'])) {
+
+        if (! in_array($format, ['table', 'env', 'json'])) {
             return $this->error('Invalid format option. Supported formats are: table, json, env.');
         }
 

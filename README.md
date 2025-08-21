@@ -9,7 +9,7 @@
 
 **Key Features:**
 - **CLI Commands** - Manage individual secrets, import/export in bulk, view history and diffs, all via artisan commands
-- **Multi-Vault Support** - Driver-based system (AWS SSM Parameter Store, AWS Secrets Manager, extensible for other providers)
+- **Multi-Vault Support** - Driver-based system, currently supporting AWS SSM Parameter Store and AWS Secrets Manager
 - **Environment Isolation** - Separate secrets by environment (local, staging, production) with access controls
 - **Template System** - Merge secrets into `.env` files using template placeholders
 - **Team Collaboration** - Share secret management across team members with proper access controls

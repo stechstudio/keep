@@ -18,6 +18,7 @@ class Context
     {
         if (str_contains($input, ':')) {
             [$vault, $stage] = explode(':', $input, 2);
+
             return new self($vault, $stage);
         }
 

@@ -2,7 +2,6 @@
 
 namespace STS\Keep\Commands\Concerns;
 
-use STS\Keep\Facades\Keep;
 use function Laravel\Prompts\confirm;
 
 trait InteractsWithFilesystem
@@ -15,7 +14,7 @@ trait InteractsWithFilesystem
         if (file_exists($filePath)) {
             if ($append) {
                 $flags = FILE_APPEND; // Append
-            } elseif (!$overwrite && !confirm('Output file already exists. Overwrite?', false)) {
+            } elseif (! $overwrite && ! confirm('Output file already exists. Overwrite?', false)) {
                 return $this->error("File [$filePath] already exists. Use --overwrite or --append option.");
             }
         }

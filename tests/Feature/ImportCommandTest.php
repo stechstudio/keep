@@ -4,33 +4,33 @@ describe('ImportCommand', function () {
 
     beforeEach(function () {
         createTempKeepDir();
-        
+
         // Create .keep directory and settings to initialize Keep
         mkdir('.keep');
         mkdir('.keep/vaults');
-        
+
         $settings = [
             'app_name' => 'test-app',
             'namespace' => 'test-app',
             'default_vault' => 'test',
             'stages' => ['testing', 'production'],
             'created_at' => date('c'),
-            'version' => '1.0'
+            'version' => '1.0',
         ];
-        
+
         file_put_contents('.keep/settings.json', json_encode($settings, JSON_PRETTY_PRINT));
-        
+
         // Create test vault configuration for testing (never hits AWS)
         $vaultConfig = [
             'driver' => 'test',
             'name' => 'Test Vault',
-            'namespace' => 'test-app'
+            'namespace' => 'test-app',
         ];
-        
+
         file_put_contents('.keep/vaults/test.json', json_encode($vaultConfig, JSON_PRETTY_PRINT));
 
         // Create test import directory
-        if (!is_dir('/tmp/keeper-test')) {
+        if (! is_dir('/tmp/keeper-test')) {
             mkdir('/tmp/keeper-test', 0755, true);
         }
 
@@ -70,33 +70,33 @@ describe('ImportCommand', function () {
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--stage' => 'testing'
+                '--stage' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should accept file argument without validation error
             expect($output)->not->toMatch('/(invalid.*file|unknown.*option)/i');
         });
-        
+
         it('accepts dry-run flag option', function () {
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--dry-run' => true,
                 '--vault' => 'test',
-                '--stage' => 'testing'
+                '--stage' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should accept --dry-run flag without validation error
             expect($output)->not->toMatch('/(invalid.*option|unknown.*option)/i');
         });
-        
+
         it('validates from argument is provided', function () {
             $commandTester = runCommand('import', [
                 '--vault' => 'test',
-                '--stage' => 'testing'
+                '--stage' => 'testing',
             ]);
 
             // Should handle missing from argument gracefully (might prompt for input)
@@ -110,52 +110,52 @@ describe('ImportCommand', function () {
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--stage' => 'testing'
+                '--stage' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should handle basic file import without error
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
-        
+
         it('handles quoted values in .env files', function () {
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/quoted.env',
                 '--vault' => 'test',
-                '--stage' => 'testing'
+                '--stage' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should handle quoted values without error
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
-        
+
         it('handles non-existent file gracefully', function () {
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/nonexistent.env',
                 '--vault' => 'test',
-                '--stage' => 'testing'
+                '--stage' => 'testing',
             ]);
 
             expect($commandTester->getStatusCode())->toBe(1);
-            
+
             $output = stripAnsi($commandTester->getDisplay());
             expect($output)->toMatch('/(not found|error|file)/i');
         });
-        
+
         it('handles empty file gracefully', function () {
             file_put_contents('/tmp/keeper-test/empty.env', '');
-            
+
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/empty.env',
                 '--vault' => 'test',
-                '--stage' => 'testing'
+                '--stage' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should handle empty file without error
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
@@ -167,11 +167,11 @@ describe('ImportCommand', function () {
                 'from' => '/tmp/keeper-test/basic.env',
                 '--dry-run' => true,
                 '--vault' => 'test',
-                '--stage' => 'testing'
+                '--stage' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should show preview without actually importing
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
@@ -182,24 +182,24 @@ describe('ImportCommand', function () {
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--stage' => 'testing'
+                '--stage' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should handle vault parameter without error
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
-        
+
         it('uses specified stage parameter', function () {
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--stage' => 'testing'
+                '--stage' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
-            
+
             // Should handle stage parameter without error
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
@@ -210,25 +210,25 @@ describe('ImportCommand', function () {
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--stage' => 'testing'
+                '--stage' => 'testing',
             ]);
 
             // Should handle import flow without error
             expect($commandTester->getStatusCode())->toBeGreaterThanOrEqual(0);
         });
-        
+
         it('provides appropriate completion status', function () {
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--stage' => 'testing'
+                '--stage' => 'testing',
             ]);
 
             // Should complete with appropriate status
             expect($commandTester->getStatusCode())->toBeGreaterThanOrEqual(0);
         });
     });
-    
+
     // Tests migrated from Laravel-style tests to new architecture.
     // Focus on command structure, file handling, import options, and error handling
     // rather than full integration tests that depend on external AWS services and pre-populated data.

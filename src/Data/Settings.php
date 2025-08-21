@@ -25,7 +25,7 @@ class Settings
 
     public static function load(): ?static
     {
-        $settingsPath = getcwd() . '/.keep/settings.json';
+        $settingsPath = getcwd().'/.keep/settings.json';
 
         return file_exists($settingsPath)
             ? static::fromFile($settingsPath)
@@ -37,7 +37,7 @@ class Settings
         // Validate required fields exist
         $required = ['app_name', 'namespace', 'stages'];
         foreach ($required as $field) {
-            if (!isset($data[$field])) {
+            if (! isset($data[$field])) {
                 throw new InvalidArgumentException("Missing required setting: {$field}");
             }
         }
@@ -66,7 +66,6 @@ class Settings
         ];
     }
 
-
     protected function validate(): void
     {
         // Validate app name
@@ -80,7 +79,7 @@ class Settings
 
         // Validate namespace (similar to secret key validation)
         $trimmedNamespace = trim($this->namespace);
-        if (!preg_match('/^[A-Za-z0-9_-]+$/', $trimmedNamespace)) {
+        if (! preg_match('/^[A-Za-z0-9_-]+$/', $trimmedNamespace)) {
             throw new InvalidArgumentException(
                 'Namespace must contain only letters, numbers, underscores, and hyphens'
             );
@@ -96,11 +95,11 @@ class Settings
         }
 
         foreach ($this->stages as $stage) {
-            if (!is_string($stage) || empty(trim($stage))) {
+            if (! is_string($stage) || empty(trim($stage))) {
                 throw new InvalidArgumentException('All stages must be non-empty strings');
             }
 
-            if (!preg_match('/^[a-z0-9_-]+$/', $stage)) {
+            if (! preg_match('/^[a-z0-9_-]+$/', $stage)) {
                 throw new InvalidArgumentException(
                     "Stage '{$stage}' must contain only lowercase letters, numbers, underscores, and hyphens"
                 );
@@ -118,7 +117,7 @@ class Settings
 
         // Validate default vault if provided
         if ($this->defaultVault !== null) {
-            if (!preg_match('/^[A-Za-z0-9_-]+$/', $this->defaultVault)) {
+            if (! preg_match('/^[A-Za-z0-9_-]+$/', $this->defaultVault)) {
                 throw new InvalidArgumentException(
                     'Default vault name must contain only letters, numbers, underscores, and hyphens'
                 );
@@ -126,7 +125,7 @@ class Settings
         }
 
         // Validate version
-        if (!preg_match('/^\d+\.\d+$/', $this->version)) {
+        if (! preg_match('/^\d+\.\d+$/', $this->version)) {
             throw new InvalidArgumentException('Version must be in format "major.minor" (e.g., "1.0")');
         }
     }
@@ -170,14 +169,14 @@ class Settings
     // Save method - Settings knows how to save itself
     public function save(): void
     {
-        $settingsDir = getcwd() . '/.keep';
-        
+        $settingsDir = getcwd().'/.keep';
+
         // Ensure directory exists
-        if (!is_dir($settingsDir)) {
+        if (! is_dir($settingsDir)) {
             mkdir($settingsDir, 0755, true);
         }
-        
-        $filePath = $settingsDir . '/settings.json';
+
+        $filePath = $settingsDir.'/settings.json';
         $this->saveToFile($filePath);
     }
 
@@ -215,7 +214,7 @@ class Settings
 
     public function get(string $key, mixed $default = null): mixed
     {
-        return match($key) {
+        return match ($key) {
             'app_name' => $this->appName,
             'namespace' => $this->namespace,
             'stages' => $this->stages,

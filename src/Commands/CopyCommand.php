@@ -22,7 +22,7 @@ class CopyCommand extends BaseCommand
     public function process()
     {
         $key = $this->key();
-        
+
         // Parse source and destination contexts using GathersInput methods
         $sourceContext = Context::fromInput($this->from());
         $destinationContext = Context::fromInput($this->to());
@@ -30,6 +30,7 @@ class CopyCommand extends BaseCommand
         // Validate contexts are different
         if ($sourceContext->equals($destinationContext)) {
             $this->error('Source and destination are identical. Nothing to copy.');
+
             return self::FAILURE;
         }
 
@@ -43,8 +44,9 @@ class CopyCommand extends BaseCommand
             $destinationExists = $destinationVault->has($key);
 
             // Handle overwrite protection
-            if ($destinationExists && !$this->option('overwrite') && !$this->option('dry-run')) {
+            if ($destinationExists && ! $this->option('overwrite') && ! $this->option('dry-run')) {
                 $this->error("Secret [{$key}] already exists in destination. Use --overwrite to replace it.");
+
                 return self::FAILURE;
             }
 
@@ -54,13 +56,15 @@ class CopyCommand extends BaseCommand
             // Handle dry-run
             if ($this->option('dry-run')) {
                 $this->info('Dry run completed. No changes made.');
+
                 return self::SUCCESS;
             }
 
             // Confirm if overwriting
             if ($destinationExists && $this->option('overwrite')) {
-                if (!confirm("Are you sure you want to overwrite the existing secret [{$key}]?")) {
+                if (! confirm("Are you sure you want to overwrite the existing secret [{$key}]?")) {
                     $this->info('Copy operation cancelled.');
+
                     return self::SUCCESS;
                 }
             }
@@ -76,8 +80,8 @@ class CopyCommand extends BaseCommand
 
     protected function displayCopyPreview(string $key, Context $source, Context $destination, $sourceSecret, bool $destinationExists): void
     {
-        $this->line("<info>Copy Operation Preview</info>");
-        
+        $this->line('<info>Copy Operation Preview</info>');
+
         table(
             ['Property', 'Value'],
             [

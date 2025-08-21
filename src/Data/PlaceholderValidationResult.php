@@ -49,7 +49,7 @@ class PlaceholderValidationResult
             'key' => $this->placeholder->key,
             'valid' => $this->valid,
             'error' => $this->error,
-            'secret' => $this->secret
+            'secret' => $this->secret,
         ];
     }
 }

@@ -4,9 +4,7 @@ namespace STS\Keep\Data\Filters;
 
 class StringFilter
 {
-    public function __construct(protected string $value)
-    {
-    }
+    public function __construct(protected string $value) {}
 
     public function value(): string
     {
