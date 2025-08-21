@@ -8,7 +8,6 @@ class ListCommand extends BaseCommand
 {
     public $signature = 'list {--format=table : table|json|env} {--unmask : Show full secret values instead of masked values} '
         .self::ONLY_EXCLUDE_SIGNATURE
-        .self::CONTEXT_SIGNATURE
         .self::VAULT_SIGNATURE
         .self::STAGE_SIGNATURE;
 

@@ -9,7 +9,6 @@ class DeleteCommand extends BaseCommand
 {
     public $signature = 'delete {--force : Skip confirmation prompt} '
         .self::KEY_SIGNATURE
-        .self::CONTEXT_SIGNATURE
         .self::VAULT_SIGNATURE
         .self::STAGE_SIGNATURE;
 

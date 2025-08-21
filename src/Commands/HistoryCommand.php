@@ -19,7 +19,6 @@ class HistoryCommand extends BaseCommand
         {--since= : Filter entries since this date (e.g., "7 days ago", "2024-01-01")}
         {--before= : Filter entries before this date (e.g., "2024-12-31")} '
         .self::KEY_SIGNATURE
-        .self::CONTEXT_SIGNATURE
         .self::VAULT_SIGNATURE
         .self::STAGE_SIGNATURE
         .self::UNMASK_SIGNATURE;

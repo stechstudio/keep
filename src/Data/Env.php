@@ -18,8 +18,7 @@ class Env
             return new static('');
         }
 
-        $contents = file_get_contents($filePath) ?: '';
-        return new static($contents);
+        return new static(file_get_contents($filePath) ?: '');
     }
 
     public function contents(): string

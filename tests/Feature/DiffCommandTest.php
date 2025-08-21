@@ -31,15 +31,16 @@ describe('DiffCommand', function () {
     });
 
     describe('command structure and signature', function () {
-        it('accepts context option for specifying vault:stage combinations', function () {
+        it('accepts vault and stage options for comparisons', function () {
             $commandTester = runCommand('diff', [
-                '--context' => 'test:testing,test:production',
+                '--vault' => 'test',
+                '--stage' => 'testing,production',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should accept --context option without validation error
-            expect($output)->not->toMatch('/(invalid.*context|unknown.*option)/i');
+            // Should accept --vault and --stage options without validation error
+            expect($output)->not->toMatch('/(invalid.*vault|invalid.*stage|unknown.*option)/i');
         });
 
         it('accepts stage option for comma-separated stages', function () {
@@ -91,14 +92,15 @@ describe('DiffCommand', function () {
             expect($output)->not->toMatch('/(invalid.*vault|invalid.*stage)/i');
         });
 
-        it('validates context format parsing', function () {
+        it('validates vault and stage option parsing', function () {
             $commandTester = runCommand('diff', [
-                '--context' => 'ssm:testing,ssm:staging',
+                '--vault' => 'ssm',
+                '--stage' => 'testing,staging',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should parse context format without syntax errors
+            // Should parse vault and stage options without syntax errors
             expect($output)->not->toMatch('/(invalid.*syntax|parse.*error)/i');
         });
 
@@ -213,22 +215,23 @@ describe('DiffCommand', function () {
         });
     });
 
-    describe('context option functionality', function () {
-        it('parses context strings correctly', function () {
+    describe('vault and stage option functionality', function () {
+        it('parses vault and stage options correctly', function () {
             $commandTester = runCommand('diff', [
-                '--context' => 'ssm:testing,ssm:production',
+                '--vault' => 'ssm',
+                '--stage' => 'testing,production',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should parse context format without error
+            // Should parse vault and stage options without error
             expect($output)->not->toMatch('/(invalid.*context|parse.*error)/i');
         });
 
-        it('handles mixed context and explicit options appropriately', function () {
+        it('handles comma-separated options correctly', function () {
             $commandTester = runCommand('diff', [
-                '--context' => 'ssm:testing',
-                '--stage' => 'production',  // Should be ignored when context is provided
+                '--vault' => 'ssm',
+                '--stage' => 'testing,production',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -237,14 +240,15 @@ describe('DiffCommand', function () {
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
 
-        it('validates context vault and stage references', function () {
+        it('validates vault and stage references', function () {
             $commandTester = runCommand('diff', [
-                '--context' => 'ssm:testing,invalid:nonexistent',
+                '--vault' => 'ssm,invalid',
+                '--stage' => 'testing,nonexistent',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should handle invalid context references gracefully
+            // Should handle invalid vault and stage references gracefully
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
     });

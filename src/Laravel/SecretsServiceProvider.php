@@ -30,7 +30,7 @@ class SecretsServiceProvider extends ServiceProvider
             __DIR__.'/config/keep.php' => config_path('keep.php'),
         ], 'keep-config');
 
-        $integrationMode = config('keep.integration_mode', 'helper');
+        $integrationMode = $this->app['config']->get('keep.integration_mode', 'helper');
 
         if ($integrationMode === 'helper') {
             $this->registerHelperFunction();
@@ -61,8 +61,8 @@ class SecretsServiceProvider extends ServiceProvider
 
     protected function getCacheFilePath(): string
     {
-        $currentEnvironment = app()->environment();
-        $stageMapping = config('keep.stage_environment_mapping', []);
+        $currentEnvironment = $this->app->environment();
+        $stageMapping = $this->app['config']->get('keep.stage_environment_mapping', []);
         
         // Find the stage that maps to current environment
         $stage = array_search($currentEnvironment, $stageMapping);
@@ -83,7 +83,7 @@ class SecretsServiceProvider extends ServiceProvider
 
     protected function getAppKey(): string
     {
-        $appKey = config('app.key');
+        $appKey = $this->app['config']->get('app.key');
 
         if (empty($appKey)) {
             throw new \RuntimeException(
