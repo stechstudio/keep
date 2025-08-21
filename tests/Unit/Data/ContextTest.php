@@ -19,7 +19,8 @@ describe('Context', function () {
         });
 
         it('uses default vault when no prefix provided', function () {
-            Keep::setSetting('default_vault', 'test-vault');
+            // Set up manager with specific default vault for this test
+            setupKeepManager(['default_vault' => 'test-vault']);
             
             $context = Context::fromInput('development');
             
@@ -85,7 +86,8 @@ describe('Context', function () {
 
     describe('real-world usage patterns', function () {
         it('handles typical single-vault scenarios', function () {
-            Keep::setSetting('default_vault', 'main-vault');
+            // Set up manager with specific default vault for this test
+            setupKeepManager(['default_vault' => 'main-vault']);
             
             // Most common: stage only
             $context = Context::fromInput('production');

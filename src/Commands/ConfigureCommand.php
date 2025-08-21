@@ -4,6 +4,7 @@ namespace STS\Keep\Commands;
 
 use Illuminate\Support\Str;
 use STS\Keep\Commands\Concerns\ConfiguresVaults;
+use STS\Keep\Facades\Keep;
 use function Laravel\Prompts\text;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\info;
@@ -28,7 +29,7 @@ class ConfigureCommand extends BaseCommand
         info('🔐  Keep Configuration');
         note('Configure Keep settings for your project. Run this anytime to review or update your settings.');
         
-        $existingSettings = $this->manager->getSettings();
+        $existingSettings = Keep::getSettings();
         
         // Gather basic configuration
         $appName = text(
@@ -64,7 +65,7 @@ class ConfigureCommand extends BaseCommand
         info('✅ Configuration updated successfully!');
         
         // Offer to create first vault if none exist (but not in non-interactive mode)
-        if (empty($this->manager->getConfiguredVaults()) && !$this->option('no-interaction')) {
+        if (Keep::getConfiguredVaults()->isEmpty() && !$this->option('no-interaction')) {
             info('🗄️  Vault Setup');
             note('You\'ll need at least one vault to store your secrets.');
             
@@ -81,7 +82,7 @@ class ConfigureCommand extends BaseCommand
                 note('No worries! You can add a vault later with: keep vault:add');
             }
         } else {
-            if (empty($this->manager->getConfiguredVaults())) {
+            if (Keep::getConfiguredVaults()->isEmpty()) {
                 note('Next steps:');
                 note('• Add your first vault: keep vault:add');
                 note('• Set your first secret: keep set MY_SECRET');

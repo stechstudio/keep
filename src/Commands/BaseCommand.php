@@ -7,7 +7,7 @@ use STS\Keep\Commands\Concerns\GathersInput;
 use STS\Keep\Commands\Concerns\InteractsWithFilesystem;
 use STS\Keep\Commands\Concerns\InteractsWithVaults;
 use STS\Keep\Exceptions\KeepException;
-use STS\Keep\KeepManager;
+use STS\Keep\Facades\Keep;
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\note;
 
@@ -15,20 +15,11 @@ abstract class BaseCommand extends Command
 {
     use GathersInput, InteractsWithFilesystem, InteractsWithVaults;
     
-    protected KeepManager $manager;
-    
-    public function setManager(KeepManager $manager): self
-    {
-        $this->manager = $manager;
-        return $this;
-    }
     
     public function handle(): int
     {
-        $this->manager = $this->getApplication()->getManager();
-
         // Check if Keep is initialized (unless this command doesn't require it)
-        if ($this->requiresInitialization() && !$this->manager->isInitialized()) {
+        if ($this->requiresInitialization() && !Keep::isInitialized()) {
             error('Keep is not initialized in this directory.');
             note('Run: keep configure');
             return self::FAILURE;

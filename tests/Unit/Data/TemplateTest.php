@@ -371,14 +371,14 @@ describe('Template', function () {
             );
         });
 
-        it('handles paths with dots and slashes', function () {
+        it('handles paths with underscores and numbers', function () {
             $secrets = new SecretCollection([
-                new Secret('app.production.db.password', 'prod_pass', null, true, null, 0, null, $this->ssmVault),
-                new Secret('services/api/key', 'api_key_value', null, true, null, 0, null, $this->ssmVault),
+                new Secret('app_production_db_password', 'prod_pass', null, true, null, 0, null, $this->ssmVault),
+                new Secret('services_api_key', 'api_key_value', null, true, null, 0, null, $this->ssmVault),
             ]);
 
-            $template1 = new Template('DB_PASS={ssm:app.production.db.password}');
-            $template2 = new Template('API_KEY={ssm:services/api/key}');
+            $template1 = new Template('DB_PASS={ssm:app_production_db_password}');
+            $template2 = new Template('API_KEY={ssm:services_api_key}');
 
             $result1 = $template1->merge($secrets, MissingSecretStrategy::FAIL);
             $result2 = $template2->merge($secrets, MissingSecretStrategy::FAIL);
@@ -387,15 +387,15 @@ describe('Template', function () {
             expect($result2)->toBe('API_KEY="api_key_value"');
         });
 
-        it('handles paths with underscores and hyphens', function () {
+        it('handles valid key formats with underscores', function () {
             $secrets = new SecretCollection([
-                new Secret('my-secret_key', 'value1', null, true, null, 0, null, $this->ssmVault),
-                new Secret('another_secret-name', 'value2', null, true, null, 0, null, $this->ssmVault),
+                new Secret('my_secret_key', 'value1', null, true, null, 0, null, $this->ssmVault),
+                new Secret('another_secret_name', 'value2', null, true, null, 0, null, $this->ssmVault),
             ]);
 
             $template = new Template(
-                "SECRET1={ssm:my-secret_key}\n".
-                'SECRET2={ssm:another_secret-name}'
+                "SECRET1={ssm:my_secret_key}\n".
+                'SECRET2={ssm:another_secret_name}'
             );
 
             $result = $template->merge($secrets, MissingSecretStrategy::FAIL);

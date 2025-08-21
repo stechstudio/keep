@@ -2,6 +2,7 @@
 
 namespace STS\Keep\Commands;
 
+use STS\Keep\Facades\Keep;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\warning;
 use function Laravel\Prompts\table;
@@ -35,7 +36,7 @@ class InfoCommand extends BaseCommand
     
     private function showConfiguration(): void
     {
-        $settings = $this->manager->getSettings();
+        $settings = Keep::getSettings();
         
         info('📋  Configuration');
         table(
@@ -51,9 +52,9 @@ class InfoCommand extends BaseCommand
     
     private function showVaults(): void
     {
-        $configuredVaults = $this->manager->getConfiguredVaults();
+        $configuredVaults = Keep::getConfiguredVaults();
         
-        if (empty($configuredVaults)) {
+        if ($configuredVaults->isEmpty()) {
             warning('No vaults configured');
             info('Run "keep vault:add" to add your first vault');
             return;
@@ -61,12 +62,12 @@ class InfoCommand extends BaseCommand
         
         info('🗄️  Configured Vaults');
         
-        $settings = $this->manager->getSettings();
+        $settings = Keep::getSettings();
         $vaultRows = [];
         
         foreach ($configuredVaults as $slug => $config) {
             $isDefault = $slug === $settings['default_vault'] ? ' (default)' : '';
-            $vaultRows[] = [$slug . $isDefault, $config['name'], $config['driver']];
+            $vaultRows[] = [$slug . $isDefault, $config->name(), $config->driver()];
         }
         
         table(
