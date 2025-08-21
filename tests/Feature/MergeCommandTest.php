@@ -70,7 +70,6 @@ describe('MergeCommand', function () {
         it('accepts template path argument', function () {
             $commandTester = runCommand('merge', [
                 'template' => '/tmp/keeper-test/template.env',
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 
@@ -84,7 +83,6 @@ describe('MergeCommand', function () {
             $commandTester = runCommand('merge', [
                 'template' => '/tmp/keeper-test/template.env',
                 '--output' => '/tmp/keeper-test/output.env',
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 
@@ -96,7 +94,6 @@ describe('MergeCommand', function () {
 
         it('validates template argument is provided', function () {
             $commandTester = runCommand('merge', [
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 
@@ -112,7 +109,6 @@ describe('MergeCommand', function () {
         it('handles basic template merge', function () {
             $commandTester = runCommand('merge', [
                 'template' => '/tmp/keeper-test/template.env',
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 
@@ -125,7 +121,6 @@ describe('MergeCommand', function () {
         it('handles complex template merge', function () {
             $commandTester = runCommand('merge', [
                 'template' => '/tmp/keeper-test/complex.env',
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 
@@ -138,7 +133,6 @@ describe('MergeCommand', function () {
         it('handles non-existent template file gracefully', function () {
             $commandTester = runCommand('merge', [
                 'template' => '/tmp/keeper-test/nonexistent.env',
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 
@@ -153,7 +147,6 @@ describe('MergeCommand', function () {
 
             $commandTester = runCommand('merge', [
                 'template' => '/tmp/keeper-test/empty.env',
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 
@@ -168,7 +161,6 @@ describe('MergeCommand', function () {
         it('outputs to stdout by default', function () {
             $commandTester = runCommand('merge', [
                 'template' => '/tmp/keeper-test/template.env',
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 
@@ -182,7 +174,6 @@ describe('MergeCommand', function () {
             $commandTester = runCommand('merge', [
                 'template' => '/tmp/keeper-test/template.env',
                 '--output' => '/tmp/keeper-test/output.env',
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 
@@ -197,7 +188,6 @@ describe('MergeCommand', function () {
         it('handles vault connection issues gracefully', function () {
             $commandTester = runCommand('merge', [
                 'template' => '/tmp/keeper-test/template.env',
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 
@@ -216,7 +206,6 @@ describe('MergeCommand', function () {
 
             $commandTester = runCommand('merge', [
                 'template' => '/tmp/keeper-test/missing.env',
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 
@@ -229,7 +218,6 @@ describe('MergeCommand', function () {
         it('handles file permission issues gracefully', function () {
             $commandTester = runCommand('merge', [
                 'template' => '/root/nonexistent.env', // Permission denied
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 
@@ -241,23 +229,21 @@ describe('MergeCommand', function () {
     });
 
     describe('stage and vault handling', function () {
-        it('uses specified vault parameter', function () {
+        it('uses template-driven vault discovery', function () {
             $commandTester = runCommand('merge', [
                 'template' => '/tmp/keeper-test/template.env',
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should handle vault parameter without error
+            // Should extract vaults from template placeholders
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
 
         it('uses specified stage parameter', function () {
             $commandTester = runCommand('merge', [
                 'template' => '/tmp/keeper-test/template.env',
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 
@@ -270,7 +256,6 @@ describe('MergeCommand', function () {
         it('handles production stage parameter', function () {
             $commandTester = runCommand('merge', [
                 'template' => '/tmp/keeper-test/template.env',
-                '--vault' => 'test',
                 '--stage' => 'production',
             ]);
 
@@ -285,7 +270,6 @@ describe('MergeCommand', function () {
         it('handles placeholder substitution', function () {
             $commandTester = runCommand('merge', [
                 'template' => '/tmp/keeper-test/template.env',
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 
@@ -296,7 +280,6 @@ describe('MergeCommand', function () {
         it('handles special characters in templates', function () {
             $commandTester = runCommand('merge', [
                 'template' => '/tmp/keeper-test/complex.env',
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 
@@ -307,7 +290,6 @@ describe('MergeCommand', function () {
         it('handles context creation appropriately', function () {
             $commandTester = runCommand('merge', [
                 'template' => '/tmp/keeper-test/template.env',
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 
@@ -322,7 +304,6 @@ describe('MergeCommand', function () {
         it('handles merge operation flow', function () {
             $commandTester = runCommand('merge', [
                 'template' => '/tmp/keeper-test/template.env',
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 
@@ -333,7 +314,6 @@ describe('MergeCommand', function () {
         it('provides appropriate completion status', function () {
             $commandTester = runCommand('merge', [
                 'template' => '/tmp/keeper-test/template.env',
-                '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
 

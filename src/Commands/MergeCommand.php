@@ -17,8 +17,6 @@ class MergeCommand extends BaseCommand
         {--overwrite : Overwrite the output file if it exists} 
         {--append : Append to the output file if it exists} 
         {--missing=fail : How to handle missing secrets: fail|remove|blank|skip (default: fail) } '
-        .self::CONTEXT_SIGNATURE
-        .self::VAULT_SIGNATURE
         .self::STAGE_SIGNATURE;
 
     public $description = 'Merge stage secrets into a template env file, replacing placeholders with actual secret values from a specified vault';
@@ -33,8 +31,7 @@ class MergeCommand extends BaseCommand
             return self::FAILURE;
         }
 
-        $context = $this->context();
-        $secrets = $this->loadSecretsFromAllReferencedVaults($context);
+        $secrets = $this->loadSecretsFromAllReferencedVaults();
 
         $contents = $this->mergeAndConcat(
             $this->baseTemplate,
@@ -102,23 +99,16 @@ class MergeCommand extends BaseCommand
     /**
      * Load secrets from all vaults referenced in template placeholders.
      */
-    protected function loadSecretsFromAllReferencedVaults($context): SecretCollection
+    protected function loadSecretsFromAllReferencedVaults(): SecretCollection
     {
         $vaultNames = $this->extractVaultNamesFromTemplates();
-
-        // If no vault-specific placeholders found, fall back to context vault
-        if (empty($vaultNames)) {
-            $vault = $context->createVault();
-
-            return $vault->list();
-        }
 
         $allSecrets = new SecretCollection;
 
         foreach ($vaultNames as $vaultSlug) {
-            $vault = Keep::vault($vaultSlug, $context->stage);
-            $vaultSecrets = $vault->list();
-            $allSecrets = $allSecrets->merge($vaultSecrets);
+            $allSecrets = $allSecrets->merge(
+                Keep::vault($vaultSlug, $this->stage())->list()
+            );
         }
 
         return $allSecrets;
