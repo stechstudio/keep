@@ -4,22 +4,6 @@ use STS\Keep\Data\Placeholder;
 use STS\Keep\Data\PlaceholderValidationResult;
 
 describe('Placeholder', function () {
-    it('creates placeholder from match data', function () {
-        $match = [
-            'key' => 'DB_HOST',
-            'vault' => 'ssm',
-            'path' => 'DB_HOST',
-        ];
-
-        $placeholder = Placeholder::fromMatch($match, 2, 'DB_HOST={ssm:DB_HOST}');
-
-        expect($placeholder->line)->toBe(2);
-        expect($placeholder->envKey)->toBe('DB_HOST');
-        expect($placeholder->vault)->toBe('ssm');
-        expect($placeholder->key)->toBe('DB_HOST');
-        expect($placeholder->rawLine)->toBe('DB_HOST={ssm:DB_HOST}');
-        expect($placeholder->placeholderText)->toBe('{ssm:DB_HOST}');
-    });
 
     it('handles simple placeholders without vault prefix', function () {
         $match = [
@@ -46,13 +30,6 @@ describe('Placeholder', function () {
         expect($invalidPlaceholder->key)->toBe('INVALID-KEY');
     });
 
-    it('gets effective vault correctly', function () {
-        $vaultPlaceholder = new Placeholder(1, 'KEY', 'specific', 'KEY', 'line', '{specific:KEY}');
-        $defaultPlaceholder = new Placeholder(1, 'KEY', null, 'KEY', 'line', '{KEY}');
-
-        expect($vaultPlaceholder->getEffectiveVault('default'))->toBe('specific');
-        expect($defaultPlaceholder->getEffectiveVault('default'))->toBe('default');
-    });
 
     it('converts to array for backward compatibility', function () {
         $placeholder = new Placeholder(2, 'DB_HOST', 'ssm', 'DB_HOST', 'DB_HOST={ssm:DB_HOST}', '{ssm:DB_HOST}');

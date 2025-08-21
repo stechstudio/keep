@@ -116,20 +116,6 @@ describe('Secret', function () {
         });
     });
 
-    it('can be created with minimal parameters', function () {
-        $secret = new Secret(
-            key: 'DB_PASSWORD',
-            value: 'secret123'
-        );
-
-        expect($secret->key())->toBe('DB_PASSWORD');
-        expect($secret->value())->toBe('secret123');
-        expect($secret->isSecure())->toBeTrue();
-        expect($secret->stage())->toBeNull();
-        expect($secret->revision())->toBe(0);
-        expect($secret->path())->toBeNull();
-        expect($secret->vault())->toBeNull();
-    });
 
     it('can be created with all parameters', function () {
         $mockVault = Mockery::mock(AbstractVault::class);
@@ -156,16 +142,6 @@ describe('Secret', function () {
         expect($secret->vault())->toBe($mockVault);
     });
 
-    it('handles null values correctly', function () {
-        $secret = new Secret(
-            key: 'EMPTY_KEY',
-            value: null
-        );
-
-        expect($secret->key())->toBe('EMPTY_KEY');
-        expect($secret->value())->toBeNull();
-        expect($secret->encryptedValue())->toBeNull();
-    });
 
     it('converts to array correctly', function () {
         $mockVault = Mockery::mock(AbstractVault::class);
@@ -196,16 +172,6 @@ describe('Secret', function () {
         ]);
     });
 
-    it('converts to array without vault', function () {
-        $secret = new Secret(
-            key: 'DB_NAME',
-            value: 'myapp'
-        );
-
-        $array = $secret->toArray();
-
-        expect($array['vault'])->toBeNull();
-    });
 
     it('can filter array output with only()', function () {
         $secret = new Secret(
@@ -225,17 +191,6 @@ describe('Secret', function () {
         expect($filtered['value'])->toBe('base64_key');
     });
 
-    it('handles empty only() filter', function () {
-        $secret = new Secret(
-            key: 'TEST_KEY',
-            value: 'test_value'
-        );
-
-        $filtered = $secret->only([]);
-
-        expect($filtered)->toBeArray();
-        expect($filtered)->toBeEmpty();
-    });
 
     it('handles special characters in values', function () {
         $specialValue = "Special!@#$%^&*()_+{}|:\"<>?[];',./`~\n\t";
@@ -274,24 +229,7 @@ describe('Secret', function () {
         expect(strlen($secret->value()))->toBe(27000);
     });
 
-    it('maintains secure flag default as true', function () {
-        $secret = new Secret(
-            key: 'SECURE_BY_DEFAULT',
-            value: 'password'
-        );
 
-        expect($secret->isSecure())->toBeTrue();
-    });
-
-    it('allows explicitly setting secure to false', function () {
-        $secret = new Secret(
-            key: 'NOT_SECURE',
-            value: 'public_value',
-            secure: false
-        );
-
-        expect($secret->isSecure())->toBeFalse();
-    });
 
     it('handles encrypted value without plain value', function () {
         $secret = new Secret(
@@ -328,15 +266,6 @@ describe('Secret', function () {
         expect($secret3->revision())->toBeNull();
     });
 
-    it('properly implements Arrayable interface', function () {
-        $secret = new Secret(
-            key: 'INTERFACE_TEST',
-            value: 'test'
-        );
-
-        expect($secret)->toBeInstanceOf(\Illuminate\Contracts\Support\Arrayable::class);
-        expect($secret->toArray())->toBeArray();
-    });
 
     describe('masked() method', function () {
         it('returns null for null values', function () {

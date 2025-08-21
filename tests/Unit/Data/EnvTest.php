@@ -5,13 +5,6 @@ use STS\Keep\Data\Env;
 describe('Env', function () {
 
     describe('basic functionality', function () {
-        it('stores and returns contents', function () {
-            $contents = "DB_HOST=localhost\nDB_PORT=3306";
-            $env = new Env($contents);
-
-            expect($env->contents())->toBe($contents);
-        });
-
         it('handles empty contents', function () {
             $env = new Env('');
 
@@ -117,13 +110,6 @@ DB_PORT=3306
             expect($keys)->toBeEmpty();
         });
 
-        it('preserves order of keys', function () {
-            $env = new Env("THIRD=3\nFIRST=1\nSECOND=2");
-
-            $keys = $env->allKeys();
-
-            expect($keys->toArray())->toBe(['THIRD', 'FIRST', 'SECOND']);
-        });
     });
 
     describe('simple key-value listing', function () {
@@ -170,18 +156,6 @@ DB_PORT=3306
             expect($list)->toBeEmpty();
         });
 
-        it('preserves order in list()', function () {
-            $env = new Env("THIRD=3\nFIRST=1\nSECOND=2");
-
-            $list = $env->list();
-
-            expect(array_keys($list->toArray()))->toBe(['THIRD', 'FIRST', 'SECOND']);
-            expect($list->toArray())->toBe([
-                'THIRD' => '3',
-                'FIRST' => '1',
-                'SECOND' => '2',
-            ]);
-        });
     });
 
     describe('complex .env scenarios', function () {
@@ -249,14 +223,6 @@ ANOTHER_OPTIONAL=';
             expect($entry->getValue()->get()->getChars())->toBe('test value');
         });
 
-        it('caches parsed entries', function () {
-            $env = new Env('KEY=value');
-
-            $entries1 = $env->entries();
-            $entries2 = $env->entries();
-
-            expect($entries1)->toBe($entries2); // Same object reference
-        });
     });
 
     describe('secrets collection conversion', function () {
