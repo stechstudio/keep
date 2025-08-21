@@ -3,13 +3,10 @@
 namespace STS\Keep;
 
 use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
 use STS\Keep\Data\Collections\VaultConfigCollection;
 use STS\Keep\Data\Settings;
-use STS\Keep\Data\VaultConfig;
 use STS\Keep\Enums\KeepInstall;
 use Illuminate\Console\Application;
-use STS\Keep\KeepContainer;
 use Illuminate\Events\Dispatcher;
 use Symfony\Component\Console\Input\InputDefinition;
 
@@ -51,11 +48,6 @@ class KeepApplication extends Application
             new Commands\DiffCommand,
             new Commands\VerifyCommand
         ]);
-    }
-
-    public function getManager(): KeepManager
-    {
-        return KeepContainer::manager();
     }
 
     #[\Override]

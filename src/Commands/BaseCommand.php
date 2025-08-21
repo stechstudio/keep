@@ -14,7 +14,6 @@ abstract class BaseCommand extends Command
 {
     use GathersInput, InteractsWithFilesystem;
     
-    
     public function handle(): int
     {
         // Check if Keep is initialized (unless this command doesn't require it)
