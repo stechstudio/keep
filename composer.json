@@ -1,6 +1,6 @@
 {
     "name": "stechstudio/laravel-keep",
-    "description": "Standalone secret management tool for any PHP project with support for AWS SSM, Secrets Manager, and more.",
+    "description": "Toolkit for collaborative, secure management of secrets across applications, environments, and teams.",
     "keywords": [
         "secrets",
         "secret-management",
@@ -8,7 +8,8 @@
         "secrets-manager",
         "environment",
         "cli",
-        "devops"
+        "devops",
+        "laravel"
     ],
     "license": "MIT",
     "authors": [
