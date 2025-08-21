@@ -23,6 +23,7 @@ class KeepApplication extends Application
 
         parent::__construct($container, $events, '1.0.0-alpha');
         $this->setName('Keep');
+        $this->setDefaultCommand('info');
 
         $container->instance(KeepManager::class, new KeepManager(Settings::load(), VaultConfigCollection::load()));
 
