@@ -1,5 +1,6 @@
 <?php
 
+use STS\Keep\Facades\Keep;
 use Symfony\Component\Console\Tester\CommandTester;
 use STS\Keep\KeepApplication;
 use STS\Keep\Enums\KeepInstall;
@@ -27,7 +28,7 @@ function runCommand(string $commandName, array $input = []): CommandTester
     $app = createKeepApp();
     
     // Register TestVault driver for testing to avoid hitting real AWS services
-    $app->getManager()->addVaultDriver(TestVault::class);
+    Keep::addVaultDriver(TestVault::class);
     
     // Clear test vault storage before each command
     TestVault::clearAll();
@@ -118,14 +119,12 @@ function setupKeepManager(array $settingsOverride = [], array $vaults = []): \ST
     // Create KeepManager with Settings object and VaultConfigCollection
     $manager = new \STS\Keep\KeepManager($settings, $vaultsCollection);
     
-    // Register TestVault driver
-    $manager->addVaultDriver(TestVault::class);
-    
-    // Clear any existing TestVault storage
-    TestVault::clearAll();
-    
-    // Bind to container
+    // Bind to container first
     \STS\Keep\KeepContainer::getInstance()->singleton(\STS\Keep\KeepManager::class, fn() => $manager);
+    
+    // Register TestVault driver and clear storage for isolation
+    Keep::addVaultDriver(TestVault::class);
+    TestVault::clearAll();
     
     return $manager;
 }
