@@ -5,7 +5,6 @@ namespace STS\Keep\Commands;
 use Illuminate\Console\Command;
 use STS\Keep\Commands\Concerns\GathersInput;
 use STS\Keep\Commands\Concerns\InteractsWithFilesystem;
-use STS\Keep\Commands\Concerns\InteractsWithVaults;
 use STS\Keep\Exceptions\KeepException;
 use STS\Keep\Facades\Keep;
 use function Laravel\Prompts\error;
@@ -13,7 +12,7 @@ use function Laravel\Prompts\note;
 
 abstract class BaseCommand extends Command
 {
-    use GathersInput, InteractsWithFilesystem, InteractsWithVaults;
+    use GathersInput, InteractsWithFilesystem;
     
     
     public function handle(): int
