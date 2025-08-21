@@ -3,6 +3,7 @@
 namespace STS\Keep\Commands\Concerns;
 
 use STS\Keep\Data\Context;
+use STS\Keep\Facades\Keep;
 
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
@@ -60,8 +61,8 @@ trait GathersInput
     {
         return $this->{$cacheName} ??= match (true) {
             $this->hasOption('vault') && (bool) $this->option('vault') => $this->option('vault'),
-            count($this->manager->getConfiguredVaults()) === 1 => $this->manager->getDefaultVault(),
-            default => select($prompt, $this->manager->getConfiguredVaults(), $this->manager->getDefaultVault()),
+            Keep::getConfiguredVaults()->count() === 1 => Keep::getDefaultVault(),
+            default => select($prompt, Keep::getConfiguredVaults()->keys()->toArray(), Keep::getDefaultVault()),
         };
     }
 
@@ -69,8 +70,8 @@ trait GathersInput
     {
         return $this->{$cacheName} ??= match (true) {
             $this->hasOption('stage') && (bool) $this->option('stage') => $this->option('stage'),
-            count($this->manager->getStages()) === 1 => $this->manager->getStages()[0],
-            default => select($prompt, $this->manager->getStages()),
+            count(Keep::getStages()) === 1 => Keep::getStages()[0],
+            default => select($prompt, Keep::getStages()),
         };
     }
 

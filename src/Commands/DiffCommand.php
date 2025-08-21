@@ -56,12 +56,13 @@ class DiffCommand extends BaseCommand
         if ($vaultOption) {
             $requestedVaults = array_map('trim', explode(',', $vaultOption));
 
-            $invalidVaults = array_diff($requestedVaults, Keep::getConfiguredVaults());
+            $configuredVaultNames = Keep::getConfiguredVaults()->keys()->toArray();
+            $invalidVaults = array_diff($requestedVaults, $configuredVaultNames);
             if (! empty($invalidVaults)) {
                 $this->warn('Warning: Unknown vaults specified: '.implode(', ', $invalidVaults));
             }
 
-            return array_intersect($requestedVaults, Keep::getConfiguredVaults());
+            return array_intersect($requestedVaults, $configuredVaultNames);
         }
 
         // Default to current/default vault only
@@ -159,10 +160,11 @@ class DiffCommand extends BaseCommand
         $stages = $contexts->pluck('stage')->unique()->values()->toArray();
         
         // Validate vaults exist
-        $invalidVaults = array_diff($vaults, Keep::getConfiguredVaults());
+        $configuredVaultNames = Keep::getConfiguredVaults()->keys()->toArray();
+        $invalidVaults = array_diff($vaults, $configuredVaultNames);
         if (!empty($invalidVaults)) {
             $this->warn('Warning: Unknown vaults specified: ' . implode(', ', $invalidVaults));
-            $vaults = array_intersect($vaults, Keep::getConfiguredVaults());
+            $vaults = array_intersect($vaults, $configuredVaultNames);
         }
         
         // Validate stages exist

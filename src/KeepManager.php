@@ -3,6 +3,10 @@
 namespace STS\Keep;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use STS\Keep\Data\Collections\VaultConfigCollection;
+use STS\Keep\Data\Settings;
+use STS\Keep\Data\VaultConfig;
 use STS\Keep\Vaults\AbstractVault;
 use STS\Keep\Vaults\AwsSecretsManagerVault;
 use STS\Keep\Vaults\AwsSsmVault;
@@ -16,55 +20,49 @@ class KeepManager
 
     protected array $loadedVaults = [];
 
-    public function __construct(protected array $settings, protected array $configuredVaults)
+    public function __construct(protected ?Settings $settings, protected VaultConfigCollection $configuredVaults)
     {
     }
     
     public function isInitialized(): bool
     {
-        return !empty($this->settings) && 
-               isset($this->settings['app_name']);
+        return $this->settings !== null;
     }
 
     public function getNamespace(): string
     {
-        return $this->settings['namespace'] ?? 'default';
+        return $this->settings?->namespace() ?? 'default';
     }
     
     public function getSettings(): array
     {
-        return $this->settings;
+        return $this->settings?->toArray() ?? [];
     }
     
     public function getSetting(string $key, mixed $default = null): mixed
     {
-        return $this->settings[$key] ?? $default;
+        return $this->settings?->get($key, $default) ?? $default;
     }
 
-    public function setSetting(string $key, mixed $value): static
-    {
-        $this->settings[$key] = $value;
-        return $this;
-    }
 
     public function getAvailableVaults(): array
     {
         return $this->availableVaults;
     }
     
-    public function getConfiguredVaults(): array
+    public function getConfiguredVaults(): Collection
     {
         return $this->configuredVaults;
     }
 
     public function getDefaultVault(): ?string
     {
-        return $this->settings['default_vault'] ?? null;
+        return $this->settings?->defaultVault();
     }
 
     public function getStages(): array
     {
-        return $this->settings['stages'] ?? [];
+        return $this->settings?->stages() ?? [];
     }
 
     public function vault(string $name, string $stage): AbstractVault
@@ -75,12 +73,12 @@ class KeepManager
             return $this->loadedVaults[$cacheKey];
         }
 
-        if (!isset($this->configuredVaults[$name])) {
+        if (!$this->configuredVaults->has($name)) {
             throw new \InvalidArgumentException("Vault '{$name}' is not configured.");
         }
 
-        $config = $this->configuredVaults[$name];
-        $driver = $config['driver'] ?? null;
+        $config = $this->configuredVaults->get($name);
+        $driver = $config->driver();
 
         if (!$driver) {
             throw new \InvalidArgumentException("Vault '{$name}' does not have a driver configured.");
@@ -90,7 +88,7 @@ class KeepManager
             throw new \InvalidArgumentException("Vault driver '{$driver}' for '{$name}' is not available.");
         }
 
-        $vault = new $driverClass($name, $config, $stage);
+        $vault = new $driverClass($name, $config->toArray(), $stage);
         $this->loadedVaults[$cacheKey] = $vault;
 
         return $vault;

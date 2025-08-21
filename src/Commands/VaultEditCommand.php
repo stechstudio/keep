@@ -2,6 +2,7 @@
 
 namespace STS\Keep\Commands;
 
+use STS\Keep\Facades\Keep;
 use function Laravel\Prompts\text;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\info;
@@ -16,7 +17,7 @@ class VaultEditCommand extends BaseCommand
     {
         info('🔧  Edit Vault Configuration');
         
-        $configuredVaults = $this->manager->getConfiguredVaults();
+        $configuredVaults = Keep::getConfiguredVaults();
         
         if (empty($configuredVaults)) {
             error('No vaults are configured yet.');
@@ -86,7 +87,7 @@ class VaultEditCommand extends BaseCommand
             $this->saveVaultConfig($newSlug, $updatedConfig);
             
             // Update default vault if this was the default
-            if ($this->manager->getSetting('default_vault') === $slug) {
+            if (Keep::getSetting('default_vault') === $slug) {
                 $this->setDefaultVault($newSlug);
             }
             
@@ -102,7 +103,7 @@ class VaultEditCommand extends BaseCommand
     
     private function findVaultClass(string $driver): ?string
     {
-        $availableVaults = $this->manager->getAvailableVaults();
+        $availableVaults = Keep::getAvailableVaults();
         
         foreach ($availableVaults as $vaultClass) {
             if ($vaultClass::DRIVER === $driver) {

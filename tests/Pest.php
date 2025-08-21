@@ -78,7 +78,7 @@ function stripAnsi(string $text): string
 /**
  * Helper to set up KeepManager for unit tests
  */
-function setupKeepManager(array $settings = [], array $vaults = []): \STS\Keep\KeepManager
+function setupKeepManager(array $settingsOverride = [], array $vaults = []): \STS\Keep\KeepManager
 {
     // Default test settings
     $defaultSettings = [
@@ -91,17 +91,32 @@ function setupKeepManager(array $settings = [], array $vaults = []): \STS\Keep\K
     // Default test vault
     $defaultVaults = [
         'test' => [
+            'slug' => 'test',
             'driver' => 'test',
             'name' => 'Test Vault',
             'namespace' => 'test-app',
         ]
     ];
     
-    $settings = array_merge($defaultSettings, $settings);
-    $vaults = array_merge($defaultVaults, $vaults);
+    $settingsData = array_merge($defaultSettings, $settingsOverride);
+    $vaultsData = array_merge($defaultVaults, $vaults);
     
-    // Create KeepManager
-    $manager = new \STS\Keep\KeepManager($settings, $vaults);
+    // Create Settings object instead of using array
+    $settings = \STS\Keep\Data\Settings::fromArray($settingsData);
+    
+    // Convert vault arrays to VaultConfig objects and create VaultConfigCollection
+    $vaultConfigs = [];
+    foreach ($vaultsData as $name => $config) {
+        // Ensure slug is set if not provided
+        if (!isset($config['slug'])) {
+            $config['slug'] = $name;
+        }
+        $vaultConfigs[$name] = \STS\Keep\Data\VaultConfig::fromArray($config);
+    }
+    $vaultsCollection = new \STS\Keep\Data\Collections\VaultConfigCollection($vaultConfigs);
+    
+    // Create KeepManager with Settings object and VaultConfigCollection
+    $manager = new \STS\Keep\KeepManager($settings, $vaultsCollection);
     
     // Register TestVault driver
     $manager->addVaultDriver(TestVault::class);

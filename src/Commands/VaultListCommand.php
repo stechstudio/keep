@@ -2,6 +2,7 @@
 
 namespace STS\Keep\Commands;
 
+use STS\Keep\Facades\Keep;
 use function Laravel\Prompts\table;
 use function Laravel\Prompts\info;
 
@@ -12,23 +13,23 @@ class VaultListCommand extends BaseCommand
     
     protected function process(): int
     {
-        $configuredVaults = $this->manager->getConfiguredVaults();
+        $configuredVaults = Keep::getConfiguredVaults();
         
-        if (empty($configuredVaults)) {
+        if ($configuredVaults->isEmpty()) {
             info('No vaults are configured yet.');
             info('Add your first vault with: keep vault:add');
             return self::SUCCESS;
         }
         
-        $defaultVault = $this->manager->getSetting('default_vault');
+        $defaultVault = Keep::getSetting('default_vault');
         $rows = [];
         
         foreach ($configuredVaults as $slug => $config) {
             $isDefault = $slug === $defaultVault ? '✓' : '';
             $rows[] = [
                 $slug,
-                $config['name'] ?? 'Unknown',
-                $config['driver'] ?? 'Unknown', 
+                $config->name(),
+                $config->driver(), 
                 $isDefault
             ];
         }

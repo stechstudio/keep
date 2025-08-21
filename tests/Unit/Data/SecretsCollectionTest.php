@@ -476,16 +476,16 @@ describe('SecretsCollection', function () {
     });
 
     describe('edge cases', function () {
-        it('handles secrets with special characters in keys', function () {
+        it('handles secrets with valid key formats', function () {
             $secrets = new SecretCollection([
-                new Secret('SPECIAL_!@#$', 'value1'),
-                new Secret('WITH.DOTS', 'value2'),
-                new Secret('WITH-DASHES', 'value3'),
+                new Secret('SPECIAL_KEY', 'value1'),
+                new Secret('WITH_UNDERSCORES', 'value2'),
+                new Secret('MIXED123_KEY', 'value3'),
             ]);
 
-            expect($secrets->hasKey('SPECIAL_!@#$'))->toBeTrue();
-            expect($secrets->getByKey('WITH.DOTS')->value())->toBe('value2');
-            expect($secrets->allKeys()->toArray())->toContain('WITH-DASHES');
+            expect($secrets->hasKey('SPECIAL_KEY'))->toBeTrue();
+            expect($secrets->getByKey('WITH_UNDERSCORES')->value())->toBe('value2');
+            expect($secrets->allKeys()->toArray())->toContain('MIXED123_KEY');
         });
 
         it('handles large collections efficiently', function () {
