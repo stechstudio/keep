@@ -48,6 +48,7 @@ class KeepApplication extends Application
             new Commands\DiffCommand,
             new Commands\VerifyCommand,
             new Commands\TemplateValidateCommand,
+            new Commands\CacheCommand,
         ]);
     }
 

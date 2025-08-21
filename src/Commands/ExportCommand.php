@@ -11,9 +11,9 @@ class ExportCommand extends BaseCommand
         {--output= : File where to save the output (defaults to stdout)} 
         {--overwrite : Overwrite the output file if it exists} 
         {--append : Append to the output file if it exists} '
-        .self::CONTEXT_SIGNATURE
-        .self::VAULT_SIGNATURE
-        .self::STAGE_SIGNATURE;
+    .self::CONTEXT_SIGNATURE
+    .self::VAULT_SIGNATURE
+    .self::STAGE_SIGNATURE;
 
     public $description = 'Export all stage secrets in a specified vault';
 
@@ -22,13 +22,17 @@ class ExportCommand extends BaseCommand
         $context = $this->context();
         $secrets = $context->createVault()->list();
 
-        if ($this->option('output')) {
-            return $this->writeToFile(
+        if (
+            $this->option('output')
+            && $this->writeToFile(
                 $this->option('output'),
                 $this->formatOutput($secrets),
                 $this->option('overwrite'),
                 $this->option('append')
-            );
+            )
+        ) {
+
+            $this->info("Secrets exported to [{$this->option('output')}].");
         }
 
         $this->line($this->formatOutput($secrets));

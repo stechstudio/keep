@@ -6,21 +6,30 @@ use function Laravel\Prompts\confirm;
 
 trait InteractsWithFilesystem
 {
-    protected function writeToFile(string $path, string $content, $overwrite = false, $append = false): bool
+    protected function writeToFile(string $path, string $content, $overwrite = false, $append = false, ?int $permissions = null): bool
     {
-        $filePath = $path;
         $flags = 0; // Default: overwrite
 
-        if (file_exists($filePath)) {
+        if (file_exists($path)) {
             if ($append) {
                 $flags = FILE_APPEND; // Append
             } elseif (! $overwrite && ! confirm('Output file already exists. Overwrite?', false)) {
-                return $this->error("File [$filePath] already exists. Use --overwrite or --append option.");
+                return $this->error("File [$path] already exists. Use --overwrite or --append option.");
             }
         }
 
-        file_put_contents($filePath, $content.PHP_EOL, $flags);
-        $this->info("Secrets exported to [$filePath].");
+        // Ensure directory exists
+        $directory = dirname($path);
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        file_put_contents($path, $content.PHP_EOL, $flags);
+
+        // Set file permissions if specified
+        if ($permissions !== null) {
+            chmod($path, $permissions);
+        }
 
         return self::SUCCESS;
     }
