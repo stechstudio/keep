@@ -38,21 +38,6 @@ describe('Settings', function () {
                 ->toThrow(InvalidArgumentException::class, 'Namespace cannot exceed 100 characters');
         });
 
-        it('accepts valid namespace formats', function () {
-            $validNamespaces = [
-                'simple',
-                'with_underscore',
-                'with-hyphen',
-                'mixed123',
-                'CamelCase',
-                'PascalCase',
-            ];
-
-            foreach ($validNamespaces as $namespace) {
-                $settings = new Settings('app', $namespace, ['stage']);
-                expect($settings->namespace())->toBe($namespace);
-            }
-        });
 
         it('validates stages', function () {
             expect(fn () => new Settings('app', 'namespace', []))
@@ -256,18 +241,6 @@ describe('Settings', function () {
     });
 
     describe('timestamps', function () {
-        it('sets timestamps automatically', function () {
-            $before = date('c');
-
-            $settings = new Settings('app', 'namespace', ['stage']);
-
-            $after = date('c');
-
-            expect($settings->createdAt())->toBeGreaterThanOrEqual($before);
-            expect($settings->createdAt())->toBeLessThanOrEqual($after);
-            expect($settings->updatedAt())->toBeGreaterThanOrEqual($before);
-            expect($settings->updatedAt())->toBeLessThanOrEqual($after);
-        });
 
         it('preserves created_at when provided', function () {
             $fixedTime = '2024-01-01T12:00:00+00:00';

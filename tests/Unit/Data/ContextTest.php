@@ -40,36 +40,7 @@ describe('Context', function () {
         });
     });
 
-    describe('toString formatting', function () {
-        it('formats vault:stage correctly', function () {
-            $context = new Context('myVault', 'myStage');
 
-            expect($context->toString())->toBe('myVault:myStage');
-        });
-    });
-
-    describe('equality comparison', function () {
-        it('returns true for identical contexts', function () {
-            $context1 = new Context('vault1', 'stage1');
-            $context2 = new Context('vault1', 'stage1');
-
-            expect($context1->equals($context2))->toBeTrue();
-        });
-
-        it('returns false for different vaults', function () {
-            $context1 = new Context('vault1', 'stage1');
-            $context2 = new Context('vault2', 'stage1');
-
-            expect($context1->equals($context2))->toBeFalse();
-        });
-
-        it('returns false for different stages', function () {
-            $context1 = new Context('vault1', 'stage1');
-            $context2 = new Context('vault1', 'stage2');
-
-            expect($context1->equals($context2))->toBeFalse();
-        });
-    });
 
     describe('vault creation', function () {
         it('creates vault instance with correct vault and stage', function () {

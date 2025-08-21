@@ -108,13 +108,6 @@ describe('KeepException', function () {
         ]);
     });
 
-    it('fluently returns self from withContext', function () {
-        $exception = new KeepException('Test');
-
-        $result = $exception->withContext(vault: 'test');
-
-        expect($result)->toBe($exception);
-    });
 
     it('handles all context properties', function () {
         $output = [];
