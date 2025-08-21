@@ -15,6 +15,12 @@ use STS\Keep\Vaults\AbstractVault;
 class TestVault extends AbstractVault
 {
     public const string DRIVER = 'test';
+    
+    public static function configure(array $existingSettings = []): array
+    {
+        // Return empty array for test vault since it doesn't need configuration
+        return [];
+    }
     /**
      * Vault and stage-aware storage structure:
      * [
