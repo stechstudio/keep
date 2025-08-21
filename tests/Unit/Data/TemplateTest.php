@@ -797,4 +797,62 @@ describe('Template', function () {
             );
         });
     });
+
+    describe('placeholders() method', function () {
+        it('extracts placeholders with vault:key format', function () {
+            $template = new Template("DB_HOST={ssm:DB_HOST}\nAPI_KEY={vault:API_KEY}");
+            $placeholders = $template->placeholders();
+            
+            expect($placeholders)->toHaveCount(2);
+            
+            $firstPlaceholder = $placeholders[0];
+            expect($firstPlaceholder->line)->toBe(1);
+            expect($firstPlaceholder->envKey)->toBe('DB_HOST');
+            expect($firstPlaceholder->vault)->toBe('ssm');
+            expect($firstPlaceholder->key)->toBe('DB_HOST');
+            
+            $secondPlaceholder = $placeholders[1];
+            expect($secondPlaceholder->line)->toBe(2);
+            expect($secondPlaceholder->envKey)->toBe('API_KEY');
+            expect($secondPlaceholder->vault)->toBe('vault');
+            expect($secondPlaceholder->key)->toBe('API_KEY');
+        });
+
+        it('extracts simple placeholders without vault prefix', function () {
+            $template = new Template("API_KEY={API_KEY}");
+            $placeholders = $template->placeholders();
+            
+            expect($placeholders)->toHaveCount(1);
+            $placeholder = $placeholders[0];
+            expect($placeholder->line)->toBe(1);
+            expect($placeholder->envKey)->toBe('API_KEY');
+            expect($placeholder->vault)->toBeNull();
+            expect($placeholder->key)->toBe('API_KEY');
+        });
+
+        it('returns empty collection for templates with no placeholders', function () {
+            $template = new Template("# Just a comment\nSTATIC_VALUE=hello");
+            $placeholders = $template->placeholders();
+            
+            expect($placeholders)->toBeEmpty();
+        });
+
+        it('returns empty collection for empty templates', function () {
+            $template = new Template("");
+            $placeholders = $template->placeholders();
+            
+            expect($placeholders)->toBeEmpty();
+        });
+
+        it('includes line numbers and raw line content', function () {
+            $template = new Template("# Comment\nDB_HOST={ssm:DB_HOST}\n\nAPI_KEY={API_KEY}");
+            $placeholders = $template->placeholders();
+            
+            expect($placeholders)->toHaveCount(2);
+            expect($placeholders[0]->line)->toBe(2);
+            expect($placeholders[0]->rawLine)->toBe('DB_HOST={ssm:DB_HOST}');
+            expect($placeholders[1]->line)->toBe(4);
+            expect($placeholders[1]->rawLine)->toBe('API_KEY={API_KEY}');
+        });
+    });
 });
