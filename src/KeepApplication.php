@@ -46,7 +46,8 @@ class KeepApplication extends Application
             new Commands\MergeCommand,
 
             new Commands\DiffCommand,
-            new Commands\VerifyCommand
+            new Commands\VerifyCommand,
+            new Commands\TemplateValidateCommand
         ]);
     }
 

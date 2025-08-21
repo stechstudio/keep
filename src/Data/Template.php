@@ -3,7 +3,9 @@
 namespace STS\Keep\Data;
 
 use STS\Keep\Data\Collections\SecretCollection;
+use STS\Keep\Data\Collections\PlaceholderCollection;
 use STS\Keep\Data\Concerns\FormatsEnvValues;
+use STS\Keep\Data\Placeholder;
 use STS\Keep\Enums\MissingSecretStrategy;
 use STS\Keep\Exceptions\ExceptionFactory;
 
@@ -82,6 +84,32 @@ class Template
         preg_match_all($pattern, $this->contents, $matches);
         
         return array_unique($matches[1] ?? []);
+    }
+
+    /**
+     * Extract all placeholders from the template content.
+     * 
+     * @return PlaceholderCollection Collection of Placeholder objects
+     */
+    public function placeholders(): PlaceholderCollection
+    {
+        if ($this->isEmpty()) {
+            return new PlaceholderCollection();
+        }
+
+        $placeholders = [];
+        $lines = explode("\n", $this->contents);
+        $pattern = $this->pattern();
+
+        foreach ($lines as $lineNumber => $line) {
+            if (preg_match_all($pattern, $line, $matches, PREG_SET_ORDER)) {
+                foreach ($matches as $match) {
+                    $placeholders[] = Placeholder::fromMatch($match, $lineNumber + 1, $line);
+                }
+            }
+        }
+
+        return new PlaceholderCollection($placeholders);
     }
 
     /**
