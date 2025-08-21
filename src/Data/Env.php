@@ -12,9 +12,24 @@ class Env
 
     public function __construct(protected string $contents) {}
 
+    public static function fromFile(string $filePath): static
+    {
+        if (!file_exists($filePath)) {
+            return new static('');
+        }
+
+        $contents = file_get_contents($filePath) ?: '';
+        return new static($contents);
+    }
+
     public function contents(): string
     {
         return $this->contents;
+    }
+
+    public function get(string $key, mixed $default = null): mixed
+    {
+        return $this->list()->get($key, $default);
     }
 
     public function entries(): Collection
