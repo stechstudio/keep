@@ -14,9 +14,9 @@ class ImportCommand extends BaseCommand
     public $signature = 'import {from? : Env file to import from}
         {--overwrite : Overwrite existing secrets} 
         {--skip-existing : Skip existing secrets}  
-        {--dry-run : Show what would be imported without actually importing} '
+        {--dry-run : Show what would be imported without actually importing}
+        {--force : Skip confirmation prompts for automation} '
         .self::ONLY_EXCLUDE_SIGNATURE
-        .self::CONTEXT_SIGNATURE
         .self::VAULT_SIGNATURE
         .self::STAGE_SIGNATURE;
 
@@ -33,7 +33,7 @@ class ImportCommand extends BaseCommand
             return $this->error("Env file [$envFilePath] does not exist or is not readable.");
         }
 
-        $env = new Env(file_get_contents($envFilePath));
+        $env = Env::fromFile($envFilePath);
 
         // Convert env entries to secrets and apply filtering
         $importSecrets = $env->secrets()->filterByPatterns(

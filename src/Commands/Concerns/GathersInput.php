@@ -25,7 +25,6 @@ trait GathersInput
 
     protected const string UNMASK_SIGNATURE = '{--unmask : Show full secret values instead of masked values}';
 
-    protected const string CONTEXT_SIGNATURE = '{--context= : Context in format "vault:stage" or just "stage"}';
 
     protected string $key;
 
@@ -103,12 +102,7 @@ trait GathersInput
 
     protected function context(string $vaultPrompt = 'Vault', string $stagePrompt = 'Stage'): Context
     {
-        // If --context option is provided, use it
-        if ($this->hasOption('context') && $this->option('context')) {
-            return Context::fromInput($this->option('context'));
-        }
-
-        // Fall back to separate vault/stage prompting
+        // Create context from separate vault/stage selection
         return new Context($this->vaultName($vaultPrompt), $this->stage($stagePrompt));
     }
 

@@ -1,12 +1,26 @@
 <?php
 
 use Illuminate\Container\Container;
-use Illuminate\Config\Repository as ConfigRepository;
 use STS\Keep\Laravel\SecretsServiceProvider;
 
 beforeEach(function () {
-    $this->app = new Container();
-    $this->app->singleton('config', fn() => new ConfigRepository());
+    $this->app = new class extends Container {
+        private string $environment = 'testing';
+        
+        public function environment(): string {
+            return $this->environment;
+        }
+        
+        public function setEnvironment(string $env): void {
+            $this->environment = $env;
+        }
+    };
+    
+    $this->app->singleton('config', fn() => new class {
+        private array $data = [];
+        public function get($key, $default = null) { return $this->data[$key] ?? $default; }
+        public function set($key, $value) { $this->data[$key] = $value; }
+    });
     
     // Set required APP_KEY config
     $this->app['config']->set('app.key', 'base64:' . base64_encode(random_bytes(32)));
@@ -15,11 +29,7 @@ beforeEach(function () {
 });
 
 it('generates correct cache file path for mapped environments', function () {
-    // Mock app()->environment() call
-    $this->app->singleton('env', fn() => 'local');
-    $this->app->bind('app', fn() => new class {
-        public function environment() { return 'local'; }
-    });
+    $this->app->setEnvironment('local');
     
     $this->app['config']->set('keep.stage_environment_mapping', [
         'development' => 'local',
@@ -35,7 +45,7 @@ it('generates correct cache file path for mapped environments', function () {
     
     $this->provider->register();
     
-    // Use reflection to test protected method
+    // Use reflection to test protected method (temporary until we refactor)
     $reflection = new ReflectionClass($this->provider);
     $method = $reflection->getMethod('getCacheFilePath');
     $method->setAccessible(true);
@@ -75,11 +85,8 @@ it('uses correct stage mapping for different environments', function () {
     ];
     
     foreach ($testCases as $case) {
-        // Mock app()->environment()
-        $this->app->bind('app', fn() => new class($case['environment']) {
-            public function __construct(private string $env) {}
-            public function environment() { return $this->env; }
-        });
+        // Set environment directly on our extended container
+        $this->app->setEnvironment($case['environment']);
         
         $this->app['config']->set('keep.stage_environment_mapping', [
             'development' => 'local',

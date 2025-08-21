@@ -45,7 +45,7 @@ it('handles empty values correctly in get method', function () {
 });
 
 it('handles quoted values in get method', function () {
-    $envContent = 'QUOTED_SINGLE=\'single quotes\'\nQUOTED_DOUBLE="double quotes"';
+    $envContent = "QUOTED_SINGLE='single quotes'\nQUOTED_DOUBLE=\"double quotes\"";
     $env = new Env($envContent);
     
     expect($env->get('QUOTED_SINGLE'))->toBe('single quotes');

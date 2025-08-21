@@ -8,7 +8,6 @@ class GetCommand extends BaseCommand
 {
     public $signature = 'get {--format=table : table|json|raw} '
         .self::KEY_SIGNATURE
-        .self::CONTEXT_SIGNATURE
         .self::VAULT_SIGNATURE
         .self::STAGE_SIGNATURE;
 

@@ -7,7 +7,6 @@ class SetCommand extends BaseCommand
     public $signature = 'set '
         .self::KEY_SIGNATURE
         .self::VALUE_SIGNATURE
-        .self::CONTEXT_SIGNATURE
         .self::VAULT_SIGNATURE
         .self::STAGE_SIGNATURE
         .self::PLAIN_SIGNATURE;
