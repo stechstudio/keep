@@ -228,16 +228,6 @@ keep merge env.template --stage=production --vault=ssm --output=.env
 
 **Region Mismatch**: Verify you're operating in the same AWS region where your parameters are stored.
 
-## Secrets Manager vs SSM Parameter Store
-
-| Feature | Secrets Manager | SSM Parameter Store |
-|---------|----------------|-------------------|
-| **Cost** | $0.40/secret/month | Free (standard params) |
-| **Rotation** | Automatic | Manual only |
-| **JSON Support** | Native | Manual parsing |
-| **Cross-Region** | Built-in replication | Manual setup |
-| **Versioning** | Automatic | Manual (Advanced tier) |
-| **Use Case** | Application secrets | Configuration + secrets |
 
 ## Next Steps
 
