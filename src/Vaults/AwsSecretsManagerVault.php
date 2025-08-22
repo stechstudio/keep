@@ -16,6 +16,7 @@ use STS\Keep\Data\SecretHistory;
 use STS\Keep\Exceptions\AccessDeniedException;
 use STS\Keep\Exceptions\KeepException;
 use STS\Keep\Exceptions\SecretNotFoundException;
+use STS\Keep\Facades\Keep;
 
 class AwsSecretsManagerVault extends AbstractVault
 {
@@ -33,11 +34,6 @@ class AwsSecretsManagerVault extends AbstractVault
                 default: $existingSettings['region'] ?? 'us-east-1',
                 hint: 'The AWS region where your secrets will be stored'
             ),
-            'prefix' => new TextPrompt(
-                label: 'Secret name prefix',
-                default: $existingSettings['prefix'] ?? 'app-secrets',
-                hint: 'Prefix for all your secret names'
-            ),
             'key' => new TextPrompt(
                 label: 'KMS Key ID (optional)',
                 default: $existingSettings['key'] ?? '',
@@ -46,15 +42,16 @@ class AwsSecretsManagerVault extends AbstractVault
         ];
     }
 
+    /**
+     * Format a secret name using path-style naming for duplicate avoidance only.
+     */
     public function format(?string $key = null): string
     {
         if (is_callable($this->keyFormatter)) {
             return call_user_func($this->keyFormatter, $key, $this->stage, $this->config);
         }
 
-        return Str::of($this->config['prefix'] ?? '')
-            ->append('/')
-            ->append('app') // TODO: Get from configuration
+        return Str::of(Keep::namespace())
             ->append('/')
             ->append($this->stage)
             ->append('/')
@@ -64,20 +61,55 @@ class AwsSecretsManagerVault extends AbstractVault
             ->toString();
     }
 
+    /**
+     * Get the standard tags applied to all secrets in this vault.
+     */
+    protected function getSecretTags(): array
+    {
+        return [
+            'ManagedBy' => 'Keep',
+            'Namespace' => Keep::namespace(),
+            'Stage' => $this->stage,
+            'VaultSlug' => $this->slug(),
+        ];
+    }
+
+    /**
+     * List secrets using tag-based filtering.
+     */
     public function list(): SecretCollection
     {
         try {
             $secrets = new SecretCollection;
             $nextToken = null;
-            $prefix = $this->format();
 
             do {
                 $params = [
                     'MaxResults' => 100, // AWS Secrets Manager max
                     'Filters' => [
                         [
-                            'Key' => 'name',
-                            'Values' => [$prefix.'*'],
+                            'Key' => 'tag-key',
+                            'Values' => ['ManagedBy'],
+                        ],
+                        [
+                            'Key' => 'tag-value',
+                            'Values' => ['Keep'],
+                        ],
+                        [
+                            'Key' => 'tag-key',
+                            'Values' => ['Namespace'],
+                        ],
+                        [
+                            'Key' => 'tag-value', 
+                            'Values' => [Keep::namespace()],
+                        ],
+                        [
+                            'Key' => 'tag-key',
+                            'Values' => ['Stage'],
+                        ],
+                        [
+                            'Key' => 'tag-value',
+                            'Values' => [$this->stage],
                         ],
                     ],
                     'IncludePlannedDeletion' => false,
@@ -92,13 +124,20 @@ class AwsSecretsManagerVault extends AbstractVault
                 foreach ($result->get('SecretList') as $secret) {
                     $secretName = $secret['Name'];
 
-                    // Extract the key from the full secret name
+                    // Extract the key from the full secret name using the expected format
+                    $expectedPrefix = Keep::namespace() . '/' . $this->stage . '/';
+                    
+                    // Skip if this doesn't match our expected naming pattern
+                    if (!Str::startsWith($secretName, $expectedPrefix)) {
+                        continue;
+                    }
+
                     $key = Str::of($secretName)
-                        ->after($prefix.'/')
+                        ->after($expectedPrefix)
                         ->toString();
 
-                    // Skip if this doesn't match our prefix pattern exactly
-                    if (! Str::startsWith($secretName, $prefix.'/')) {
+                    // Skip if we couldn't extract a valid key
+                    if (empty($key)) {
                         continue;
                     }
 
@@ -194,6 +233,7 @@ class AwsSecretsManagerVault extends AbstractVault
     {
         try {
             $secretName = $this->format($key);
+            $tags = $this->getSecretTags();
 
             // Check if secret exists
             $exists = false;
@@ -207,19 +247,37 @@ class AwsSecretsManagerVault extends AbstractVault
             }
 
             if ($exists) {
-                // Update existing secret
-                $this->client()->updateSecret([
+                // Update existing secret value
+                $this->client()->putSecretValue([
                     'SecretId' => $secretName,
                     'SecretString' => $value,
                 ]);
+
+                // Update tags to ensure they're current
+                $this->client()->tagResource([
+                    'SecretId' => $secretName,
+                    'Tags' => collect($tags)->map(fn($value, $key) => [
+                        'Key' => $key,
+                        'Value' => $value,
+                    ])->values()->toArray(),
+                ]);
             } else {
-                // Create new secret
-                $this->client()->createSecret([
+                // Create new secret with tags
+                $createParams = [
                     'Name' => $secretName,
                     'SecretString' => $value,
-                    'Description' => "Keep secret: {$key} for stage {$this->stage}",
-                    'KmsKeyId' => $this->config['key'] ?? null,
-                ]);
+                    'Description' => "Keep secret: {$key} for {$this->stage} stage in {$this->slug()} vault",
+                    'Tags' => collect($tags)->map(fn($value, $key) => [
+                        'Key' => $key,
+                        'Value' => $value,
+                    ])->values()->toArray(),
+                ];
+
+                if (!empty($this->config['key'])) {
+                    $createParams['KmsKeyId'] = $this->config['key'];
+                }
+
+                $this->client()->createSecret($createParams);
             }
 
             return $this->get($key);
@@ -313,7 +371,7 @@ class AwsSecretsManagerVault extends AbstractVault
     {
         return $this->client ??= new SecretsManagerClient([
             'version' => 'latest',
-            'region' => config('keep.aws.region'),
+            'region' => $this->config['region'] ?? 'us-east-1',
         ]);
     }
 }

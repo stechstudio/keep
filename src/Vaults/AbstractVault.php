@@ -14,16 +14,7 @@ abstract class AbstractVault
 
     public const string NAME = '';
 
-    protected $keyFormatter;
-
     public function __construct(protected string $name, protected array $config, protected string $stage) {}
-
-    public function formatKeyUsing(callable $formatter): static
-    {
-        $this->keyFormatter = $formatter;
-
-        return $this;
-    }
 
     public function name(): string
     {
