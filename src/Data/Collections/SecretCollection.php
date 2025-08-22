@@ -18,7 +18,7 @@ class SecretCollection extends Collection
 
     public function toEnvString()
     {
-        return $this->map(fn (Secret $secret) => $secret->key().'='.$this->formatEnvValue($secret->value())
+        return $this->map(fn (Secret $secret) => $secret->sanitizedKey().'='.$this->formatEnvValue($secret->value())
         )->implode(PHP_EOL);
     }
 

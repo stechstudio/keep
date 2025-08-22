@@ -32,6 +32,12 @@ Then run Keep commands using:
 ./vendor/bin/keep [command]
 ```
 
+You might enjoy having an alias in your shell profile to make it easier:
+
+```bash
+alias keep="./vendor/bin/keep"
+```
+
 ## Laravel Integration (Optional)
 
 If you're using Keep with a Laravel application, you can publish the configuration and set up the service provider:

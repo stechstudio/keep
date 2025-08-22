@@ -51,7 +51,7 @@ class Env
     public function secrets(): SecretCollection
     {
         $secrets = $this->entries()->map(function ($entry) {
-            return new Secret(
+            return Secret::fromVault(
                 key: $entry->getName(),
                 value: $entry->getValue()->get()->getChars(),
             );

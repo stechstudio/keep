@@ -90,7 +90,7 @@ class AwsSsmVault extends AbstractVault
                         ->trim('/')
                         ->toString();
 
-                    $secrets->push(new Secret(
+                    $secrets->push(Secret::fromVault(
                         key: $key,
                         value: $parameter['Value'] ?? null,
                         encryptedValue: null,
@@ -137,7 +137,7 @@ class AwsSsmVault extends AbstractVault
                 throw ExceptionFactory::secretNotFound($key, $this->name());
             }
 
-            return new Secret(
+            return Secret::fromVault(
                 key: $key,
                 value: $parameter['Value'] ?? null,
                 encryptedValue: null,

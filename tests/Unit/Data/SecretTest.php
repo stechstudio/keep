@@ -32,9 +32,9 @@ describe('Secret', function () {
             'multiple spaces' => ['MY API KEY'],
         ]);
 
-        it('rejects keys with hyphens', function ($key) {
-            expect(fn () => new Secret($key, 'value'))
-                ->toThrow(\InvalidArgumentException::class, 'contains invalid characters');
+        it('accepts keys with hyphens', function ($key) {
+            $secret = new Secret($key, 'value');
+            expect($secret->key())->toBe($key);
         })->with([
             'single hyphen' => ['my-api-key'],
             'multiple hyphens' => ['user-email-address'],
@@ -75,22 +75,31 @@ describe('Secret', function () {
             'tilde' => ['key~value'],
         ]);
 
-        it('rejects keys starting with underscore', function ($key) {
-            expect(fn () => new Secret($key, 'value'))
-                ->toThrow(\InvalidArgumentException::class, 'cannot start with underscore');
+        it('accepts keys starting with underscore', function ($key) {
+            $secret = new Secret($key, 'value');
+            expect($secret->key())->toBe($key);
         })->with([
             'single underscore' => ['_SECRET'],
             'multiple underscores' => ['__PRIVATE'],
             'underscore with valid chars' => ['_DB_HOST'],
         ]);
 
-        it('rejects keys starting with numbers', function ($key) {
-            expect(fn () => new Secret($key, 'value'))
-                ->toThrow(\InvalidArgumentException::class, 'cannot start with a number');
+        it('accepts keys starting with numbers', function ($key) {
+            $secret = new Secret($key, 'value');
+            expect($secret->key())->toBe($key);
         })->with([
             'single digit' => ['1KEY'],
             'multiple digits' => ['123_SECRET'],
             'number with underscore' => ['1_API_KEY'],
+        ]);
+
+        it('rejects keys starting with hyphen', function ($key) {
+            expect(fn () => new Secret($key, 'value'))
+                ->toThrow(\InvalidArgumentException::class, 'cannot start with hyphen');
+        })->with([
+            'single hyphen' => ['-SECRET'],
+            'multiple hyphens' => ['--PRIVATE'],
+            'hyphen with valid chars' => ['-DB_HOST'],
         ]);
 
         it('rejects empty or too short keys', function ($key) {
@@ -343,5 +352,106 @@ describe('Secret', function () {
 
             expect($secret->masked())->toBe('valu*****************');
         });
+    });
+
+    describe('factory methods', function () {
+        it('fromUser validates keys strictly', function () {
+            $validKey = 'VALID_KEY_123';
+            $secret = Secret::fromUser($validKey, 'value');
+            expect($secret->key())->toBe($validKey);
+        });
+
+        it('fromUser accepts common naming patterns', function ($key) {
+            $secret = Secret::fromUser($key, 'value');
+            expect($secret->key())->toBe($key);
+        })->with([
+            'hyphen' => ['my-api-key'],
+            'underscore' => ['my_api_key'], 
+            'mixed case' => ['MyApiKey'],
+            'numbers' => ['api_key_v2'],
+            'leading underscore' => ['_private_key'],
+            'leading number' => ['1database_url'],
+        ]);
+
+        it('fromUser rejects problematic keys', function ($key) {
+            expect(fn () => Secret::fromUser($key, 'value'))
+                ->toThrow(\InvalidArgumentException::class);
+        })->with([
+            'dot' => ['user.email'],
+            'space' => ['my key'],
+            'special chars' => ['key@domain'],
+            'leading hyphen' => ['-api-key'],
+        ]);
+
+        it('fromVault accepts any key format', function ($key) {
+            $secret = Secret::fromVault($key, 'value');
+            expect($secret->key())->toBe(trim($key));
+        })->with([
+            'hyphen' => ['my-api-key'],
+            'dot' => ['user.email'],
+            'space' => ['my key'],
+            'special chars' => ['key@domain'],
+            'leading underscore' => ['_private_key'],
+            'leading digit' => ['1api_key'],
+            'with whitespace' => [' padded_key '],
+        ]);
+    });
+
+    describe('sanitizedKey method', function () {
+        it('leaves valid keys unchanged', function ($key) {
+            $secret = Secret::fromVault($key, 'value');
+            expect($secret->sanitizedKey())->toBe(strtoupper($key));
+        })->with([
+            'DB_HOST',
+            'API_KEY',
+            'USER_PASSWORD',
+        ]);
+
+        it('sanitizes invalid characters for env compatibility', function ($original, $expected) {
+            $secret = Secret::fromVault($original, 'value');
+            expect($secret->sanitizedKey())->toBe($expected);
+        })->with([
+            'hyphen to underscore' => ['my-api-key', 'MY_API_KEY'],
+            'dot to underscore' => ['user.email', 'USER_EMAIL'], 
+            'space to underscore' => ['my key', 'MY_KEY'],
+            'multiple special chars' => ['user@domain.com', 'USER_DOMAIN_COM'],
+            'mixed special chars' => ['app-config.json', 'APP_CONFIG_JSON'],
+        ]);
+        
+        it('preserves valid env-compatible keys in uppercase', function ($original, $expected) {
+            $secret = Secret::fromVault($original, 'value');
+            expect($secret->sanitizedKey())->toBe($expected);
+        })->with([
+            'already valid lowercase' => ['my_api_key', 'MY_API_KEY'],
+            'already valid uppercase' => ['API_KEY', 'API_KEY'], 
+            'mixed case valid' => ['MyApi_Key', 'MYAPI_KEY'],
+        ]);
+
+        it('handles leading underscore removal', function () {
+            $secret = Secret::fromVault('_private_key', 'value');
+            expect($secret->sanitizedKey())->toBe('PRIVATE_KEY');
+        });
+
+        it('handles leading digit with KEY prefix', function ($original, $expected) {
+            $secret = Secret::fromVault($original, 'value');
+            expect($secret->sanitizedKey())->toBe($expected);
+        })->with([
+            'single digit' => ['1api_key', 'KEY_1API_KEY'],
+            'multiple digits' => ['123secret', 'KEY_123SECRET'],
+        ]);
+
+        it('handles empty/whitespace keys', function () {
+            $secret = Secret::fromVault('   ', 'value');
+            expect($secret->sanitizedKey())->toBe('UNNAMED_KEY');
+        });
+
+        it('handles complex cases', function ($original, $expected) {
+            $secret = Secret::fromVault($original, 'value');
+            expect($secret->sanitizedKey())->toBe($expected);
+        })->with([
+            'leading underscore + special chars' => ['_user.config-file', 'USER_CONFIG_FILE'],
+            'leading digit + special chars' => ['1user@domain.com', 'KEY_1USER_DOMAIN_COM'],
+            'all special chars' => ['@#$%^&*()', 'UNNAMED_KEY'],
+        ]);
     });
 });

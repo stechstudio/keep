@@ -111,7 +111,7 @@ class AwsSecretsManagerVault extends AbstractVault
                         $value = $secretValue->get('SecretString');
                         $isSecure = true; // AWS Secrets Manager always encrypts
 
-                        $secrets->push(new Secret(
+                        $secrets->push(Secret::fromVault(
                             key: $key,
                             value: $value,
                             encryptedValue: null,
@@ -164,7 +164,7 @@ class AwsSecretsManagerVault extends AbstractVault
                 throw new SecretNotFoundException("Secret not found [{$this->format($key)}]");
             }
 
-            return new Secret(
+            return Secret::fromVault(
                 key: $key,
                 value: $value,
                 encryptedValue: null,
