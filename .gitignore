@@ -6,3 +6,5 @@ vendor/
 CLAUDE.md
 .claude
 .keep
+node_modules
+package-lock.json

@@ -1,0 +1,28 @@
+{
+  "name": "keeper",
+  "version": "1.0.0",
+  "description": "Collaborative, secure management of secrets across applications, environments, and teams.",
+  "type": "module",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stechstudio/laravel-keep.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stechstudio/laravel-keep/issues"
+  },
+  "homepage": "https://github.com/stechstudio/laravel-keep#readme",
+  "devDependencies": {
+    "vitepress": "^1.6.4"
+  }
+}
