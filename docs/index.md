@@ -26,7 +26,7 @@ features:
   - title: CLI First
     details: Powerful command-line interface for all operations with support for CI/CD workflows and automation.
     
-  - title: Laravel Integration
+  - title: Framework Integration
     details: Seamless integration with Laravel applications including helper functions and service provider.
     
   - title: Security Focused
@@ -55,20 +55,10 @@ keep list --stage=staging --unmask
 keep diff
 
 # Export all secrets to .env file
-keep export --stage=production > .env
+keep export --stage=production --output=.env
 
 # Merge secrets into a template file with placeholders
-keep merge .env.template --stage=production > .env
+keep merge .env.template --stage=production --output=.env
 ```
-
-## Why Keep?
-
-Keep solves the challenge of managing secrets across multiple environments and team members. Instead of sharing `.env` files through Slack or email, Keep provides:
-
-- **Centralized Management**: All secrets in one place with proper access control
-- **Environment Isolation**: Separate secrets by stage while maintaining consistency
-- **Team Collaboration**: Share secrets securely without exposing them in chat or email
-- **Integration Ready**: Works seamlessly with your existing Laravel applications
-- **Cloud Native**: Built-in support for AWS services with local development options
 
 Get started by following our [installation guide](/guide/installation) or explore the [CLI reference](/reference/) to see all available commands.

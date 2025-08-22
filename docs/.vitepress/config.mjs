@@ -38,7 +38,6 @@ export default defineConfig({
           items: [
             { text: 'Vaults', link: '/guide/vaults' },
             { text: 'Stages', link: '/guide/stages' },
-            { text: 'Contexts', link: '/guide/contexts' },
             { text: 'Templates', link: '/guide/templates' }
           ]
         },

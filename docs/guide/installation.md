@@ -2,25 +2,9 @@
 
 Keep can be installed globally as a standalone CLI tool or as a Composer dependency in your Laravel project.
 
-## Global Installation (Recommended)
+## Project Installation
 
-Install Keep globally using Composer:
-
-```bash
-composer global require stechstudio/keep
-```
-
-Make sure your global Composer vendor bin directory is in your `$PATH`:
-
-```bash
-export PATH="$PATH:$HOME/.composer/vendor/bin"
-```
-
-Add this line to your shell profile (`.bashrc`, `.zshrc`, etc.) to make it permanent.
-
-## Project-Specific Installation
-
-If you prefer to install Keep per project:
+It's usually best to install Keep in your local project:
 
 ```bash
 composer require --dev stechstudio/keep
@@ -32,10 +16,30 @@ Then run Keep commands using:
 ./vendor/bin/keep [command]
 ```
 
-You might enjoy having an alias in your shell profile to make it easier:
+You might appreciate having an alias in your shell profile to make it easier:
 
 ```bash
 alias keep="./vendor/bin/keep"
+```
+
+## Global Installation (Optional)
+
+If you don't plan to use any framework integration, you can install Keep globally:
+
+```bash
+composer global require stechstudio/keep
+```
+
+Make sure your global Composer vendor bin directory is in your `$PATH`:
+
+```bash
+export PATH="$PATH:$HOME/.composer/vendor/bin"
+````
+
+Then run Keep commands using:
+
+```bash
+keep [command]
 ```
 
 ## Laravel Integration (Optional)
@@ -44,10 +48,7 @@ If you're using Keep with a Laravel application, you can publish the configurati
 
 ```bash
 # Publish configuration
-php artisan vendor:publish --provider="STS\Keep\KeepServiceProvider"
-
-# Configure Laravel integration
-keep configure --laravel
+php artisan vendor:publish --tag=keep-config
 ```
 
 ## Verify Installation

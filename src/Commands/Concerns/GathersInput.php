@@ -60,7 +60,8 @@ trait GathersInput
     {
         return $this->{$cacheName} ??= match (true) {
             $this->hasOption('vault') && (bool) $this->option('vault') => $this->option('vault'),
-            Keep::getConfiguredVaults()->count() === 1 => Keep::getDefaultVault(),
+            Keep::getConfiguredVaults()->count() === 0 => throw new \RuntimeException('No vaults are configured. Please add a vault first with: keep vault:add.'),
+            Keep::getConfiguredVaults()->count() === 1 => Keep::getConfiguredVaults()->first(),
             default => select($prompt, Keep::getConfiguredVaults()->keys()->toArray(), Keep::getDefaultVault()),
         };
     }

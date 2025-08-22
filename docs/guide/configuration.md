@@ -17,10 +17,9 @@ This command will:
 - Set up the basic directory structure for vault configurations
 
 You'll be prompted for:
-- **Project name**: A human-readable name for your project
-- **Namespace**: A unique identifier (letters, numbers, underscores, hyphens)
+- **Project name**: A friendly name for your project
+- **Namespace**: A unique identifier (typically a slug of your project name) used as the prefix for secrets
 - **Stages**: Environment names (e.g., `development`, `staging`, `production`)
-- **Default vault** (optional): The vault to use when none is specified
 
 ## Configuration Structure
 
@@ -45,8 +44,8 @@ The settings file contains your project configuration:
   "stages": ["development", "staging", "production"],
   "default_vault": "local",
   "version": "1.0",
-  "created_at": "2024-01-01T12:00:00+00:00",
-  "updated_at": "2024-01-01T12:00:00+00:00"
+  "created_at": "2025-01-01T12:00:00+00:00",
+  "updated_at": "2025-01-01T12:00:00+00:00"
 }
 ```
 

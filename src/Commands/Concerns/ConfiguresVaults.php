@@ -37,7 +37,7 @@ trait ConfiguresVaults
         $defaultSlug = $this->generateUniqueSlug($selectedDriver);
 
         $slug = text(
-            label: 'Driver slug (used in template placeholders)',
+            label: 'Vault slug (used in template placeholders)',
             default: $defaultSlug,
             hint: 'Short identifier used in secret templates like {vault:DB_PASSWORD}'
         );
