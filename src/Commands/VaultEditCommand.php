@@ -70,7 +70,7 @@ class VaultEditCommand extends BaseCommand
 
         // Edit built-in fields
         $newSlug = text(
-            label: 'Driver slug (used in template placeholders)',
+            label: 'Vault slug (used in template placeholders)',
             default: $slug,
             hint: 'Short identifier used in secret templates like {vault:DB_PASSWORD}'
         );
