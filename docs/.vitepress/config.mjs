@@ -17,7 +17,6 @@ export default defineConfig({
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Guide', link: '/guide/' },
-      { text: 'Reference', link: '/reference/' },
       { text: 'Examples', link: '/examples/' }
     ],
     
@@ -43,40 +42,17 @@ export default defineConfig({
           ]
         },
         {
-          text: 'Core Concepts',
+          text: 'Vaults',
           items: [
-            { text: 'Vaults', link: '/guide/vaults' },
-            { text: 'Stages', link: '/guide/stages' },
-            { text: 'Templates', link: '/guide/templates' }
-          ]
-        },
-        {
-          text: 'Vault Drivers',
-          items: [
-            { text: 'Local Vault', link: '/guide/vaults/local' },
+            { text: 'Overview', link: '/guide/vaults' },
             { text: 'AWS SSM', link: '/guide/vaults/aws-ssm' },
             { text: 'AWS Secrets Manager', link: '/guide/vaults/aws-secrets-manager' }
           ]
-        }
-      ],
-      '/reference/': [
+        },
         {
-          text: 'CLI Commands',
+          text: 'CLI Reference',
           items: [
-            { text: 'Overview', link: '/reference/' },
-            { text: 'configure', link: '/reference/commands/configure' },
-            { text: 'vault:add', link: '/reference/commands/vault-add' },
-            { text: 'vault:list', link: '/reference/commands/vault-list' },
-            { text: 'set', link: '/reference/commands/set' },
-            { text: 'get', link: '/reference/commands/get' },
-            { text: 'list', link: '/reference/commands/list' },
-            { text: 'delete', link: '/reference/commands/delete' },
-            { text: 'copy', link: '/reference/commands/copy' },
-            { text: 'export', link: '/reference/commands/export' },
-            { text: 'import', link: '/reference/commands/import' },
-            { text: 'cache', link: '/reference/commands/cache' },
-            { text: 'diff', link: '/reference/commands/diff' },
-            { text: 'merge', link: '/reference/commands/merge' }
+            { text: 'All Commands', link: '/guide/cli-reference' }
           ]
         }
       ],
