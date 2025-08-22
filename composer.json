@@ -1,5 +1,5 @@
 {
-    "name": "stechstudio/laravel-keep",
+    "name": "stechstudio/keep",
     "description": "Toolkit for collaborative, secure management of secrets across applications, environments, and teams.",
     "keywords": [
         "secrets",
