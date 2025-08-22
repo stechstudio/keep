@@ -206,7 +206,7 @@ keep export --stage=production --output=.env
 ### Cross-Environment Workflows
 ```bash
 # Copy staging secrets to production
-keep copy DB_PASSWORD --from=ssm:staging --to=ssm:production
+keep copy DB_PASSWORD --from=staging --to=production
 
 # Compare environments
 keep diff --stage=staging,production
@@ -227,6 +227,17 @@ keep merge env.template --stage=production --vault=ssm --output=.env
 **Encryption Issues**: Ensure your IAM role has access to the KMS key being used (either AWS managed or custom).
 
 **Region Mismatch**: Verify you're operating in the same AWS region where your parameters are stored.
+
+## Secrets Manager vs SSM Parameter Store
+
+| Feature | Secrets Manager | SSM Parameter Store |
+|---------|----------------|-------------------|
+| **Cost** | $0.40/secret/month | Free (standard params) |
+| **Rotation** | Automatic | Manual only |
+| **JSON Support** | Native | Manual parsing |
+| **Cross-Region** | Built-in replication | Manual setup |
+| **Versioning** | Automatic | Manual (Advanced tier) |
+| **Use Case** | Application secrets | Configuration + secrets |
 
 ## Next Steps
 
