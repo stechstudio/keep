@@ -34,6 +34,15 @@ export default defineConfig({
           ]
         },
         {
+          text: 'Managing Secrets',
+          items: [
+            { text: 'Overview', link: '/guide/managing-secrets/' },
+            { text: 'Creating & Viewing', link: '/guide/managing-secrets/creating-viewing' },
+            { text: 'Cross-Environment', link: '/guide/managing-secrets/cross-environment' },
+            { text: 'Export & Deployment', link: '/guide/managing-secrets/export-deployment' }
+          ]
+        },
+        {
           text: 'Core Concepts',
           items: [
             { text: 'Vaults', link: '/guide/vaults' },

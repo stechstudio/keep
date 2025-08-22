@@ -1,0 +1,17 @@
+/* Prevent word wrapping in first table column (typically option names) */
+table td:first-child,
+table th:first-child {
+  white-space: nowrap;
+}
+
+/* Ensure table cells have proper padding and alignment */
+table td,
+table th {
+  vertical-align: top;
+}
+
+/* Allow other columns to wrap normally if needed */
+table td:not(:first-child),
+table th:not(:first-child) {
+  white-space: normal;
+}

@@ -54,36 +54,18 @@ The settings file contains your project configuration:
 After initialization, add a vault to store your secrets:
 
 ```bash
-# Add a local vault for development
-keep vault:add local myapp
-
-# Or add an AWS SSM vault for production
-keep vault:add aws-ssm production-vault \
-  --region=us-east-1 \
-  --prefix="/myapp/"
+keep vault:add
 ```
 
-## Environment Variables
+## Verify Configuration and Vault Access
 
-Keep can use environment variables for configuration:
-
-- `KEEP_DEFAULT_VAULT`: Override the default vault
-- `KEEP_CONFIG_PATH`: Custom path to `.keep` directory
-- `AWS_PROFILE`: AWS profile for AWS vault drivers
-- `AWS_REGION`: AWS region for AWS vault drivers
-
-## Laravel Integration
-
-For Laravel projects, Keep can integrate with your application's configuration:
+Once you've added a vault, verify that everything is set up correctly:
 
 ```bash
-keep configure --laravel
+keep verify
 ```
 
-This will:
-- Publish the Keep configuration file to `config/keep.php`
-- Set up the service provider for helper function access
-- Configure caching for production use
+This will check your vault permissions across all stages and ensure that Keep can access and manage secrets as expected.
 
 ## Next Steps
 

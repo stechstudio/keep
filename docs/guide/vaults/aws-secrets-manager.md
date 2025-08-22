@@ -393,16 +393,6 @@ For supported services like RDS, enable automatic rotation:
 
 **Version Conflicts**: If using rotation, ensure you're retrieving the `AWSCURRENT` version (Keep handles this automatically).
 
-## Secrets Manager vs SSM Parameter Store
-
-| Feature | Secrets Manager | SSM Parameter Store |
-|---------|----------------|-------------------|
-| **Cost** | $0.40/secret/month | Free (standard params) |
-| **Rotation** | Automatic | Manual only |
-| **JSON Support** | Native | Manual parsing |
-| **Cross-Region** | Built-in replication | Manual setup |
-| **Versioning** | Automatic | Manual (Advanced tier) |
-| **Use Case** | Application secrets | Configuration + secrets |
 
 ## Next Steps
 
