@@ -22,13 +22,15 @@ class Secret implements Arrayable
         protected ?int $revision = 0,
         protected ?string $path = null,
         protected ?AbstractVault $vault = null,
+        protected bool $skipValidation = false,
     ) {
-        $this->key = $this->validateKey($key);
+        $this->key = $skipValidation ? trim($key) : $this->validateKey($key);
     }
 
     /**
-     * Validate a secret key using strict whitelist validation.
-     * Only allows letters, digits, and underscores (standard .env format).
+     * Validate a secret key for safe vault operations.
+     * Allows common naming conventions (letters, digits, underscores, hyphens) 
+     * while preventing characters that could break vault API calls.
      *
      * @param  string  $key  The raw key to validate
      * @return string The validated key
@@ -39,11 +41,11 @@ class Secret implements Arrayable
     {
         $trimmed = trim($key);
 
-        // Strict whitelist: Only allow letters, digits, and underscores
-        if (! preg_match('/^[A-Za-z0-9_]+$/', $trimmed)) {
+        // Allow letters, digits, underscores, and hyphens (common in cloud services)
+        if (! preg_match('/^[A-Za-z0-9_-]+$/', $trimmed)) {
             throw new \InvalidArgumentException(
                 "Secret key '{$key}' contains invalid characters. ".
-                'Only letters, numbers, and underscores are allowed.'
+                'Only letters, numbers, underscores, and hyphens are allowed.'
             );
         }
 
@@ -54,26 +56,101 @@ class Secret implements Arrayable
             );
         }
 
-        // Cannot start with underscore (poor practice, could conflict with system vars)
-        if (str_starts_with($trimmed, '_')) {
+        // Cannot start with hyphen (could be interpreted as command flag)
+        if (str_starts_with($trimmed, '-')) {
             throw new \InvalidArgumentException(
-                "Secret key '{$key}' cannot start with underscore."
-            );
-        }
-
-        // Cannot start with digit (invalid variable name in most languages)
-        if (preg_match('/^[0-9]/', $trimmed)) {
-            throw new \InvalidArgumentException(
-                "Secret key '{$key}' cannot start with a number."
+                "Secret key '{$key}' cannot start with hyphen."
             );
         }
 
         return $trimmed;
     }
 
+    /**
+     * Create a Secret from vault data (permissive key validation).
+     * Use this when reading existing secrets from external sources.
+     */
+    public static function fromVault(
+        string $key,
+        ?string $value = null,
+        ?string $encryptedValue = null,
+        bool $secure = true,
+        ?string $stage = null,
+        ?int $revision = 0,
+        ?string $path = null,
+        ?AbstractVault $vault = null,
+    ): static {
+        return new static(
+            key: $key,
+            value: $value,
+            encryptedValue: $encryptedValue,
+            secure: $secure,
+            stage: $stage,
+            revision: $revision,
+            path: $path,
+            vault: $vault,
+            skipValidation: true,
+        );
+    }
+
+    /**
+     * Create a Secret from user input (strict key validation).
+     * Use this when accepting user-provided secret names.
+     */
+    public static function fromUser(
+        string $key,
+        ?string $value = null,
+        ?string $encryptedValue = null,
+        bool $secure = true,
+        ?string $stage = null,
+        ?int $revision = 0,
+        ?string $path = null,
+        ?AbstractVault $vault = null,
+    ): static {
+        return new static(
+            key: $key,
+            value: $value,
+            encryptedValue: $encryptedValue,
+            secure: $secure,
+            stage: $stage,
+            revision: $revision,
+            path: $path,
+            vault: $vault,
+            skipValidation: false,
+        );
+    }
+
     public function key()
     {
         return $this->key;
+    }
+
+    /**
+     * Get a sanitized version of the key safe for .env files.
+     * Converts non-alphanumeric characters to underscores and ensures valid .env format.
+     */
+    public function sanitizedKey(): string
+    {
+        $sanitized = $this->key;
+        
+        // Replace invalid characters with underscores
+        $sanitized = preg_replace('/[^A-Za-z0-9_]/', '_', $sanitized);
+        
+        // Remove leading underscores
+        $sanitized = ltrim($sanitized, '_');
+        
+        // Remove leading digits by prefixing with 'KEY_'
+        if (preg_match('/^[0-9]/', $sanitized)) {
+            $sanitized = 'KEY_' . $sanitized;
+        }
+        
+        // Handle empty string case
+        if (empty($sanitized)) {
+            $sanitized = 'UNNAMED_KEY';
+        }
+        
+        // Convert to uppercase (common .env convention)
+        return strtoupper($sanitized);
     }
 
     public function value(): ?string

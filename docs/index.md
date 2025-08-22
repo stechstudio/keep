@@ -15,7 +15,7 @@ hero:
 
 features:
   - title: Multi-Vault Support
-    details: Support for local files, AWS SSM, and AWS Secrets Manager with consistent interface across all providers.
+    details: Support for local files, AWS SSM, and AWS Secrets Manager with more to come.
     
   - title: Stage Management  
     details: Organize secrets by environment stages (development, staging, production) with easy promotion between stages.
@@ -23,11 +23,11 @@ features:
   - title: Template System
     details: Generate .env files and configuration from templates with placeholder replacement and validation.
     
-  - title: Laravel Integration
-    details: Seamless integration with Laravel applications including helper functions and service provider.
-    
   - title: CLI First
     details: Powerful command-line interface for all operations with support for CI/CD workflows and automation.
+    
+  - title: Laravel Integration
+    details: Seamless integration with Laravel applications including helper functions and service provider.
     
   - title: Security Focused
     details: Encrypted local storage, secure AWS integration, and careful handling of sensitive data throughout.
@@ -39,14 +39,26 @@ features:
 # Configure your project
 keep configure
 
-# Add a vault
-keep vault:add local myapp
+# Interactively set up and configure a new vault
+keep vault:add
 
-# Set a secret
-keep set myapp:development DB_PASSWORD "super-secret"
+# Check your vault permissions across all stages
+keep verify
 
-# Export to .env file
-keep export myapp:development --format=env > .env
+# Set a secret for production stage
+keep set --stage=production DB_PASSWORD "super-secret"
+
+# List all secrets in staging
+keep list --stage=staging --unmask
+
+# Compare stages to see which secrets are defined and differ from each other
+keep diff
+
+# Export all secrets to .env file
+keep export --stage=production > .env
+
+# Merge secrets into a template file with placeholders
+keep merge .env.template --stage=production > .env
 ```
 
 ## Why Keep?

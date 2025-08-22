@@ -72,7 +72,7 @@ class TestVault extends AbstractVault
         $secrets = $this->getVaultStageSecrets();
         $revision = isset($secrets[$path]) ? $secrets[$path]->revision() + 1 : 1;
 
-        $secret = new Secret($key, $value, null, $secure, $this->stage, $revision, $path, $this);
+        $secret = Secret::fromUser($key, $value, null, $secure, $this->stage, $revision, $path, $this);
         $this->setVaultStageSecret($path, $secret);
 
         // Add to history

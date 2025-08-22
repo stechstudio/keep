@@ -515,4 +515,50 @@ describe('SecretsCollection', function () {
             expect($keys)->not->toBe($this->secrets);
         });
     });
+
+    describe('toEnvString with sanitized keys', function () {
+        it('uses sanitized keys for env output', function () {
+            $secrets = new SecretCollection([
+                Secret::fromVault('my-api-key', 'secret1'),
+                Secret::fromVault('user.email', 'secret2'), 
+                Secret::fromVault('1database_url', 'secret3'),
+                Secret::fromVault('_private_key', 'secret4'),
+            ]);
+
+            $envString = $secrets->toEnvString();
+            $lines = explode(PHP_EOL, $envString);
+
+            expect($lines)->toContain('MY_API_KEY=secret1');
+            expect($lines)->toContain('USER_EMAIL=secret2');
+            expect($lines)->toContain('KEY_1DATABASE_URL=secret3');
+            expect($lines)->toContain('PRIVATE_KEY=secret4');
+        });
+
+        it('handles complex sanitization scenarios', function () {
+            $secrets = new SecretCollection([
+                Secret::fromVault('app@config.json', 'value1'),
+                Secret::fromVault('123-special_chars!', 'value2'),
+                Secret::fromVault('   ', 'value3'), // empty key
+            ]);
+
+            $envString = $secrets->toEnvString();
+            $lines = explode(PHP_EOL, $envString);
+
+            expect($lines)->toContain('APP_CONFIG_JSON=value1');
+            expect($lines)->toContain('KEY_123_SPECIAL_CHARS_=value2'); 
+            expect($lines)->toContain('UNNAMED_KEY=value3');
+        });
+
+        it('preserves env value formatting with sanitized keys', function () {
+            $secrets = new SecretCollection([
+                Secret::fromVault('my-app.name', 'value with spaces'),
+                Secret::fromVault('api@key', 'value="with quotes"'),
+            ]);
+
+            $envString = $secrets->toEnvString();
+
+            expect($envString)->toContain('MY_APP_NAME="value with spaces"');
+            expect($envString)->toContain("API_KEY='value=\"with quotes\"'"); // Uses single quotes when value contains double quotes
+        });
+    });
 });

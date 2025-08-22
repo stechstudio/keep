@@ -100,7 +100,14 @@ class ImportCommand extends BaseCommand
 
             if (empty($secret->value())) {
                 $this->warn("Skipping key [{$secret->key()}] with empty value.");
+                continue;
+            }
 
+            // Validate key before importing to ensure it meets Keep's standards
+            try {
+                $this->validateUserKey($secret->key());
+            } catch (\InvalidArgumentException $e) {
+                $this->error("Skipping invalid key [{$secret->key()}]: " . $e->getMessage());
                 continue;
             }
 
@@ -147,5 +154,36 @@ class ImportCommand extends BaseCommand
         }
 
         return $rows;
+    }
+    
+    /**
+     * Validate a user-provided key for safe vault operations.
+     * More permissive than .env requirements to support various use cases.
+     */
+    protected function validateUserKey(string $key): void
+    {
+        $trimmed = trim($key);
+
+        // Allow letters, digits, underscores, and hyphens (common in cloud services)
+        if (! preg_match('/^[A-Za-z0-9_-]+$/', $trimmed)) {
+            throw new \InvalidArgumentException(
+                "Secret key '{$key}' contains invalid characters. ".
+                'Only letters, numbers, underscores, and hyphens are allowed.'
+            );
+        }
+
+        // Length validation (reasonable limits for secret names)
+        if (strlen($trimmed) < 1 || strlen($trimmed) > 255) {
+            throw new \InvalidArgumentException(
+                "Secret key '{$key}' must be 1-255 characters long."
+            );
+        }
+
+        // Cannot start with hyphen (could be interpreted as command flag)
+        if (str_starts_with($trimmed, '-')) {
+            throw new \InvalidArgumentException(
+                "Secret key '{$key}' cannot start with hyphen."
+            );
+        }
     }
 }
