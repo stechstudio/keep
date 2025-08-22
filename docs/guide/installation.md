@@ -7,7 +7,7 @@ Keep can be installed globally as a standalone CLI tool or as a Composer depende
 Install Keep globally using Composer:
 
 ```bash
-composer global require stechstudio/laravel-keep
+composer global require stechstudio/keep
 ```
 
 Make sure your global Composer vendor bin directory is in your `$PATH`:
@@ -23,7 +23,7 @@ Add this line to your shell profile (`.bashrc`, `.zshrc`, etc.) to make it perma
 If you prefer to install Keep per project:
 
 ```bash
-composer require --dev stechstudio/laravel-keep
+composer require --dev stechstudio/keep
 ```
 
 Then run Keep commands using:

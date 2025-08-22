@@ -1,8 +1,8 @@
 # Keep
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/stechstudio/laravel-keep.svg?style=flat-square)](https://packagist.org/packages/stechstudio/laravel-keep)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/stechstudio/keep.svg?style=flat-square)](https://packagist.org/packages/stechstudio/keep)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
-[![Tests](https://img.shields.io/github/actions/workflow/status/stechstudio/laravel-keep/tests.yml?branch=main&style=flat-square)](https://github.com/stechstudio/laravel-keep/actions/workflows/tests.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/stechstudio/keep/tests.yml?branch=main&style=flat-square)](https://github.com/stechstudio/keep/actions/workflows/tests.yml)
 
 
 **Keep** is your toolkit for collaborative, secure management of secrets across applications, environments, and teams.
@@ -24,7 +24,7 @@ The package provides a secure, organized way to manage application secrets witho
 Install the package via composer:
 
 ```bash
-composer require stechstudio/laravel-keep
+composer require stechstudio/keep
 ```
 
 This will install a command in your `vendor/bin` directory called `keep`. Run `keep configure` to configure Keep and your first vault.

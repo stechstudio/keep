@@ -5,12 +5,12 @@ export default defineConfig({
   description: 'Collaborative, secure management of secrets across applications, environments, and teams.',
   
   // Base URL for GitHub Pages (repository name)
-  base: '/laravel-keep/',
+  base: '/keep/',
   
   themeConfig: {
     // GitHub repository
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/stechstudio/laravel-keep' }
+      { icon: 'github', link: 'https://github.com/stechstudio/keep' }
     ],
     
     // Navigation
@@ -94,7 +94,7 @@ export default defineConfig({
     
     // Edit link
     editLink: {
-      pattern: 'https://github.com/stechstudio/laravel-keep/edit/main/docs/:path',
+      pattern: 'https://github.com/stechstudio/keep/edit/main/docs/:path',
       text: 'Edit this page on GitHub'
     },
     

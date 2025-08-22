@@ -11,7 +11,7 @@ hero:
       link: /guide/
     - theme: alt
       text: View on GitHub
-      link: https://github.com/stechstudio/laravel-keep
+      link: https://github.com/stechstudio/keep
 
 features:
   - title: Multi-Vault Support
