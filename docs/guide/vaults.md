@@ -1,178 +1,103 @@
 # Vaults
 
-Vaults are Keep's storage backends for your secrets. Keep supports multiple vault types, allowing you to choose the right storage solution for each environment and use case.
+Vaults are Keep's storage backends for your secrets. Keep currently supports AWS services, with more providers coming soon.
 
 ## Available Vault Drivers
 
-### Local Vault
-File-based storage on your local filesystem, perfect for development and testing.
-
-**Best for**: Development, testing, local workflows  
-**Security**: Encrypted files on local disk  
-**Cost**: Free  
-**Scalability**: Single developer/machine  
-
 ### AWS SSM Parameter Store
-AWS Systems Manager Parameter Store provides hierarchical, cost-effective secret storage.
+Hierarchical, cost-effective secret storage using AWS Systems Manager.
 
-**Best for**: Production workloads, cost-conscious teams, AWS-native applications  
-**Security**: AWS KMS encryption, IAM-based access control  
+**Best for**: Most applications, cost-conscious teams  
 **Cost**: Free tier (10,000 parameters), minimal API costs  
-**Scalability**: Enterprise-grade, unlimited  
+**Features**: Path-based organization, KMS encryption, IAM access control  
 
 ### AWS Secrets Manager
-Premium AWS service designed specifically for application secrets with advanced features.
+Premium AWS service with advanced secret management features.
 
-**Best for**: Enterprise applications, automatic rotation, cross-region requirements  
-**Security**: AWS KMS encryption, advanced IAM policies, automatic rotation  
+**Best for**: Enterprise applications requiring rotation or cross-region replication  
 **Cost**: $0.40/secret/month + API costs  
-**Scalability**: Enterprise-grade with cross-region replication  
+**Features**: Automatic rotation, native JSON support, cross-region replication  
 
-## Comparison Matrix
+## Comparison
 
-| Feature | Local Vault | AWS SSM Parameter Store | AWS Secrets Manager |
-|---------|-------------|------------------------|-------------------|
-| **Cost** | Free | Free (standard params) | $0.40/secret/month |
-| **Setup Complexity** | Minimal | Moderate (IAM setup) | Moderate (IAM setup) |
-| **Team Sharing** | Manual file sharing | Native AWS access | Native AWS access |
-| **Encryption** | Local file encryption | AWS KMS | AWS KMS |
-| **Access Control** | File permissions | IAM path-based | IAM tag-based |
-| **Automatic Rotation** | No | No | Yes (supported services) |
-| **Cross-Region** | No | Manual setup | Built-in replication |
-| **Version History** | Limited | Yes (Advanced params) | Yes (automatic) |
-| **JSON Support** | Key-value only | Manual parsing | Native support |
-| **CLI Integration** | Direct file access | AWS CLI/SDK | AWS CLI/SDK |
-| **Audit Logging** | File system logs | CloudTrail | CloudTrail |
-| **High Availability** | Single machine | AWS infrastructure | AWS infrastructure |
+| Feature | AWS SSM Parameter Store | AWS Secrets Manager |
+|---------|------------------------|-------------------|
+| **Cost** | Free tier (10,000 params) | $0.40/secret/month |
+| **Organization** | Path-based hierarchical | Tag-based with naming |
+| **Access Control** | IAM with path patterns | IAM with tags |
+| **Automatic Rotation** | No | Yes |
+| **Cross-Region** | Manual | Built-in replication |
+| **JSON Support** | String values only | Native JSON |
+| **Version History** | Yes (Advanced params) | Yes (automatic) |
 
 ## Choosing the Right Vault
 
-### Local Vault
-```bash
-✅ Perfect for: Development and testing
-✅ When: Working solo or small teams
-✅ Benefits: Zero setup, no AWS dependency
-❌ Limitations: No team sharing, single machine only
-```
+**AWS SSM Parameter Store**
+- ✅ Most applications and environments
+- ✅ Cost-sensitive projects (free tier)
+- ✅ Simple hierarchical organization
+- ❌ No automatic rotation
 
-### AWS SSM Parameter Store  
-```bash
-✅ Perfect for: Production applications, cost-sensitive projects
-✅ When: Using AWS infrastructure, need team collaboration
-✅ Benefits: Free tier, familiar hierarchical paths, simple IAM
-❌ Limitations: No automatic rotation, manual JSON handling
-```
-
-### AWS Secrets Manager
-```bash
-✅ Perfect for: Enterprise applications, database credentials
-✅ When: Need automatic rotation, cross-region deployments
-✅ Benefits: Purpose-built for secrets, automatic rotation, JSON support
-❌ Limitations: Higher cost, more complex than SSM
-```
+**AWS Secrets Manager**
+- ✅ Database credentials needing rotation
+- ✅ Cross-region deployments
+- ✅ Complex JSON configurations
+- ❌ Higher cost ($0.40/secret/month)
 
 ## Multi-Vault Strategies
 
-Keep supports using multiple vaults simultaneously, allowing you to optimize for different environments:
+Use multiple vaults to optimize for cost and features:
 
-### Hybrid Development/Production
 ```bash
-# Local vault for development
-keep vault:add local dev-vault
+# SSM for most secrets (free tier)
+keep vault:add --driver=aws-ssm --name=primary
 
-# AWS SSM for staging and production  
-keep vault:add ssm production-vault
+# Secrets Manager for database credentials (rotation)
+keep vault:add --driver=aws-secrets-manager --name=databases
 ```
 
-### Cost-Optimized Strategy
+Then target specific vaults:
 ```bash
-# SSM for regular secrets (free tier)
-keep vault:add ssm app-config
-
-# Secrets Manager only for database credentials (rotation)
-keep vault:add secretsmanager db-credentials  
+keep set API_KEY "..." --vault=primary --stage=production
+keep set DB_PASSWORD "..." --vault=databases --stage=production
 ```
 
-### Multi-Region Strategy
-```bash
-# Primary region
-keep vault:add secretsmanager primary --region=us-east-1
+## Organization
 
-# DR region with replication
-keep vault:add secretsmanager dr --region=us-west-2
-```
+**Namespace Isolation**
+- **SSM**: Path-based (`/myapp/stage/key`)
+- **Secrets Manager**: Tag-based with namespace tags
 
-## Vault Architecture
-
-### Namespace Isolation
-All vaults respect Keep's namespace system:
-- **Local**: Separate directories per namespace
-- **SSM**: Path-based organization (`/myapp/stage/key`)
-- **Secrets Manager**: Tag-based organization with path naming
-
-### Stage Management
-Secrets are organized by stage within each vault:
-- `development` - Development environment
-- `staging` - Pre-production testing
-- `production` - Live production environment
-
-### Security Model
-- **Local**: File-system permissions + encryption
-- **AWS Vaults**: IAM policies + KMS encryption
-- **Cross-Vault**: No automatic secret sharing between vaults
+**Stage Separation**
+Each vault organizes secrets by stage:
+- `development`
+- `staging`
+- `production`
 
 ## Getting Started
 
-### 1. Add Your First Vault
 ```bash
-# For development
+# Add your first vault
 keep vault:add
 
-# Follow prompts to choose vault type and configuration
-```
-
-### 2. Configure Stages
-```bash
-# Set secrets in different stages
-keep set DB_PASSWORD "dev-secret" --stage=development --vault=local
-keep set DB_PASSWORD "prod-secret" --stage=production --vault=aws-ssm
-```
-
-### 3. Verify Connectivity
-```bash
-# Test all vault connections
+# Verify connectivity
 keep verify
 
 # List configured vaults
 keep vault:list
 ```
 
+**Important:** Before adding AWS vaults, ensure your AWS credentials are properly configured. See [AWS Authentication](/guide/aws-authentication) for setup instructions.
+
 ## Best Practices
 
-### Development Workflow
-- **Use local vaults** for development
-- **Mock production vault structure** in local development
-- **Test vault connectivity** in CI/CD
-
-### Production Security
-- **Use AWS vaults** for production workloads
-- **Implement least-privilege IAM** policies
-- **Enable CloudTrail logging** for audit trails
-- **Rotate secrets regularly** (especially with Secrets Manager)
-
-### Cost Optimization
-- **Start with SSM Parameter Store** (free tier)
-- **Use Secrets Manager selectively** for high-value secrets needing rotation
-- **Monitor API usage** to stay within free tiers
-
-### Team Collaboration
-- **Share vault configurations** via Keep configuration files
-- **Use consistent naming** across team members
-- **Document vault purposes** and access patterns
+- Start with SSM Parameter Store (free tier)
+- Use Secrets Manager only when you need rotation
+- Implement least-privilege IAM policies
+- Enable CloudTrail logging for audit trails
+- Share vault configs via `.keep/` directory
 
 ## Next Steps
 
-- **[Local Vault](./vaults/local)** - Set up file-based development storage
-- **[AWS SSM Parameter Store](./vaults/aws-ssm)** - Configure cost-effective production storage  
-- **[AWS Secrets Manager](./vaults/aws-secrets-manager)** - Set up premium secret management
-- **[Configuration Guide](./configuration)** - Learn about Keep project setup
+- **[AWS SSM](./vaults/aws-ssm)** - Configure Parameter Store
+- **[AWS Secrets Manager](./vaults/aws-secrets-manager)** - Set up advanced features

@@ -1,24 +1,17 @@
 # Introduction
 
-Keep is a PHP toolkit for collaborative, secure management of secrets across applications, environments, and teams. It provides a consistent interface for managing secrets whether they're stored locally during development or in cloud services like AWS SSM Parameter Store or AWS Secrets Manager in production.
+Keep is a PHP toolkit for managing secrets across applications, environments, and teams. It provides a consistent CLI interface for AWS SSM Parameter Store and AWS Secrets Manager.
 
-## What is Keep?
+## Why Keep?
 
-Keep addresses the common challenge of managing environment variables and secrets across different stages of development and deployment, between team members and in deployment pipelines. 
+Managing secrets across development, staging, and production is challenging. Keep solves this by providing:
 
-- **Centralized Secret Storage**: Store secrets in various backends (local, AWS SSM, AWS Secrets Manager)
-- **Environment Staging**: Organize secrets by stages (development, staging, production)
-- **Template-Based Generation**: Generate configuration files from templates with proper secret injection
-- **Team Collaboration**: Share access to secrets without exposing their values
-- **Laravel Integration**: Seamless integration with Laravel applications
-
-## Vaults Supported
-
-Keep uses a driver-based architecture to support multiple vaults for storing secrets. Currently, it supports:
-
-- **AWS SSM**: AWS Systems Manager Parameter Store
-- **AWS Secrets Manager**: AWS managed secrets service
+- **Unified Interface**: One CLI for all your secret vaults
+- **Stage Organization**: Separate secrets by environment (development, staging, production)
+- **Template Generation**: Build configuration files from templates with automatic secret injection
+- **Team Collaboration**: Share vault access without exposing secret values
+- **Laravel Integration**: Native support with helper functions and service provider
 
 ## Getting Started
 
-Ready to start using Keep? Head over to the [Installation Guide](./installation) to set up Keep in your project.
+Head to the [Installation Guide](./installation) to set up Keep in your project.

@@ -1,72 +1,59 @@
 # Installation
 
-Keep can be installed globally as a standalone CLI tool or as a Composer dependency in your Laravel project.
+## Requirements
 
-## Project Installation
+- PHP 8.3 or higher
+- Composer 2.0 or higher
+- AWS credentials configured (for AWS vaults) - see [AWS Authentication](/guide/aws-authentication)
 
-It's usually best to install Keep in your local project:
+## Project Installation (Recommended)
+
+Install Keep as a development dependency:
 
 ```bash
 composer require --dev stechstudio/keep
 ```
 
-Then run Keep commands using:
+Run commands using:
 
 ```bash
 ./vendor/bin/keep [command]
 ```
 
-You might appreciate having an alias in your shell profile to make it easier:
+**Tip:** Add an alias to your shell profile:
 
 ```bash
 alias keep="./vendor/bin/keep"
 ```
 
-## Global Installation (Optional)
+## Global Installation
 
-If you don't plan to use any framework integration, you can install Keep globally and use it as a standalone CLI tool across all your projects.
+For standalone use across projects:
 
 ```bash
 composer global require stechstudio/keep
 ```
 
-Make sure your global Composer vendor bin directory is in your `$PATH`:
+Add Composer's global bin to your `$PATH`:
 
 ```bash
 export PATH="$PATH:$HOME/.composer/vendor/bin"
-````
-
-Then run Keep commands using:
-
-```bash
-keep [command]
 ```
 
-## Laravel Integration (Optional)
+## Laravel Integration
 
-If you're using Keep with a Laravel application, you can publish the configuration and set up the service provider:
+For Laravel applications, publish the configuration:
 
 ```bash
-# Publish configuration
 php artisan vendor:publish --tag=keep-config
 ```
 
 ## Verify Installation
 
-Verify Keep is installed correctly:
-
 ```bash
 keep --version
 ```
 
-You should see the Keep version number displayed.
-
 ## Next Steps
 
-Now that Keep is installed, let's [configure your first project](./configuration).
-
-## Requirements
-
-- PHP 8.3 or higher
-- Composer 2.0 or higher
-- For AWS integrations: AWS CLI configured with appropriate credentials
+[Configure your first project](./configuration).

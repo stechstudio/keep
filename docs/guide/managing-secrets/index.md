@@ -1,71 +1,54 @@
 # Managing Secrets
 
-This section provides comprehensive guidance for working with secrets in Keep. Whether you're setting your first secret or managing complex multi-environment deployments, these guides will help you master Keep's secret management capabilities.
-
-## What You'll Learn
+## Guides
 
 ### [Creating & Viewing Secrets](./creating-viewing)
-Learn how to create, retrieve, and list secrets with all available options. Includes detailed command reference tables for `keep set`, `keep get`, and `keep list`.
+Set, get, list, and delete secrets across environments.
 
 ### [Cross-Environment Operations](./cross-environment) 
-Master copying secrets between stages, bulk operations, and importing from existing `.env` files. Covers `keep copy`, `keep import`, and promotion workflows.
+Copy secrets between stages, import from `.env` files, and compare environments.
 
 ### [Export & Deployment](./export-deployment)
-Generate configuration files for deployment using exports and templates. Detailed coverage of `keep export`, `keep merge`, and CI/CD integration patterns.
+Generate configuration files and integrate with CI/CD pipelines.
 
 ## Core Concepts
 
-### Stages
-Keep organizes secrets by stage (environment):
-- `development` - Local development work
+**Stages** organize secrets by environment:
+- `development` - Local development
 - `staging` - Pre-production testing
-- `production` - Live production environment
+- `production` - Live environment
 
-### Vaults
-Secrets are stored in vaults (storage backends):
-- **AWS SSM** - Parameter Store for structured secret storage
-- **AWS Secrets Manager** - Premium secret management with rotation
+**Vaults** provide the storage backend:
+- **AWS SSM** - Parameter Store for simple key-value storage
+- **AWS Secrets Manager** - Advanced features with rotation support
 
-### Contexts
-Many commands accept vault and stage combinations:
+**Context syntax** for cross-vault operations:
 ```bash
-# Using default vault
+# Default vault
 keep list --stage=production
 
-# Specifying vault explicitly  
+# Explicit vault
 keep list --stage=production --vault=ssm
 
-# Using vault:stage syntax
+# Vault:stage syntax
 keep copy DB_PASSWORD --from=secretsmanager:development --to=ssm:production
 ```
 
 ## Common Workflows
 
-### Development Workflow
-1. **Set secrets** in development stage
-2. **Test locally** with exported .env files
-3. **Copy to staging** for integration testing
-4. **Promote to production** when ready
+**Development → Production:**
+1. Set secrets in development
+2. Test with exported `.env` files
+3. Copy to staging for testing
+4. Promote to production
 
-### Team Collaboration
-1. **Share vault configurations** via Keep config files
-2. **Use consistent naming** across team members  
-3. **Document secret purposes** and access patterns
-4. **Implement approval processes** for production changes
-
-### Deployment Integration
-1. **Export secrets** during build/deploy
-2. **Use templates** for environment-specific configuration
-3. **Integrate with CI/CD** for automated deployment
-4. **Verify secrets** before deployment
+**Team Collaboration:**
+- Share vault configurations via `.keep/` directory
+- Use consistent naming conventions
+- Control production access with IAM policies
 
 ## Getting Help
 
-Each command includes detailed help:
 ```bash
-keep set --help
-keep get --help
-keep list --help
+keep [command] --help
 ```
-
-The following pages provide comprehensive command references with all options, arguments, and examples for effective secret management.

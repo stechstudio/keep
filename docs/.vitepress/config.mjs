@@ -28,6 +28,7 @@ export default defineConfig({
           items: [
             { text: 'Introduction', link: '/guide/' },
             { text: 'Installation', link: '/guide/installation' },
+            { text: 'AWS Authentication', link: '/guide/aws-authentication' },
             { text: 'Configuration', link: '/guide/configuration' },
             { text: 'Quick Start', link: '/guide/quick-start' }
           ]

@@ -1,63 +1,42 @@
 # Examples
 
-This section provides practical examples of using Keep in real-world scenarios. These examples will help you understand how to integrate Keep into your workflow and get the most out of its features.
-
 ## Available Examples
 
 ### [Laravel Integration](./laravel)
-Learn how to integrate Keep with your Laravel applications, including:
-- Service provider setup
-- Helper function usage  
-- Caching strategies
-- Development workflow
+Integrate Keep with Laravel applications using the service provider and helper functions.
 
 ### [CI/CD Workflows](./ci-cd)
-Examples of using Keep in continuous integration and deployment:
-- GitHub Actions integration
-- Automated secret deployment
-- Environment promotion strategies
-- Security best practices
+Use Keep in GitHub Actions, GitLab CI, and other automation pipelines.
 
 ### [Multi-Environment Setup](./multi-environment)
-Best practices for organizing secrets across multiple environments:
-- Stage organization strategies
-- Vault selection guidelines
-- Secret promotion workflows
-- Team access patterns
+Organize secrets across development, staging, and production environments.
 
 ### [AWS Setup](./aws-setup)
-Complete guide to setting up Keep with AWS services:
-- IAM roles and permissions
-- SSM Parameter Store configuration
-- Secrets Manager setup
-- Cross-account access patterns
+Configure IAM roles, SSM Parameter Store, and Secrets Manager for Keep.
 
-## Common Workflows
+## Quick Examples
 
-### Development to Production Flow
+### Development to Production
 ```bash
-# 1. Set up local development
+# Configure project
 keep configure
-keep vault:add local myapp
-keep set myapp:development API_KEY "dev-key-123"
+keep vault:add
 
-# 2. Set up staging environment  
-keep vault:add aws-ssm staging-vault
-keep copy myapp:development staging-vault:staging API_KEY
+# Set development secret
+keep set API_KEY "dev-key" --stage=development
 
-# 3. Promote to production
-keep vault:add aws-secrets prod-vault  
-keep copy staging-vault:staging prod-vault:production API_KEY
+# Copy to staging
+keep copy API_KEY --from=development --to=staging
+
+# Promote to production
+keep copy API_KEY --from=staging --to=production
 ```
 
-### Template-Based Configuration
+### Using Templates
 ```bash
-# Create template file
-echo "API_KEY={myapp:API_KEY}" > app.env.template
+# Create template
+echo "API_KEY={ssm:API_KEY}" > .env.template
 
-# Generate configuration
-keep template:validate app.env.template myapp:production
-keep template:merge app.env.template myapp:production > app.env
+# Generate config
+keep merge .env.template --stage=production --output=.env
 ```
-
-Each example includes complete code samples, configuration files, and step-by-step instructions to help you implement similar patterns in your own projects.

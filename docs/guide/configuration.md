@@ -1,72 +1,59 @@
 # Configuration
 
-Before you can start managing secrets with Keep, you need to configure it for your project. This involves setting up the basic project structure and adding your first vault.
+## Initialize Your Project
 
-## Project Initialization
-
-Navigate to your project directory and initialize Keep:
+Navigate to your project and run:
 
 ```bash
-cd /path/to/your/project
 keep configure
 ```
 
-This command will:
-- Create a `.keep/` directory in your project root
-- Generate a `settings.json` file with project configuration
-- Set up the basic directory structure for vault configurations
+This creates a `.keep/` directory with your project configuration.
 
 You'll be prompted for:
-- **Project name**: A friendly name for your project
-- **Namespace**: A unique identifier (typically a slug of your project name) used as the prefix for secrets
-- **Stages**: Environment names (e.g., `development`, `staging`, `production`)
+- **Project name**: Display name for your project
+- **Namespace**: Unique identifier for secret prefixes
+- **Stages**: Environment names (development, staging, production)
 
-## Configuration Structure
-
-After initialization, your project will have this structure:
+## Project Structure
 
 ```
 your-project/
 ├── .keep/
 │   ├── settings.json
 │   └── vaults/
-└── (your project files)
+└── ...
 ```
 
-### settings.json
-
-The settings file contains your project configuration:
+The `settings.json` file contains:
 
 ```json
 {
   "app_name": "My Application",
   "namespace": "myapp",
   "stages": ["development", "staging", "production"],
-  "default_vault": "local",
-  "version": "1.0",
-  "created_at": "2025-01-01T12:00:00+00:00",
-  "updated_at": "2025-01-01T12:00:00+00:00"
+  "default_vault": "aws-ssm"
 }
 ```
 
-## Adding Your First Vault
-
-After initialization, add a vault to store your secrets:
+## Add a Vault
 
 ```bash
 keep vault:add
 ```
 
-## Verify Configuration and Vault Access
+Follow the prompts to configure AWS SSM or Secrets Manager access.
 
-Once you've added a vault, verify that everything is set up correctly:
+**Note:** AWS credentials must be configured separately from your application secrets. See [AWS Authentication](/guide/aws-authentication) for setup instructions.
+
+## Verify Setup
 
 ```bash
 keep verify
 ```
 
-This will check your vault permissions across all stages and ensure that Keep can access and manage secrets as expected.
+This checks vault permissions across all stages.
 
 ## Next Steps
 
-With Keep configured, you're ready to start managing secrets. Learn how to [get started with basic operations](./quick-start) or explore [vault types](./vaults) in detail.
+Start [managing secrets](./quick-start) or explore [vault configuration](./vaults).

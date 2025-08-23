@@ -1,20 +1,8 @@
 # Cross-Environment Operations
 
-This guide covers operations that work across stages and vaults: copying secrets, importing from files, and promoting secrets through your deployment pipeline.
-
 ## Copying Secrets
 
-The `keep copy` command copies secrets between stages or vaults, enabling promotion workflows and environment synchronization.
-
-### Basic Usage
-
-```bash
-# Copy specific secret between stages
-keep copy DB_PASSWORD --from=development --to=staging
-
-# Copy between different vaults
-keep copy API_KEY --from=secretsmanager:development --to=ssm:production
-```
+`keep copy` copies secrets between stages or vaults.
 
 ### Command Reference: `keep copy`
 
@@ -30,37 +18,22 @@ keep copy API_KEY --from=secretsmanager:development --to=ssm:production
 
 **Examples:**
 ```bash
-# Copy specific secret
+# Basic copy
 keep copy DB_PASSWORD --from=development --to=staging
 
-# Copy with overwrite (no confirmation)
+# With overwrite
 keep copy DB_PASSWORD --from=development --to=staging --overwrite
 
-# Dry run to preview changes
+# Dry run first
 keep copy API_KEY --from=staging --to=production --dry-run
 
-# Cross-vault copy
+# Cross-vault
 keep copy DB_PASSWORD --from=secretsmanager:development --to=ssm:production
 ```
 
 ## Comparing Environments
 
-The `keep diff` command shows differences between stages and vaults, helping you understand what secrets exist where.
-
-By default, all configured vaults and stages are compared, but you can specify particular ones.
-
-### Basic Usage
-
-```bash
-# Compare all configured stages
-keep diff
-
-# Compare specific stages
-keep diff --stage=staging,production
-
-# Specify vault and stages
-keep diff --stage=development,production --vault=ssm
-```
+`keep diff` shows differences between stages and vaults.
 
 ### Command Reference: `keep diff`
 
@@ -74,41 +47,23 @@ keep diff --stage=development,production --vault=ssm
 
 **Examples:**
 ```bash
-# Compare all configured vaults and stages
+# Compare all
 keep diff
 
-# Compare staging and production
+# Specific stages
 keep diff --stage=staging,production
 
-# Show actual values for comparison
+# Show values
 keep diff --stage=staging,production --unmask
 
-# Compare specific key patterns
+# Filter keys
 keep diff --stage=development,production --only="DB_*"
-
-# Exclude specific keys from comparison
 keep diff --stage=development,production --except="APP_DEBUG"
 ```
 
 ## Importing Secrets
 
-The `keep import` command imports secrets from `.env` files
-
-### Basic Usage
-
-```bash
-# Import from .env file
-keep import .env --stage=development
-
-# Import with overwrite protection
-keep import production.env --stage=production --skip-existing
-
-# Import and deliberately overwrite existing secrets
-keep import production.env --stage=production --overwrite
-
-# Import to specific vault
-keep import secrets.json --stage=staging --vault=ssm
-```
+`keep import` imports secrets from `.env` files.
 
 ### Command Reference: `keep import`
 
@@ -177,41 +132,25 @@ keep copy DB_PASSWORD --from=secretsmanager:development --to=ssm:production
 
 ## Best Practices
 
-### Promotion Safety
-
+**Always dry-run first:**
 ```bash
-# Always use dry-run first
 keep copy API_KEY --from=staging --to=production --dry-run
-
-# Review differences before promotion
-keep diff --stage=staging,production --unmask
-
-# Copy specific secrets individually for safer operations
-keep copy API_KEY --from=staging --to=production
-keep copy APP_VERSION --from=staging --to=production
+keep import prod-secrets.env --stage=production --dry-run
 ```
 
-### Environment Isolation
-
+**Review before promoting:**
 ```bash
-# Copy only appropriate secrets between environments
-keep copy API_KEY --from=development --to=staging
-keep copy APP_VERSION --from=development --to=staging
+keep diff --stage=staging,production --unmask
+```
 
+**Keep environments isolated:**
+```bash
 # Set environment-specific values explicitly
 keep set DB_HOST "staging-db.example.com" --stage=staging
 keep set DB_HOST "prod-db.example.com" --stage=production
 ```
 
-### Import Validation
-
+**Safe imports:**
 ```bash
-# Always validate imports with dry-run
-keep import prod-secrets.env --stage=production --dry-run
-
-# Use skip-existing for safe imports
 keep import backup.env --stage=production --skip-existing
-
-# Audit after import
-keep list --stage=production --format=json > post-import-audit.json
 ```
