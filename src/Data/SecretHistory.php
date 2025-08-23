@@ -13,7 +13,7 @@ class SecretHistory implements Arrayable
     public function __construct(
         protected string $key,
         protected ?string $value = null,
-        protected int $version = 1,
+        protected int|string $version = 1,
         protected ?Carbon $lastModifiedDate = null,
         protected ?string $lastModifiedUser = null,
         protected ?string $dataType = null,
@@ -46,7 +46,7 @@ class SecretHistory implements Arrayable
         return $masked;
     }
 
-    public function version(): int
+    public function version(): int|string
     {
         return $this->version;
     }

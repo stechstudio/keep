@@ -15,22 +15,22 @@ hero:
 
 features:
   - title: Multi-Vault Support
-    details: Support for local files, AWS SSM, and AWS Secrets Manager with more to come.
+    details: AWS SSM and Secrets Manager, with more providers coming soon.
     
   - title: Stage Management  
-    details: Organize secrets by environment stages (development, staging, production) with easy promotion between stages.
+    details: Organize secrets by environment with seamless promotion workflows.
     
   - title: Template System
-    details: Generate .env files and configuration from templates with placeholder replacement and validation.
+    details: Generate configuration files from templates with smart placeholder replacement.
     
   - title: CLI First
-    details: Powerful command-line interface for all operations with support for CI/CD workflows and automation.
+    details: Powerful command-line interface built for CI/CD automation.
     
-  - title: Framework Integration
-    details: Seamless integration with Laravel applications including helper functions and service provider.
+  - title: Laravel Integration
+    details: Native Laravel support with helper functions and service provider.
     
   - title: Security Focused
-    details: Encrypted local storage, secure AWS integration, and careful handling of sensitive data throughout.
+    details: Encrypted storage, secure AWS integration, and masked output by default.
 ---
 
 ## Quick Example
@@ -39,26 +39,23 @@ features:
 # Configure your project
 keep configure
 
-# Interactively set up and configure a new vault
+# Add a vault
 keep vault:add
 
-# Check your vault permissions across all stages
-keep verify
+# Set secrets
+keep set DB_PASSWORD "super-secret" --stage=production
 
-# Set a secret for production stage
-keep set --stage=production DB_PASSWORD "super-secret"
+# List secrets
+keep list --stage=staging
 
-# List all secrets in staging
-keep list --stage=staging --unmask
+# Compare environments
+keep diff --stage=staging,production
 
-# Compare stages to see which secrets are defined and differ from each other
-keep diff
-
-# Export all secrets to .env file
+# Export to .env
 keep export --stage=production --output=.env
 
-# Merge secrets into a template file with placeholders
+# Use templates
 keep merge .env.template --stage=production --output=.env
 ```
 
-Get started by following our [installation guide](/guide/installation) or explore the [CLI reference](/reference/) to see all available commands.
+Get started with our [installation guide](/guide/installation) or see all [CLI commands](/guide/cli-reference).

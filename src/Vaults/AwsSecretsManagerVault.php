@@ -355,6 +355,7 @@ class AwsSecretsManagerVault extends AbstractVault
         return $this->client ??= new SecretsManagerClient([
             'version' => 'latest',
             'region'  => $this->config['region'] ?? 'us-east-1',
+            'use_aws_shared_config_files' => true,
         ]);
     }
 }

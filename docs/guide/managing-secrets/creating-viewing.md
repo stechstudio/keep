@@ -1,23 +1,8 @@
 # Creating & Viewing Secrets
 
-This guide covers the fundamental operations for working with individual secrets: creating, retrieving, and listing them.
-
 ## Setting Secrets
 
-The `keep set` command creates or updates secrets in your vaults.
-
-### Basic Usage
-
-```bash
-# Interactive mode - prompts for key, value, and stage
-keep set
-
-# Direct mode - specify everything
-keep set API_KEY "abc123" --stage=development
-
-# With specific vault
-keep set DB_PASSWORD "secret" --stage=production --vault=ssm
-```
+`keep set` creates or updates secrets in your vaults.
 
 ### Command Reference: `keep set`
 
@@ -34,35 +19,22 @@ keep set DB_PASSWORD "secret" --stage=production --vault=ssm
 
 **Examples:**
 ```bash
-# Basic secret creation
+# Interactive mode
+keep set
+
+# Basic usage
 keep set DB_PASSWORD "my-secret" --stage=development
 
-# Force overwrite existing secret
+# Force overwrite
 keep set API_KEY "new-value" --stage=production --force
 
-# Specify vault explicitly
+# Specific vault
 keep set STRIPE_KEY "sk_live_..." --stage=production --vault=secretsmanager
-
-# Interactive mode (prompts for all inputs)
-keep set
 ```
 
-## Getting Individual Secrets
+## Getting Secrets
 
-The `keep get` command retrieves a specific secret from a vault.
-
-### Basic Usage
-
-```bash
-# Interactive mode - prompts for key and stage
-keep get
-
-# Direct mode
-keep get API_KEY --stage=development
-
-# Show unmasked value
-keep get DB_PASSWORD --stage=production --unmask
-```
+`keep get` retrieves a specific secret from a vault.
 
 ### Command Reference: `keep get`
 
@@ -77,35 +49,22 @@ keep get DB_PASSWORD --stage=production --unmask
 
 **Examples:**
 ```bash
-# Basic secret retrieval formatted as a table
-keep get API_KEY --stage=development
-
-# JSON output format
-keep get STRIPE_KEY --stage=production --format=json
-
-# From specific vault and raw format
-keep get CONFIG_JSON --stage=staging --vault=ssm --format=raw
-
 # Interactive mode
 keep get
+
+# Basic retrieval
+keep get API_KEY --stage=development
+
+# JSON output
+keep get STRIPE_KEY --stage=production --format=json
+
+# Raw format from specific vault
+keep get CONFIG_JSON --stage=staging --vault=ssm --format=raw
 ```
 
 ## Listing Secrets
 
-The `keep list` command shows all secrets in a stage or vault.
-
-### Basic Usage
-
-```bash
-# List all secrets in development (masked)
-keep list --stage=development
-
-# List with actual values
-keep list --stage=production --unmask
-
-# List from specific vault
-keep list --stage=staging --vault=secretsmanager
-```
+`keep list` shows all secrets in a stage or vault.
 
 ### Command Reference: `keep list`
 
@@ -120,41 +79,24 @@ keep list --stage=staging --vault=secretsmanager
 
 **Examples:**
 ```bash
-# Basic listing (masked values)
+# Basic listing
 keep list --stage=development
 
 # Show actual values
 keep list --stage=production --unmask
 
-# Include only specific keys
-keep list --stage=production --only="NIGHTWATCH_*,MAIL_*"
-
-# Exclude certain key prefixes
+# Filter keys
+keep list --stage=production --only="API_*,MAIL_*"
 keep list --stage=development --except="DB_*,STRIPE_*"
 
-# JSON output format
+# Different formats
 keep list --stage=staging --format=json
-
-# From specific vault in key/value env format
 keep list --stage=production --vault=secretsmanager --format=env
 ```
 
 ## Deleting Secrets
 
-The `keep delete` command removes secrets from vaults.
-
-### Basic Usage
-
-```bash
-# Interactive mode
-keep delete
-
-# Direct mode
-keep delete OLD_API_KEY --stage=development
-
-# Force deletion without confirmation
-keep delete TEMP_SECRET --stage=development --force
-```
+`keep delete` removes secrets from vaults.
 
 ### Command Reference: `keep delete`
 
@@ -169,81 +111,42 @@ keep delete TEMP_SECRET --stage=development --force
 
 **Examples:**
 ```bash
-# Basic deletion (with confirmation)
-keep delete OLD_CONFIG --stage=development
-
-# Force deletion without prompt
-keep delete TEMP_KEY --stage=staging --force
-
-# Delete from specific vault
-keep delete LEGACY_SECRET --stage=production --vault=ssm
-
 # Interactive mode
 keep delete
+
+# Basic deletion
+keep delete OLD_CONFIG --stage=development
+
+# Force deletion
+keep delete TEMP_KEY --stage=staging --force
+
+# Specific vault
+keep delete LEGACY_SECRET --stage=production --vault=ssm
 ```
 
 ## Best Practices
 
-### Secret Naming
-- Use **UPPER_CASE** with underscores for consistency
-- Include **purpose** in the name: `DB_PASSWORD`, `API_KEY`, `STRIPE_SECRET`
-- Avoid **special characters** beyond underscores and hyphens
-- Keep names **descriptive** but not too long
+### Naming Conventions
+- Use `UPPER_CASE` with underscores
+- Include purpose: `DB_PASSWORD`, `API_KEY`, `STRIPE_SECRET`
+- Stick to letters, numbers, underscores, and hyphens
 
-### Security Considerations
-- **Never log** unmasked secret values
-- Use `--unmask` **sparingly** and only when necessary
-- **Verify stage** before setting production secrets
-- **Use force carefully** - always verify before overwriting
+### Security
+- Never log unmasked values
+- Use `--unmask` sparingly
+- Verify stage before production changes
+- Be careful with `--force`
 
-### Development Workflow
+### Common Workflows
+
 ```bash
-# 1. Set development secrets
+# Development workflow
 keep set DB_PASSWORD "dev-password" --stage=development
-
-# 2. Test with local export
 keep export --stage=development --output=.env.local
+keep list --stage=development
 
-# 3. Verify secrets are working
-keep list --stage=development --pattern="DB_*"
-
-# 4. Promote to staging when ready
-keep copy DB_PASSWORD --from=development --to=staging
-```
-
-### Production Workflow
-```bash
-# 1. Always verify target stage
-keep list --stage=production
-
-# 2. Set production values carefully
+# Production workflow (be careful!)
+keep list --stage=production  # Verify stage first
 keep set DB_PASSWORD "prod-password" --stage=production
-
-# 3. Verify the secret was set correctly
-keep get DB_PASSWORD --stage=production --unmask
-
-# 4. Test deployment configuration
 keep export --stage=production --output=.env.production
-```
-
-## Common Patterns
-
-### Interactive Secret Management
-```bash
-# For sensitive operations, use interactive mode
-keep set     # Prompts hide sensitive input
-keep get     # Select key/stage interactively
-keep delete  # Confirmation prompts prevent mistakes
-```
-
-### Bulk Secret Verification
-```bash
-# Check all secrets in a stage
-keep list --stage=production --unmask > secrets-audit.txt
-
-# Verify specific patterns
-keep list --stage=production --only="API_*" --unmask
-
-# Export for deployment verification
-keep export --stage=production --format=json --output=deployment-secrets.json
 ```
