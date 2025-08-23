@@ -108,8 +108,7 @@ class TestVault extends AbstractVault
             return sprintf('/%s/%s/', $this->config['namespace'] ?? 'test-app', $this->stage);
         }
 
-        $formatter = $this->keyFormatter ?? fn ($k) => strtoupper($k);
-        $formattedKey = call_user_func($formatter, $key);
+        $formattedKey = strtoupper($key);
 
         return sprintf('/%s/%s/%s', $this->config['namespace'] ?? 'test-app', $this->stage, $formattedKey);
     }

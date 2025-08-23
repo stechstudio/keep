@@ -51,10 +51,6 @@ class AwsSsmVault extends AbstractVault
 
     public function format(?string $key = null): string
     {
-        if (is_callable($this->keyFormatter)) {
-            return call_user_func($this->keyFormatter, $key, $this->stage, $this->config);
-        }
-
         return Str::of($this->config['prefix'] ?? '')
             ->start('/')->finish('/')
             ->append(Keep::getNamespace().'/')

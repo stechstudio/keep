@@ -82,7 +82,7 @@ class AwsSecretsManagerVault extends AbstractVault
 
             do {
                 $params = [
-                    'MaxResults'             => 100, // AWS Secrets Manager max
+                    'MaxResults'             => 20,
                     'Filters'                => [
                         [
                             'Key'    => 'tag-key',
@@ -116,14 +116,10 @@ class AwsSecretsManagerVault extends AbstractVault
                     $params['NextToken'] = $nextToken;
                 }
 
-                $result = $this->client()->listSecrets($params);
+                $result = $this->client()->batchGetSecretValue($params);
 
-                foreach ($result->get('SecretList') as $secret) {
+                foreach ($result->get('SecretValues') as $secret) {
                     $secretName = $secret['Name'];
-                    $currentVersion = Arr::first(
-                        array_keys($secret['SecretVersionsToStages']),
-                        fn($key) => in_array('AWSCURRENT', $secret['SecretVersionsToStages'][$key] ?? [], true)
-                    );
 
                     // Extract the key from the full secret name using the expected format
                     $expectedPrefix = Keep::getNamespace().'/'.$this->stage.'/';
@@ -142,29 +138,16 @@ class AwsSecretsManagerVault extends AbstractVault
                         continue;
                     }
 
-                    // Get the actual secret value
-                    try {
-                        $secretValue = $this->client()->getSecretValue([
-                            'SecretId' => $secretName,
-                        ]);
-
-                        $value = $secretValue->get('SecretString');
-                        $isSecure = true; // AWS Secrets Manager always encrypts
-
-                        $secrets->push(Secret::fromVault(
-                            key: $key,
-                            value: $value,
-                            encryptedValue: null,
-                            secure: $isSecure,
-                            stage: $this->stage,
-                            revision: $currentVersion,
-                            path: $secretName,
-                            vault: $this,
-                        ));
-                    } catch (SecretsManagerException $e) {
-                        // Skip secrets we can't read (permission issues, etc.)
-                        continue;
-                    }
+                    $secrets->push(Secret::fromVault(
+                        key: $key,
+                        value: $secret['SecretString'] ?? null,
+                        encryptedValue: null,
+                        secure: true,
+                        stage: $this->stage,
+                        revision: $secret['VersionId'] ?? 1,
+                        path: $secretName,
+                        vault: $this,
+                    ));
                 }
 
                 $nextToken = $result->get('NextToken');
@@ -336,7 +319,7 @@ class AwsSecretsManagerVault extends AbstractVault
                     $histories->push(new SecretHistory(
                         key: $key,
                         value: $secretValue->get('SecretString'),
-                        version: intval($version['VersionId'] ?? 1),
+                        version: $version['VersionId'] ?? 1,
                         lastModifiedDate: isset($version['CreatedDate']) ? Carbon::parse($version['CreatedDate']) : null,
                         lastModifiedUser: null, // AWS Secrets Manager doesn't track user info
                         dataType: 'SecretString',

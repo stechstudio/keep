@@ -72,7 +72,10 @@ For developers who need complete access to manage secrets across all environment
     {
       "Sid": "ListSecretsAccountWide",
       "Effect": "Allow",
-      "Action": "secretsmanager:ListSecrets",
+      "Action": [
+        "secretsmanager:ListSecrets",
+        "secretsmanager:BatchGetSecretValue"
+      ],
       "Resource": "*"
     },
     {
@@ -117,17 +120,17 @@ For developers who should only access development and staging environments:
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "ReadWriteDevStagingSecrets",
+      "Sid": "ReadWriteMyAppStagingAndProd",
       "Effect": "Allow",
       "Action": [
         "secretsmanager:GetSecretValue",
-        "secretsmanager:BatchGetSecretValue",
         "secretsmanager:DescribeSecret",
         "secretsmanager:ListSecretVersionIds",
         "secretsmanager:PutSecretValue",
         "secretsmanager:UpdateSecret",
         "secretsmanager:UpdateSecretVersionStage",
         "secretsmanager:DeleteSecret",
+        "secretsmanager:RestoreSecret",
         "secretsmanager:TagResource",
         "secretsmanager:UntagResource"
       ],
@@ -138,27 +141,24 @@ For developers who should only access development and staging environments:
           "secretsmanager:ResourceTag/Namespace": "myapp"
         },
         "ForAnyValue:StringEquals": {
-          "secretsmanager:ResourceTag/Stage": ["development", "staging"]
+          "secretsmanager:ResourceTag/Stage": [
+            "staging",
+            "production"
+          ]
         }
       }
     },
     {
-      "Sid": "ListOnlyMyAppDevStagingSecrets",
+      "Sid": "ListSecretsAccountWide",
       "Effect": "Allow",
-      "Action": "secretsmanager:ListSecrets",
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "secretsmanager:ResourceTag/ManagedBy": "Keep",
-          "secretsmanager:ResourceTag/Namespace": "myapp"
-        },
-        "ForAnyValue:StringEquals": {
-          "secretsmanager:ResourceTag/Stage": ["development", "staging"]
-        }
-      }
+      "Action": [
+        "secretsmanager:ListSecrets",
+        "secretsmanager:BatchGetSecretValue"
+      ],
+      "Resource": "*"
     },
     {
-      "Sid": "CreateSecretsInDevStaging",
+      "Sid": "CreateSecretsInStagingAndProd",
       "Effect": "Allow",
       "Action": "secretsmanager:CreateSecret",
       "Resource": "*",
@@ -168,28 +168,18 @@ For developers who should only access development and staging environments:
           "aws:RequestTag/Namespace": "myapp"
         },
         "ForAnyValue:StringEquals": {
-          "aws:RequestTag/Stage": ["development", "staging"]
+          "aws:RequestTag/Stage": [
+            "staging",
+            "production"
+          ]
         },
         "ForAllValues:StringEquals": {
-          "aws:TagKeys": ["ManagedBy", "Namespace", "Stage", "VaultSlug"]
-        }
-      }
-    },
-    {
-      "Sid": "DenyProductionAccess",
-      "Effect": "Deny",
-      "Action": [
-        "secretsmanager:GetSecretValue",
-        "secretsmanager:BatchGetSecretValue",
-        "secretsmanager:DescribeSecret",
-        "secretsmanager:PutSecretValue",
-        "secretsmanager:UpdateSecret",
-        "secretsmanager:DeleteSecret"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "secretsmanager:ResourceTag/Stage": "production"
+          "aws:TagKeys": [
+            "ManagedBy",
+            "Namespace",
+            "Stage",
+            "VaultSlug"
+          ]
         }
       }
     },
@@ -216,45 +206,26 @@ For production deployment processes that only need to read production secrets:
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "ReadOnlyProductionSecrets",
+      "Sid": "ReadOnlyMyAppProduction",
       "Effect": "Allow",
       "Action": [
         "secretsmanager:GetSecretValue",
-        "secretsmanager:BatchGetSecretValue",
         "secretsmanager:DescribeSecret"
       ],
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "secretsmanager:ResourceTag/ManagedBy": "Keep",
           "secretsmanager:ResourceTag/Namespace": "myapp",
           "secretsmanager:ResourceTag/Stage": "production"
         }
       }
     },
     {
-      "Sid": "ListOnlyProductionSecrets",
+      "Sid": "ListSecretsAccountWide",
       "Effect": "Allow",
-      "Action": "secretsmanager:ListSecrets",
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "secretsmanager:ResourceTag/ManagedBy": "Keep",
-          "secretsmanager:ResourceTag/Namespace": "myapp",
-          "secretsmanager:ResourceTag/Stage": "production"
-        }
-      }
-    },
-    {
-      "Sid": "DenyWriteOperations",
-      "Effect": "Deny",
       "Action": [
-        "secretsmanager:CreateSecret",
-        "secretsmanager:PutSecretValue",
-        "secretsmanager:UpdateSecret",
-        "secretsmanager:DeleteSecret",
-        "secretsmanager:TagResource",
-        "secretsmanager:UntagResource"
+        "secretsmanager:ListSecrets",
+        "secretsmanager:BatchGetSecretValue"
       ],
       "Resource": "*"
     },

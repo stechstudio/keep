@@ -24,7 +24,7 @@ alias keep="./vendor/bin/keep"
 
 ## Global Installation (Optional)
 
-If you don't plan to use any framework integration, you can install Keep globally:
+If you don't plan to use any framework integration, you can install Keep globally and use it as a standalone CLI tool across all your projects.
 
 ```bash
 composer global require stechstudio/keep
