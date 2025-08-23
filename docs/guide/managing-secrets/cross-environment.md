@@ -118,7 +118,7 @@ keep copy DB_USERNAME --from=development --to=staging
 keep set API_URL "https://staging-api.example.com" --stage=staging
 
 # 4. Verify the promotion
-keep diff --stage=development,staging --keys-only
+keep diff --stage=development,staging
 ```
 
 ### Cross-Vault Promotion
