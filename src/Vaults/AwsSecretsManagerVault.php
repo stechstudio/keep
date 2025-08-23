@@ -47,11 +47,7 @@ class AwsSecretsManagerVault extends AbstractVault
      */
     public function format(?string $key = null): string
     {
-        if (is_callable($this->keyFormatter)) {
-            return call_user_func($this->keyFormatter, $key, $this->stage, $this->config);
-        }
-
-        return Str::of(Keep::namespace())
+        return Str::of(Keep::getNamespace())
             ->append('/')
             ->append($this->stage)
             ->append('/')
@@ -68,7 +64,7 @@ class AwsSecretsManagerVault extends AbstractVault
     {
         return [
             'ManagedBy' => 'Keep',
-            'Namespace' => Keep::namespace(),
+            'Namespace' => Keep::getNamespace(),
             'Stage' => $this->stage,
             'VaultSlug' => $this->slug(),
         ];
@@ -101,7 +97,7 @@ class AwsSecretsManagerVault extends AbstractVault
                         ],
                         [
                             'Key' => 'tag-value', 
-                            'Values' => [Keep::namespace()],
+                            'Values' => [Keep::getNamespace()],
                         ],
                         [
                             'Key' => 'tag-key',
@@ -125,7 +121,7 @@ class AwsSecretsManagerVault extends AbstractVault
                     $secretName = $secret['Name'];
 
                     // Extract the key from the full secret name using the expected format
-                    $expectedPrefix = Keep::namespace() . '/' . $this->stage . '/';
+                    $expectedPrefix = Keep::getNamespace() . '/' . $this->stage . '/';
                     
                     // Skip if this doesn't match our expected naming pattern
                     if (!Str::startsWith($secretName, $expectedPrefix)) {
@@ -183,7 +179,7 @@ class AwsSecretsManagerVault extends AbstractVault
     public function has(string $key): bool
     {
         try {
-            return $this->get($key) instanceof Secret;
+            return $this->list()->getByKey($key) instanceof Secret;
         } catch (SecretNotFoundException $e) {
             return false;
         }
@@ -238,8 +234,7 @@ class AwsSecretsManagerVault extends AbstractVault
             // Check if secret exists
             $exists = false;
             try {
-                $this->client()->describeSecret(['SecretId' => $secretName]);
-                $exists = true;
+                $exists = $this->has($secretName);
             } catch (SecretsManagerException $e) {
                 if ($e->getAwsErrorCode() !== 'ResourceNotFoundException') {
                     throw $e;
