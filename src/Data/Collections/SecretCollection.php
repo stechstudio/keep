@@ -52,6 +52,11 @@ class SecretCollection extends Collection
         return $this->first(fn (Secret $secret) => $secret->key() === $key) ?: null;
     }
 
+    public function getByPath(string $path): ?Secret
+    {
+        return $this->first(fn (Secret $secret) => $secret->path() === $path) ?: null;
+    }
+
     public function mapToOnly($keys = [])
     {
         return $this->map->only($keys);

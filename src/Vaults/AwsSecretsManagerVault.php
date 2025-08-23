@@ -5,6 +5,7 @@ namespace STS\Keep\Vaults;
 use Aws\SecretsManager\Exception\SecretsManagerException;
 use Aws\SecretsManager\SecretsManagerClient;
 use Carbon\Carbon;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Laravel\Prompts\TextPrompt;
@@ -34,7 +35,7 @@ class AwsSecretsManagerVault extends AbstractVault
                 default: $existingSettings['region'] ?? 'us-east-1',
                 hint: 'The AWS region where your secrets will be stored'
             ),
-            'key' => new TextPrompt(
+            'key'    => new TextPrompt(
                 label: 'KMS Key ID (optional)',
                 default: $existingSettings['key'] ?? '',
                 hint: 'Leave empty to use the default AWS managed key'
@@ -65,7 +66,7 @@ class AwsSecretsManagerVault extends AbstractVault
         return [
             'ManagedBy' => 'Keep',
             'Namespace' => Keep::getNamespace(),
-            'Stage' => $this->stage,
+            'Stage'     => $this->stage,
             'VaultSlug' => $this->slug(),
         ];
     }
@@ -81,30 +82,30 @@ class AwsSecretsManagerVault extends AbstractVault
 
             do {
                 $params = [
-                    'MaxResults' => 100, // AWS Secrets Manager max
-                    'Filters' => [
+                    'MaxResults'             => 100, // AWS Secrets Manager max
+                    'Filters'                => [
                         [
-                            'Key' => 'tag-key',
+                            'Key'    => 'tag-key',
                             'Values' => ['ManagedBy'],
                         ],
                         [
-                            'Key' => 'tag-value',
+                            'Key'    => 'tag-value',
                             'Values' => ['Keep'],
                         ],
                         [
-                            'Key' => 'tag-key',
+                            'Key'    => 'tag-key',
                             'Values' => ['Namespace'],
                         ],
                         [
-                            'Key' => 'tag-value', 
+                            'Key'    => 'tag-value',
                             'Values' => [Keep::getNamespace()],
                         ],
                         [
-                            'Key' => 'tag-key',
+                            'Key'    => 'tag-key',
                             'Values' => ['Stage'],
                         ],
                         [
-                            'Key' => 'tag-value',
+                            'Key'    => 'tag-value',
                             'Values' => [$this->stage],
                         ],
                     ],
@@ -119,10 +120,14 @@ class AwsSecretsManagerVault extends AbstractVault
 
                 foreach ($result->get('SecretList') as $secret) {
                     $secretName = $secret['Name'];
+                    $currentVersion = Arr::first(
+                        array_keys($secret['SecretVersionsToStages']),
+                        fn($key) => in_array('AWSCURRENT', $secret['SecretVersionsToStages'][$key] ?? [], true)
+                    );
 
                     // Extract the key from the full secret name using the expected format
-                    $expectedPrefix = Keep::getNamespace() . '/' . $this->stage . '/';
-                    
+                    $expectedPrefix = Keep::getNamespace().'/'.$this->stage.'/';
+
                     // Skip if this doesn't match our expected naming pattern
                     if (!Str::startsWith($secretName, $expectedPrefix)) {
                         continue;
@@ -152,7 +157,7 @@ class AwsSecretsManagerVault extends AbstractVault
                             encryptedValue: null,
                             secure: $isSecure,
                             stage: $this->stage,
-                            revision: intval($secret['VersionId'] ?? 1),
+                            revision: $currentVersion,
                             path: $secretName,
                             vault: $this,
                         ));
@@ -179,7 +184,7 @@ class AwsSecretsManagerVault extends AbstractVault
     public function has(string $key): bool
     {
         try {
-            return $this->list()->getByKey($key) instanceof Secret;
+            return $this->list()->getByPath($key) instanceof Secret;
         } catch (SecretNotFoundException $e) {
             return false;
         }
@@ -205,7 +210,7 @@ class AwsSecretsManagerVault extends AbstractVault
                 encryptedValue: null,
                 secure: true, // AWS Secrets Manager always encrypts
                 stage: $this->stage,
-                revision: intval($versionId ?? 1),
+                revision: $versionId ?? 1,
                 path: $this->format($key),
                 vault: $this,
             );
@@ -244,26 +249,26 @@ class AwsSecretsManagerVault extends AbstractVault
             if ($exists) {
                 // Update existing secret value
                 $this->client()->putSecretValue([
-                    'SecretId' => $secretName,
+                    'SecretId'     => $secretName,
                     'SecretString' => $value,
                 ]);
 
                 // Update tags to ensure they're current
                 $this->client()->tagResource([
                     'SecretId' => $secretName,
-                    'Tags' => collect($tags)->map(fn($value, $key) => [
-                        'Key' => $key,
+                    'Tags'     => collect($tags)->map(fn($value, $key) => [
+                        'Key'   => $key,
                         'Value' => $value,
                     ])->values()->toArray(),
                 ]);
             } else {
                 // Create new secret with tags
                 $createParams = [
-                    'Name' => $secretName,
+                    'Name'         => $secretName,
                     'SecretString' => $value,
-                    'Description' => "Keep secret: {$key} for {$this->stage} stage in {$this->slug()} vault",
-                    'Tags' => collect($tags)->map(fn($value, $key) => [
-                        'Key' => $key,
+                    'Description'  => "Keep secret: {$key} for {$this->stage} stage in {$this->slug()} vault",
+                    'Tags'         => collect($tags)->map(fn($value, $key) => [
+                        'Key'   => $key,
                         'Value' => $value,
                     ])->values()->toArray(),
                 ];
@@ -289,7 +294,7 @@ class AwsSecretsManagerVault extends AbstractVault
     {
         try {
             $this->client()->deleteSecret([
-                'SecretId' => $this->format($key),
+                'SecretId'                   => $this->format($key),
                 'ForceDeleteWithoutRecovery' => true, // Immediate deletion
             ]);
 
@@ -313,8 +318,8 @@ class AwsSecretsManagerVault extends AbstractVault
 
             // Get secret versions
             $result = $this->client()->listSecretVersionIds([
-                'SecretId' => $secretName,
-                'MaxResults' => $limit ?? 100,
+                'SecretId'          => $secretName,
+                'MaxResults'        => $limit ?? 100,
                 'IncludeDeprecated' => true,
             ]);
 
@@ -324,7 +329,7 @@ class AwsSecretsManagerVault extends AbstractVault
                 try {
                     // Get the actual secret value for this version
                     $secretValue = $this->client()->getSecretValue([
-                        'SecretId' => $secretName,
+                        'SecretId'  => $secretName,
                         'VersionId' => $version['VersionId'],
                     ]);
 
@@ -366,7 +371,7 @@ class AwsSecretsManagerVault extends AbstractVault
     {
         return $this->client ??= new SecretsManagerClient([
             'version' => 'latest',
-            'region' => $this->config['region'] ?? 'us-east-1',
+            'region'  => $this->config['region'] ?? 'us-east-1',
         ]);
     }
 }
