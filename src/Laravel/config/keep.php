@@ -10,19 +10,19 @@ return [
     | application. Choose the integration approach that best fits your needs.
     |
     | Supported modes:
-    |   - "helper": Use keep('SECRET_NAME') function calls (fully diskless)
-    |   - "dotenv": Hook into env() calls seamlessly (config:cache limitation)
+    |   - "helper": Use keep('SECRET_NAME') function calls only. Secrets are never on disk in plaintext.
+    |   - "env": Hook into env() calls seamlessly. Note that config:cache will store secrets in plaintext.
     |
     */
 
-    'integration_mode' => 'helper',
+    'integration_mode' => env('KEEP_INTEGRATION_MODE','env'),
 
     /*
     |--------------------------------------------------------------------------
     | Stage to Environment Mapping
     |--------------------------------------------------------------------------
     |
-    | Map Keep stages to Laravel environments. This ensures secrets cached
+    | Map Laravel environments to Keep stages. This ensures secrets cached
     | for a specific stage are only loaded when Laravel is running in the
     | corresponding environment, preventing accidental cross-environment usage.
     |
@@ -31,7 +31,7 @@ return [
     */
 
     'stage_environment_mapping' => [
-        'development' => 'local',
+        'local' => 'development',
         'staging' => 'staging', 
         'production' => 'production',
     ],

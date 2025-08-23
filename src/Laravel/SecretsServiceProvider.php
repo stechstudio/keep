@@ -10,7 +10,6 @@ class SecretsServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        // Merge config from package
         $this->mergeConfigFrom(
             __DIR__.'/config/keep.php', 'keep'
         );
@@ -25,16 +24,15 @@ class SecretsServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Publish config file
         $this->publishes([
             __DIR__.'/config/keep.php' => config_path('keep.php'),
         ], 'keep-config');
 
-        $integrationMode = $this->app['config']->get('keep.integration_mode', 'helper');
+        $integrationMode = $this->app['config']->get('keep.integration_mode', 'env');
 
         if ($integrationMode === 'helper') {
             $this->registerHelperFunction();
-        } elseif ($integrationMode === 'dotenv') {
+        } elseif ($integrationMode === 'env') {
             $this->registerDotenvIntegration();
         }
     }
@@ -62,23 +60,14 @@ class SecretsServiceProvider extends ServiceProvider
     protected function getCacheFilePath(): string
     {
         $currentEnvironment = $this->app->environment();
-        $stageMapping = $this->app['config']->get('keep.stage_environment_mapping', []);
-        
-        // Find the stage that maps to current environment
-        $stage = array_search($currentEnvironment, $stageMapping);
-        
-        if ($stage === false) {
-            $availableStages = implode(', ', array_keys($stageMapping));
-            $availableEnvironments = implode(', ', array_values($stageMapping));
-            
-            throw new \RuntimeException(
-                "No Keep stage mapped to Laravel environment '{$currentEnvironment}'. " .
-                "Available stage mappings: {$availableStages} → {$availableEnvironments}. " .
-                "Please configure 'stage_environment_mapping' in config/keep.php."
-            );
-        }
-        
-        return storage_path("cache/{$stage}.keep.php");
+
+        // Get custom stage mapping from config, default to current environment
+        $stage = $this->app['config']->get(
+            "keep.stage_environment_mapping.$currentEnvironment",
+            $currentEnvironment
+        );
+
+        return base_path(".keep/cache/{$stage}.keep.php");
     }
 
     protected function getAppKey(): string
