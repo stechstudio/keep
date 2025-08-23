@@ -53,12 +53,10 @@ For developers who need complete access to manage secrets across all environment
       "Effect": "Allow",
       "Action": [
         "secretsmanager:GetSecretValue",
-        "secretsmanager:BatchGetSecretValue",
         "secretsmanager:DescribeSecret",
         "secretsmanager:ListSecretVersionIds",
         "secretsmanager:PutSecretValue",
-        "secretsmanager:UpdateSecret",
-        "secretsmanager:UpdateSecretVersionStage",
+        "secretsmanager:UpdateSecret*",
         "secretsmanager:DeleteSecret",
         "secretsmanager:RestoreSecret",
         "secretsmanager:TagResource",
@@ -67,56 +65,32 @@ For developers who need complete access to manage secrets across all environment
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "secretsmanager:ResourceTag/ManagedBy": "Keep",
           "secretsmanager:ResourceTag/Namespace": "myapp"
         }
       }
     },
     {
-      "Sid": "ListOnlyMyAppSecrets",
+      "Sid": "ListSecretsAccountWide",
       "Effect": "Allow",
       "Action": "secretsmanager:ListSecrets",
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "secretsmanager:ResourceTag/ManagedBy": "Keep",
-          "secretsmanager:ResourceTag/Namespace": "myapp"
-        }
-      }
+      "Resource": "*"
     },
     {
-      "Sid": "CreateSecretsWithRequiredTags",
+      "Sid": "CreateSecretsWithNamespaceTag",
       "Effect": "Allow",
       "Action": "secretsmanager:CreateSecret",
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "aws:RequestTag/ManagedBy": "Keep",
           "aws:RequestTag/Namespace": "myapp"
         },
         "ForAllValues:StringEquals": {
-          "aws:TagKeys": ["ManagedBy", "Namespace", "Stage", "VaultSlug"]
-        }
-      }
-    },
-    {
-      "Sid": "DenyAccessToOtherNamespaces",
-      "Effect": "Deny",
-      "Action": [
-        "secretsmanager:GetSecretValue",
-        "secretsmanager:BatchGetSecretValue",
-        "secretsmanager:DescribeSecret",
-        "secretsmanager:PutSecretValue",
-        "secretsmanager:UpdateSecret",
-        "secretsmanager:DeleteSecret"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "ForAnyValue:StringNotEquals": {
-          "secretsmanager:ResourceTag/Namespace": "myapp"
-        },
-        "Null": {
-          "secretsmanager:ResourceTag/Namespace": "false"
+          "aws:TagKeys": [
+            "ManagedBy",
+            "Namespace",
+            "Stage",
+            "VaultSlug"
+          ]
         }
       }
     },

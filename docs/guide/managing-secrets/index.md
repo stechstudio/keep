@@ -23,8 +23,7 @@ Keep organizes secrets by stage (environment):
 
 ### Vaults
 Secrets are stored in vaults (storage backends):
-- **Local** - File-based storage for development
-- **AWS SSM** - Parameter Store for production
+- **AWS SSM** - Parameter Store for structured secret storage
 - **AWS Secrets Manager** - Premium secret management with rotation
 
 ### Contexts
@@ -34,10 +33,10 @@ Many commands accept vault and stage combinations:
 keep list --stage=production
 
 # Specifying vault explicitly  
-keep list --stage=production --vault=aws-ssm
+keep list --stage=production --vault=ssm
 
 # Using vault:stage syntax
-keep copy DB_PASSWORD --from=local:development --to=aws-ssm:production
+keep copy DB_PASSWORD --from=secretsmanager:development --to=ssm:production
 ```
 
 ## Common Workflows
