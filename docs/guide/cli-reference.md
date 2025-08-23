@@ -312,8 +312,6 @@ Combine secrets with template files to create complete configuration files.
 | `--append` | boolean | `false` | Append to output file instead of overwriting |
 | `--overwrite` | boolean | `false` | Overwrite output file without confirmation |
 | `--missing` | string | `fail` | How to handle missing secrets: `fail`, `skip`, `blank`, `remove` |
-| `--only` | string | | Only process these placeholders (comma-separated) |
-| `--except` | string | | Skip these placeholders (comma-separated) |
 
 **Arguments:**
 - `[template]` - Path to template file (required)

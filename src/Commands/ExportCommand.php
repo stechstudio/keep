@@ -2,18 +2,22 @@
 
 namespace STS\Keep\Commands;
 
+use STS\Keep\Commands\Concerns\GathersInput;
 use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Facades\Keep;
 
 class ExportCommand extends BaseCommand
 {
+    use GathersInput;
+    
     public $signature = 'export 
         {--format=env : json|env} 
         {--output= : File where to save the output (defaults to stdout)} 
         {--overwrite : Overwrite the output file if it exists} 
         {--append : Append to the output file if it exists} 
         {--stage= : The stage to export secrets for}
-        {--vault= : The vault(s) to export from (comma-separated, defaults to all configured vaults)}';
+        {--vault= : The vault(s) to export from (comma-separated, defaults to all configured vaults)}'
+        .self::ONLY_EXCLUDE_SIGNATURE;
 
     public $description = 'Export stage secrets from vault(s)';
 
@@ -63,7 +67,10 @@ class ExportCommand extends BaseCommand
 
         foreach ($vaultNames as $vaultName) {
             $vault = Keep::vault($vaultName, $stage);
-            $vaultSecrets = $vault->list();
+            $vaultSecrets = $vault->list()->filterByPatterns(
+                only: $this->option('only'),
+                except: $this->option('except')
+            );
             
             // Merge secrets, later vaults override earlier ones for duplicate keys
             $allSecrets = $allSecrets->merge($vaultSecrets);

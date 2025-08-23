@@ -9,9 +9,9 @@ use STS\Keep\Facades\Keep;
 
 class DiffService
 {
-    public function compare(array $vaults, array $stages): Collection
+    public function compare(array $vaults, array $stages, ?string $only = null, ?string $except = null): Collection
     {
-        $allSecrets = $this->gatherSecrets($vaults, $stages);
+        $allSecrets = $this->gatherSecrets($vaults, $stages, $only, $except);
         $allKeys = $this->extractAllKeys($allSecrets);
 
         return $allKeys->map(function (string $key) use ($allSecrets) {
@@ -46,7 +46,7 @@ class DiffService
         ];
     }
 
-    protected function gatherSecrets(array $vaults, array $stages): array
+    protected function gatherSecrets(array $vaults, array $stages, ?string $only = null, ?string $except = null): array
     {
         $allSecrets = [];
 
@@ -55,7 +55,8 @@ class DiffService
                 $vaultStageKey = "{$vaultName}.{$stage}";
 
                 try {
-                    $allSecrets[$vaultStageKey] = Keep::vault($vaultName, $stage)->list();
+                    $secrets = Keep::vault($vaultName, $stage)->list();
+                    $allSecrets[$vaultStageKey] = $secrets->filterByPatterns(only: $only, except: $except);
                 } catch (\Exception $e) {
                     // If we can't access a vault/stage combination, treat it as empty
                     $allSecrets[$vaultStageKey] = new SecretCollection([]);

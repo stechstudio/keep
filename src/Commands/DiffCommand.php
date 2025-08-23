@@ -3,6 +3,7 @@
 namespace STS\Keep\Commands;
 
 use Illuminate\Support\Collection;
+use STS\Keep\Commands\Concerns\GathersInput;
 use STS\Keep\Data\Context;
 use STS\Keep\Data\SecretDiff;
 use STS\Keep\Facades\Keep;
@@ -13,10 +14,12 @@ use function Laravel\Prompts\table;
 
 class DiffCommand extends BaseCommand
 {
+    use GathersInput;
     public $signature = 'diff 
         {--stage= : Comma-separated list of stages to compare (defaults to all configured stages)}
         {--vault= : Comma-separated list of vaults to compare (defaults to all configured vaults)}'
-        .self::UNMASK_SIGNATURE;
+        .self::UNMASK_SIGNATURE
+        .self::ONLY_EXCLUDE_SIGNATURE;
 
     public $description = 'Compare secrets across multiple stages and vaults in a matrix view';
 
@@ -34,7 +37,7 @@ class DiffCommand extends BaseCommand
         }
 
         $diffService = new DiffService;
-        $diffs = spin(fn () => $diffService->compare($vaults, $stages), 'Gathering secrets for comparison...');
+        $diffs = spin(fn () => $diffService->compare($vaults, $stages, $this->option('only'), $this->option('except')), 'Gathering secrets for comparison...');
 
         if ($diffs->isNotEmpty()) {
             $this->displayTable($diffs, $vaults, $stages, $diffService);

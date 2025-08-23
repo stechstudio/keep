@@ -363,6 +363,48 @@ describe('DiffCommand', function () {
         });
     });
 
+    describe('filtering options', function () {
+        it('accepts only option for filtering keys', function () {
+            $commandTester = runCommand('diff', [
+                '--only' => 'API_*',
+                '--stage' => 'testing',
+            ]);
+
+            $output = stripAnsi($commandTester->getDisplay());
+
+            // Should accept --only option without validation error
+            expect($output)->not->toMatch('/(invalid.*option|unknown.*option)/i');
+            expect($commandTester->getStatusCode())->toBeGreaterThanOrEqual(0);
+        });
+
+        it('accepts except option for excluding keys', function () {
+            $commandTester = runCommand('diff', [
+                '--except' => 'SECRET_*',
+                '--stage' => 'testing',
+            ]);
+
+            $output = stripAnsi($commandTester->getDisplay());
+
+            // Should accept --except option without validation error
+            expect($output)->not->toMatch('/(invalid.*option|unknown.*option)/i');
+            expect($commandTester->getStatusCode())->toBeGreaterThanOrEqual(0);
+        });
+
+        it('accepts both only and except options together', function () {
+            $commandTester = runCommand('diff', [
+                '--only' => 'API_*,DB_*',
+                '--except' => 'SECRET_*',
+                '--stage' => 'testing,production',
+            ]);
+
+            $output = stripAnsi($commandTester->getDisplay());
+
+            // Should accept both filtering options without error
+            expect($output)->not->toMatch('/(invalid.*option|unknown.*option)/i');
+            expect($commandTester->getStatusCode())->toBeGreaterThanOrEqual(0);
+        });
+    });
+
     // Tests migrated from Laravel-style tests to new architecture.
     // Focus on command structure, parameter validation, error handling, and output format
     // rather than full integration tests that depend on external AWS services and pre-populated data.
