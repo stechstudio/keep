@@ -2,6 +2,7 @@
 
 namespace STS\Keep\Data;
 
+use Illuminate\Filesystem\Filesystem;
 use InvalidArgumentException;
 use STS\Keep\Data\Concerns\InteractsWithJsonFiles;
 
@@ -160,11 +161,6 @@ class VaultConfig
     public function save(): void
     {
         $vaultDir = getcwd().'/.keep/vaults';
-
-        // Ensure directory exists
-        if (! is_dir($vaultDir)) {
-            mkdir($vaultDir, 0755, true);
-        }
 
         $filePath = $vaultDir.'/'.$this->slug.'.json';
         $this->saveToFile($filePath);

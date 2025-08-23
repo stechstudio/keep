@@ -4,6 +4,7 @@ namespace STS\Keep\Commands;
 
 use Illuminate\Support\Str;
 use STS\Keep\Commands\Concerns\ConfiguresVaults;
+use STS\Keep\Data\Settings;
 use STS\Keep\Facades\Keep;
 
 use function Laravel\Prompts\confirm;
@@ -122,18 +123,13 @@ class ConfigureCommand extends BaseCommand
     {
         $keepDir = getcwd().'/.keep';
 
-        if (! is_dir($keepDir)) {
-            mkdir($keepDir, 0755, true);
-        }
-
-        if (! is_dir($keepDir.'/vaults')) {
-            mkdir($keepDir.'/vaults', 0755, true);
-        }
+        $this->filesystem->ensureDirectoryExists($keepDir);
+        $this->filesystem->ensureDirectoryExists($keepDir.'/vaults');
     }
 
     private function createGlobalSettings(string $appName, string $namespace, array $stages, array $existingSettings): void
     {
-        $config = [
+        Settings::fromArray([
             'app_name' => $appName,
             'namespace' => $namespace,
             'default_vault' => $existingSettings['default_vault'] ?? null,
@@ -141,9 +137,6 @@ class ConfigureCommand extends BaseCommand
             'created_at' => $existingSettings['created_at'] ?? date('c'),
             'updated_at' => date('c'),
             'version' => '1.0',
-        ];
-
-        $configPath = getcwd().'/.keep/settings.json';
-        file_put_contents($configPath, json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        ])->save();
     }
 }
