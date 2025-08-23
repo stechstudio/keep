@@ -19,7 +19,7 @@ class Secret implements Arrayable
         protected ?string $encryptedValue = null,
         protected bool $secure = true,
         protected ?string $stage = null,
-        protected ?int $revision = 0,
+        protected null|int|string $revision = 0,
         protected ?string $path = null,
         protected ?AbstractVault $vault = null,
         protected bool $skipValidation = false,
@@ -76,7 +76,7 @@ class Secret implements Arrayable
         ?string $encryptedValue = null,
         bool $secure = true,
         ?string $stage = null,
-        ?int $revision = 0,
+        null|int|string $revision = 0,
         ?string $path = null,
         ?AbstractVault $vault = null,
     ): static {
@@ -103,7 +103,7 @@ class Secret implements Arrayable
         ?string $encryptedValue = null,
         bool $secure = true,
         ?string $stage = null,
-        ?int $revision = 0,
+        null|int|string $revision = 0,
         ?string $path = null,
         ?AbstractVault $vault = null,
     ): static {
