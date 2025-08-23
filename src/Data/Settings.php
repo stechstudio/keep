@@ -169,15 +169,7 @@ class Settings
     // Save method - Settings knows how to save itself
     public function save(): void
     {
-        $settingsDir = getcwd().'/.keep';
-
-        // Ensure directory exists
-        if (! is_dir($settingsDir)) {
-            mkdir($settingsDir, 0755, true);
-        }
-
-        $filePath = $settingsDir.'/settings.json';
-        $this->saveToFile($filePath);
+        $this->saveToFile(getcwd().'/.keep/settings.json');
     }
 
     // Mutation methods (return new instance for immutability)

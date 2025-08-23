@@ -12,7 +12,7 @@ class CacheCommand extends BaseCommand
 {
     use ConfiguresVaults;
 
-    protected $signature = 'cache:load 
+    protected $signature = 'cache 
                             {--stage= : The stage to load secrets for}
                             {--vault= : The vault(s) to load secrets from (comma-separated, defaults to all configured vaults)}
                             {--key= : Laravel APP_KEY for encryption (auto-discovered if not provided)}';
@@ -23,7 +23,6 @@ class CacheCommand extends BaseCommand
     {
         $stage = $this->stage();
         $vaultNames = $this->getVaultNames();
-        $outputPath = getcwd() . "/storage/cache/{$stage}.keep.php";
 
         if (count($vaultNames) === 1) {
             $this->info("Loading secrets from vault '{$vaultNames[0]}' for stage '{$stage}'...");
@@ -37,9 +36,7 @@ class CacheCommand extends BaseCommand
         $this->info("Found " . $allSecrets->count() . " total secrets to cache");
 
         // Encrypt and write cache file
-        $this->writeCacheFile($allSecrets->toKeyValuePair()->toArray(), $appKey, $outputPath);
-        
-        $this->info("Secrets cached successfully to {$outputPath}");
+        $this->writeCacheFile($stage, $allSecrets->toKeyValuePair()->toArray(), $appKey);
 
         return self::SUCCESS;
     }
@@ -104,15 +101,19 @@ class CacheCommand extends BaseCommand
         return $allSecrets;
     }
 
-    protected function writeCacheFile(array $secrets, string $appKey, string $outputPath): void
+    protected function writeCacheFile(string $stage, array $secrets, string $appKey): void
     {
-        // Encrypt the secrets
+        $outputPath = getcwd() . "/.keep/cache/{$stage}.keep.php";
+
         $encryptedData = SecretsEncryption::encrypt($secrets, $appKey);
-        
-        // Generate PHP file content that returns the encrypted data
         $phpContent = "<?php\n\nreturn " . var_export($encryptedData, true) . ";";
-        
-        // Write file using trait (handles directory creation and permissions)
+
+        if(!$this->filesystem->isFile(getcwd() . "/.keep/cache/.gitignore")) {
+            $this->writeToFile(getcwd() . "/.keep/cache/.gitignore", "*\n!.gitignore\n", true, false, 0644);
+        }
+
         $this->writeToFile($outputPath, $phpContent, true, false, 0600);
+
+        $this->info("Secrets cached successfully to {$outputPath}");
     }
 }

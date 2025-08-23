@@ -8,27 +8,20 @@ trait InteractsWithFilesystem
 {
     protected function writeToFile(string $path, string $content, $overwrite = false, $append = false, ?int $permissions = null): bool
     {
-        $flags = 0; // Default: overwrite
-
-        if (file_exists($path)) {
-            if ($append) {
-                $flags = FILE_APPEND; // Append
-            } elseif (! $overwrite && ! confirm('Output file already exists. Overwrite?', false)) {
-                return $this->error("File [$path] already exists. Use --overwrite or --append option.");
-            }
+        if ($this->filesystem->exists($path) && !$append && !$overwrite && !confirm('Output file already exists. Overwrite?', false)) {
+            return $this->error("File [$path] already exists. Use --overwrite or --append option.");
         }
 
-        // Ensure directory exists
-        $directory = dirname($path);
-        if (!is_dir($directory)) {
-            mkdir($directory, 0755, true);
+        $this->filesystem->ensureDirectoryExists(dirname($path));
+
+        if ($append && $this->filesystem->exists($path)) {
+            $this->filesystem->append($path, $content.PHP_EOL);
+        } else {
+            $this->filesystem->put($path, $content.PHP_EOL);
         }
 
-        file_put_contents($path, $content.PHP_EOL, $flags);
-
-        // Set file permissions if specified
         if ($permissions !== null) {
-            chmod($path, $permissions);
+            $this->filesystem->chmod($path, $permissions);
         }
 
         return self::SUCCESS;

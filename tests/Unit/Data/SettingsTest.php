@@ -146,7 +146,7 @@ describe('Settings', function () {
             $missingPath = $this->tempDir.'/missing.json';
 
             expect(fn () => Settings::fromFile($missingPath))
-                ->toThrow(RuntimeException::class, 'File does not exist');
+                ->toThrow(\Illuminate\Contracts\Filesystem\FileNotFoundException::class);
         });
 
         it('handles corrupted JSON', function () {
@@ -154,7 +154,7 @@ describe('Settings', function () {
             file_put_contents($corruptPath, '{"invalid": json}');
 
             expect(fn () => Settings::fromFile($corruptPath))
-                ->toThrow(RuntimeException::class, 'Invalid JSON in file');
+                ->toThrow(JsonException::class, 'Syntax error');
         });
 
         it('handles non-object JSON', function () {

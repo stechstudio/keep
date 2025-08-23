@@ -25,31 +25,34 @@ class KeepApplication extends Application
         $this->setName('Keep');
         $this->setDefaultCommand('info');
 
-        $container->instance(KeepManager::class, new KeepManager(Settings::load(), VaultConfigCollection::load()));
+        $container->instance(
+            KeepManager::class,
+            new KeepManager(Settings::load(), VaultConfigCollection::load())
+        );
 
-        $this->addCommands([
-            new Commands\InfoCommand,
-            new Commands\ConfigureCommand,
+        $this->resolveCommands([
+            Commands\InfoCommand::class,
+            Commands\ConfigureCommand::class,
 
-            new Commands\VaultAddCommand,
-            new Commands\VaultEditCommand,
-            new Commands\VaultListCommand,
+            Commands\VaultAddCommand::class,
+            Commands\VaultEditCommand::class,
+            Commands\VaultListCommand::class,
 
-            new Commands\GetCommand,
-            new Commands\SetCommand,
-            new Commands\CopyCommand,
-            new Commands\DeleteCommand,
-            new Commands\HistoryCommand,
+            Commands\GetCommand::class,
+            Commands\SetCommand::class,
+            Commands\CopyCommand::class,
+            Commands\DeleteCommand::class,
+            Commands\HistoryCommand::class,
 
-            new Commands\ListCommand,
-            new Commands\ImportCommand,
-            new Commands\ExportCommand,
-            new Commands\MergeCommand,
+            Commands\ListCommand::class,
+            Commands\ImportCommand::class,
+            Commands\ExportCommand::class,
+            Commands\MergeCommand::class,
 
-            new Commands\DiffCommand,
-            new Commands\VerifyCommand,
-            new Commands\TemplateValidateCommand,
-            new Commands\CacheCommand,
+            Commands\DiffCommand::class,
+            Commands\VerifyCommand::class,
+            Commands\TemplateValidateCommand::class,
+            Commands\CacheCommand::class,
         ]);
     }
 

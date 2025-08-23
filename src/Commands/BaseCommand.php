@@ -3,6 +3,7 @@
 namespace STS\Keep\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Filesystem\Filesystem;
 use STS\Keep\Commands\Concerns\GathersInput;
 use STS\Keep\Commands\Concerns\InteractsWithFilesystem;
 use STS\Keep\Exceptions\KeepException;
@@ -14,6 +15,11 @@ use function Laravel\Prompts\note;
 abstract class BaseCommand extends Command
 {
     use GathersInput, InteractsWithFilesystem;
+
+    public function __construct(protected Filesystem $filesystem)
+    {
+        parent::__construct();
+    }
 
     public function handle(): int
     {
