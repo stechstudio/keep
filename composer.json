@@ -21,9 +21,9 @@
     ],
     "require": {
         "php": "^8.3",
-        "illuminate/console": "^12.25",
-        "illuminate/container": "^12.25",
-        "illuminate/events": "^12.25",
+        "illuminate/console": "^12.0",
+        "illuminate/container": "^12.0",
+        "illuminate/events": "^12.0",
         "illuminate/support": "^10.0||^11.0||^12.0",
         "laravel/prompts": "^0.1.0||^0.2.0||^0.3.0",
         "symfony/console": "^6.0||^7.0",
