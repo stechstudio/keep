@@ -58,4 +58,4 @@ keep export --stage=production --output=.env
 keep merge .env.template --stage=production --output=.env
 ```
 
-Get started with our [installation guide](/guide/installation) or see all [CLI commands](/guide/cli-reference).
+Get started with our [installation guide](/guide/installation) or see all [CLI commands](/guide/reference/cli-reference).

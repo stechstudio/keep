@@ -44,7 +44,7 @@ keep vault:add
 
 Follow the prompts to configure AWS SSM or Secrets Manager access.
 
-**Note:** AWS credentials must be configured separately from your application secrets. See [AWS Authentication](/guide/aws-authentication) for setup instructions.
+**Note:** AWS credentials must be configured separately from your application secrets. See [AWS Authentication](/guide/reference/aws-authentication) for setup instructions.
 
 ## Verify Setup
 

@@ -232,5 +232,5 @@ keep merge env.template --stage=production --vault=ssm --output=.env
 ## Next Steps
 
 - [AWS Secrets Manager](./aws-secrets-manager) - For more advanced secret rotation features
-- [Template System](../templates) - Learn how to use SSM parameters in templates
+- [Exporting to .env](../managing-secrets/exporting-to-env) - Export secrets for deployment
 - [Multi-Environment Setup](../../examples/multi-environment) - Best practices for organizing environments

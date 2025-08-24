@@ -164,6 +164,6 @@ If using `config:cache` with the `dotenv` mode, consider switching to `helper` m
 
 ## Next Steps
 
-- Learn about [templating](../templates.md) for complex deployments
-- Explore [vault configuration](../vaults.md) options
-- Read the [Security Architecture Reference](../../reference/security-architecture.md) for technical details
+- Learn about [exporting to .env](./exporting-to-env.md) for deployment scenarios
+- Explore [vault configuration](../vaults) options
+- Read the [Encrypted Cache Architecture](../reference/security-architecture) for technical details

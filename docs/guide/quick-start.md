@@ -43,4 +43,4 @@ You're now managing secrets with Keep! Here's where to go next:
 
 - **[Managing Secrets](./managing-secrets/)** - Comprehensive guide to secret operations
 - **[Vaults](./vaults)** - Add production vaults (AWS SSM, Secrets Manager)
-- **[Templates](./templates)** - Use templates for deployment configurations
+- **[Exporting to .env](./managing-secrets/exporting-to-env)** - Export secrets for deployment
