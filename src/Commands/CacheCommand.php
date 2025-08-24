@@ -2,11 +2,12 @@
 
 namespace STS\Keep\Commands;
 
+use Illuminate\Support\Str;
 use STS\Keep\Commands\Concerns\ConfiguresVaults;
 use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Data\Env;
 use STS\Keep\Facades\Keep;
-use STS\Keep\Services\SecretsEncryption;
+use STS\Keep\Services\Crypt;
 
 class CacheCommand extends BaseCommand
 {
@@ -14,8 +15,7 @@ class CacheCommand extends BaseCommand
 
     protected $signature = 'cache 
                             {--stage= : The stage to load secrets for}
-                            {--vault= : The vault(s) to load secrets from (comma-separated, defaults to all configured vaults)}
-                            {--key= : Laravel APP_KEY for encryption (auto-discovered if not provided)}';
+                            {--vault= : The vault(s) to load secrets from (comma-separated, defaults to all configured vaults)}';
 
     protected $description = 'Load secrets from vault(s) into encrypted cache file for Laravel integration';
 
@@ -31,12 +31,12 @@ class CacheCommand extends BaseCommand
         }
 
         $allSecrets = $this->loadSecretsFromVaults($vaultNames, $stage);
-        $appKey = $this->getAppKey($allSecrets);
 
         $this->info("Found " . $allSecrets->count() . " total secrets to cache");
 
-        // Encrypt and write cache file
-        $this->writeCacheFile($stage, $allSecrets->toKeyValuePair()->toArray(), $appKey);
+        $keyPart = Str::random(32);
+        $this->writeCacheFile($stage, $allSecrets->toKeyValuePair()->toArray(), $keyPart);
+        $this->saveKeyPartToEnv($keyPart);
 
         return self::SUCCESS;
     }
@@ -101,11 +101,11 @@ class CacheCommand extends BaseCommand
         return $allSecrets;
     }
 
-    protected function writeCacheFile(string $stage, array $secrets, string $appKey): void
+    protected function writeCacheFile(string $stage, array $secrets, $keyPart): void
     {
         $outputPath = getcwd() . "/.keep/cache/{$stage}.keep.php";
 
-        $encryptedData = SecretsEncryption::encrypt($secrets, $appKey);
+        $encryptedData = (new Crypt($keyPart))->encrypt($secrets);
         $phpContent = "<?php\n\nreturn " . var_export($encryptedData, true) . ";";
 
         if(!$this->filesystem->isFile(getcwd() . "/.keep/cache/.gitignore")) {
@@ -115,5 +115,27 @@ class CacheCommand extends BaseCommand
         $this->writeToFile($outputPath, $phpContent, true, false, 0600);
 
         $this->info("Secrets cached successfully to {$outputPath}");
+    }
+
+    protected function saveKeyPartToEnv(string $keyPart): void
+    {
+        $envPath = getcwd() . '/.env';
+        
+        // Remove existing KEEP_CACHE_KEY_PART if present
+        if (file_exists($envPath)) {
+            $content = file_get_contents($envPath);
+            $content = preg_replace('/^KEEP_CACHE_KEY_PART=.*$/m', '', $content);
+            $content = rtrim($content);
+        } else {
+            $content = '';
+        }
+        
+        // Append new key part
+        $content .= ($content ? "\n" : '') . "KEEP_CACHE_KEY_PART={$keyPart}\n";
+        
+        $this->filesystem->put($envPath, $content);
+        $this->filesystem->chmod($envPath, 0600);
+
+        $this->info("Updated .env file with KEEP_CACHE_KEY_PART");
     }
 }

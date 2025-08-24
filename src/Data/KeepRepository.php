@@ -3,7 +3,7 @@
 namespace STS\Keep\Data;
 
 use STS\Keep\Contracts\KeepRepositoryInterface;
-use STS\Keep\Services\SecretsEncryption;
+use STS\Keep\Services\Crypt;
 
 class KeepRepository implements KeepRepositoryInterface
 {
@@ -41,9 +41,8 @@ class KeepRepository implements KeepRepositoryInterface
         try {
             // Load encrypted data from PHP file (leverages OPCache)
             $encryptedData = include $this->cacheFilePath;
-            
-            // Decrypt secrets
-            $this->secrets = SecretsEncryption::decrypt($encryptedData, $this->appKey);
+
+            $this->secrets = (new Crypt(config('keep.decrypt_key_part')))->decrypt($encryptedData);
         } catch (\Exception $e) {
             throw new \RuntimeException(
                 "Failed to load secrets from cache file '{$this->cacheFilePath}': " . $e->getMessage(),

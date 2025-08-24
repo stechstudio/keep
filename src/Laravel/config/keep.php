@@ -17,6 +17,8 @@ return [
 
     'integration_mode' => env('KEEP_INTEGRATION_MODE','env'),
 
+    'decrypt_key_part' => env('KEEP_DECRYPT_KEY_PART', ''),
+
     /*
     |--------------------------------------------------------------------------
     | Stage to Environment Mapping

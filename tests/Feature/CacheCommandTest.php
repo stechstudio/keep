@@ -68,7 +68,7 @@ afterEach(function () {
     }
 });
 
-it('can run cache:load command with app-key parameter', function () {
+it('can run cache command with app-key parameter', function () {
     // Create a test secret first
     $setTester = ($this->runCommandWithPersistence)('set', [
         'key' => 'TEST_SECRET',
@@ -83,11 +83,10 @@ it('can run cache:load command with app-key parameter', function () {
     // Generate a test APP_KEY
     $appKey = 'base64:' . base64_encode(random_bytes(32));
     
-    // Run cache:load command (using same app instance so storage persists)
-    $commandTester = ($this->runCommandWithPersistence)('cache:load', [
+    // Run cache command (using same app instance so storage persists)
+    $commandTester = ($this->runCommandWithPersistence)('cache', [
         '--stage' => 'testing',
         '--vault' => 'test',
-        '--key' => $appKey,
     ]);
     
     expect($commandTester->getStatusCode())->toBe(0);
@@ -95,7 +94,7 @@ it('can run cache:load command with app-key parameter', function () {
     expect($commandTester->getDisplay())->toContain('Secrets cached successfully');
     
     // Verify cache file was created at standard location
-    $expectedPath = $this->tempDir . '/storage/cache/testing.keep.php';
+    $expectedPath = $this->tempDir . '/.keep/cache/testing.keep.php';
     expect(file_exists($expectedPath))->toBeTrue();
     
     // Verify file permissions are restricted
@@ -118,8 +117,8 @@ it('discovers APP_KEY from .env file', function () {
     $vault = Keep::vault('test', 'testing');
     $vault->set('TEST_SECRET', 'secret-value');
     
-    // Run cache:load command without --key
-    $commandTester = runCommand('cache:load', [
+    // Run cache command without --key
+    $commandTester = runCommand('cache', [
         '--stage' => 'testing',
         '--vault' => 'test',
     ]);
@@ -128,21 +127,9 @@ it('discovers APP_KEY from .env file', function () {
     expect($commandTester->getDisplay())->toContain('Secrets cached successfully');
     
     // Verify cache file was created at standard location
-    expect(file_exists($this->tempDir . '/storage/cache/testing.keep.php'))->toBeTrue();
+    expect(file_exists($this->tempDir . '/.keep/cache/testing.keep.php'))->toBeTrue();
 });
 
-it('fails when APP_KEY is not found', function () {
-    
-    // Run cache:load command without APP_KEY
-    $commandTester = runCommand('cache:load', [
-        '--stage' => 'testing',
-        '--vault' => 'test',
-    ]);
-    
-    expect($commandTester->getStatusCode())->toBe(1);
-    expect($commandTester->getDisplay())->toContain('APP_KEY not found');
-    
-});
 
 it('creates standard cache directory structure', function () {
     
@@ -153,18 +140,17 @@ it('creates standard cache directory structure', function () {
     // Generate a test APP_KEY
     $appKey = 'base64:' . base64_encode(random_bytes(32));
     
-    // Run cache:load command
-    $commandTester = runCommand('cache:load', [
+    // Run cache command
+    $commandTester = runCommand('cache', [
         '--stage' => 'testing',
         '--vault' => 'test',
-        '--key' => $appKey,
     ]);
     
     expect($commandTester->getStatusCode())->toBe(0);
     
     // Verify standard cache directory and stage-specific file was created
-    expect(is_dir($this->tempDir . '/storage/cache'))->toBeTrue();
-    expect(file_exists($this->tempDir . '/storage/cache/testing.keep.php'))->toBeTrue();
+    expect(is_dir($this->tempDir . '/.keep/cache'))->toBeTrue();
+    expect(file_exists($this->tempDir . '/.keep/cache/testing.keep.php'))->toBeTrue();
 });
 
 it('loads from all configured vaults when no vault specified', function () {
@@ -197,10 +183,9 @@ it('loads from all configured vaults when no vault specified', function () {
     $appKey = 'base64:' . base64_encode(random_bytes(32));
     
     
-    // Run cache:load command without specifying vault
-    $commandTester = ($this->runCommandWithPersistence)('cache:load', [
+    // Run cache command without specifying vault
+    $commandTester = ($this->runCommandWithPersistence)('cache', [
         '--stage' => 'testing',
-        '--key' => $appKey,
     ]);
     
     expect($commandTester->getStatusCode())->toBe(0);
@@ -247,11 +232,10 @@ it('loads from specified comma-separated vaults', function () {
     // Generate a test APP_KEY
     $appKey = 'base64:' . base64_encode(random_bytes(32));
     
-    // Run cache:load command with specific vaults
-    $commandTester = ($this->runCommandWithPersistence)('cache:load', [
+    // Run cache command with specific vaults
+    $commandTester = ($this->runCommandWithPersistence)('cache', [
         '--stage' => 'testing',
         '--vault' => 'vault1,vault3',
-        '--key' => $appKey,
     ]);
     
     expect($commandTester->getStatusCode())->toBe(0);
