@@ -8,8 +8,11 @@ Set, get, list, and delete secrets across environments.
 ### [Cross-Environment Operations](./cross-environment) 
 Copy secrets between stages, import from `.env` files, and compare environments.
 
-### [Export & Deployment](./export-deployment)
-Generate configuration files and integrate with CI/CD pipelines.
+### [Exporting to .env](./exporting-to-env)
+Generate plaintext `.env` files for traditional deployments.
+
+### [Runtime Secrets](./runtime-secrets)
+Secure, high-performance alternative using encrypted caches.
 
 ## Core Concepts
 

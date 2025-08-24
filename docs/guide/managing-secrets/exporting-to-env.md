@@ -1,4 +1,4 @@
-# Export & Deployment
+# Exporting to .env
 
 This guide covers generating configuration files for deployment using exports and templates. These are the primary ways to get your secrets into running applications.
 
