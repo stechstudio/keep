@@ -342,5 +342,5 @@ For supported services like RDS, enable automatic rotation:
 ## Next Steps
 
 - [AWS SSM Parameter Store](./aws-ssm) - For cost-effective configuration and simple secrets
-- [Template System](../templates) - Learn how to use Secrets Manager secrets in templates
+- [Exporting to .env](../managing-secrets/exporting-to-env) - Export secrets for deployment
 - [Multi-Environment Setup](../../examples/multi-environment) - Best practices for organizing environments
