@@ -356,8 +356,6 @@ class AwsSecretsManagerVault extends AbstractVault
             'version' => 'latest',
             'region'  => $this->config['region'] ?? 'us-east-1',
             'use_aws_shared_config_files' => true,
-            'retry_mode' => 'adaptive',
-            'retries' => 3,
         ]);
     }
 }
