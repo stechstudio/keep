@@ -322,11 +322,11 @@ describe('Secret', function () {
 
         it('masks and truncates very long values (>50 chars)', function () {
             $testCases = [
-                str_repeat('a', 51) => 'aaaa' . str_repeat('*', 46) . ' (length: 51 chars)',
-                str_repeat('a', 100) => 'aaaa' . str_repeat('*', 46) . ' (length: 100 chars)',
-                str_repeat('a', 200) => 'aaaa' . str_repeat('*', 46) . ' (length: 200 chars)',
-                str_repeat('a', 1000) => 'aaaa' . str_repeat('*', 46) . ' (length: 1000 chars)',
-                str_repeat('a', 5000) => 'aaaa' . str_repeat('*', 46) . ' (length: 5000 chars)',
+                str_repeat('a', 51) => 'aaaa' . str_repeat('*', 46) . ' (51 chars)',
+                str_repeat('a', 100) => 'aaaa' . str_repeat('*', 46) . ' (100 chars)',
+                str_repeat('a', 200) => 'aaaa' . str_repeat('*', 46) . ' (200 chars)',
+                str_repeat('a', 1000) => 'aaaa' . str_repeat('*', 46) . ' (1000 chars)',
+                str_repeat('a', 5000) => 'aaaa' . str_repeat('*', 46) . ' (5000 chars)',
             ];
 
             foreach ($testCases as $value => $expected) {
