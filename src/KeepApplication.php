@@ -47,7 +47,6 @@ class KeepApplication extends Application
             Commands\ListCommand::class,
             Commands\ImportCommand::class,
             Commands\ExportCommand::class,
-            Commands\MergeCommand::class,
 
             Commands\DiffCommand::class,
             Commands\VerifyCommand::class,

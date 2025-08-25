@@ -269,20 +269,26 @@ keep import .env --stage=development --except="PRIVATE_KEY"
 
 ## `keep export`
 
-Generate configuration files from secrets in various formats.
+Export secrets from vaults with optional template processing.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `--stage` | string | *interactive* | Stage to export secrets from |
-| `--vault` | string | *default vault* | Vault to export secrets from |
+| `--vault` | string | *auto-discover* | Vault(s) to export from (comma-separated) |
 | `--format` | string | `env` | Output format: `env`, `json` |
+| `--template` | string | | Optional template file with placeholders |
+| `--all` | boolean | `false` | With template: also append non-placeholder secrets |
+| `--missing` | string | `fail` | Strategy for missing secrets: `fail`, `remove`, `blank`, `skip` |
 | `--output` | string | *stdout* | Output file path |
 | `--append` | boolean | `false` | Append to output file instead of overwriting |
 | `--overwrite` | boolean | `false` | Overwrite output file without confirmation |
 | `--only` | string | | Comma-separated list of keys to include |
 | `--except` | string | | Comma-separated list of keys to exclude |
 
-**Examples:**
+### Direct Export Mode (no template)
+
+Export all secrets from specified vaults:
+
 ```bash
 # Basic .env export
 keep export --stage=production --output=.env
@@ -290,58 +296,46 @@ keep export --stage=production --output=.env
 # JSON export
 keep export --stage=production --format=json --output=config.json
 
-# Export only API-related secrets
-keep export --stage=production --only="API_*" --output=api.env
+# Export from specific vaults
+keep export --stage=production --vault=ssm,secretsmanager --output=.env
 
-# Export all except certain keys
-keep export --stage=production --except="PRIVATE_KEY,SECRET_TOKEN" --output=.env
-
-# Export to stdout for piping
-keep export --stage=production --format=json | jq '.API_KEY'
+# Export with filtering
+keep export --stage=production --only="API_*,DB_*" --output=.env
 ```
 
-## `keep merge`
+### Template Mode (with template)
 
-Combine secrets with template files to create complete configuration files.
+Use templates with placeholder syntax `{vault:key}`:
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `--stage` | string | *interactive* | Stage to get secrets from |
-| `--vault` | string | *default vault* | Vault to get secrets from |
-| `--output` | string | *stdout* | Output file path |
-| `--append` | boolean | `false` | Append to output file instead of overwriting |
-| `--overwrite` | boolean | `false` | Overwrite output file without confirmation |
-| `--missing` | string | `fail` | How to handle missing secrets: `fail`, `skip`, `blank`, `remove` |
+```bash
+# Basic template merge (preserves structure)
+keep export --stage=production --template=.env.template --output=.env
 
-**Arguments:**
-- `[template]` - Path to template file (required)
+# Template with all additional secrets appended
+keep export --stage=production --template=.env.template --all --output=.env
+
+# Template to JSON (parses and transforms)
+keep export --stage=production --template=.env.template --format=json --output=config.json
+
+# Multiple templates can be combined using standard tools
+cat .env.base .env.prod | keep export --template=/dev/stdin --stage=production --output=.env
+
+# Handle missing secrets gracefully
+keep export --stage=production --template=.env.template --missing=skip --output=.env
+```
 
 **Template Syntax:**
 ```bash
-# Specify the vault slug and secret name
+# Specify vault and secret name
 API_KEY={ssm:service-api-key}
 
-# If the key name matches the secret name, you can omit the secret name
+# If key name matches secret name, omit the secret name
 DB_PASSWORD={ssm}
 
-# Multiple vaults are supported if configured
+# Multiple vaults supported
 REDIS_URL={secretsmanager:REDIS_URL}
 ```
 
-**Examples:**
-```bash
-# Basic template merge
-keep merge .env.template --stage=production --output=.env
-
-# Handle missing secrets gracefully
-keep merge .env.template --stage=development --missing=skip --output=.env
-
-# Remove lines with missing secrets
-keep merge .env.template --stage=staging --missing=remove --output=.env
-
-# Output to stdout for verification
-keep merge .env.template --stage=production | grep -v "^#"
-```
 
 ## `keep cache`
 

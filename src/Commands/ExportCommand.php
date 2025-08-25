@@ -2,9 +2,14 @@
 
 namespace STS\Keep\Commands;
 
+use Illuminate\Filesystem\Filesystem;
 use STS\Keep\Commands\Concerns\GathersInput;
-use STS\Keep\Data\Collections\SecretCollection;
-use STS\Keep\Facades\Keep;
+use STS\Keep\Services\Export\DirectExportService;
+use STS\Keep\Services\Export\TemplateParseService;
+use STS\Keep\Services\Export\TemplatePreserveService;
+use STS\Keep\Services\OutputWriter;
+use STS\Keep\Services\SecretLoader;
+use STS\Keep\Services\VaultDiscovery;
 
 class ExportCommand extends BaseCommand
 {
@@ -12,6 +17,9 @@ class ExportCommand extends BaseCommand
     
     public $signature = 'export 
         {--format=env : json|env} 
+        {--template= : Optional template file with placeholders}
+        {--all : With template: also append non-placeholder secrets}
+        {--missing=fail : Strategy for missing secrets in template: fail|remove|blank|skip}
         {--output= : File where to save the output (defaults to stdout)} 
         {--overwrite : Overwrite the output file if it exists} 
         {--append : Append to the output file if it exists} 
@@ -19,72 +27,45 @@ class ExportCommand extends BaseCommand
         {--vault= : The vault(s) to export from (comma-separated, defaults to all configured vaults)}'
         .self::ONLY_EXCLUDE_SIGNATURE;
 
-    public $description = 'Export stage secrets from vault(s)';
+    public $description = 'Export stage secrets from vault(s) with optional template processing';
+
+    protected DirectExportService $directExport;
+    protected TemplatePreserveService $templatePreserve;
+    protected TemplateParseService $templateParse;
+
+    public function __construct(Filesystem $filesystem)
+    {
+        parent::__construct($filesystem);
+        
+        // Initialize services
+        $secretLoader = new SecretLoader();
+        $vaultDiscovery = new VaultDiscovery();
+        $outputWriter = new OutputWriter($filesystem);
+        
+        $this->directExport = new DirectExportService($secretLoader, $outputWriter);
+        $this->templatePreserve = new TemplatePreserveService($secretLoader, $vaultDiscovery, $outputWriter);
+        $this->templateParse = new TemplateParseService($secretLoader, $vaultDiscovery, $outputWriter);
+    }
 
     public function process()
     {
-        $stage = $this->stage();
-        $vaultNames = $this->getVaultNames();
+        // Gather all options including stage
+        $options = array_merge($this->options(), [
+            'stage' => $this->stage()
+        ]);
 
-        if (count($vaultNames) === 1) {
-            $this->info("Exporting secrets from vault '{$vaultNames[0]}' for stage '{$stage}'...");
-        } else {
-            $this->info("Exporting secrets from " . count($vaultNames) . " vaults (" . implode(', ', $vaultNames) . ") for stage '{$stage}'...");
+        // Route to appropriate service based on options
+        if (!$this->option('template')) {
+            // Direct export mode
+            return $this->directExport->handle($options, $this->output);
         }
-
-        $allSecrets = $this->loadSecretsFromVaults($vaultNames, $stage);
-        $output = $this->formatOutput($allSecrets);
-
-        $this->info("Found " . $allSecrets->count() . " total secrets to export");
-
-        if ($this->option('output')) {
-            $this->writeToFile(
-                $this->option('output'),
-                $output,
-                $this->option('overwrite'),
-                $this->option('append')
-            );
-            $this->info("Secrets exported to [{$this->option('output')}].");
-        } else {
-            $this->line($output);
+        
+        if ($this->option('format') === 'json') {
+            // Template with JSON output - parse mode
+            return $this->templateParse->handle($options, $this->output);
         }
-    }
-
-    protected function getVaultNames(): array
-    {
-        // If --vault specified, use those (comma-separated)
-        if ($vault = $this->option('vault')) {
-            return array_map('trim', explode(',', $vault));
-        }
-
-        // Otherwise, use ALL configured vaults
-        return Keep::getConfiguredVaults()->keys()->toArray();
-    }
-
-    protected function loadSecretsFromVaults(array $vaultNames, string $stage): SecretCollection
-    {
-        $allSecrets = new SecretCollection();
-
-        foreach ($vaultNames as $vaultName) {
-            $vault = Keep::vault($vaultName, $stage);
-            $vaultSecrets = $vault->list()->filterByPatterns(
-                only: $this->option('only'),
-                except: $this->option('except')
-            );
-            
-            // Merge secrets, later vaults override earlier ones for duplicate keys
-            $allSecrets = $allSecrets->merge($vaultSecrets);
-        }
-
-        return $allSecrets;
-    }
-
-    protected function formatOutput(SecretCollection $secrets): string
-    {
-        return $this->option('format') === 'json'
-            ? $secrets
-                ->toKeyValuePair()
-                ->toJson(JSON_PRETTY_PRINT)
-            : $secrets->toEnvString();
+        
+        // Template with env output - preserve mode
+        return $this->templatePreserve->handle($options, $this->output);
     }
 }
