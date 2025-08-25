@@ -107,7 +107,7 @@ class AwsSsmVault extends AbstractVault
             }
         }
 
-        return $secrets->sortBy('key')->values();
+        return $secrets->sorted();
     }
 
     public function has(string $key): bool
