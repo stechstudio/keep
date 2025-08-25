@@ -116,6 +116,7 @@ class ImportCommand extends BaseCommand
                     $importedSecret = $vault->set($secret->key(), $secret->value())
                 );
                 $this->info("Imported key [{$importedSecret->key()}]");
+                usleep(150000); // Slight delay to avoid rate limits
             } catch (KeepException $e) {
                 $this->error("Failed to import key [{$secret->key()}]: ".$e->getMessage());
             }
