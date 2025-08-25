@@ -11,6 +11,11 @@ class SecretCollection extends Collection
 {
     use FormatsEnvValues;
 
+    public function sorted(): static
+    {
+        return $this->sortBy->key()->values();
+    }
+
     public function toKeyValuePair(): static
     {
         return $this->mapWithKeys(fn (Secret $secret) => [$secret->key() => $secret->value()]);
