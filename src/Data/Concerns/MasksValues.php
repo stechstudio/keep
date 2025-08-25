@@ -25,8 +25,8 @@ trait MasksValues
         }
 
         return match(true) {
-            $length <= 50 => $masked,
-            default => substr($masked, 0, 50) . " ({$length} chars)"
+            $length <= 24 => $masked,
+            default => substr($masked, 0, 24) . " ({$length} chars)"
         };
     }
 }
