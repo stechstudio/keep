@@ -286,7 +286,7 @@ describe('Secret', function () {
             expect($secret->masked())->toBeNull();
         });
 
-        it('masks short values (≤10 chars) with ****', function () {
+        it('masks short values (≤8 chars) with ****', function () {
             $testCases = [
                 'a' => '****',
                 'ab' => '****',
@@ -296,8 +296,6 @@ describe('Secret', function () {
                 'abcdef' => '****',
                 'abcdefg' => '****',
                 'abcdefgh' => '****',
-                'abcdefghi' => '****',
-                'abcdefghij' => '****',
             ];
 
             foreach ($testCases as $value => $expected) {
@@ -306,44 +304,29 @@ describe('Secret', function () {
             }
         });
 
-        it('masks medium values (11-50 chars) with fixed asterisks', function () {
+        it('masks longer values (>8 chars) with first 4 chars + asterisks', function () {
             $testCases = [
-                'abcdefghijk' => '**********',  // 11 chars
-                'localhost123' => '**********',  // 12 chars
-                'secret_api_key' => '**********',  // 14 chars
-                'smtp_example_com' => '**********',  // 16 chars
-                'very_long_password_value' => '**********',  // 24 chars
-                str_repeat('a', 50) => '**********',  // 50 chars
+                'abcdefghi' => 'abcd*****',  // 9 chars
+                'localhost' => 'loca*****',  // 9 chars
+                'secret_api_key' => 'secr**********',  // 14 chars
+                'smtp_example_com' => 'smtp************',  // 16 chars
+                'very_long_password_value' => 'very********************',  // 24 chars
+                str_repeat('a', 50) => 'aaaa' . str_repeat('*', 46),  // 50 chars - exactly at boundary
             ];
 
             foreach ($testCases as $value => $expected) {
-                $secret = new Secret(key: 'MEDIUM_VALUE', value: $value);
+                $secret = new Secret(key: 'LONGER_VALUE', value: $value);
                 expect($secret->masked())->toBe($expected, "Value '$value' should be masked as '$expected'");
             }
         });
 
-        it('masks long values (51-200 chars) with length indicator', function () {
+        it('masks and truncates very long values (>50 chars)', function () {
             $testCases = [
-                str_repeat('a', 51) => '********** (51 chars)',
-                str_repeat('a', 100) => '********** (100 chars)',
-                str_repeat('a', 150) => '********** (150 chars)',
-                str_repeat('a', 200) => '********** (200 chars)',
-            ];
-
-            foreach ($testCases as $value => $expected) {
-                $secret = new Secret(key: 'LONG_VALUE', value: $value);
-                expect($secret->masked())->toBe($expected);
-            }
-        });
-
-        it('masks very long values (>200 chars) with size indicator', function () {
-            $testCases = [
-                str_repeat('a', 201) => '********** (201 chars)',
-                str_repeat('a', 500) => '********** (500 chars)',
-                str_repeat('a', 1024) => '********** (1024 chars)',
-                str_repeat('a', 1025) => '********** (1K)',
-                str_repeat('a', 2048) => '********** (2K)',
-                str_repeat('a', 5120) => '********** (5K)',
+                str_repeat('a', 51) => 'aaaa' . str_repeat('*', 46) . ' (length: 51 chars)',
+                str_repeat('a', 100) => 'aaaa' . str_repeat('*', 46) . ' (length: 100 chars)',
+                str_repeat('a', 200) => 'aaaa' . str_repeat('*', 46) . ' (length: 200 chars)',
+                str_repeat('a', 1000) => 'aaaa' . str_repeat('*', 46) . ' (length: 1000 chars)',
+                str_repeat('a', 5000) => 'aaaa' . str_repeat('*', 46) . ' (length: 5000 chars)',
             ];
 
             foreach ($testCases as $value => $expected) {
@@ -368,8 +351,8 @@ describe('Secret', function () {
                 value: $value
             );
 
-            // With new truncated masking, 24 chars falls in medium range (11-50)
-            expect($secret->masked())->toBe('**********');
+            // 24 chars: shows first 4 chars + asterisks
+            expect($secret->masked())->toBe('Hell' . str_repeat('*', 20));
             expect(strlen($value))->toBe(24);
         });
 
@@ -379,8 +362,8 @@ describe('Secret', function () {
                 value: 'value with & symbols!'
             );
 
-            // 21 chars falls in medium range (11-50)
-            expect($secret->masked())->toBe('**********');
+            // 21 chars: shows first 4 chars + asterisks
+            expect($secret->masked())->toBe('valu' . str_repeat('*', 17));
         });
     });
 

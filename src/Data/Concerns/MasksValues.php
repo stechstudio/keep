@@ -12,27 +12,21 @@ trait MasksValues
 
         $length = strlen($value);
 
-        // If not truncating, use original behavior
-        if (!$truncate) {
-            if ($length <= 8) {
-                return '****';
-            }
-            return substr($value, 0, 4).str_repeat('*', $length - 4);
+        // Short values always get generic mask
+        if ($length <= 8) {
+            return '****';
         }
 
-        // New truncated masking with length indicators
-        if ($length <= 10) {
-            return '****';
-        } elseif ($length <= 50) {
-            return '**********';
-        } elseif ($length <= 200) {
-            return '********** (' . $length . ' chars)';
-        } else {
-            // Format large sizes in K for readability
-            $size = $length > 1024 
-                ? round($length / 1024, 1) . 'K' 
-                : $length . ' chars';
-            return '********** (' . $size . ')';
+        // Show first 4 characters plus asterisks
+        $masked = substr($value, 0, 4) . str_repeat('*', $length - 4);
+        
+        if (!$truncate) {
+            return $masked;
         }
+
+        return match(true) {
+            $length <= 50 => $masked,
+            default => substr($masked, 0, 50) . " (length: {$length} chars)"
+        };
     }
 }
