@@ -54,8 +54,8 @@ keep diff --stage=staging,production
 # Export to .env
 keep export --stage=production --output=.env
 
-# Use templates
-keep merge .env.template --stage=production --output=.env
+# Use templates  
+keep export --template=.env.template --stage=production --output=.env
 ```
 
 Get started with our [installation guide](/guide/installation) or see all [CLI commands](/guide/reference/cli-reference).

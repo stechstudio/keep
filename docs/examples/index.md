@@ -38,5 +38,5 @@ keep copy API_KEY --from=staging --to=production
 echo "API_KEY={ssm:API_KEY}" > .env.template
 
 # Generate config
-keep merge .env.template --stage=production --output=.env
+keep export --template=.env.template --stage=production --output=.env
 ```

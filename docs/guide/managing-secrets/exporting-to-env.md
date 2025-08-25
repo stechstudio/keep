@@ -50,33 +50,31 @@ keep export --stage=production --except="PRIVATE_KEY,SECRET_TOKEN" --output=.env
 keep export --stage=production --format=json | jq '.API_KEY'
 ```
 
-## Template Merging
+## Template-Based Export
 
-The `keep merge` command combines secrets with template files, allowing you to create complete configuration files with both secrets and static values.
+The `keep export --template` command combines secrets with template files, allowing you to create complete configuration files with both secrets and static values.
 
 ### Basic Usage
 
 ```bash
 # Merge template with secrets
-keep merge .env.template --stage=production --output=.env
+keep export --template=.env.template --stage=production --output=.env
 
 # Output to stdout
-keep merge .env.template --stage=development
+keep export --template=.env.template --stage=development
+
+# Include all secrets beyond template placeholders
+keep export --template=.env.template --stage=production --all --output=.env
 ```
 
-### Command Reference: `keep merge`
+### Template Options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--stage` | string | *interactive* | Stage to get secrets from |
-| `--vault` | string | *default vault* | Vault to get secrets from |
-| `--output` | string | *stdout* | Output file path |
-| `--append` | boolean | `false` | Append to output file instead of overwriting |
-| `--overwrite` | boolean | `false` | Overwrite output file without confirmation |
-| `--missing` | string | `fail` | How to handle missing secrets: `fail`, `skip`, `blank`, `remove` |
-
-**Arguments:**
-- `[template]` - Path to template file (required)
+| `--template` | string | | Template file with placeholders (required) |
+| `--all` | boolean | `false` | Also append non-placeholder secrets |
+| `--missing` | string | `fail` | Handle missing secrets: `fail`, `skip`, `blank`, `remove` |
+| `--format` | string | `env` | Output format: `env` (preserves structure), `json` (parses data) |
 
 ## Template Syntax
 
@@ -95,17 +93,20 @@ REDIS_URL={secretsmanager:REDIS_URL}
 
 **Examples:**
 ```bash
-# Basic template merge
-keep merge .env.template --stage=production --output=.env
+# Basic template merge (preserves structure)
+keep export --template=.env.template --stage=production --output=.env
 
 # Handle missing secrets gracefully
-keep merge .env.template --stage=development --missing=skip --output=.env
+keep export --template=.env.template --stage=development --missing=skip --output=.env
 
 # Remove lines with missing secrets
-keep merge .env.template --stage=staging --missing=remove --output=.env
+keep export --template=.env.template --stage=staging --missing=remove --output=.env
 
-# Output to stdout for verification
-keep merge .env.template --stage=production | grep -v "^#"
+# Template to JSON (parses and transforms data)
+keep export --template=.env.template --stage=production --format=json --output=config.json
+
+# Template with all additional secrets
+keep export --template=.env.template --stage=production --all --output=.env
 ```
 
 ### Template Validation

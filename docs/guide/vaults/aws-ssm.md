@@ -215,7 +215,7 @@ keep diff --stage=staging,production
 ### Template-Based Deployment
 ```bash
 # Use secrets in templates
-keep merge env.template --stage=production --vault=ssm --output=.env
+keep export --template=env.template --stage=production --vault=ssm --output=.env
 ```
 
 ## Troubleshooting
