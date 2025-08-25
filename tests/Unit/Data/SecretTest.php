@@ -304,14 +304,14 @@ describe('Secret', function () {
             }
         });
 
-        it('masks longer values (>8 chars) with first 4 chars + asterisks', function () {
+        it('masks longer values (>8 chars, ≤24 chars) with first 4 chars + asterisks', function () {
             $testCases = [
                 'abcdefghi' => 'abcd*****',  // 9 chars
                 'localhost' => 'loca*****',  // 9 chars
                 'secret_api_key' => 'secr**********',  // 14 chars
                 'smtp_example_com' => 'smtp************',  // 16 chars
-                'very_long_password_value' => 'very********************',  // 24 chars
-                str_repeat('a', 50) => 'aaaa' . str_repeat('*', 46),  // 50 chars - exactly at boundary
+                'very_long_password_24ch' => 'very*******************',  // 23 chars
+                'very_long_password_value' => 'very********************',  // 24 chars - exactly at boundary
             ];
 
             foreach ($testCases as $value => $expected) {
@@ -320,13 +320,14 @@ describe('Secret', function () {
             }
         });
 
-        it('masks and truncates very long values (>50 chars)', function () {
+        it('masks and truncates very long values (>24 chars)', function () {
             $testCases = [
-                str_repeat('a', 51) => 'aaaa' . str_repeat('*', 46) . ' (51 chars)',
-                str_repeat('a', 100) => 'aaaa' . str_repeat('*', 46) . ' (100 chars)',
-                str_repeat('a', 200) => 'aaaa' . str_repeat('*', 46) . ' (200 chars)',
-                str_repeat('a', 1000) => 'aaaa' . str_repeat('*', 46) . ' (1000 chars)',
-                str_repeat('a', 5000) => 'aaaa' . str_repeat('*', 46) . ' (5000 chars)',
+                'very_long_password_value2' => 'very******************** (25 chars)',  // 25 chars - just over boundary
+                str_repeat('a', 30) => 'aaaa' . str_repeat('*', 20) . ' (30 chars)',
+                str_repeat('a', 50) => 'aaaa' . str_repeat('*', 20) . ' (50 chars)',
+                str_repeat('a', 100) => 'aaaa' . str_repeat('*', 20) . ' (100 chars)',
+                str_repeat('a', 1000) => 'aaaa' . str_repeat('*', 20) . ' (1000 chars)',
+                str_repeat('a', 5000) => 'aaaa' . str_repeat('*', 20) . ' (5000 chars)',
             ];
 
             foreach ($testCases as $value => $expected) {
