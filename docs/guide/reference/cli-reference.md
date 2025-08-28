@@ -279,7 +279,8 @@ Export secrets from vaults with optional template processing.
 | `--template` | string | | Optional template file with placeholders |
 | `--all` | boolean | `false` | With template: also append non-placeholder secrets |
 | `--missing` | string | `fail` | Strategy for missing secrets: `fail`, `remove`, `blank`, `skip` |
-| `--output` | string | *stdout* | Output file path |
+| `--file` | string | *stdout* | Output file path |
+| `--cache` | boolean | `false` | Export to encrypted cache file |
 | `--append` | boolean | `false` | Append to output file instead of overwriting |
 | `--overwrite` | boolean | `false` | Overwrite output file without confirmation |
 | `--only` | string | | Comma-separated list of keys to include |
@@ -291,16 +292,19 @@ Export all secrets from specified vaults:
 
 ```bash
 # Basic .env export
-keep export --stage=production --output=.env
+keep export --stage=production --file=.env
 
 # JSON export
-keep export --stage=production --format=json --output=config.json
+keep export --stage=production --format=json --file=config.json
 
 # Export from specific vaults
-keep export --stage=production --vault=ssm,secretsmanager --output=.env
+keep export --stage=production --vault=ssm,secretsmanager --file=.env
 
 # Export with filtering
-keep export --stage=production --only="API_*,DB_*" --output=.env
+keep export --stage=production --only="API_*,DB_*" --file=.env
+
+# Export to encrypted cache
+keep export --stage=production --cache
 ```
 
 ### Template Mode (with template)
@@ -309,19 +313,22 @@ Use templates with placeholder syntax `{vault:key}`:
 
 ```bash
 # Basic template merge (preserves structure)
-keep export --stage=production --template=.env.template --output=.env
+keep export --stage=production --template=.env.template --file=.env
 
 # Template with all additional secrets appended
-keep export --stage=production --template=.env.template --all --output=.env
+keep export --stage=production --template=.env.template --all --file=.env
 
 # Template to JSON (parses and transforms)
-keep export --stage=production --template=.env.template --format=json --output=config.json
+keep export --stage=production --template=.env.template --format=json --file=config.json
 
 # Multiple templates can be combined using standard tools
-cat .env.base .env.prod | keep export --template=/dev/stdin --stage=production --output=.env
+cat .env.base .env.prod | keep export --template=/dev/stdin --stage=production --file=.env
 
 # Handle missing secrets gracefully
-keep export --stage=production --template=.env.template --missing=skip --output=.env
+keep export --stage=production --template=.env.template --missing=skip --file=.env
+
+# Template with cache export
+keep export --stage=production --template=.env.template --cache
 ```
 
 **Template Syntax:**
@@ -337,18 +344,6 @@ REDIS_URL={secretsmanager:REDIS_URL}
 ```
 
 
-## `keep cache`
-
-Manage the secret cache.
-
-**Examples:**
-```bash
-# Clear cache
-keep cache:clear
-
-# Show cache status
-keep cache:status
-```
 
 ## Getting Help
 

@@ -68,7 +68,7 @@ afterEach(function () {
     }
 });
 
-it('can run cache command with app-key parameter', function () {
+it('can export secrets to cache with --cache flag', function () {
     // Create a test secret first
     $setTester = ($this->runCommandWithPersistence)('set', [
         'key' => 'TEST_SECRET',
@@ -80,13 +80,11 @@ it('can run cache command with app-key parameter', function () {
     
     expect($setTester->getStatusCode())->toBe(0);
     
-    // Generate a test APP_KEY
-    $appKey = 'base64:' . base64_encode(random_bytes(32));
-    
-    // Run cache command (using same app instance so storage persists)
-    $commandTester = ($this->runCommandWithPersistence)('cache', [
+    // Run export command with --cache flag
+    $commandTester = ($this->runCommandWithPersistence)('export', [
         '--stage' => 'testing',
         '--vault' => 'test',
+        '--cache' => true,
     ]);
     
     expect($commandTester->getStatusCode())->toBe(0);
@@ -107,43 +105,16 @@ it('can run cache command with app-key parameter', function () {
     expect(strlen($cacheData))->toBeGreaterThan(0);
 });
 
-it('discovers APP_KEY from .env file', function () {
-    
-    // Create .env file with APP_KEY
-    $appKey = 'base64:' . base64_encode(random_bytes(32));
-    file_put_contents($this->tempDir . '/.env', "APP_KEY={$appKey}\n");
-    
+it('creates standard cache directory structure with gitignore', function () {
     // Create a test secret in the vault
     $vault = Keep::vault('test', 'testing');
     $vault->set('TEST_SECRET', 'secret-value');
     
-    // Run cache command without --key
-    $commandTester = runCommand('cache', [
+    // Run export cache command
+    $commandTester = runCommand('export', [
         '--stage' => 'testing',
         '--vault' => 'test',
-    ]);
-    
-    expect($commandTester->getStatusCode())->toBe(0);
-    expect($commandTester->getDisplay())->toContain('Secrets cached successfully');
-    
-    // Verify cache file was created at standard location
-    expect(file_exists($this->tempDir . '/.keep/cache/testing.keep.php'))->toBeTrue();
-});
-
-
-it('creates standard cache directory structure', function () {
-    
-    // Create a test secret in the vault
-    $vault = Keep::vault('test', 'testing');
-    $vault->set('TEST_SECRET', 'secret-value');
-    
-    // Generate a test APP_KEY
-    $appKey = 'base64:' . base64_encode(random_bytes(32));
-    
-    // Run cache command
-    $commandTester = runCommand('cache', [
-        '--stage' => 'testing',
-        '--vault' => 'test',
+        '--cache' => true,
     ]);
     
     expect($commandTester->getStatusCode())->toBe(0);
@@ -151,9 +122,14 @@ it('creates standard cache directory structure', function () {
     // Verify standard cache directory and stage-specific file was created
     expect(is_dir($this->tempDir . '/.keep/cache'))->toBeTrue();
     expect(file_exists($this->tempDir . '/.keep/cache/testing.keep.php'))->toBeTrue();
+    expect(file_exists($this->tempDir . '/.keep/cache/.gitignore'))->toBeTrue();
+    
+    // Verify gitignore content
+    $gitignoreContent = file_get_contents($this->tempDir . '/.keep/cache/.gitignore');
+    expect($gitignoreContent)->toBe("*\n!.gitignore\n");
 });
 
-it('loads from all configured vaults when no vault specified', function () {
+it('loads from all configured vaults when no vault specified in cache mode', function () {
     // Create secrets in different vaults using commands
     ($this->runCommandWithPersistence)('set', [
         'key' => 'SECRET_1',
@@ -179,22 +155,18 @@ it('loads from all configured vaults when no vault specified', function () {
         '--plain' => true,
     ]);
     
-    // Generate a test APP_KEY
-    $appKey = 'base64:' . base64_encode(random_bytes(32));
-    
-    
-    // Run cache command without specifying vault
-    $commandTester = ($this->runCommandWithPersistence)('cache', [
+    // Run export cache command without specifying vault
+    $commandTester = ($this->runCommandWithPersistence)('export', [
         '--stage' => 'testing',
+        '--cache' => true,
     ]);
     
     expect($commandTester->getStatusCode())->toBe(0);
     expect($commandTester->getDisplay())->toContain('Loading secrets from 3 vaults (test, vault1, vault2)');
     expect($commandTester->getDisplay())->toContain('Found 1 total secrets to cache');
-    
 });
 
-it('loads from specified comma-separated vaults', function () {
+it('loads from specified comma-separated vaults in cache mode', function () {
     // Create vault3 configuration (vault1 and vault2 already exist from beforeEach)
     $vault3Config = [
         'driver' => 'test',
@@ -229,17 +201,79 @@ it('loads from specified comma-separated vaults', function () {
         '--plain' => true,
     ]);
     
-    // Generate a test APP_KEY
-    $appKey = 'base64:' . base64_encode(random_bytes(32));
-    
-    // Run cache command with specific vaults
-    $commandTester = ($this->runCommandWithPersistence)('cache', [
+    // Run export cache command with specific vaults
+    $commandTester = ($this->runCommandWithPersistence)('export', [
         '--stage' => 'testing',
         '--vault' => 'vault1,vault3',
+        '--cache' => true,
     ]);
     
     expect($commandTester->getStatusCode())->toBe(0);
     expect($commandTester->getDisplay())->toContain('Loading secrets from 2 vaults (vault1, vault3)');
     expect($commandTester->getDisplay())->toContain('Found 1 total secrets to cache');
+});
+
+it('applies --only and --except filters in cache mode', function () {
+    // Create multiple secrets
+    ($this->runCommandWithPersistence)('set', [
+        'key' => 'API_KEY',
+        'value' => 'api-value',
+        '--stage' => 'testing',
+        '--vault' => 'test',
+        '--plain' => true,
+    ]);
     
+    ($this->runCommandWithPersistence)('set', [
+        'key' => 'DB_PASSWORD',
+        'value' => 'db-value',
+        '--stage' => 'testing',
+        '--vault' => 'test',
+        '--plain' => true,
+    ]);
+    
+    ($this->runCommandWithPersistence)('set', [
+        'key' => 'APP_DEBUG',
+        'value' => 'true',
+        '--stage' => 'testing',
+        '--vault' => 'test',
+        '--plain' => true,
+    ]);
+    
+    // Export cache with --only filter
+    $commandTester = ($this->runCommandWithPersistence)('export', [
+        '--stage' => 'testing',
+        '--vault' => 'test',
+        '--only' => 'API_*,DB_*',
+        '--cache' => true,
+    ]);
+    
+    expect($commandTester->getStatusCode())->toBe(0);
+    expect($commandTester->getDisplay())->toContain('Found 1 total secrets to cache');
+});
+
+it('updates .env file with KEEP_CACHE_KEY_PART', function () {
+    // Create a test secret
+    $vault = Keep::vault('test', 'testing');
+    $vault->set('TEST_SECRET', 'secret-value');
+    
+    // Run export cache command
+    $commandTester = runCommand('export', [
+        '--stage' => 'testing',
+        '--vault' => 'test',
+        '--cache' => true,
+    ]);
+    
+    expect($commandTester->getStatusCode())->toBe(0);
+    expect($commandTester->getDisplay())->toContain('Updated .env file with KEEP_CACHE_KEY_PART');
+    
+    // Verify .env file was created/updated
+    $envPath = $this->tempDir . '/.env';
+    expect(file_exists($envPath))->toBeTrue();
+    
+    $envContent = file_get_contents($envPath);
+    expect($envContent)->toContain('KEEP_CACHE_KEY_PART=');
+    
+    // Verify file permissions are restricted
+    $permissions = fileperms($envPath) & 0777;
+    expect($permissions)->toBe(0600);
 });

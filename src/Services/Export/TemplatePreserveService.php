@@ -56,14 +56,14 @@ class TemplatePreserveService
         }
 
         // Write output
-        if ($options['output']) {
+        if ($options['file']) {
             $this->outputWriter->write(
-                $options['output'],
+                $options['file'],
                 $contents,
                 $options['overwrite'] ?? false,
                 $options['append'] ?? false
             );
-            $output->writeln("<info>Secrets exported to [{$options['output']}].</info>");
+            $output->writeln("<info>Secrets exported to [{$options['file']}].</info>");
         } else {
             $output->writeln($contents);
         }
