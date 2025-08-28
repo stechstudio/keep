@@ -26,7 +26,7 @@ keep export --stage=staging
 | `--stage`     | string  | *interactive* | Stage to export secrets from |
 | `--vault`     | string  | *default vault* | Vault to export secrets from |
 | `--format`    | string  | `env` | Output format: `env`, `json` |
-| `--output`    | string  | *stdout* | Output file path |
+| `--file`      | string  | *stdout* | Output file path |
 | `--append`    | boolean | `false` | Append to output file instead of overwriting |
 | `--overwrite` | boolean | `false` | Overwrite output file without confirmation |
 | `--only`      | string  | | Comma-separated list of keys to include |
@@ -35,16 +35,16 @@ keep export --stage=staging
 **Examples:**
 ```bash
 # Basic .env export
-keep export --stage=production --output=.env
+keep export --stage=production --file=.env
 
 # JSON export for configuration management
-keep export --stage=production --format=json --output=config.json
+keep export --stage=production --format=json --file=config.json
 
 # Export only API-related secrets
-keep export --stage=production --only="API_*" --output=api.env
+keep export --stage=production --only="API_*" --file=api.env
 
 # Export all except certain keys
-keep export --stage=production --except="PRIVATE_KEY,SECRET_TOKEN" --output=.env
+keep export --stage=production --except="PRIVATE_KEY,SECRET_TOKEN" --file=.env
 
 # Export to stdout for piping
 keep export --stage=production --format=json | jq '.API_KEY'
@@ -58,13 +58,13 @@ The `keep export --template` command combines secrets with template files, allow
 
 ```bash
 # Merge template with secrets
-keep export --template=.env.template --stage=production --output=.env
+keep export --template=.env.template --stage=production --file=.env
 
 # Output to stdout
 keep export --template=.env.template --stage=development
 
 # Include all secrets beyond template placeholders
-keep export --template=.env.template --stage=production --all --output=.env
+keep export --template=.env.template --stage=production --all --file=.env
 ```
 
 ### Template Options
@@ -94,19 +94,19 @@ REDIS_URL={secretsmanager:REDIS_URL}
 **Examples:**
 ```bash
 # Basic template merge (preserves structure)
-keep export --template=.env.template --stage=production --output=.env
+keep export --template=.env.template --stage=production --file=.env
 
 # Handle missing secrets gracefully
-keep export --template=.env.template --stage=development --missing=skip --output=.env
+keep export --template=.env.template --stage=development --missing=skip --file=.env
 
 # Remove lines with missing secrets
-keep export --template=.env.template --stage=staging --missing=remove --output=.env
+keep export --template=.env.template --stage=staging --missing=remove --file=.env
 
 # Template to JSON (parses and transforms data)
-keep export --template=.env.template --stage=production --format=json --output=config.json
+keep export --template=.env.template --stage=production --format=json --file=config.json
 
 # Template with all additional secrets
-keep export --template=.env.template --stage=production --all --output=.env
+keep export --template=.env.template --stage=production --all --file=.env
 ```
 
 ### Template Validation
@@ -117,3 +117,20 @@ It's a good practice to validate your templates before deployment to ensure all 
 # Validate templates before deployment
 keep template:validate app.template --stage=production
 ```
+
+## Cache Export
+
+The export command can also create encrypted cache files for Laravel integration using the `--cache` flag:
+
+```bash
+# Export secrets to encrypted cache file
+keep export --stage=production --cache
+
+# Export from specific vaults to cache
+keep export --stage=production --vault=ssm,secretsmanager --cache
+
+# Cache with filters
+keep export --stage=production --only="API_*,DB_*" --cache
+```
+
+The `--cache` flag creates an encrypted `.keep.php` file in `.keep/cache/` and updates your `.env` file with the required `KEEP_CACHE_KEY_PART` for decryption.

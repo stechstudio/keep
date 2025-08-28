@@ -48,9 +48,9 @@ describe('ExportCommand', function () {
             }
         });
 
-        it('accepts output file option', function () {
+        it('accepts file option', function () {
             $commandTester = runCommand('export', [
-                '--output' => '/tmp/test-export.env',
+                '--file' => '/tmp/test-export.env',
                 '--vault' => 'test',
                 '--stage' => 'testing',
                 '--overwrite' => true,
@@ -58,7 +58,7 @@ describe('ExportCommand', function () {
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should accept --output option without validation error
+            // Should accept --file option without validation error
             expect($output)->not->toMatch('/(invalid option|unknown option)/i');
         });
 
@@ -138,12 +138,12 @@ describe('ExportCommand', function () {
             expect($commandTester->getStatusCode())->toBeGreaterThanOrEqual(0);
         });
 
-        it('handles file output option appropriately', function () {
+        it('handles file option appropriately', function () {
             $tempFile = tempnam(sys_get_temp_dir(), 'keep_test_');
 
             try {
                 $commandTester = runCommand('export', [
-                    '--output' => $tempFile,
+                    '--file' => $tempFile,
                     '--overwrite' => true,
                     '--vault' => 'test',
                     '--stage' => 'testing',
@@ -168,7 +168,7 @@ describe('ExportCommand', function () {
 
             try {
                 $commandTester = runCommand('export', [
-                    '--output' => $tempFile,
+                    '--file' => $tempFile,
                     '--overwrite' => true,
                     '--vault' => 'test',
                     '--stage' => 'testing',
@@ -191,7 +191,7 @@ describe('ExportCommand', function () {
 
             try {
                 $commandTester = runCommand('export', [
-                    '--output' => $tempFile,
+                    '--file' => $tempFile,
                     '--append' => true,
                     '--vault' => 'test',
                     '--stage' => 'testing',
@@ -350,7 +350,7 @@ describe('ExportCommand', function () {
 
         it('handles file path validation', function () {
             $commandTester = runCommand('export', [
-                '--output' => '/tmp/test-export-validation.env',
+                '--file' => '/tmp/test-export-validation.env',
                 '--overwrite' => true,
                 '--vault' => 'test',
                 '--stage' => 'testing',

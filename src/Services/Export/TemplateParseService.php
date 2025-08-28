@@ -61,14 +61,14 @@ class TemplateParseService
         $jsonOutput = json_encode($templateData, JSON_PRETTY_PRINT);
 
         // Write output
-        if ($options['output']) {
+        if ($options['file']) {
             $this->outputWriter->write(
-                $options['output'],
+                $options['file'],
                 $jsonOutput,
                 $options['overwrite'] ?? false,
                 $options['append'] ?? false
             );
-            $output->writeln("<info>Secrets exported to [{$options['output']}].</info>");
+            $output->writeln("<info>Secrets exported to [{$options['file']}].</info>");
         } else {
             $output->writeln($jsonOutput);
         }

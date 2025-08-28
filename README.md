@@ -11,7 +11,8 @@
 - **CLI Commands** - Manage individual secrets, import/export in bulk, view history and diffs, all via artisan commands
 - **Multi-Vault Support** - Driver-based system, currently supporting AWS SSM Parameter Store and AWS Secrets Manager
 - **Environment Isolation** - Separate secrets by environment (local, staging, production) with access controls
-- **Template System** - Merge secrets into `.env` files using template placeholders
+- **Unified Export System** - Direct export, template processing, and encrypted caching all in one command
+- **Template System** - Replace placeholders in templates with vault secrets while preserving formatting
 - **Team Collaboration** - Share secret management across team members with proper access controls
 - **CI/CD Integration** - Export secrets for deployment pipelines and automated workflows
 
@@ -65,34 +66,63 @@ Check that the secret was added:
 
 ### Using secrets in your application
 
-#### Generate complete `.env` file from secrets
+#### Direct Export - Generate complete `.env` file from secrets
 
-If 100% of your .env variables are managed via Keep, you can export them all to a .env file as part of your deployment process:
+If all your environment variables are managed via Keep, export them directly to a .env file:
 
 ```bash
-./vendor/bin/keep export --stage=production --output=.env
+# Export all secrets from all vaults
+./vendor/bin/keep export --stage=production --file=.env
+
+# Export from specific vaults only
+./vendor/bin/keep export --stage=production --vault=ssm,secrets --file=.env
+
+# Export as JSON format
+./vendor/bin/keep export --stage=production --format=json --file=config.json
 ```
 
-#### Merge secrets into a base template `.env` file
+#### Template Mode - Merge secrets into a template file
 
-You can also have a template env file with some non-sensitive values and merge the secrets into it:
+Use a template file with placeholders for sensitive values:
 
-Example `.env.base` template:
+Example `.env.template`:
 
 ```env
+# Application Config
 APP_NAME=MyApp
-# ...
-DB_DATABASE=myapp_db
-DB_PASSWORD={ssm:DB_PASSWORD} # or just {ssm} since the key matches the variable name
+APP_ENV=production
+
+# Database - sensitive values from vaults
+DB_HOST={aws-ssm:database/host}
+DB_PORT=3306  # Static value
+DB_PASSWORD={aws-secrets:db-password}
+
+# API Keys
+API_KEY={vault1:api/key}
 ```
 
-Then run the merge command:
+Then process the template:
 
 ```bash
-./vendor/bin/keep merge --template=.env.base --output=.env --stage=production
+# Replace placeholders with actual secrets
+./vendor/bin/keep export --stage=production --template=.env.template --file=.env
+
+# Include ALL vault secrets (template + additional)
+./vendor/bin/keep export --stage=production --template=.env.template --all --file=.env
+
+# Handle missing secrets gracefully
+./vendor/bin/keep export --stage=production --template=.env.template --missing=blank --file=.env
 ```
 
-You will now have a `.env` file with all the values from the template and the secrets filled in.
+#### Encrypted Cache - For Laravel Integration
+
+Export secrets to an encrypted cache for use with Laravel's config caching:
+
+```bash
+./vendor/bin/keep export --stage=production --cache
+```
+
+This creates an encrypted cache file in `.keep/cache/` and adds the decryption key to your `.env` file.
 
 ## License
 
