@@ -1,6 +1,6 @@
 <?php
 
-describe('ListCommand', function () {
+describe('ShowCommand', function () {
 
     beforeEach(function () {
         createTempKeepDir();
@@ -35,7 +35,7 @@ describe('ListCommand', function () {
             $formats = ['table', 'json', 'env'];
 
             foreach ($formats as $format) {
-                $commandTester = runCommand('list', [
+                $commandTester = runCommand('show', [
                     '--vault' => 'test',
                     '--stage' => 'testing',
                     '--format' => $format,
@@ -48,7 +48,7 @@ describe('ListCommand', function () {
         });
 
         it('validates format option and shows error for invalid formats', function () {
-            $commandTester = runCommand('list', [
+            $commandTester = runCommand('show', [
                 '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'invalid',
@@ -62,7 +62,7 @@ describe('ListCommand', function () {
         });
 
         it('accepts unmask flag option', function () {
-            $commandTester = runCommand('list', [
+            $commandTester = runCommand('show', [
                 '--vault' => 'test',
                 '--stage' => 'testing',
                 '--unmask' => true,
@@ -74,7 +74,7 @@ describe('ListCommand', function () {
         });
 
         it('accepts filtering options', function () {
-            $commandTester = runCommand('list', [
+            $commandTester = runCommand('show', [
                 '--vault' => 'test',
                 '--stage' => 'testing',
                 '--only' => 'DB_*',
@@ -84,7 +84,7 @@ describe('ListCommand', function () {
             $output = stripAnsi($commandTester->getDisplay());
             expect($output)->not->toMatch('/(invalid.*only|unknown.*only)/i');
 
-            $commandTester = runCommand('list', [
+            $commandTester = runCommand('show', [
                 '--vault' => 'test',
                 '--stage' => 'testing',
                 '--except' => 'TEMP_*',
@@ -98,7 +98,7 @@ describe('ListCommand', function () {
 
     describe('parameter validation', function () {
         it('validates vault and stage parameters', function () {
-            $commandTester = runCommand('list', [
+            $commandTester = runCommand('show', [
                 '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
@@ -111,7 +111,7 @@ describe('ListCommand', function () {
         });
 
         it('handles vault parameter validation', function () {
-            $commandTester = runCommand('list', [
+            $commandTester = runCommand('show', [
                 '--vault' => 'test', // Valid vault from our config
                 '--stage' => 'testing',
             ]);
@@ -125,7 +125,7 @@ describe('ListCommand', function () {
 
     describe('output format structure', function () {
         it('table format shows appropriate headers and structure', function () {
-            $commandTester = runCommand('list', [
+            $commandTester = runCommand('show', [
                 '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'table',
@@ -140,7 +140,7 @@ describe('ListCommand', function () {
         });
 
         it('env format produces valid structure when successful', function () {
-            $commandTester = runCommand('list', [
+            $commandTester = runCommand('show', [
                 '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'env',
@@ -164,7 +164,7 @@ describe('ListCommand', function () {
         });
 
         it('json format produces valid JSON structure when successful', function () {
-            $commandTester = runCommand('list', [
+            $commandTester = runCommand('show', [
                 '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'json',
@@ -187,7 +187,7 @@ describe('ListCommand', function () {
             $patterns = ['DB_*', '*_PORT', 'API_KEY', 'DB_*,MAIL_*', '*_HOST,*_PORT'];
 
             foreach ($patterns as $pattern) {
-                $commandTester = runCommand('list', [
+                $commandTester = runCommand('show', [
                     '--vault' => 'test',
                     '--stage' => 'testing',
                     '--format' => 'env',
@@ -203,7 +203,7 @@ describe('ListCommand', function () {
             $patterns = ['TEMP_*', '*_CACHE', 'DEBUG_*', 'TEMP_*,DEBUG_*'];
 
             foreach ($patterns as $pattern) {
-                $commandTester = runCommand('list', [
+                $commandTester = runCommand('show', [
                     '--vault' => 'test',
                     '--stage' => 'testing',
                     '--format' => 'env',
@@ -216,7 +216,7 @@ describe('ListCommand', function () {
         });
 
         it('handles combination of only and except patterns', function () {
-            $commandTester = runCommand('list', [
+            $commandTester = runCommand('show', [
                 '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'env',
@@ -231,7 +231,7 @@ describe('ListCommand', function () {
 
     describe('error handling', function () {
         it('handles vault connection issues gracefully', function () {
-            $commandTester = runCommand('list', [
+            $commandTester = runCommand('show', [
                 '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'env',
@@ -246,7 +246,7 @@ describe('ListCommand', function () {
 
         it('handles empty results appropriately', function () {
             // Use a pattern that's unlikely to match anything
-            $commandTester = runCommand('list', [
+            $commandTester = runCommand('show', [
                 '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'env',
@@ -259,7 +259,7 @@ describe('ListCommand', function () {
         });
 
         it('handles auth errors gracefully', function () {
-            $commandTester = runCommand('list', [
+            $commandTester = runCommand('show', [
                 '--vault' => 'test',
                 '--stage' => 'testing',
             ]);
@@ -273,7 +273,7 @@ describe('ListCommand', function () {
     describe('masking behavior validation', function () {
         it('handles unmask flag appropriately', function () {
             // Test with unmask flag
-            $commandTester = runCommand('list', [
+            $commandTester = runCommand('show', [
                 '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'env',
@@ -284,7 +284,7 @@ describe('ListCommand', function () {
             expect($output)->not->toMatch('/invalid.*unmask/i');
 
             // Test without unmask flag (default masked)
-            $commandTester = runCommand('list', [
+            $commandTester = runCommand('show', [
                 '--vault' => 'test',
                 '--stage' => 'testing',
                 '--format' => 'env',

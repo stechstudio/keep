@@ -23,7 +23,6 @@ class KeepApplication extends Application
 
         parent::__construct($container, $events, '1.0.0-alpha');
         $this->setName('Keep');
-        $this->setDefaultCommand('info');
 
         $container->instance(
             KeepManager::class,
@@ -44,7 +43,7 @@ class KeepApplication extends Application
             Commands\DeleteCommand::class,
             Commands\HistoryCommand::class,
 
-            Commands\ListCommand::class,
+            Commands\ShowCommand::class,
             Commands\ImportCommand::class,
             Commands\ExportCommand::class,
 
