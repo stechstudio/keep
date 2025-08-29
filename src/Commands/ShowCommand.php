@@ -4,14 +4,14 @@ namespace STS\Keep\Commands;
 
 use function Laravel\Prompts\table;
 
-class ListCommand extends BaseCommand
+class ShowCommand extends BaseCommand
 {
-    public $signature = 'list {--format=table : table|json|env} {--unmask : Show full secret values instead of masked values} '
+    public $signature = 'show {--format=table : table|json|env} {--unmask : Show full secret values instead of masked values} '
         .self::ONLY_EXCLUDE_SIGNATURE
         .self::VAULT_SIGNATURE
         .self::STAGE_SIGNATURE;
 
-    public $description = 'Get the list of stage secrets in a specified vault';
+    public $description = 'Show all secrets from a vault and stage';
 
     public function process()
     {

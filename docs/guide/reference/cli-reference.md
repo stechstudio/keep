@@ -105,9 +105,9 @@ keep get STRIPE_KEY --stage=production --format=json
 keep get CONFIG_JSON --stage=staging --vault=ssm --format=raw
 ```
 
-## `keep list`
+## `keep show`
 
-Show all secrets in a stage or vault.
+Show all secrets from a vault and stage.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -121,22 +121,22 @@ Show all secrets in a stage or vault.
 **Examples:**
 ```bash
 # Basic listing (masked values)
-keep list --stage=development
+keep show --stage=development
 
 # Show actual values
-keep list --stage=production --unmask
+keep show --stage=production --unmask
 
 # Include only specific keys
-keep list --stage=production --only="NIGHTWATCH_*,MAIL_*"
+keep show --stage=production --only="NIGHTWATCH_*,MAIL_*"
 
 # Exclude certain keys
-keep list --stage=development --except="DB_*,STRIPE_*"
+keep show --stage=development --except="DB_*,STRIPE_*"
 
 # JSON output
-keep list --stage=staging --format=json
+keep show --stage=staging --format=json
 
 # From specific vault in env format
-keep list --stage=production --vault=secretsmanager --format=env
+keep show --stage=production --vault=secretsmanager --format=env
 ```
 
 ## `keep delete`
@@ -353,7 +353,7 @@ Each command includes detailed help:
 keep --help
 keep set --help
 keep get --help
-keep list --help
+keep show --help
 ```
 
 Use `--help` with any command to see its specific options and usage examples.

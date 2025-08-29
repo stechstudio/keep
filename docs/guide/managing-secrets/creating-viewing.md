@@ -64,9 +64,9 @@ keep get CONFIG_JSON --stage=staging --vault=ssm --format=raw
 
 ## Listing Secrets
 
-`keep list` shows all secrets in a stage or vault.
+`keep show` shows all secrets from a vault and stage.
 
-### Command Reference: `keep list`
+### Command Reference: `keep show`
 
 | Option | Type | Default | Description                                 |
 |--------|------|---------|---------------------------------------------|
@@ -80,18 +80,18 @@ keep get CONFIG_JSON --stage=staging --vault=ssm --format=raw
 **Examples:**
 ```bash
 # Basic listing
-keep list --stage=development
+keep show --stage=development
 
 # Show actual values
-keep list --stage=production --unmask
+keep show --stage=production --unmask
 
 # Filter keys
-keep list --stage=production --only="API_*,MAIL_*"
-keep list --stage=development --except="DB_*,STRIPE_*"
+keep show --stage=production --only="API_*,MAIL_*"
+keep show --stage=development --except="DB_*,STRIPE_*"
 
 # Different formats
-keep list --stage=staging --format=json
-keep list --stage=production --vault=secretsmanager --format=env
+keep show --stage=staging --format=json
+keep show --stage=production --vault=secretsmanager --format=env
 ```
 
 ## Deleting Secrets
@@ -142,11 +142,11 @@ keep delete LEGACY_SECRET --stage=production --vault=ssm
 ```bash
 # Development workflow
 keep set DB_PASSWORD "dev-password" --stage=development
-keep export --stage=development --output=.env.local
-keep list --stage=development
+keep export --stage=development --file=.env.local
+keep show --stage=development
 
 # Production workflow (be careful!)
-keep list --stage=production  # Verify stage first
+keep show --stage=production  # Verify stage first
 keep set DB_PASSWORD "prod-password" --stage=production
-keep export --stage=production --output=.env.production
+keep export --stage=production --file=.env.production
 ```
