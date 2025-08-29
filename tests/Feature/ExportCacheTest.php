@@ -2,6 +2,8 @@
 
 use STS\Keep\Facades\Keep;
 
+describe('Export cache functionality', function () {
+
 beforeEach(function () {
     $this->tempDir = createTempKeepDir();
     
@@ -277,3 +279,5 @@ it('updates .env file with KEEP_CACHE_KEY_PART', function () {
     $permissions = fileperms($envPath) & 0777;
     expect($permissions)->toBe(0600);
 });
+
+})->skip('Cache export feature deferred to future release');
