@@ -37,14 +37,9 @@ export default defineConfig({
                     items: [
                         {text: 'Overview', link: '/guide/managing-secrets/'},
                         {text: 'Creating & Viewing', link: '/guide/managing-secrets/creating-viewing'},
-                        {text: 'Cross-Environment', link: '/guide/managing-secrets/cross-environment'}
-                    ]
-                },
-                {
-                    text: 'Deployment & Runtime',
-                    items: [
-                        {text: 'Exporting to .env', link: '/guide/managing-secrets/exporting-to-env'},
-                        {text: 'Runtime Secrets', link: '/guide/managing-secrets/runtime-secrets'}
+                        {text: 'Cross-Environment', link: '/guide/managing-secrets/cross-environment'},
+                        {text: 'Exporting to .env', link: '/guide/managing-secrets/exporting-to-env'}
+                        // {text: 'Runtime Secrets', link: '/guide/managing-secrets/runtime-secrets'} // Deferred to future release
                     ]
                 },
                 {
@@ -60,7 +55,7 @@ export default defineConfig({
                     items: [
                         {text: 'CLI Reference', link: '/guide/reference/cli-reference'},
                         {text: 'AWS Authentication', link: '/guide/reference/aws-authentication'},
-                        {text: 'Encrypted Cache', link: '/guide/reference/security-architecture'}
+                        {text: 'Security Architecture', link: '/guide/reference/security-architecture'}
                     ]
                 }
             ],
@@ -69,7 +64,7 @@ export default defineConfig({
                     text: 'Examples',
                     items: [
                         {text: 'Overview', link: '/examples/'},
-                        {text: 'Laravel Integration', link: '/examples/laravel'},
+                        // {text: 'Laravel Integration', link: '/examples/laravel'}, // Deferred to future release
                         {text: 'CI/CD Workflows', link: '/examples/ci-cd'},
                         {text: 'Multi-Environment Setup', link: '/examples/multi-environment'},
                         {text: 'AWS Setup', link: '/examples/aws-setup'}

@@ -11,8 +11,10 @@ Copy secrets between stages, import from `.env` files, and compare environments.
 ### [Exporting to .env](./exporting-to-env)
 Generate plaintext `.env` files for traditional deployments.
 
+<!-- Runtime Secrets deferred to future release
 ### [Runtime Secrets](./runtime-secrets)
 Secure, high-performance alternative using encrypted caches.
+-->
 
 ## Core Concepts
 

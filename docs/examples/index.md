@@ -2,8 +2,10 @@
 
 ## Available Examples
 
+<!-- Laravel Integration deferred to future release
 ### [Laravel Integration](./laravel)
 Integrate Keep with Laravel applications using the service provider and helper functions.
+-->
 
 ### [CI/CD Workflows](./ci-cd)
 Use Keep in GitHub Actions, GitLab CI, and other automation pipelines.
