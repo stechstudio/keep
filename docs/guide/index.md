@@ -10,7 +10,7 @@ Managing secrets across development, staging, and production is challenging. Kee
 - **Stage Organization**: Separate secrets by environment (development, staging, production)
 - **Template Generation**: Build configuration files from templates with automatic secret injection
 - **Team Collaboration**: Share vault access without exposing secret values
-- **Laravel Integration**: Native support with helper functions and service provider
+- **Security First**: Encrypted storage, masked output, and secure AWS integration
 
 ## Getting Started
 

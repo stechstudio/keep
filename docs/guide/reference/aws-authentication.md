@@ -211,11 +211,11 @@ After setting up authentication, you need to configure IAM permissions for the A
 
 Each vault type requires specific IAM permissions based on your usage pattern (read-only, read-write, or admin access).
 
-## Laravel-Specific Considerations
+## PHP Application Considerations
 
-When using Keep with Laravel:
+When using Keep with PHP applications:
 
-1. **Don't cache config with AWS credentials**
+1. **Don't hardcode AWS credentials in config**
    ```php
    // config/aws.php - DON'T DO THIS
    'credentials' => [
@@ -230,12 +230,11 @@ When using Keep with Laravel:
    'credentials' => null, // SDK will use IAM role, ~/.aws/credentials, etc.
    ```
 
-3. **Generate .env before config:cache**
+3. **Generate .env before caching configuration**
    ```bash
    # deployment.sh
    keep export --stage=production --output=.env
-   php artisan config:cache
-   php artisan route:cache
+   # Then cache your application configuration if needed
    ```
 
 ## Troubleshooting
