@@ -1,4 +1,4 @@
-<!-- Future Enhancement: Encrypted Cache Architecture
+<!-- Future Enhancement: Encrypted Cache Architecture -->
 
 # Encrypted Cache Architecture
 
