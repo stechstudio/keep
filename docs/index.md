@@ -26,8 +26,8 @@ features:
   - title: CLI First
     details: Powerful command-line interface built for CI/CD automation.
     
-  - title: Laravel Integration
-    details: Native Laravel support with helper functions and service provider.
+  - title: Team Collaboration
+    details: Share vault configurations and manage secrets across your team.
     
   - title: Security Focused
     details: Encrypted storage, secure AWS integration, and masked output by default.
