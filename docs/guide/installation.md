@@ -40,6 +40,7 @@ Add Composer's global bin to your `$PATH`:
 export PATH="$PATH:$HOME/.composer/vendor/bin"
 ```
 
+<!-- Laravel Integration deferred to future release
 ## Laravel Integration
 
 For Laravel applications, publish the configuration:
@@ -47,6 +48,7 @@ For Laravel applications, publish the configuration:
 ```bash
 php artisan vendor:publish --tag=keep-config
 ```
+-->
 
 ## Verify Installation
 

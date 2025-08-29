@@ -54,8 +54,8 @@ export default defineConfig({
                     text: 'Reference',
                     items: [
                         {text: 'CLI Reference', link: '/guide/reference/cli-reference'},
-                        {text: 'AWS Authentication', link: '/guide/reference/aws-authentication'},
-                        {text: 'Security Architecture', link: '/guide/reference/security-architecture'}
+                        {text: 'AWS Authentication', link: '/guide/reference/aws-authentication'}
+                        // {text: 'Security Architecture', link: '/guide/reference/security-architecture'} // Deferred - encrypted cache feature
                     ]
                 }
             ],
