@@ -1,3 +1,5 @@
+<!-- Future Enhancement: Encrypted Cache Architecture
+
 # Encrypted Cache Architecture
 
 Technical deep-dive into Keep's approach to caching secrets without ever exposing plaintext or decryption keys on disk.

@@ -280,7 +280,6 @@ Export secrets from vaults with optional template processing.
 | `--all` | boolean | `false` | With template: also append non-placeholder secrets |
 | `--missing` | string | `fail` | Strategy for missing secrets: `fail`, `remove`, `blank`, `skip` |
 | `--file` | string | *stdout* | Output file path |
-| `--cache` | boolean | `false` | Export to encrypted cache file |
 | `--append` | boolean | `false` | Append to output file instead of overwriting |
 | `--overwrite` | boolean | `false` | Overwrite output file without confirmation |
 | `--only` | string | | Comma-separated list of keys to include |
@@ -302,9 +301,6 @@ keep export --stage=production --vault=ssm,secretsmanager --file=.env
 
 # Export with filtering
 keep export --stage=production --only="API_*,DB_*" --file=.env
-
-# Export to encrypted cache
-keep export --stage=production --cache
 ```
 
 ### Template Mode (with template)
@@ -326,9 +322,6 @@ cat .env.base .env.prod | keep export --template=/dev/stdin --stage=production -
 
 # Handle missing secrets gracefully
 keep export --stage=production --template=.env.template --missing=skip --file=.env
-
-# Template with cache export
-keep export --stage=production --template=.env.template --cache
 ```
 
 **Template Syntax:**
