@@ -1,3 +1,5 @@
+<!-- Future Enhancement: Runtime Secrets Integration
+
 # Runtime Secrets
 
 Keep provides a secure, high-performance alternative to plaintext `.env` files by caching encrypted secrets that are decrypted only at runtime. This approach eliminates plaintext secrets on disk while maintaining the low latency your application needs.
@@ -167,3 +169,5 @@ If using `config:cache` with the `dotenv` mode, consider switching to `helper` m
 - Learn about [exporting to .env](./exporting-to-env.md) for deployment scenarios
 - Explore [vault configuration](../vaults) options
 - Read the [Encrypted Cache Architecture](../reference/security-architecture) for technical details
+
+-->

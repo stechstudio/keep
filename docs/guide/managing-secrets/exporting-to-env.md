@@ -118,6 +118,7 @@ It's a good practice to validate your templates before deployment to ensure all 
 keep template:validate app.template --stage=production
 ```
 
+<!-- Future enhancement: Cache Export
 ## Cache Export
 
 The export command can also create encrypted cache files for Laravel integration using the `--cache` flag:
@@ -134,3 +135,4 @@ keep export --stage=production --only="API_*,DB_*" --cache
 ```
 
 The `--cache` flag creates an encrypted `.keep.php` file in `.keep/cache/` and updates your `.env` file with the required `KEEP_CACHE_KEY_PART` for decryption.
+-->
