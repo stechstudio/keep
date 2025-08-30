@@ -37,6 +37,8 @@ class KeepApplication extends Application
             Commands\VaultEditCommand::class,
             Commands\VaultListCommand::class,
 
+            Commands\StageAddCommand::class,
+
             Commands\GetCommand::class,
             Commands\SetCommand::class,
             Commands\CopyCommand::class,
