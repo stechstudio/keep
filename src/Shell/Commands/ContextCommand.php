@@ -23,7 +23,28 @@ class ContextCommand extends Command
         $this
             ->setName('context')
             ->setAliases(['ctx'])
-            ->setDescription('Show current shell context');
+            ->setDescription('Show current shell context')
+            ->setHelp(<<<'HELP'
+Usage:
+  context
+
+Description:
+  Displays the current shell context including:
+  - Current vault and stage
+  - Available vaults and stages
+  - Default settings
+  - Number of cached secrets for tab completion
+
+Examples:
+  context     # Show full context information
+  ctx         # Same as above (alias)
+
+Related Commands:
+  stage       # Switch to a different stage
+  vault       # Switch to a different vault  
+  use         # Switch both vault and stage
+HELP
+            );
     }
     
     protected function execute(InputInterface $input, OutputInterface $output): int

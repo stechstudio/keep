@@ -13,7 +13,19 @@ class ListCommand extends Command
     {
         $this
             ->setName('list')
-            ->setDescription('Show available Keep commands (same as help)');
+            ->setDescription('Show available Keep commands (same as help)')
+            ->setHelp(<<<'HELP'
+Usage:
+  list
+
+Description:
+  Shows all available Keep shell commands.
+  This is an alias for the 'help' command.
+
+Examples:
+  list        # Show all available commands
+HELP
+            );
     }
     
     protected function execute(InputInterface $input, OutputInterface $output): int
