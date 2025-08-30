@@ -26,7 +26,26 @@ class StageCommand extends Command
             ->setDefinition([
                 new InputArgument('name', InputArgument::OPTIONAL, 'Stage name to switch to'),
             ])
-            ->setDescription('Switch to a different stage or show current stage');
+            ->setDescription('Switch to a different stage or show current stage')
+            ->setHelp(<<<'HELP'
+Usage:
+  stage [<name>]
+
+Arguments:
+  name    Stage name to switch to (optional)
+
+Description:
+  Without arguments, shows the current stage and available stages.
+  With a stage name, switches to that stage.
+  Supports partial matching of stage names.
+
+Examples:
+  stage                  # Show current stage and available stages
+  stage production       # Switch to production stage
+  stage prod             # Switch to production (partial match)
+  stage dev              # Switch to development stage
+HELP
+            );
     }
     
     protected function execute(InputInterface $input, OutputInterface $output): int

@@ -26,7 +26,25 @@ class UseCommand extends Command
             ->setDefinition([
                 new InputArgument('context', InputArgument::REQUIRED, 'Context in format vault:stage'),
             ])
-            ->setDescription('Switch both vault and stage at once');
+            ->setDescription('Switch both vault and stage at once')
+            ->setHelp(<<<'HELP'
+Usage:
+  use <vault:stage>
+
+Arguments:
+  context    Vault and stage to switch to (format: vault:stage)
+
+Description:
+  Switches both vault and stage in a single command.
+  Supports partial matching for both vault and stage names.
+
+Examples:
+  use ssm:production     # Switch to SSM vault, production stage
+  use test:dev           # Switch to test vault, development stage
+  use sec:staging        # Switch to secretsmanager vault, staging
+  use s:p                # Partial match (if unambiguous)
+HELP
+            );
     }
     
     protected function execute(InputInterface $input, OutputInterface $output): int

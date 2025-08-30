@@ -26,7 +26,26 @@ class VaultCommand extends Command
             ->setDefinition([
                 new InputArgument('name', InputArgument::OPTIONAL, 'Vault name to switch to'),
             ])
-            ->setDescription('Switch to a different vault or show current vault');
+            ->setDescription('Switch to a different vault or show current vault')
+            ->setHelp(<<<'HELP'
+Usage:
+  vault [<name>]
+
+Arguments:
+  name    Vault name to switch to (optional)
+
+Description:
+  Without arguments, shows the current vault and available vaults.
+  With a vault name, switches to that vault.
+  Supports partial matching of vault names.
+
+Examples:
+  vault                  # Show current vault and available vaults
+  vault ssm              # Switch to SSM vault
+  vault test             # Switch to test vault
+  vault sec              # Switch to secretsmanager (partial match)
+HELP
+            );
     }
     
     protected function execute(InputInterface $input, OutputInterface $output): int

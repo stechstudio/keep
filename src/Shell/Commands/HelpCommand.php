@@ -11,7 +11,25 @@ class HelpCommand extends PsyHelpCommand
     protected function configure()
     {
         parent::configure();
-        $this->setDescription('Show available Keep commands');
+        $this->setDescription('Show available Keep commands')
+            ->setHelp(<<<'HELP'
+Usage:
+  help [<command>]
+
+Arguments:
+  command    Command name to get help for (optional)
+
+Description:
+  Without arguments, shows all available Keep shell commands.
+  With a command name, shows detailed help for that command.
+
+Examples:
+  help           # Show all available commands
+  help copy      # Show detailed help for copy command
+  help set       # Show detailed help for set command
+  help diff      # Show detailed help for diff command
+HELP
+            );
     }
     
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -33,7 +51,8 @@ class HelpCommand extends PsyHelpCommand
                 'delete <key>' => 'Delete a secret (alias: d)',
                 'show' => 'Show all secrets (aliases: l, ls)',
                 'history <key>' => 'View secret history',
-                'copy' => 'Copy secrets between stages',
+                'copy <key>' => 'Copy single secret',
+                'copy only <pattern>' => 'Copy secrets matching pattern',
                 'diff <stage1> <stage2>' => 'Compare secrets between stages',
             ],
             '<comment>Context Management</comment>' => [
@@ -84,6 +103,7 @@ class HelpCommand extends PsyHelpCommand
         $output->writeln('  <info>show env unmask</info>          - Export format with real values');
         $output->writeln('  <info>show only DB_*</info>           - Filter by pattern');
         $output->writeln('  <info>get NAME raw</info>             - Get raw value without table');
+        $output->writeln('  <info>copy only DB_*</info>           - Copy matching secrets');
         $output->writeln('  <info>diff staging prod unmask</info> - Compare with real values');
         $output->writeln('');
         $output->writeln('<comment>Tips:</comment>');
