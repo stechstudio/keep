@@ -29,19 +29,6 @@ class KeepShell extends Shell
     }
     
     /**
-     * Override to display Keep-specific startup message
-     */
-    protected function writeStartupMessage(): void
-    {
-        $this->output->writeln('');
-        $this->output->writeln('<info>Welcome to Keep Shell v1.0.0</info>');
-        $this->output->writeln("Type 'help' for available commands or 'exit' to quit.");
-        $this->output->writeln("Current context: <comment>{$this->context->getVault()}:{$this->context->getStage()}</comment>");
-        $this->output->writeln("<comment>Tab completion is available for commands and secret names!</comment>");
-        $this->output->writeln('');
-    }
-    
-    /**
      * Override to handle Keep commands that aren't PsySH commands
      */
     public function writeException(\Throwable $e): void
