@@ -26,7 +26,7 @@ describe('KeepException', function () {
         };
 
         $exception = (new KeepException('Error occurred'))
-            ->withContext(details: 'Additional details about the error');
+            ->withContext(['details' => 'Additional details about the error']);
         $exception->renderConsole($outputCallback);
 
         expect($output)->toEqual([
@@ -43,14 +43,14 @@ describe('KeepException', function () {
         };
 
         $exception = (new KeepException('Secret not found'))
-            ->withContext(
-                vault: 'ssm',
-                stage: 'production',
-                key: 'DB_PASSWORD',
-                path: '/app/production/DB_PASSWORD',
-                lineNumber: 15,
-                suggestion: "Check if this secret exists using 'keep list'"
-            );
+            ->withContext([
+                'vault' => 'ssm',
+                'stage' => 'production',
+                'key' => 'DB_PASSWORD',
+                'path' => '/app/production/DB_PASSWORD',
+                'lineNumber' => 15,
+                'suggestion' => "Check if this secret exists using 'keep list'"
+            ]);
 
         $exception->renderConsole($outputCallback);
 
@@ -73,10 +73,10 @@ describe('KeepException', function () {
         };
 
         $exception = (new KeepException('Partial error'))
-            ->withContext(
-                vault: 'local',
-                key: 'API_KEY'
-            );
+            ->withContext([
+                'vault' => 'local',
+                'key' => 'API_KEY'
+            ]);
 
         $exception->renderConsole($outputCallback);
 
@@ -94,10 +94,10 @@ describe('KeepException', function () {
         };
 
         $exception = (new SecretNotFoundException('Secret not found'))
-            ->withContext(
-                vault: 'ssm',
-                key: 'SECRET_KEY'
-            );
+            ->withContext([
+                'vault' => 'ssm',
+                'key' => 'SECRET_KEY'
+            ]);
 
         $exception->renderConsole($outputCallback);
 
@@ -116,15 +116,15 @@ describe('KeepException', function () {
         };
 
         $exception = (new KeepException('Error'))
-            ->withContext(
-                vault: 'vault-name',
-                stage: 'staging',
-                key: 'KEY_NAME',
-                path: '/full/path',
-                lineNumber: 42,
-                suggestion: 'Try this instead',
-                details: 'Extra details'
-            );
+            ->withContext([
+                'vault' => 'vault-name',
+                'stage' => 'staging',
+                'key' => 'KEY_NAME',
+                'path' => '/full/path',
+                'lineNumber' => 42,
+                'suggestion' => 'Try this instead',
+                'details' => 'Extra details'
+            ]);
 
         $exception->renderConsole($outputCallback);
 

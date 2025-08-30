@@ -7,57 +7,22 @@ use Throwable;
 
 class KeepException extends RuntimeException
 {
-    protected ?string $vault = null;
-
-    protected ?string $stage = null;
-
-    protected ?string $key = null;
-
-    protected ?string $path = null;
-
-    protected ?int $lineNumber = null;
-
-    protected ?string $suggestion = null;
-
-    protected ?string $details = null;
+    protected array $context = [];
 
     public function __construct(string $message = '', int $code = 0, ?Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }
 
-    public function withContext(
-        ?string $vault = null,
-        ?string $stage = null,
-        ?string $key = null,
-        ?string $path = null,
-        ?int $lineNumber = null,
-        ?string $suggestion = null,
-        ?string $details = null
-    ): static {
-        if ($vault !== null) {
-            $this->vault = $vault;
-        }
-        if ($stage !== null) {
-            $this->stage = $stage;
-        }
-        if ($key !== null) {
-            $this->key = $key;
-        }
-        if ($path !== null) {
-            $this->path = $path;
-        }
-        if ($lineNumber !== null) {
-            $this->lineNumber = $lineNumber;
-        }
-        if ($suggestion !== null) {
-            $this->suggestion = $suggestion;
-        }
-        if ($details !== null) {
-            $this->details = $details;
-        }
-
+    public function withContext(array $context): static
+    {
+        $this->context = array_merge($this->context, $context);
         return $this;
+    }
+    
+    public function getContext(): array
+    {
+        return $this->context;
     }
 
     public function renderConsole(callable $output): void
@@ -66,11 +31,11 @@ class KeepException extends RuntimeException
 
         // Build context details
         $contextLines = array_filter([
-            'Vault' => $this->vault,
-            'Stage' => $this->stage,
-            'Key' => $this->key,
-            'Path' => $this->path,
-            'Template line' => $this->lineNumber,
+            'Vault' => $this->context['vault'] ?? null,
+            'Stage' => $this->context['stage'] ?? null,
+            'Key' => $this->context['key'] ?? null,
+            'Path' => $this->context['path'] ?? null,
+            'Template line' => $this->context['lineNumber'] ?? null,
         ]);
 
         $contextLines = array_map(fn ($k, $v) => "  $k: $v", array_keys($contextLines), $contextLines);
@@ -83,15 +48,15 @@ class KeepException extends RuntimeException
         }
 
         // Output additional details if provided
-        if ($this->details) {
+        if (isset($this->context['details'])) {
             $output('');
-            $output($this->details);
+            $output($this->context['details']);
         }
 
         // Output suggestion if provided
-        if ($this->suggestion) {
+        if (isset($this->context['suggestion'])) {
             $output('');
-            $output('💡  '.$this->suggestion, 'comment');
+            $output('💡  '.$this->context['suggestion'], 'comment');
         }
     }
 }
