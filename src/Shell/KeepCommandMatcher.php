@@ -15,6 +15,12 @@ class KeepCommandMatcher extends AbstractMatcher
     private StageCompleter $stageCompleter;
     private VaultCompleter $vaultCompleter;
     
+    private static array $keepCommands = [
+        'get', 'g', 'set', 's', 'delete', 'd', 'show', 'l', 'ls', 
+        'copy', 'import', 'export', 'diff', 'verify', 'info', 
+        'history', 'configure', 'stage', 'vault', 'use', 'context'
+    ];
+    
     public function __construct(
         CommandCompleter $commandCompleter,
         SecretCompleter $secretCompleter,
@@ -32,20 +38,8 @@ class KeepCommandMatcher extends AbstractMatcher
      */
     public function hasMatched(array $tokens): bool
     {
-        // Build the full input from tokens
-        $fullInput = $this->buildFullInput($tokens);
-        
-        // Check if this looks like a Keep command
-        $keepCommands = ['get', 'g', 'set', 's', 'delete', 'd', 'show', 'l', 'ls', 
-                        'copy', 'import', 'export', 'diff', 'verify', 'info', 
-                        'history', 'configure', 'stage', 'vault', 'use', 'context'];
-        
-        // Split the input to get the first word
-        $parts = preg_split('/\s+/', trim($fullInput), 2);
-        $firstWord = $parts[0] ?? '';
-        
-        // Check if the first word is a Keep command
-        return in_array($firstWord, $keepCommands);
+        // Always claim to match to prevent fallback to PsySH's default matchers
+        return true;
     }
     
     /**
@@ -53,19 +47,25 @@ class KeepCommandMatcher extends AbstractMatcher
      */
     public function getMatches(array $tokens, array $info = []): array
     {
-        $fullInput = $this->buildFullInput($tokens);
-        $parts = preg_split('/\s+/', trim($fullInput));
+        $input = $this->getInput($tokens);
+        $parts = preg_split('/\s+/', $input, -1, PREG_SPLIT_NO_EMPTY);
         
-        // If we're at the beginning, complete commands
-        if (count($parts) === 1 && !str_ends_with($fullInput, ' ')) {
-            return $this->commandCompleter->complete($parts[0]);
+        // If empty or completing the first word (command)
+        if (empty($parts) || (count($parts) === 1 && !str_ends_with($input, ' '))) {
+            $partial = $parts[0] ?? '';
+            return $this->commandCompleter->complete($partial);
         }
         
         $command = $parts[0];
         
+        // Only proceed if this is a Keep command
+        if (!in_array($command, self::$keepCommands)) {
+            return [];
+        }
+        
         // Determine what we're completing
         $currentArg = '';
-        if (str_ends_with($fullInput, ' ')) {
+        if (str_ends_with($input, ' ')) {
             // Starting a new argument
             $currentArg = '';
         } else {
@@ -75,11 +75,11 @@ class KeepCommandMatcher extends AbstractMatcher
         
         // Check what type of completion we need
         if ($this->isStageContext($command, $currentArg)) {
-            return $this->stageCompleter->complete($this->extractValue($currentArg), $command);
+            return $this->stageCompleter->complete($currentArg, $command);
         }
         
         if ($this->isVaultContext($command, $currentArg)) {
-            return $this->vaultCompleter->complete($this->extractValue($currentArg), $command);
+            return $this->vaultCompleter->complete($currentArg, $command);
         }
         
         if ($this->isSecretContext($command)) {
@@ -90,43 +90,42 @@ class KeepCommandMatcher extends AbstractMatcher
     }
     
     /**
-     * Build full input string from tokens
+     * Get input string from tokens
      */
-    private function buildFullInput(array $tokens): string
+    private function getInput(array $tokens): string
     {
         $input = '';
         foreach ($tokens as $token) {
             if (is_array($token)) {
-                // Skip PHP opening tag
-                if ($token[0] === T_OPEN_TAG) {
+                // Skip PHP opening tag and closing tag
+                if (isset($token[0]) && in_array($token[0], [T_OPEN_TAG, T_CLOSE_TAG])) {
                     continue;
                 }
-                $input .= $token[1];
+                $input .= $token[1] ?? '';
             } else {
                 $input .= $token;
             }
         }
+        
+        // Remove any PHP tags that might have snuck in
+        $input = str_replace(['<?php', '<?', '?>'], '', $input);
+        
         return trim($input);
     }
     
     private function isStageContext(string $command, string $arg): bool
     {
-        return in_array($command, ['stage', 's']);
+        return in_array($command, ['stage']);
     }
     
     private function isVaultContext(string $command, string $arg): bool
     {
-        return in_array($command, ['vault', 'v']);
+        return in_array($command, ['vault']);
     }
     
     private function isSecretContext(string $command): bool
     {
-        $secretCommands = ['get', 'g', 'delete', 'd', 'set', 'copy', 'history'];
+        $secretCommands = ['get', 'g', 'delete', 'd', 'set', 's', 'copy', 'history'];
         return in_array($command, $secretCommands);
-    }
-    
-    private function extractValue(string $arg): string
-    {
-        return $arg;
     }
 }
