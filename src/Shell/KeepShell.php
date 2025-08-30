@@ -39,7 +39,7 @@ class KeepShell extends Shell
         $this->add(new ListCommand());
         
         // Add our custom tab completion matcher
-        $this->addTabCompletionMatchers([
+        $this->addMatchers([
             new KeepCommandMatcher(
                 new Completers\CommandCompleter(),
                 new Completers\SecretCompleter($context),

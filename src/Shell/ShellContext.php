@@ -92,24 +92,35 @@ class ShellContext
         
         // Reload cache
         try {
-            // Check if Keep is initialized first
-            if (!Keep::isInitialized()) {
-                // Can't load secrets without initialization
-                return [];
-            }
+            // Ensure Keep is properly initialized
+            $this->ensureKeepInitialized();
             
             $vault = Keep::vault($this->currentVault, $this->currentStage);
             $secrets = $vault->list();
             $this->cachedSecrets = $secrets->allKeys()->toArray();
             $this->cacheTimestamp = time();
         } catch (\Exception $e) {
-            // Log the error for debugging
-            error_log("ShellContext: Failed to load secrets - " . $e->getMessage());
             // If we can't load secrets, return empty array
             $this->cachedSecrets = [];
         }
         
         return $this->cachedSecrets;
+    }
+    
+    private function ensureKeepInitialized(): void
+    {
+        $container = \STS\Keep\KeepContainer::getInstance();
+        
+        // Check if KeepManager is already bound
+        if (!$container->bound(\STS\Keep\KeepManager::class)) {
+            $settings = Settings::load();
+            $vaultConfigs = \STS\Keep\Data\Collections\VaultConfigCollection::load();
+            
+            $container->instance(
+                \STS\Keep\KeepManager::class,
+                new \STS\Keep\KeepManager($settings, $vaultConfigs)
+            );
+        }
     }
     
     public function invalidateCache(): void
