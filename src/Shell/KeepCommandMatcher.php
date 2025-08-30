@@ -48,11 +48,19 @@ class KeepCommandMatcher extends AbstractMatcher
     public function getMatches(array $tokens, array $info = []): array
     {
         $input = $this->getInput($tokens);
-        $parts = preg_split('/\s+/', $input, -1, PREG_SPLIT_NO_EMPTY);
+        
+        // Check if input ends with space(s) BEFORE splitting
+        $endsWithSpace = preg_match('/\s+$/', $input);
+        
+        // Now split to get parts
+        $parts = preg_split('/\s+/', trim($input), -1, PREG_SPLIT_NO_EMPTY);
+        
+        error_log("KeepCommandMatcher::getMatches - input='$input', parts=" . json_encode($parts) . ", ends_with_space=" . ($endsWithSpace ? 'true' : 'false'));
         
         // If empty or completing the first word (command)
-        if (empty($parts) || (count($parts) === 1 && !str_ends_with($input, ' '))) {
+        if (empty($parts) || (count($parts) === 1 && !$endsWithSpace)) {
             $partial = $parts[0] ?? '';
+            error_log("Completing command with partial='$partial'");
             return $this->commandCompleter->complete($partial);
         }
         
@@ -60,12 +68,13 @@ class KeepCommandMatcher extends AbstractMatcher
         
         // Only proceed if this is a Keep command
         if (!in_array($command, self::$keepCommands)) {
+            error_log("Not a Keep command: '$command'");
             return [];
         }
         
         // Determine what we're completing
         $currentArg = '';
-        if (str_ends_with($input, ' ')) {
+        if ($endsWithSpace) {
             // Starting a new argument
             $currentArg = '';
         } else {
@@ -73,19 +82,27 @@ class KeepCommandMatcher extends AbstractMatcher
             $currentArg = end($parts);
         }
         
+        error_log("Command='$command', currentArg='$currentArg'");
+        
         // Check what type of completion we need
         if ($this->isStageContext($command, $currentArg)) {
+            error_log("Stage context detected");
             return $this->stageCompleter->complete($currentArg, $command);
         }
         
         if ($this->isVaultContext($command, $currentArg)) {
+            error_log("Vault context detected");
             return $this->vaultCompleter->complete($currentArg, $command);
         }
         
         if ($this->isSecretContext($command)) {
-            return $this->secretCompleter->complete($currentArg, $command);
+            error_log("Secret context detected for command '$command'");
+            $matches = $this->secretCompleter->complete($currentArg, $command);
+            error_log("Secret completer returned: " . json_encode($matches));
+            return $matches;
         }
         
+        error_log("No context matched");
         return [];
     }
     
@@ -110,7 +127,9 @@ class KeepCommandMatcher extends AbstractMatcher
         // Remove any PHP tags that might have snuck in
         $input = str_replace(['<?php', '<?', '?>'], '', $input);
         
-        return trim($input);
+        // IMPORTANT: Don't trim! We need to preserve trailing spaces
+        // to know if we're starting a new argument
+        return $input;
     }
     
     private function isStageContext(string $command, string $arg): bool

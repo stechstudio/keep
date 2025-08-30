@@ -38,6 +38,9 @@ class KeepShell extends Shell
         $this->add(new HelpCommand());
         $this->add(new ListCommand());
         
+        // Pre-load secrets to ensure they're available for tab completion
+        $this->preloadSecrets($context);
+        
         // Add our custom tab completion matcher
         $this->addMatchers([
             new KeepCommandMatcher(
@@ -47,6 +50,16 @@ class KeepShell extends Shell
                 new Completers\VaultCompleter($context)
             ),
         ]);
+    }
+    
+    private function preloadSecrets(ShellContext $context): void
+    {
+        $secrets = $context->getCachedSecretNames();
+        if (!empty($secrets)) {
+            echo "Loaded " . count($secrets) . " secrets: " . implode(', ', $secrets) . "\n";
+        } else {
+            echo "No secrets found in {$context->getVault()}:{$context->getStage()}\n";
+        }
     }
     
     /**
