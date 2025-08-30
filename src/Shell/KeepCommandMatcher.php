@@ -92,7 +92,7 @@ class KeepCommandMatcher extends AbstractMatcher
     /**
      * Get input string from tokens
      */
-    private function getInput(array $tokens): string
+    protected function getInput(array $tokens): string
     {
         $input = '';
         foreach ($tokens as $token) {

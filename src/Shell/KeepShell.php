@@ -10,6 +10,7 @@ use STS\Keep\Shell\Commands\ListCommand;
 use STS\Keep\Shell\Commands\StageCommand;
 use STS\Keep\Shell\Commands\UseCommand;
 use STS\Keep\Shell\Commands\VaultCommand;
+use STS\Keep\Shell\Completers;
 
 class KeepShell extends Shell
 {
@@ -36,6 +37,16 @@ class KeepShell extends Shell
         // Override the help and list commands with our custom versions
         $this->add(new HelpCommand());
         $this->add(new ListCommand());
+        
+        // Add our custom tab completion matcher
+        $this->addTabCompletionMatchers([
+            new KeepCommandMatcher(
+                new Completers\CommandCompleter(),
+                new Completers\SecretCompleter($context),
+                new Completers\StageCompleter($context),
+                new Completers\VaultCompleter($context)
+            ),
+        ]);
     }
     
     /**
@@ -47,6 +58,16 @@ class KeepShell extends Shell
             new \Psy\Command\ExitCommand(),
             new \Psy\Command\ClearCommand(),
         ];
+    }
+    
+    /**
+     * Override to exclude default matchers that interfere with our completions
+     */
+    protected function getDefaultMatchers(): array
+    {
+        // We don't want any of PsySH's default matchers
+        // Our KeepCommandMatcher will handle everything
+        return [];
     }
     
     private function registerKeepCommands(): void
