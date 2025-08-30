@@ -14,11 +14,11 @@ class ExceptionFactory
             : "Unable to find secret for key [{$key}]";
 
         return (new SecretNotFoundException($message))
-            ->withContext(
-                vault: $vault,
-                key: $key,
-                suggestion: $suggestion ?: ($vault ? "Check if this secret exists using 'keep list'" : null)
-            );
+            ->withContext(array_filter([
+                'vault' => $vault,
+                'key' => $key,
+                'suggestion' => $suggestion ?: ($vault ? "Check if this secret exists using 'keep list'" : null)
+            ], fn($v) => $v !== null));
     }
 
     /**
@@ -34,13 +34,13 @@ class ExceptionFactory
         $secretKey = $path ?: $key;
 
         return (new SecretNotFoundException("Unable to find secret for key [{$secretKey}] in vault [{$vault}]"))
-            ->withContext(
-                vault: $vault,
-                key: $key,
-                path: $path,
-                lineNumber: $lineNumber,
-                suggestion: "Check if this secret exists using 'keep list'"
-            );
+            ->withContext(array_filter([
+                'vault' => $vault,
+                'key' => $key,
+                'path' => $path,
+                'lineNumber' => $lineNumber,
+                'suggestion' => "Check if this secret exists using 'keep list'"
+            ], fn($v) => $v !== null));
     }
 
     /**
@@ -49,10 +49,10 @@ class ExceptionFactory
     public static function vaultError(string $message, ?string $vault = null, ?string $stage = null): KeepException
     {
         return (new KeepException($message))
-            ->withContext(
-                vault: $vault,
-                stage: $stage
-            );
+            ->withContext(array_filter([
+                'vault' => $vault,
+                'stage' => $stage
+            ], fn($v) => $v !== null));
     }
 
     /**
@@ -61,10 +61,10 @@ class ExceptionFactory
     public static function awsError(string $awsMessage, ?string $vault = null, ?string $key = null): KeepException
     {
         return (new KeepException($awsMessage))
-            ->withContext(
-                vault: $vault,
-                key: $key
-            );
+            ->withContext(array_filter([
+                'vault' => $vault,
+                'key' => $key
+            ], fn($v) => $v !== null));
     }
 
     /**
@@ -73,6 +73,6 @@ class ExceptionFactory
     public static function withDetails(string $message, string $details): KeepException
     {
         return (new KeepException($message))
-            ->withContext(details: $details);
+            ->withContext(['details' => $details]);
     }
 }

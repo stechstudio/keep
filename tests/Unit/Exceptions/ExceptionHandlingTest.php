@@ -56,7 +56,7 @@ describe('Exception Handling Improvements', function () {
             // Now: clean factory methods with automatic context
 
             $exception = ExceptionFactory::secretNotFound('API_KEY', 'production-vault')
-                ->withContext(suggestion: 'Custom suggestion here');
+                ->withContext(['suggestion' => 'Custom suggestion here']);
 
             expect($exception->getMessage())->toContain('API_KEY');
             expect($exception->getMessage())->toContain('production-vault');
@@ -71,7 +71,7 @@ describe('Exception Handling Improvements', function () {
 
         it('allows combining details with other context', function () {
             $exception = ExceptionFactory::withDetails('Vault error', 'Connection failed')
-                ->withContext(vault: 'production-ssm', stage: 'prod');
+                ->withContext(['vault' => 'production-ssm', 'stage' => 'prod']);
 
             expect($exception->getMessage())->toBe('Vault error');
         });
