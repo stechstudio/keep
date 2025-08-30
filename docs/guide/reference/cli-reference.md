@@ -172,6 +172,72 @@ keep show --stage=staging --format=json
 keep show --stage=production --vault=secretsmanager --format=env
 ```
 
+## `keep shell`
+
+Start an interactive shell for Keep commands with persistent context.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--stage` | string | *first configured stage* | Initial stage to use |
+| `--vault` | string | *default vault* | Initial vault to use |
+
+### Shell Mode Features
+
+The interactive shell provides:
+- **Persistent context**: No need to specify --stage and --vault for each command
+- **Command shortcuts**: Quick aliases for common commands
+- **Context switching**: Easy switching between stages and vaults
+- **Command history**: Access previous commands with arrow keys
+
+### Shell Commands
+
+**Context Management:**
+```bash
+keep> stage production    # Switch to production stage (alias: s)
+keep> vault ssm          # Switch to ssm vault (alias: v)
+keep> use ssm:production # Switch both at once (alias: u)
+keep> context            # Show current context (alias: ctx)
+```
+
+**Secret Operations:**
+```bash
+keep> set API_KEY value  # Set a secret
+keep> get API_KEY        # Get a secret (alias: g)
+keep> delete API_KEY     # Delete a secret (alias: d)
+keep> show               # List all secrets (aliases: ls, list, l)
+keep> copy KEY --to=prod # Copy using current context as source
+```
+
+**Shell Control:**
+```bash
+keep> help               # Show available commands (alias: ?)
+keep> history            # Show command history (alias: h)
+keep> clear              # Clear screen (alias: cls)
+keep> exit               # Exit shell (aliases: quit, q)
+```
+
+### Examples
+
+```bash
+# Start shell with initial context
+keep shell --stage=production --vault=ssm
+
+# Interactive session
+keep (ssm:production)> show
+keep (ssm:production)> stage development
+✓ Switched to stage: development
+keep (ssm:development)> set API_KEY "dev-key"
+keep (ssm:development)> copy API_KEY --to=production
+keep (ssm:development)> exit
+Goodbye!
+```
+
+### Tips
+- Use partial names for stages/vaults (e.g., `s prod` for `stage production`)
+- All standard Keep commands work in the shell
+- Commands automatically use the current context
+- Use tab for basic command completion (if readline is available)
+
 ## `keep delete`
 
 Remove secrets from vaults.

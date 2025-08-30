@@ -52,6 +52,8 @@ class KeepApplication extends Application
             Commands\DiffCommand::class,
             Commands\VerifyCommand::class,
             Commands\TemplateValidateCommand::class,
+            
+            Commands\ShellCommand::class,
         ]);
     }
 
