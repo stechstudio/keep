@@ -56,8 +56,14 @@ class KeepShellConfiguration extends Configuration
      */
     public function getTabCompletionMatchers(): array
     {
+        // Only use our custom matcher to have full control over completions
         return [
-            new KeepCommandMatcher($this->commandCompleter, $this->secretCompleter, $this->stageCompleter, $this->vaultCompleter),
+            new KeepCommandMatcher(
+                $this->commandCompleter, 
+                $this->secretCompleter, 
+                $this->stageCompleter, 
+                $this->vaultCompleter
+            ),
         ];
     }
 }

@@ -16,7 +16,7 @@ class SecretCompleter
     public function complete(string $input, string $command = ''): array
     {
         // Only provide secret completion for relevant commands
-        $secretCommands = ['get', 'g', 'delete', 'd', 'set', 'copy', 'history'];
+        $secretCommands = ['get', 'g', 'delete', 'd', 'set', 's', 'copy', 'history'];
         
         if (!in_array($command, $secretCommands)) {
             return [];
@@ -24,9 +24,7 @@ class SecretCompleter
         
         $secrets = $this->context->getCachedSecretNames();
         
-        // If we couldn't load secrets and there's input, return empty to prevent
-        // PsySH from falling back to PHP constants
-        if (empty($secrets) && !empty($input)) {
+        if (empty($secrets)) {
             return [];
         }
         
