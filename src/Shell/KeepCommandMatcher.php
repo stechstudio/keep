@@ -32,8 +32,20 @@ class KeepCommandMatcher extends AbstractMatcher
      */
     public function hasMatched(array $tokens): bool
     {
-        // We always want to provide completions
-        return true;
+        // Build the full input from tokens
+        $fullInput = $this->buildFullInput($tokens);
+        
+        // Check if this looks like a Keep command
+        $keepCommands = ['get', 'g', 'set', 's', 'delete', 'd', 'show', 'l', 'ls', 
+                        'copy', 'import', 'export', 'diff', 'verify', 'info', 
+                        'history', 'configure', 'stage', 'vault', 'use', 'context'];
+        
+        // Split the input to get the first word
+        $parts = preg_split('/\s+/', trim($fullInput), 2);
+        $firstWord = $parts[0] ?? '';
+        
+        // Check if the first word is a Keep command
+        return in_array($firstWord, $keepCommands);
     }
     
     /**
@@ -41,16 +53,25 @@ class KeepCommandMatcher extends AbstractMatcher
      */
     public function getMatches(array $tokens, array $info = []): array
     {
-        $input = $this->getInput($tokens);
-        $parts = explode(' ', trim($input));
+        $fullInput = $this->buildFullInput($tokens);
+        $parts = preg_split('/\s+/', trim($fullInput));
         
         // If we're at the beginning, complete commands
-        if (count($parts) === 1) {
+        if (count($parts) === 1 && !str_ends_with($fullInput, ' ')) {
             return $this->commandCompleter->complete($parts[0]);
         }
         
         $command = $parts[0];
-        $currentArg = end($parts);
+        
+        // Determine what we're completing
+        $currentArg = '';
+        if (str_ends_with($fullInput, ' ')) {
+            // Starting a new argument
+            $currentArg = '';
+        } else {
+            // Completing the last partial argument
+            $currentArg = end($parts);
+        }
         
         // Check what type of completion we need
         if ($this->isStageContext($command, $currentArg)) {
@@ -65,26 +86,37 @@ class KeepCommandMatcher extends AbstractMatcher
             return $this->secretCompleter->complete($currentArg, $command);
         }
         
-        // Check for option completion
-        if (str_starts_with($currentArg, '--')) {
-            return $this->getOptionCompletions($command, $currentArg);
-        }
-        
         return [];
+    }
+    
+    /**
+     * Build full input string from tokens
+     */
+    private function buildFullInput(array $tokens): string
+    {
+        $input = '';
+        foreach ($tokens as $token) {
+            if (is_array($token)) {
+                // Skip PHP opening tag
+                if ($token[0] === T_OPEN_TAG) {
+                    continue;
+                }
+                $input .= $token[1];
+            } else {
+                $input .= $token;
+            }
+        }
+        return trim($input);
     }
     
     private function isStageContext(string $command, string $arg): bool
     {
-        return in_array($command, ['stage', 's']) 
-            || str_starts_with($arg, '--stage=')
-            || str_starts_with($arg, '--to=')
-            || str_starts_with($arg, '--from=');
+        return in_array($command, ['stage', 's']);
     }
     
     private function isVaultContext(string $command, string $arg): bool
     {
-        return in_array($command, ['vault', 'v'])
-            || str_starts_with($arg, '--vault=');
+        return in_array($command, ['vault', 'v']);
     }
     
     private function isSecretContext(string $command): bool
@@ -95,40 +127,6 @@ class KeepCommandMatcher extends AbstractMatcher
     
     private function extractValue(string $arg): string
     {
-        // Extract value from --option=value format
-        if (str_contains($arg, '=')) {
-            return substr($arg, strpos($arg, '=') + 1);
-        }
         return $arg;
-    }
-    
-    private function getOptionCompletions(string $command, string $partial): array
-    {
-        $options = $this->getCommandOptions($command);
-        
-        if (empty($partial) || $partial === '--') {
-            return array_map(fn($opt) => '--' . $opt, $options);
-        }
-        
-        $matches = array_filter($options, function($opt) use ($partial) {
-            return str_starts_with('--' . $opt, $partial);
-        });
-        
-        return array_map(fn($opt) => '--' . $opt, array_values($matches));
-    }
-    
-    private function getCommandOptions(string $command): array
-    {
-        return match($command) {
-            'set' => ['stage', 'vault', 'secure', 'force'],
-            'get' => ['stage', 'vault', 'format'],
-            'delete' => ['stage', 'vault', 'force'],
-            'show' => ['stage', 'vault', 'unmask', 'format', 'only', 'except'],
-            'copy' => ['from', 'to', 'overwrite', 'dry-run', 'only', 'except'],
-            'import' => ['stage', 'vault', 'skip-existing', 'overwrite', 'dry-run', 'only', 'except'],
-            'export' => ['stage', 'vault', 'format', 'template', 'all', 'missing', 'file', 'append', 'overwrite', 'only', 'except'],
-            'diff' => ['vault', 'stage', 'unmask', 'only', 'except'],
-            default => []
-        };
     }
 }

@@ -24,6 +24,12 @@ class SecretCompleter
         
         $secrets = $this->context->getCachedSecretNames();
         
+        // If we couldn't load secrets and there's input, return empty to prevent
+        // PsySH from falling back to PHP constants
+        if (empty($secrets) && !empty($input)) {
+            return [];
+        }
+        
         if (empty($input)) {
             return $secrets;
         }

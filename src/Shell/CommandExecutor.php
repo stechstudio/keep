@@ -27,7 +27,7 @@ class CommandExecutor
         }
         
         // Parse the command
-        $parts = str_getcsv($input, ' ');
+        $parts = str_getcsv($input, ' ', '"', '\\');
         $command = array_shift($parts);
         
         // Map shortcuts to full commands
@@ -47,8 +47,14 @@ class CommandExecutor
             $input = new ArrayInput($fullCommand);
             $output = new ConsoleOutput();
             
+            // Find the command and reset any cached input
+            $commandInstance = $this->application->find($commandName);
+            if (method_exists($commandInstance, 'resetInput')) {
+                $commandInstance->resetInput();
+            }
+            
             // Run the command
-            $exitCode = $this->application->find($commandName)->run($input, $output);
+            $exitCode = $commandInstance->run($input, $output);
             
             // Invalidate cache if it's a write operation
             if ($this->isWriteCommand($command)) {
@@ -68,8 +74,9 @@ class CommandExecutor
     {
         return match($command) {
             'g' => 'get',
+            's' => 'set',
             'd' => 'delete',
-            'l' => 'show',
+            'l', 'ls' => 'show',
             default => $command
         };
     }

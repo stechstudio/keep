@@ -92,11 +92,19 @@ class ShellContext
         
         // Reload cache
         try {
+            // Check if Keep is initialized first
+            if (!Keep::isInitialized()) {
+                // Can't load secrets without initialization
+                return [];
+            }
+            
             $vault = Keep::vault($this->currentVault, $this->currentStage);
             $secrets = $vault->list();
             $this->cachedSecrets = $secrets->allKeys()->toArray();
             $this->cacheTimestamp = time();
         } catch (\Exception $e) {
+            // Log the error for debugging
+            error_log("ShellContext: Failed to load secrets - " . $e->getMessage());
             // If we can't load secrets, return empty array
             $this->cachedSecrets = [];
         }

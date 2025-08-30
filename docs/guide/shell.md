@@ -64,8 +64,8 @@ Use short aliases for common commands:
 | `get KEY` | `g KEY` | Get a secret value |
 | `set KEY VALUE` | `s KEY VALUE` | Set a secret |
 | `delete KEY` | `d KEY` | Delete a secret |
-| `list` | `l` | List all secrets |
-| `stage STAGE` | `s STAGE` | Switch to a different stage |
+| `show` | `l`, `ls` | Show all secrets in current context |
+| `stage STAGE` | - | Switch to a different stage |
 | `vault NAME` | - | Switch to a different vault |
 
 ## Usage Examples
@@ -82,7 +82,7 @@ Switched to stage: production
 >>> get API_KEY
 sk-1234567890
 
->>> list
+>>> show
 API_KEY
 DB_HOST
 DB_PASSWORD
@@ -131,7 +131,7 @@ Copied 4 secrets
 >>> stage testing
 Switched to stage: testing
 
->>> list
+>>> show
 # Shows all copied secrets
 ```
 
@@ -151,7 +151,7 @@ All standard Keep commands work in the shell:
 - **`get <key>`** - Retrieve a secret value
 - **`set <key> <value>`** - Set a secret
 - **`delete <key>`** - Delete a secret
-- **`list`** - List all secrets in current context
+- **`show`** - Show all secrets in current context
 - **`search <pattern>`** - Search for secrets by pattern
 - **`history <key>`** - View secret history
 - **`copy`** - Copy secrets between stages
@@ -187,6 +187,21 @@ The interactive shell requires PsySH. If not already installed, add it to your p
 ```bash
 composer require psy/psysh
 ```
+
+## Options Syntax
+
+The shell uses a natural, dash-free syntax for options:
+
+```bash
+>>> show unmask              # Show secrets with actual values
+>>> show json                # Output in JSON format
+>>> show env unmask          # Export format with real values
+>>> show only DB_*           # Filter secrets by pattern
+>>> get NAME raw             # Get raw value without table
+>>> diff staging prod unmask # Compare with unmasked values
+```
+
+Options are simply words after the command - no dashes or equals signs needed.
 
 ## Tips and Tricks
 
