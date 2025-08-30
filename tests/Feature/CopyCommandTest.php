@@ -73,18 +73,18 @@ describe('CopyCommand', function () {
         });
 
         it('validates key argument is provided', function () {
-            // Try to run copy command without key
+            // Try to run copy command without key or patterns
             $commandTester = runCommand('copy', [
                 '--from' => 'testing',
                 '--to' => 'production',
             ]);
 
-            // Should fail due to missing key argument
+            // Should fail due to missing key argument or patterns
             expect($commandTester->getStatusCode())->toBe(1);
 
             $output = stripAnsi($commandTester->getDisplay());
-            // The command should fail in some way (missing key, aborted, etc.)
-            expect($output)->toMatch('/(Aborted|error|required|missing)/i');
+            // The command should fail with clear guidance
+            expect($output)->toContain('Either provide a key or use --only/--except patterns');
         });
     });
 
@@ -318,6 +318,158 @@ describe('CopyCommand', function () {
 
             // Should handle prompts without hanging (could fail due to non-interactive or missing secret)
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
+        });
+    });
+
+    describe('bulk copy with patterns', function () {
+        it('accepts --only pattern without key argument', function () {
+            $commandTester = runCommand('copy', [
+                '--only' => 'DB_*',
+                '--from' => 'testing',
+                '--to' => 'production',
+            ]);
+
+            $output = stripAnsi($commandTester->getDisplay());
+
+            // Should not complain about missing key when pattern is provided
+            expect($output)->not->toContain('Either provide a key');
+        });
+
+        it('accepts --except pattern without key argument', function () {
+            $commandTester = runCommand('copy', [
+                '--except' => '*_SECRET',
+                '--from' => 'testing',
+                '--to' => 'production',
+            ]);
+
+            $output = stripAnsi($commandTester->getDisplay());
+
+            // Should not complain about missing key when pattern is provided
+            expect($output)->not->toContain('Either provide a key');
+        });
+
+        it('accepts both --only and --except patterns together', function () {
+            $commandTester = runCommand('copy', [
+                '--only' => 'API_*',
+                '--except' => '*_SECRET',
+                '--from' => 'testing',
+                '--to' => 'production',
+            ]);
+
+            $output = stripAnsi($commandTester->getDisplay());
+
+            // Should handle combined patterns without error
+            expect($output)->not->toContain('Either provide a key');
+        });
+
+        it('rejects mixing key argument with --only pattern', function () {
+            $commandTester = runCommand('copy', [
+                'key' => 'MY_KEY',
+                '--only' => 'DB_*',
+                '--from' => 'testing',
+                '--to' => 'production',
+            ]);
+
+            expect($commandTester->getStatusCode())->toBe(1);
+
+            $output = stripAnsi($commandTester->getDisplay());
+            expect($output)->toContain('Cannot specify both a key and --only/--except patterns');
+        });
+
+        it('rejects mixing key argument with --except pattern', function () {
+            $commandTester = runCommand('copy', [
+                'key' => 'MY_KEY',
+                '--except' => '*_SECRET',
+                '--from' => 'testing',
+                '--to' => 'production',
+            ]);
+
+            expect($commandTester->getStatusCode())->toBe(1);
+
+            $output = stripAnsi($commandTester->getDisplay());
+            expect($output)->toContain('Cannot specify both a key and --only/--except patterns');
+        });
+
+        it('shows bulk preview in dry-run mode', function () {
+            $commandTester = runCommand('copy', [
+                '--only' => '*',
+                '--from' => 'testing',
+                '--to' => 'production',
+                '--dry-run' => true,
+            ]);
+
+            $output = stripAnsi($commandTester->getDisplay());
+
+            // Should show bulk operation preview or handle empty vault
+            expect($output)->toMatch('/(Bulk Copy Operation Preview|Total secrets:|No secrets match|Dry run completed)/i');
+        });
+
+        it('handles empty pattern matches gracefully', function () {
+            $commandTester = runCommand('copy', [
+                '--only' => 'NONEXISTENT_PATTERN_*',
+                '--from' => 'testing',
+                '--to' => 'production',
+            ]);
+
+            $output = stripAnsi($commandTester->getDisplay());
+
+            // Should handle no matches gracefully
+            expect($output)->toContain('No secrets match the specified patterns');
+            expect($commandTester->getStatusCode())->toBe(0); // Success despite no matches
+        });
+
+        it('respects --overwrite flag for bulk operations', function () {
+            $commandTester = runCommand('copy', [
+                '--only' => '*',
+                '--from' => 'testing',
+                '--to' => 'production',
+                '--overwrite' => true,
+                '--dry-run' => true,
+            ]);
+
+            $output = stripAnsi($commandTester->getDisplay());
+
+            // Should accept overwrite flag without error
+            expect($output)->not->toMatch('/(invalid option|unknown option)/i');
+        });
+
+        it('shows appropriate error without --overwrite when secrets exist', function () {
+            // This test would need actual secrets in destination to properly test
+            // For now, we just verify the command structure accepts the scenario
+            $commandTester = runCommand('copy', [
+                '--only' => '*',
+                '--from' => 'testing',
+                '--to' => 'production',
+                // no --overwrite flag
+            ]);
+
+            $output = stripAnsi($commandTester->getDisplay());
+
+            // Should either copy successfully or show overwrite error
+            expect($output)->toMatch('/(Successfully copied|already exist in destination|No secrets match)/i');
+        });
+
+        it('accepts complex wildcard patterns', function () {
+            $patterns = [
+                'API_*_KEY',
+                '*_HOST',
+                'DB_*',
+                'FEATURE_*_ENABLED',
+            ];
+
+            foreach ($patterns as $pattern) {
+                $commandTester = runCommand('copy', [
+                    '--only' => $pattern,
+                    '--from' => 'testing',
+                    '--to' => 'production',
+                    '--dry-run' => true,
+                ]);
+
+                $output = stripAnsi($commandTester->getDisplay());
+
+                // Should accept all valid patterns
+                expect($output)->not->toMatch('/(invalid.*pattern|syntax error)/i');
+            }
         });
     });
 

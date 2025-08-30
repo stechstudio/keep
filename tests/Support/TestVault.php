@@ -54,6 +54,12 @@ class TestVault extends AbstractVault
         return new SecretCollection(collect($secrets)->values());
     }
 
+    public function all(): SecretCollection
+    {
+        // Same as list() for TestVault
+        return $this->list();
+    }
+
     public function get(string $key): Secret
     {
         $path = $this->format($key);
