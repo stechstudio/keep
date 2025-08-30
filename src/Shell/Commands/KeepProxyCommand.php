@@ -77,6 +77,23 @@ class KeepProxyCommand extends Command
      */
     private function parseNaturalSyntax(array $args, array &$positionalArgs, array &$options): void
     {
+        // Special handling for diff command - positional args are stages
+        if ($this->keepCommand === 'diff') {
+            $stages = [];
+            foreach ($args as $arg) {
+                if ($arg === 'unmask') {
+                    $options['unmask'] = true;
+                } else {
+                    // Treat as a stage name
+                    $stages[] = $arg;
+                }
+            }
+            if (!empty($stages)) {
+                $options['stage'] = implode(',', $stages);
+            }
+            return;
+        }
+        
         // Define known option keywords for each command
         $knownOptions = [
             'show' => [
@@ -91,9 +108,6 @@ class KeepProxyCommand extends Command
                 'raw' => ['format', 'raw'],
                 'json' => ['format', 'json'],
                 'table' => ['format', 'table'],
-            ],
-            'diff' => [
-                'unmask' => ['unmask', true],
             ],
             'export' => [
                 'json' => ['format', 'json'],
