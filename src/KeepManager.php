@@ -6,6 +6,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use STS\Keep\Data\Collections\VaultConfigCollection;
 use STS\Keep\Data\Settings;
+use STS\Keep\Tests\Support\TestVault;
 use STS\Keep\Vaults\AbstractVault;
 use STS\Keep\Vaults\AwsSecretsManagerVault;
 use STS\Keep\Vaults\AwsSsmVault;
@@ -15,6 +16,7 @@ class KeepManager
     protected array $availableVaults = [
         AwsSsmVault::class,
         AwsSecretsManagerVault::class,
+        TestVault::class,
     ];
 
     protected array $loadedVaults = [];

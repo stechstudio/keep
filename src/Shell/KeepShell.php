@@ -4,6 +4,9 @@ namespace STS\Keep\Shell;
 
 use Psy\Shell;
 use STS\Keep\Shell\Commands\ContextCommand;
+use STS\Keep\Shell\Commands\HelpCommand;
+use STS\Keep\Shell\Commands\KeepProxyCommand;
+use STS\Keep\Shell\Commands\ListCommand;
 use STS\Keep\Shell\Commands\StageCommand;
 use STS\Keep\Shell\Commands\UseCommand;
 use STS\Keep\Shell\Commands\VaultCommand;
@@ -26,59 +29,51 @@ class KeepShell extends Shell
         $this->add(new VaultCommand($context));
         $this->add(new UseCommand($context));
         $this->add(new ContextCommand($context));
+        
+        // Register Keep commands as PsySH commands
+        $this->registerKeepCommands();
+        
+        // Override the help and list commands with our custom versions
+        $this->add(new HelpCommand());
+        $this->add(new ListCommand());
     }
     
     /**
-     * Override to handle Keep commands that aren't PsySH commands
+     * Override to only include essential PsySH commands
      */
-    public function writeException(\Throwable $e): void
+    protected function getDefaultCommands(): array
     {
-        // Check if this is just an undefined constant (our Keep command)
-        if ($e instanceof \ErrorException && str_contains($e->getMessage(), 'Undefined constant')) {
-            // This is likely a Keep command, not an error
-            return;
-        }
-        
-        parent::writeException($e);
+        return [
+            new \Psy\Command\ExitCommand(),
+            new \Psy\Command\ClearCommand(),
+        ];
     }
     
-    /**
-     * Process input - intercept for Keep commands
-     */
-    public function getInput(bool $interactive = true)
+    private function registerKeepCommands(): void
     {
-        $input = parent::getInput($interactive);
-        
-        // Handle null or empty input
-        if ($input === null || $input === '') {
-            return $input;
-        }
-        
-        // Handle Keep commands
-        if ($this->isKeepCommand($input)) {
-            $this->executor->execute($input);
-            // Return empty to prevent PsySH from trying to evaluate
-            return '';
-        }
-        
-        return $input;
-    }
-    
-    private function isKeepCommand(string $input): bool
-    {
-        if (empty(trim($input))) {
-            return false;
-        }
-        
-        // Check if it's a known Keep command
-        $firstWord = explode(' ', trim($input))[0];
-        
-        $keepCommands = [
-            'set', 'get', 'delete', 'show', 'copy', 'import', 'export', 'diff',
-            'configure', 'verify', 'info', 'history',
-            'g', 'd', 'l', 'ls', 'list',
+        // Define Keep commands and their aliases
+        $commands = [
+            'get' => ['g'],
+            'set' => ['s'],
+            'delete' => ['d'],
+            'show' => ['l', 'ls'],
+            'copy' => [],
+            'import' => [],
+            'export' => [],
+            'diff' => [],
+            'verify' => [],
+            'info' => [],
+            'history' => [],
+            'configure' => [],
+            'vault:add' => [],
+            'vault:list' => [],
+            'vault:info' => [],
+            'stage:add' => [],
+            'stage:list' => [],
         ];
         
-        return in_array($firstWord, $keepCommands);
+        foreach ($commands as $command => $aliases) {
+            $this->add(new KeepProxyCommand($this->executor, $command, $aliases));
+        }
     }
 }
