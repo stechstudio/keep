@@ -169,7 +169,7 @@ keep delete LEGACY_SECRET --stage=production --vault=ssm
 
 ## `keep copy`
 
-Copy secrets between stages or vaults.
+Copy secrets between stages or vaults. Supports both single secret and bulk operations with pattern matching.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -177,11 +177,16 @@ Copy secrets between stages or vaults.
 | `--to` | string | *required* | Destination context (stage or vault:stage) |
 | `--overwrite` | boolean | `false` | Overwrite existing secrets without confirmation |
 | `--dry-run` | boolean | `false` | Show what would be copied without making changes |
+| `--only` | string | | Pattern for bulk copy - include only matching keys (e.g., `DB_*`) |
+| `--except` | string | | Pattern for bulk copy - exclude matching keys (e.g., `*_SECRET`) |
 
 **Arguments:**
-- `[key]` - Specific secret key to copy (required)
+- `[key]` - Specific secret key to copy (omit when using --only or --except)
 
-**Examples:**
+### Single Secret Copy
+
+Copy individual secrets by specifying the key:
+
 ```bash
 # Copy between stages
 keep copy DB_PASSWORD --from=development --to=staging
@@ -189,12 +194,40 @@ keep copy DB_PASSWORD --from=development --to=staging
 # Copy with overwrite
 keep copy DB_PASSWORD --from=development --to=staging --overwrite
 
-# Dry run
+# Dry run first
 keep copy API_KEY --from=staging --to=production --dry-run
 
 # Cross-vault copy
 keep copy DB_PASSWORD --from=secretsmanager:development --to=ssm:production
 ```
+
+### Bulk Copy with Patterns
+
+Copy multiple secrets using pattern matching:
+
+```bash
+# Copy all database configs to production
+keep copy --only="DB_*" --from=staging --to=production
+
+# Copy everything except sensitive tokens
+keep copy --except="*_SECRET,*_TOKEN" --from=development --to=staging
+
+# Copy API keys only, with overwrite
+keep copy --only="API_*" --from=development --to=production --overwrite
+
+# Preview bulk operation with dry-run
+keep copy --only="*" --from=staging --to=production --dry-run
+
+# Combine patterns - copy DB configs except passwords
+keep copy --only="DB_*" --except="*_PASSWORD" --from=dev --to=staging
+```
+
+**Pattern Matching:**
+- `*` matches any characters
+- `DB_*` matches all keys starting with "DB_"
+- `*_HOST` matches all keys ending with "_HOST"
+- `API_*_KEY` matches keys like "API_PUBLIC_KEY", "API_PRIVATE_KEY"
+- Multiple patterns can be comma-separated: `"DB_*,API_*,REDIS_*"`
 
 ## `keep diff`
 
