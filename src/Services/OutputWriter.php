@@ -19,14 +19,14 @@ class OutputWriter
         // Ensure directory exists
         $this->filesystem->ensureDirectoryExists(dirname($path));
 
-        if ($this->filesystem->exists($path) && !$overwrite && !$append) {
+        if ($this->filesystem->exists($path) && ! $overwrite && ! $append) {
             throw ExceptionFactory::fileExists($path);
         }
 
         if ($append && $this->filesystem->exists($path)) {
-            $this->filesystem->append($path, $content . PHP_EOL);
+            $this->filesystem->append($path, $content.PHP_EOL);
         } else {
-            $this->filesystem->put($path, $content . PHP_EOL);
+            $this->filesystem->put($path, $content.PHP_EOL);
         }
     }
 }

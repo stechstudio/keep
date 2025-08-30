@@ -2,7 +2,6 @@
 
 namespace STS\Keep\Services\Export;
 
-use Symfony\Component\Console\Output\OutputInterface;
 use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Data\Env;
 use STS\Keep\Data\Template;
@@ -10,6 +9,7 @@ use STS\Keep\Enums\MissingSecretStrategy;
 use STS\Keep\Services\OutputWriter;
 use STS\Keep\Services\SecretLoader;
 use STS\Keep\Services\VaultDiscovery;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class TemplateParseService
 {
@@ -29,7 +29,7 @@ class TemplateParseService
 
         // Determine which vaults to load from
         $vaultNames = $this->determineVaults($options, $template);
-        
+
         // Load secrets
         $stage = $options['stage'];
         $allSecrets = $this->secretLoader->loadFromVaults($vaultNames, $stage);
@@ -54,7 +54,7 @@ class TemplateParseService
         // Output info
         $output->writeln("<info>Processing template [{$options['template']}] for stage '{$stage}' as JSON...</info>");
         if ($options['all'] ?? false) {
-            $output->writeln("<info>Including all additional secrets beyond template placeholders</info>");
+            $output->writeln('<info>Including all additional secrets beyond template placeholders</info>');
         }
 
         // Format as JSON (sorted by key)
@@ -78,11 +78,12 @@ class TemplateParseService
 
     protected function loadTemplate(string $path, OutputInterface $output): Template
     {
-        if (!file_exists($path) || !is_readable($path)) {
+        if (! file_exists($path) || ! is_readable($path)) {
             throw new \RuntimeException("Template file [$path] does not exist or is not readable.");
         }
 
         $output->writeln("<info>Using template file [$path].</info>");
+
         return new Template(file_get_contents($path));
     }
 
@@ -109,7 +110,7 @@ class TemplateParseService
         // Process template - merge placeholders then parse
         $merged = $template->merge($allSecrets, $strategy);
         $env = new Env($merged);
-        
+
         foreach ($env->list() as $key => $value) {
             $result[$key] = $value;
         }

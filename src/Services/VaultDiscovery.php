@@ -13,5 +13,4 @@ class VaultDiscovery
     {
         return $template->allReferencedVaults();
     }
-
 }

@@ -49,7 +49,7 @@ describe('KeepException', function () {
                 'key' => 'DB_PASSWORD',
                 'path' => '/app/production/DB_PASSWORD',
                 'lineNumber' => 15,
-                'suggestion' => "Check if this secret exists using 'keep list'"
+                'suggestion' => "Check if this secret exists using 'keep list'",
             ]);
 
         $exception->renderConsole($outputCallback);
@@ -75,7 +75,7 @@ describe('KeepException', function () {
         $exception = (new KeepException('Partial error'))
             ->withContext([
                 'vault' => 'local',
-                'key' => 'API_KEY'
+                'key' => 'API_KEY',
             ]);
 
         $exception->renderConsole($outputCallback);
@@ -96,7 +96,7 @@ describe('KeepException', function () {
         $exception = (new SecretNotFoundException('Secret not found'))
             ->withContext([
                 'vault' => 'ssm',
-                'key' => 'SECRET_KEY'
+                'key' => 'SECRET_KEY',
             ]);
 
         $exception->renderConsole($outputCallback);
@@ -107,7 +107,6 @@ describe('KeepException', function () {
             ['message' => '  Key: SECRET_KEY', 'style' => 'line'],
         ]);
     });
-
 
     it('handles all context properties', function () {
         $output = [];
@@ -123,7 +122,7 @@ describe('KeepException', function () {
                 'path' => '/full/path',
                 'lineNumber' => 42,
                 'suggestion' => 'Try this instead',
-                'details' => 'Extra details'
+                'details' => 'Extra details',
             ]);
 
         $exception->renderConsole($outputCallback);

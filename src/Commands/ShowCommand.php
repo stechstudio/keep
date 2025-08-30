@@ -19,6 +19,7 @@ class ShowCommand extends BaseCommand
 
         if (! in_array($format, ['table', 'env', 'json'])) {
             $this->error('Invalid format option. Supported formats are: table, json, env.');
+
             return self::FAILURE;
         }
 

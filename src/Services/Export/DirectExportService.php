@@ -2,10 +2,10 @@
 
 namespace STS\Keep\Services\Export;
 
-use Symfony\Component\Console\Output\OutputInterface;
 use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Services\OutputWriter;
 use STS\Keep\Services\SecretLoader;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class DirectExportService
 {
@@ -24,7 +24,7 @@ class DirectExportService
 
         // Load secrets from vaults
         $allSecrets = $this->secretLoader->loadFromVaults($vaultNames, $stage);
-        
+
         // Apply filters
         $allSecrets = $allSecrets->filterByPatterns(
             only: $options['only'] ?? null,
@@ -38,9 +38,9 @@ class DirectExportService
         if (count($vaultNames) === 1) {
             $output->writeln("<info>Exporting secrets from vault '{$vaultNames[0]}' for stage '{$stage}'...</info>");
         } else {
-            $output->writeln("<info>Exporting secrets from " . count($vaultNames) . " vaults (" . implode(', ', $vaultNames) . ") for stage '{$stage}'...</info>");
+            $output->writeln('<info>Exporting secrets from '.count($vaultNames).' vaults ('.implode(', ', $vaultNames).") for stage '{$stage}'...</info>");
         }
-        $output->writeln("<info>Found " . $allSecrets->count() . " total secrets to export</info>");
+        $output->writeln('<info>Found '.$allSecrets->count().' total secrets to export</info>');
 
         // Write output
         if ($options['file']) {

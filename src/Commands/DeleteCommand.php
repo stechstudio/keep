@@ -40,6 +40,7 @@ class DeleteCommand extends BaseCommand
 
             if (! $confirmed) {
                 $this->info('Secret deletion cancelled.');
+
                 return self::SUCCESS;
             }
         }

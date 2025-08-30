@@ -520,7 +520,7 @@ describe('SecretsCollection', function () {
         it('uses sanitized keys for env output', function () {
             $secrets = new SecretCollection([
                 Secret::fromVault('my-api-key', 'secret1'),
-                Secret::fromVault('user.email', 'secret2'), 
+                Secret::fromVault('user.email', 'secret2'),
                 Secret::fromVault('1database_url', 'secret3'),
                 Secret::fromVault('_private_key', 'secret4'),
             ]);
@@ -545,7 +545,7 @@ describe('SecretsCollection', function () {
             $lines = explode(PHP_EOL, $envString);
 
             expect($lines)->toContain('APP_CONFIG_JSON=value1');
-            expect($lines)->toContain('KEY_123_SPECIAL_CHARS_=value2'); 
+            expect($lines)->toContain('KEY_123_SPECIAL_CHARS_=value2');
             expect($lines)->toContain('UNNAMED_KEY=value3');
         });
 

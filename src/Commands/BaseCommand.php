@@ -64,35 +64,34 @@ abstract class BaseCommand extends Command
     protected function enhanceExceptionWithCommandContext(KeepException $exception): void
     {
         $existing = $exception->getContext();
-        
+
         // Build new context from command state, only if not already set
         $newContext = [];
-        
-        if (!isset($existing['vault']) && method_exists($this, 'vaultName')) {
+
+        if (! isset($existing['vault']) && method_exists($this, 'vaultName')) {
             $vault = $this->vaultName();
             if ($vault !== null) {
                 $newContext['vault'] = $vault;
             }
         }
-        
-        if (!isset($existing['stage']) && method_exists($this, 'stage')) {
+
+        if (! isset($existing['stage']) && method_exists($this, 'stage')) {
             $stage = $this->stage();
             if ($stage !== null) {
                 $newContext['stage'] = $stage;
             }
         }
-        
-        if (!isset($existing['key']) && method_exists($this, 'key')) {
+
+        if (! isset($existing['key']) && method_exists($this, 'key')) {
             $key = $this->key();
             if ($key !== null) {
                 $newContext['key'] = $key;
             }
         }
-        
+
         // Apply any found context
-        if (!empty($newContext)) {
+        if (! empty($newContext)) {
             $exception->withContext($newContext);
         }
     }
-
 }

@@ -29,7 +29,7 @@ class Secret implements Arrayable
 
     /**
      * Validate a secret key for safe vault operations.
-     * Allows common naming conventions (letters, digits, underscores, hyphens) 
+     * Allows common naming conventions (letters, digits, underscores, hyphens)
      * while preventing characters that could break vault API calls.
      *
      * @param  string  $key  The raw key to validate
@@ -132,23 +132,23 @@ class Secret implements Arrayable
     public function sanitizedKey(): string
     {
         $sanitized = $this->key;
-        
+
         // Replace invalid characters with underscores
         $sanitized = preg_replace('/[^A-Za-z0-9_]/', '_', $sanitized);
-        
+
         // Remove leading underscores
         $sanitized = ltrim($sanitized, '_');
-        
+
         // Remove leading digits by prefixing with 'KEY_'
         if (preg_match('/^[0-9]/', $sanitized)) {
-            $sanitized = 'KEY_' . $sanitized;
+            $sanitized = 'KEY_'.$sanitized;
         }
-        
+
         // Handle empty string case
         if (empty($sanitized)) {
             $sanitized = 'UNNAMED_KEY';
         }
-        
+
         // Convert to uppercase (common .env convention)
         return strtoupper($sanitized);
     }

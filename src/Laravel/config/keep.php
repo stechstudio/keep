@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'integration_mode' => env('KEEP_INTEGRATION_MODE','env'),
+    'integration_mode' => env('KEEP_INTEGRATION_MODE', 'env'),
 
     'decrypt_key_part' => env('KEEP_DECRYPT_KEY_PART', ''),
 
@@ -34,7 +34,7 @@ return [
 
     'stage_environment_mapping' => [
         'local' => 'development',
-        'staging' => 'staging', 
+        'staging' => 'staging',
         'production' => 'production',
     ],
 ];

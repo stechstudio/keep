@@ -26,12 +26,14 @@ class ImportCommand extends BaseCommand
     {
         if ($this->option('overwrite') && $this->option('skip-existing')) {
             $this->error('You cannot use --overwrite and --skip-existing together.');
+
             return self::FAILURE;
         }
 
         $envFilePath = $this->argument('from') ?? text('Path to .env file', required: true);
         if (! file_exists($envFilePath) || ! is_readable($envFilePath)) {
             $this->error("Env file [$envFilePath] does not exist or is not readable.");
+
             return self::FAILURE;
         }
 
@@ -102,6 +104,7 @@ class ImportCommand extends BaseCommand
 
             if (empty($secret->value())) {
                 $this->warn("Skipping key [{$secret->key()}] with empty value.");
+
                 continue;
             }
 
@@ -109,7 +112,8 @@ class ImportCommand extends BaseCommand
             try {
                 $this->validateUserKey($secret->key());
             } catch (\InvalidArgumentException $e) {
-                $this->error("Skipping invalid key [{$secret->key()}]: " . $e->getMessage());
+                $this->error("Skipping invalid key [{$secret->key()}]: ".$e->getMessage());
+
                 continue;
             }
 
@@ -158,7 +162,7 @@ class ImportCommand extends BaseCommand
 
         return $rows;
     }
-    
+
     /**
      * Validate a user-provided key for safe vault operations.
      * More permissive than .env requirements to support various use cases.

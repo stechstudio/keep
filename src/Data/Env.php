@@ -14,7 +14,7 @@ class Env
 
     public static function fromFile(string $filePath): static
     {
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             return new static('');
         }
 

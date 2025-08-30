@@ -18,7 +18,7 @@ class SetCommand extends BaseCommand
         // Validate key using strict user input validation
         $key = $this->key();
         $this->validateUserKey($key);
-        
+
         $context = $this->vaultContext();
         $secret = $context->createVault()->set($key, $this->value(), $this->secure());
 
@@ -30,7 +30,7 @@ class SetCommand extends BaseCommand
             )
         );
     }
-    
+
     /**
      * Validate a user-provided key for safe vault operations.
      * More permissive than .env requirements to support various use cases.

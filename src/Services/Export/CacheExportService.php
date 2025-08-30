@@ -2,12 +2,11 @@
 
 namespace STS\Keep\Services\Export;
 
-use Illuminate\Support\Str;
-use Symfony\Component\Console\Output\OutputInterface;
-use STS\Keep\Data\Collections\SecretCollection;
-use STS\Keep\Services\SecretLoader;
-use STS\Keep\Services\Crypt;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Str;
+use STS\Keep\Services\Crypt;
+use STS\Keep\Services\SecretLoader;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class CacheExportService
 {
@@ -24,7 +23,7 @@ class CacheExportService
         if (count($vaultNames) === 1) {
             $output->writeln("<info>Loading secrets from vault '{$vaultNames[0]}' for stage '{$stage}'...</info>");
         } else {
-            $output->writeln("<info>Loading secrets from " . count($vaultNames) . " vaults (" . implode(', ', $vaultNames) . ") for stage '{$stage}'...</info>");
+            $output->writeln('<info>Loading secrets from '.count($vaultNames).' vaults ('.implode(', ', $vaultNames).") for stage '{$stage}'...</info>");
         }
 
         $allSecrets = $this->secretLoader->loadFromVaults($vaultNames, $stage);
@@ -35,7 +34,7 @@ class CacheExportService
             except: $options['except'] ?? null
         );
 
-        $output->writeln("<info>Found " . $allSecrets->count() . " total secrets to cache</info>");
+        $output->writeln('<info>Found '.$allSecrets->count().' total secrets to cache</info>');
 
         $keyPart = Str::random(32);
         $this->writeCacheFile($stage, $allSecrets->toKeyValuePair()->toArray(), $keyPart, $output);
@@ -57,20 +56,20 @@ class CacheExportService
 
     protected function writeCacheFile(string $stage, array $secrets, string $keyPart, OutputInterface $output): void
     {
-        $outputPath = getcwd() . "/.keep/cache/{$stage}.keep.php";
+        $outputPath = getcwd()."/.keep/cache/{$stage}.keep.php";
 
         $encryptedData = (new Crypt($keyPart))->encrypt($secrets);
-        $phpContent = "<?php\n\nreturn " . var_export($encryptedData, true) . ";";
+        $phpContent = "<?php\n\nreturn ".var_export($encryptedData, true).';';
 
         // Ensure .keep/cache directory exists with .gitignore
-        $cacheDir = getcwd() . "/.keep/cache";
-        if (!$this->filesystem->exists($cacheDir)) {
+        $cacheDir = getcwd().'/.keep/cache';
+        if (! $this->filesystem->exists($cacheDir)) {
             $this->filesystem->makeDirectory($cacheDir, 0755, true);
         }
 
-        if (!$this->filesystem->isFile($cacheDir . "/.gitignore")) {
-            $this->filesystem->put($cacheDir . "/.gitignore", "*\n!.gitignore\n");
-            $this->filesystem->chmod($cacheDir . "/.gitignore", 0644);
+        if (! $this->filesystem->isFile($cacheDir.'/.gitignore')) {
+            $this->filesystem->put($cacheDir.'/.gitignore', "*\n!.gitignore\n");
+            $this->filesystem->chmod($cacheDir.'/.gitignore', 0644);
         }
 
         $this->filesystem->put($outputPath, $phpContent);
@@ -81,8 +80,8 @@ class CacheExportService
 
     protected function saveKeyPartToEnv(string $keyPart, OutputInterface $output): void
     {
-        $envPath = getcwd() . '/.env';
-        
+        $envPath = getcwd().'/.env';
+
         // Remove existing KEEP_CACHE_KEY_PART if present
         if (file_exists($envPath)) {
             $content = file_get_contents($envPath);
@@ -91,13 +90,13 @@ class CacheExportService
         } else {
             $content = '';
         }
-        
+
         // Append new key part
-        $content .= ($content ? "\n" : '') . "KEEP_CACHE_KEY_PART={$keyPart}\n";
-        
+        $content .= ($content ? "\n" : '')."KEEP_CACHE_KEY_PART={$keyPart}\n";
+
         $this->filesystem->put($envPath, $content);
         $this->filesystem->chmod($envPath, 0600);
 
-        $output->writeln("<info>Updated .env file with KEEP_CACHE_KEY_PART</info>");
+        $output->writeln('<info>Updated .env file with KEEP_CACHE_KEY_PART</info>');
     }
 }

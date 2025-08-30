@@ -4,7 +4,6 @@ use STS\Keep\Enums\MissingSecretStrategy;
 
 describe('MissingSecretStrategy', function () {
 
-
     it('can be created from string values', function ($value, $expected) {
         $strategy = MissingSecretStrategy::from($value);
         expect($strategy)->toBe($expected);
@@ -15,12 +14,10 @@ describe('MissingSecretStrategy', function () {
         ['skip', MissingSecretStrategy::SKIP],
     ]);
 
-
     it('throws exception for invalid values', function () {
         expect(fn () => MissingSecretStrategy::from('invalid'))
             ->toThrow(\ValueError::class);
     });
-
 
     it('can be used in match expressions', function ($strategy, $expected) {
         $result = match ($strategy) {

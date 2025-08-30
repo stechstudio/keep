@@ -62,17 +62,17 @@ class ConfigureCommand extends BaseCommand
             scroll: 6,
             hint: 'You can add more later with "keep stage:add". Toggle with space bar, confirm with enter.',
         );
-        
+
         // Handle custom stage input
         if (in_array('custom', $stages)) {
             $stages = array_diff($stages, ['custom']); // Remove 'custom' from list
-            
+
             $customStages = text(
                 label: 'Enter custom stage names (comma-separated, lowercase only)',
                 placeholder: 'e.g., dev2, demo, integration',
-                validate: fn($value) => $this->validateCustomStagesInput($value)
+                validate: fn ($value) => $this->validateCustomStagesInput($value)
             );
-            
+
             $customStagesList = array_map('trim', explode(',', $customStages));
             $stages = array_merge($stages, $customStagesList);
         }
@@ -161,7 +161,7 @@ class ConfigureCommand extends BaseCommand
         if (empty($value)) {
             return 'Please enter at least one custom stage name';
         }
-        
+
         $stages = array_map('trim', explode(',', $value));
         foreach ($stages as $stage) {
             $error = $this->getStageValidationError($stage);
@@ -169,7 +169,7 @@ class ConfigureCommand extends BaseCommand
                 return $error;
             }
         }
-        
+
         return null;
     }
 }

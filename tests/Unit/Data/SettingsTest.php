@@ -38,7 +38,6 @@ describe('Settings', function () {
                 ->toThrow(InvalidArgumentException::class, 'Namespace cannot exceed 100 characters');
         });
 
-
         it('validates stages', function () {
             expect(fn () => new Settings('app', 'namespace', []))
                 ->toThrow(InvalidArgumentException::class, 'At least one stage must be defined');

@@ -40,8 +40,6 @@ describe('Context', function () {
         });
     });
 
-
-
     describe('vault creation', function () {
         it('creates vault instance with correct vault and stage', function () {
             $context = new Context('test', 'development');

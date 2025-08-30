@@ -32,7 +32,6 @@ describe('Placeholder', function () {
         expect($invalidPlaceholder->key)->toBe('INVALID-KEY');
     });
 
-
     it('converts to array for backward compatibility', function () {
         $placeholder = new Placeholder(2, 'DB_HOST', 'ssm', 'DB_HOST', 'DB_HOST={ssm:DB_HOST}', '{ssm:DB_HOST}');
         $array = $placeholder->toArray();
