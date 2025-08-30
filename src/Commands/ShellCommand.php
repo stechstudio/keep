@@ -23,16 +23,12 @@ class ShellCommand extends BaseCommand
             return self::FAILURE;
         }
         
-        // Create context with initial settings
         $context = new ShellContext(
             $this->option('stage'),
             $this->option('vault')
         );
-        
-        // Create command executor
+
         $executor = new CommandExecutor($context, $this->getApplication());
-        
-        // Create and run the shell
         $shell = new KeepShell($context, $executor);
         
         try {
@@ -44,7 +40,6 @@ class ShellCommand extends BaseCommand
             }
         }
         
-        $this->info('Goodbye!');
         return self::SUCCESS;
     }
 }

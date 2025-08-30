@@ -29,13 +29,8 @@ class KeepShell extends Shell
     }
     
     /**
-     * Override the default input handling to execute Keep commands
+     * Override to display Keep-specific startup message
      */
-    public function beforeLoop(): void
-    {
-        $this->writeStartupMessage();
-    }
-    
     protected function writeStartupMessage(): void
     {
         $this->output->writeln('');
@@ -63,9 +58,14 @@ class KeepShell extends Shell
     /**
      * Process input - intercept for Keep commands
      */
-    public function getInput(bool $interactive = true): string
+    public function getInput(bool $interactive = true)
     {
         $input = parent::getInput($interactive);
+        
+        // Handle null or empty input
+        if ($input === null || $input === '') {
+            return $input;
+        }
         
         // Handle Keep commands
         if ($this->isKeepCommand($input)) {
