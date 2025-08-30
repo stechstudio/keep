@@ -47,6 +47,39 @@ List all configured vaults.
 keep vault:list
 ```
 
+## `keep stage:add`
+
+Add a custom stage/environment beyond the standard ones (development, staging, production).
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--no-interaction` | boolean | `false` | Run without prompts |
+
+**Arguments:**
+- `[name]` - Stage name (prompted if not provided)
+
+**Examples:**
+```bash
+# Interactive mode
+keep stage:add
+
+# Direct mode with stage name
+keep stage:add integration
+
+# Add multiple custom stages
+keep stage:add demo
+keep stage:add qa
+keep stage:add hotfix
+
+# Non-interactive mode
+keep stage:add sandbox --no-interaction
+```
+
+**Stage Name Requirements:**
+- Must be lowercase
+- Can contain letters, numbers, hyphens, and underscores
+- Examples: `qa`, `demo`, `integration`, `sandbox`, `dev2`, `staging-eu`
+
 ## `keep set`
 
 Create or update secrets in vaults.
