@@ -1,7 +1,7 @@
 <?php
 
 use STS\Keep\Data\Secret;
-use STS\Keep\Vaults\AbstractVault;
+use STS\Keep\Tests\Support\TestVault;
 
 describe('Secret', function () {
 
@@ -127,8 +127,7 @@ describe('Secret', function () {
 
 
     it('can be created with all parameters', function () {
-        $mockVault = Mockery::mock(AbstractVault::class);
-        $mockVault->shouldReceive('name')->andReturn('test-vault');
+        $vault = new TestVault('test-vault', [], 'production');
 
         $secret = new Secret(
             key: 'API_KEY',
@@ -138,7 +137,7 @@ describe('Secret', function () {
             stage: 'production',
             revision: 3,
             path: '/app/production/API_KEY',
-            vault: $mockVault
+            vault: $vault
         );
 
         expect($secret->key())->toBe('API_KEY');
@@ -148,13 +147,12 @@ describe('Secret', function () {
         expect($secret->stage())->toBe('production');
         expect($secret->revision())->toBe(3);
         expect($secret->path())->toBe('/app/production/API_KEY');
-        expect($secret->vault())->toBe($mockVault);
+        expect($secret->vault())->toBe($vault);
     });
 
 
     it('converts to array correctly', function () {
-        $mockVault = Mockery::mock(AbstractVault::class);
-        $mockVault->shouldReceive('name')->andReturn('test-vault');
+        $vault = new TestVault('test-vault', [], 'staging');
 
         $secret = new Secret(
             key: 'DB_HOST',
@@ -164,7 +162,7 @@ describe('Secret', function () {
             stage: 'staging',
             revision: 2,
             path: '/app/staging/DB_HOST',
-            vault: $mockVault
+            vault: $vault
         );
 
         $array = $secret->toArray();

@@ -2,6 +2,8 @@
 
 use STS\Keep\Data\Placeholder;
 use STS\Keep\Data\PlaceholderValidationResult;
+use STS\Keep\Data\Secret;
+use STS\Keep\Tests\Support\TestVault;
 
 describe('Placeholder', function () {
 
@@ -50,7 +52,8 @@ describe('Placeholder', function () {
 describe('PlaceholderValidationResult', function () {
     it('creates valid result', function () {
         $placeholder = new Placeholder(1, 'KEY', null, 'KEY', 'line', '{KEY}');
-        $secret = Mockery::mock(\STS\Keep\Data\Secret::class);
+        $vault = new TestVault('test-vault', [], 'testing');
+        $secret = new Secret('KEY', 'value', null, true, 'testing', 1, null, $vault);
 
         $result = PlaceholderValidationResult::valid($placeholder, 'vault', $secret);
 

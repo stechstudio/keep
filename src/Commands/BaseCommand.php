@@ -95,17 +95,4 @@ abstract class BaseCommand extends Command
         }
     }
 
-    public function error($string, $verbosity = null)
-    {
-        parent::error($string, $verbosity);
-
-        return false;
-    }
-
-    public function info($string, $verbosity = null)
-    {
-        parent::info($string, $verbosity);
-
-        return true;
-    }
 }

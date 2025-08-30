@@ -18,10 +18,11 @@ class ShowCommand extends BaseCommand
         $format = $this->option('format');
 
         if (! in_array($format, ['table', 'env', 'json'])) {
-            return $this->error('Invalid format option. Supported formats are: table, json, env.');
+            $this->error('Invalid format option. Supported formats are: table, json, env.');
+            return self::FAILURE;
         }
 
-        $context = $this->context();
+        $context = $this->vaultContext();
         $secrets = $context->createVault()->list()->filterByPatterns(
             only: $this->option('only'),
             except: $this->option('except')
