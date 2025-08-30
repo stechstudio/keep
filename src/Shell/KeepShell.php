@@ -55,11 +55,11 @@ class KeepShell extends Shell
     private function preloadSecrets(ShellContext $context): void
     {
         $secrets = $context->getCachedSecretNames();
-        if (!empty($secrets)) {
-            echo "Loaded " . count($secrets) . " secrets: " . implode(', ', $secrets) . "\n";
-        } else {
-            echo "No secrets found in {$context->getVault()}:{$context->getStage()}\n";
-        }
+//        if (!empty($secrets)) {
+//            echo "Loaded " . count($secrets) . " secrets: " . implode(', ', $secrets) . "\n";
+//        } else {
+//            echo "No secrets found in {$context->getVault()}:{$context->getStage()}\n";
+//        }
     }
     
     /**

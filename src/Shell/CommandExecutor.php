@@ -86,7 +86,7 @@ class CommandExecutor
         $fullCommand = ['command' => $this->resolveCommandName($command)];
         
         // Commands that don't need context
-        $noStageCommands = ['configure', 'vault:add', 'vault:list', 'stage:add'];
+        $noStageCommands = ['configure', 'vault:add', 'vault:list', 'stage:add', 'diff'];
         $noVaultCommands = ['configure', 'vault:add', 'vault:list', 'stage:add', 'import', 'export'];
         
         $needsStage = !in_array($command, $noStageCommands);
