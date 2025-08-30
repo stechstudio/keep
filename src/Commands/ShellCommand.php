@@ -2,84 +2,122 @@
 
 namespace STS\Keep\Commands;
 
-use Illuminate\Console\Application;
-use STS\Keep\Data\Settings;
-use STS\Keep\Facades\Keep;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\ConsoleOutput;
-
-use function Laravel\Prompts\text;
-use function Laravel\Prompts\info;
+use Psy\Shell;
+use STS\Keep\Shell\CommandExecutor;
+use STS\Keep\Shell\KeepShell;
+use STS\Keep\Shell\ShellContext;
 
 class ShellCommand extends BaseCommand
 {
     protected $signature = 'shell 
         {--stage= : Initial stage to use}
-        {--vault= : Initial vault to use}';
+        {--vault= : Initial vault to use}
+        {--simple : Use simple shell without PsySH (fallback mode)}';
     
     protected $description = 'Start an interactive shell for Keep commands';
     
-    private string $currentStage;
-    private string $currentVault;
-    private array $history = [];
-    private bool $running = true;
-    
     public function process()
     {
-        $this->initializeContext();
-        $this->showWelcome();
+        // Check if we should use simple mode
+        if ($this->option('simple') || !class_exists(Shell::class)) {
+            return $this->runSimpleShell();
+        }
         
-        while ($this->running) {
-            $input = $this->prompt();
-            
-            if ($input === null || $input === '') {
-                continue;
+        try {
+            return $this->runPsyShell();
+        } catch (\Exception $e) {
+            $this->warn('PsySH shell failed to start, falling back to simple mode.');
+            $this->error($e->getMessage());
+            return $this->runSimpleShell();
+        }
+    }
+    
+    /**
+     * Run the full PsySH-powered shell with tab completion
+     */
+    private function runPsyShell(): int
+    {
+        // Create context with initial settings
+        $context = new ShellContext(
+            $this->option('stage'),
+            $this->option('vault')
+        );
+        
+        // Create command executor
+        $executor = new CommandExecutor($context, $this->getApplication());
+        
+        // Create and run the shell
+        $shell = new KeepShell($context, $executor);
+        
+        try {
+            $shell->run();
+        } catch (\Exception $e) {
+            // Handle exit gracefully
+            if (!str_contains($e->getMessage(), 'Exit')) {
+                throw $e;
             }
-            
-            $this->history[] = $input;
-            $this->executeCommand($input);
         }
         
         $this->info('Goodbye!');
         return self::SUCCESS;
     }
     
-    private function initializeContext(): void
+    /**
+     * Fallback to simple shell mode (original implementation)
+     */
+    private function runSimpleShell(): int
     {
-        $settings = Settings::load();
+        $context = new ShellContext(
+            $this->option('stage'),
+            $this->option('vault')
+        );
         
-        // Set initial stage
-        $this->currentStage = $this->option('stage') 
-            ?? $settings->stages()[0] 
-            ?? 'development';
+        $this->showSimpleWelcome($context);
+        
+        $running = true;
+        while ($running) {
+            $input = $this->simplePrompt($context);
             
-        // Set initial vault
-        $this->currentVault = $this->option('vault') 
-            ?? $settings->defaultVault() 
-            ?? 'test';
+            if ($input === null || $input === '') {
+                continue;
+            }
+            
+            $context->addToHistory($input);
+            
+            if ($this->handleSimpleCommand($input, $context, $running)) {
+                continue;
+            }
+            
+            // Execute as Keep command
+            $executor = new CommandExecutor($context, $this->getApplication());
+            $executor->execute($input);
+        }
+        
+        $this->info('Goodbye!');
+        return self::SUCCESS;
     }
     
-    private function showWelcome(): void
+    private function showSimpleWelcome(ShellContext $context): void
     {
         $this->newLine();
-        $this->info('Welcome to Keep Shell v1.0.0');
+        $this->info('Welcome to Keep Shell v1.0.0 (Simple Mode)');
         $this->line('Type \'help\' for available commands or \'exit\' to quit.');
-        $this->line("Current context: {$this->currentVault}:{$this->currentStage}");
+        $this->line("Current context: {$context->getVault()}:{$context->getStage()}");
+        $this->warn('Note: Tab completion is not available in simple mode. Use --simple=false to try PsySH mode.');
         $this->newLine();
     }
     
-    private function prompt(): ?string
+    private function simplePrompt(ShellContext $context): ?string
     {
         // Check if we're in an interactive terminal
         if (!stream_isatty(STDIN)) {
-            // Non-interactive mode - read from stdin
             $line = fgets(STDIN);
             return $line !== false ? trim($line) : null;
         }
         
         // Interactive mode - use readline if available
         if (function_exists('readline')) {
-            $prompt = "keep ({$this->currentVault}:{$this->currentStage})> ";
+            $prompt = $context->getPrompt();
             $line = readline($prompt);
             if ($line !== false && $line !== '') {
                 readline_add_history($line);
@@ -88,32 +126,12 @@ class ShellCommand extends BaseCommand
         }
         
         // Fallback to basic input
-        echo "keep ({$this->currentVault}:{$this->currentStage})> ";
+        echo $context->getPrompt();
         $line = fgets(STDIN);
         return $line !== false ? trim($line) : null;
     }
     
-    private function executeCommand(string $input): void
-    {
-        $input = trim($input);
-        
-        // Handle shell-specific commands
-        if ($this->handleShellCommand($input)) {
-            return;
-        }
-        
-        // Parse the command
-        $parts = str_getcsv($input, ' ');
-        $command = array_shift($parts);
-        
-        // Map common shortcuts
-        $command = $this->mapShortcut($command);
-        
-        // Execute Keep command
-        $this->executeKeepCommand($command, $parts);
-    }
-    
-    private function handleShellCommand(string $input): bool
+    private function handleSimpleCommand(string $input, ShellContext $context, bool &$running): bool
     {
         $parts = explode(' ', $input);
         $command = $parts[0];
@@ -123,12 +141,12 @@ class ShellCommand extends BaseCommand
             case 'exit':
             case 'quit':
             case 'q':
-                $this->running = false;
+                $running = false;
                 return true;
                 
             case 'help':
             case '?':
-                $this->showHelp();
+                $this->showSimpleHelp();
                 return true;
                 
             case 'clear':
@@ -139,32 +157,32 @@ class ShellCommand extends BaseCommand
             case 'stage':
             case 's':
                 if ($arg) {
-                    $this->switchStage($arg);
+                    $this->switchStage($arg, $context);
                 } else {
-                    $this->info("Current stage: {$this->currentStage}");
+                    $this->info("Current stage: {$context->getStage()}");
                 }
                 return true;
                 
             case 'vault':
             case 'v':
                 if ($arg) {
-                    $this->switchVault($arg);
+                    $this->switchVault($arg, $context);
                 } else {
-                    $this->info("Current vault: {$this->currentVault}");
+                    $this->info("Current vault: {$context->getVault()}");
                 }
                 return true;
                 
             case 'context':
             case 'ctx':
-                $this->showContext();
+                $this->showContext($context);
                 return true;
                 
             case 'use':
             case 'u':
                 if ($arg && str_contains($arg, ':')) {
                     [$vault, $stage] = explode(':', $arg);
-                    $this->switchVault($vault);
-                    $this->switchStage($stage);
+                    $this->switchVault($vault, $context);
+                    $this->switchStage($stage, $context);
                 } else {
                     $this->error('Usage: use <vault>:<stage>');
                 }
@@ -172,150 +190,21 @@ class ShellCommand extends BaseCommand
                 
             case 'history':
             case 'h':
-                $this->showHistory();
+                $this->showHistory($context);
                 return true;
                 
             case 'ls':
             case 'list':
-                $this->executeKeepCommand('show', []);
-                return true;
+                // These will be handled as Keep commands
+                return false;
         }
         
         return false;
     }
     
-    private function mapShortcut(string $command): string
+    private function switchStage(string $stage, ShellContext $context): void
     {
-        return match($command) {
-            'g' => 'get',
-            'd' => 'delete',
-            'l' => 'show',
-            default => $command
-        };
-    }
-    
-    private function executeKeepCommand(string $command, array $args): void
-    {
-        try {
-            // Build the full command with context
-            $fullCommand = $this->buildFullCommand($command, $args);
-            
-            // Get the application instance
-            $app = $this->getApplication();
-            
-            // Find the command
-            $commandName = $this->resolveCommandName($command);
-            if (!$app->has($commandName)) {
-                $this->error("Unknown command: {$command}");
-                return;
-            }
-            
-            // Create input/output
-            $input = new ArrayInput($fullCommand);
-            $output = new ConsoleOutput();
-            
-            // Run the command
-            $exitCode = $app->find($commandName)->run($input, $output);
-            
-            if ($exitCode !== 0 && $exitCode !== null) {
-                $this->error("Command failed with exit code: {$exitCode}");
-            }
-            
-        } catch (\Exception $e) {
-            $this->error($e->getMessage());
-        }
-    }
-    
-    private function buildFullCommand(string $command, array $args): array
-    {
-        $fullCommand = ['command' => $this->resolveCommandName($command)];
-        
-        // Add context unless already specified
-        $needsStage = !in_array($command, ['configure', 'vault:add', 'vault:list', 'stage:add']);
-        $needsVault = !in_array($command, ['configure', 'vault:add', 'vault:list', 'stage:add', 'import', 'export']);
-        
-        // Parse arguments and options
-        $positionals = [];
-        $options = [];
-        
-        foreach ($args as $arg) {
-            if (str_starts_with($arg, '--')) {
-                if (str_contains($arg, '=')) {
-                    [$key, $value] = explode('=', $arg, 2);
-                    $options[substr($key, 2)] = $value;
-                } else {
-                    $options[substr($arg, 2)] = true;
-                }
-            } else {
-                $positionals[] = $arg;
-            }
-        }
-        
-        // Add positional arguments
-        if ($command === 'set' && count($positionals) >= 1) {
-            $fullCommand['key'] = $positionals[0];
-            if (isset($positionals[1])) {
-                $fullCommand['value'] = $positionals[1];
-            }
-        } elseif (in_array($command, ['get', 'delete']) && count($positionals) >= 1) {
-            $fullCommand['key'] = $positionals[0];
-        } elseif ($command === 'copy' && count($positionals) >= 1) {
-            $fullCommand['key'] = $positionals[0];
-        } elseif ($command === 'import' && count($positionals) >= 1) {
-            $fullCommand['file'] = $positionals[0];
-        } elseif ($command === 'stage:add' && count($positionals) >= 1) {
-            $fullCommand['name'] = $positionals[0];
-        }
-        
-        // Add options
-        foreach ($options as $key => $value) {
-            $fullCommand['--' . $key] = $value;
-        }
-        
-        // Add context if not specified
-        if ($needsStage && !isset($options['stage'])) {
-            $fullCommand['--stage'] = $this->currentStage;
-        }
-        if ($needsVault && !isset($options['vault'])) {
-            $fullCommand['--vault'] = $this->currentVault;
-        }
-        
-        // Special handling for copy command
-        if ($command === 'copy' && !isset($options['from'])) {
-            $fullCommand['--from'] = "{$this->currentVault}:{$this->currentStage}";
-        }
-        
-        return $fullCommand;
-    }
-    
-    private function resolveCommandName(string $command): string
-    {
-        // Handle commands with colons
-        if (str_contains($command, ':')) {
-            return $command;
-        }
-        
-        // Map to actual command names
-        return match($command) {
-            'configure' => 'configure',
-            'set' => 'set',
-            'get' => 'get',
-            'show' => 'show',
-            'delete' => 'delete',
-            'copy' => 'copy',
-            'import' => 'import',
-            'export' => 'export',
-            'diff' => 'diff',
-            'verify' => 'verify',
-            'info' => 'info',
-            default => $command
-        };
-    }
-    
-    private function switchStage(string $stage): void
-    {
-        $settings = Settings::load();
-        $stages = $settings->stages();
+        $stages = $context->getAvailableStages();
         
         // Allow partial matching
         $matched = null;
@@ -327,22 +216,21 @@ class ShellCommand extends BaseCommand
         }
         
         if ($matched) {
-            $this->currentStage = $matched;
-            $this->info("✓ Switched to stage: {$this->currentStage}");
+            $context->setStage($matched);
+            $this->info("✓ Switched to stage: {$matched}");
         } else {
             $this->error("Unknown stage: {$stage}");
             $this->line("Available stages: " . implode(', ', $stages));
         }
     }
     
-    private function switchVault(string $vault): void
+    private function switchVault(string $vault, ShellContext $context): void
     {
-        $vaults = Keep::manager()->listVaults();
-        $vaultNames = $vaults->pluck('slug')->toArray();
+        $vaults = $context->getAvailableVaults();
         
         // Allow partial matching
         $matched = null;
-        foreach ($vaultNames as $v) {
+        foreach ($vaults as $v) {
             if ($v === $vault || str_starts_with($v, $vault)) {
                 $matched = $v;
                 break;
@@ -350,39 +238,39 @@ class ShellCommand extends BaseCommand
         }
         
         if ($matched) {
-            $this->currentVault = $matched;
-            $this->info("✓ Switched to vault: {$this->currentVault}");
+            $context->setVault($matched);
+            $this->info("✓ Switched to vault: {$matched}");
         } else {
             $this->error("Unknown vault: {$vault}");
-            $this->line("Available vaults: " . implode(', ', $vaultNames));
+            $this->line("Available vaults: " . implode(', ', $vaults));
         }
     }
     
-    private function showContext(): void
+    private function showContext(ShellContext $context): void
     {
-        $settings = Settings::load();
-        
         $this->line('Current Context:');
-        $this->line("  Vault: {$this->currentVault}");
-        $this->line("  Stage: {$this->currentStage}");
-        $this->line("  Default vault: " . $settings->defaultVault());
-        $this->line("  Available stages: " . implode(', ', $settings->stages()));
+        $this->line("  Vault: {$context->getVault()}");
+        $this->line("  Stage: {$context->getStage()}");
+        $this->line("  Available stages: " . implode(', ', $context->getAvailableStages()));
+        $this->line("  Available vaults: " . implode(', ', $context->getAvailableVaults()));
     }
     
-    private function showHistory(): void
+    private function showHistory(ShellContext $context): void
     {
-        if (empty($this->history)) {
+        $history = $context->getHistory();
+        
+        if (empty($history)) {
             $this->info('No command history yet.');
             return;
         }
         
         $this->line('Command History:');
-        foreach ($this->history as $i => $cmd) {
+        foreach ($history as $i => $cmd) {
             $this->line(sprintf("  %3d  %s", $i + 1, $cmd));
         }
     }
     
-    private function showHelp(): void
+    private function showSimpleHelp(): void
     {
         $this->newLine();
         $this->info('Keep Shell Commands:');
