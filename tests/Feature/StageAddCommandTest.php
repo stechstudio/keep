@@ -4,6 +4,40 @@ use STS\Keep\Data\Settings;
 
 describe('StageAddCommand', function () {
     
+    beforeEach(function () {
+        $this->tempDir = createTempKeepDir();
+
+        // Create .keep directory and settings to initialize Keep
+        mkdir('.keep');
+        mkdir('.keep/vaults');
+
+        $settings = [
+            'app_name' => 'test-app',
+            'namespace' => 'test-app',
+            'default_vault' => 'test',
+            'stages' => ['testing', 'production'],
+            'created_at' => date('c'),
+            'version' => '1.0',
+        ];
+
+        file_put_contents('.keep/settings.json', json_encode($settings, JSON_PRETTY_PRINT));
+
+        // Create test vault configuration for testing (never hits AWS)
+        $vaultConfig = [
+            'driver' => 'test',
+            'name' => 'Test Vault',
+            'namespace' => 'test-app',
+        ];
+
+        file_put_contents('.keep/vaults/test.json', json_encode($vaultConfig, JSON_PRETTY_PRINT));
+    });
+
+    afterEach(function () {
+        if (isset($this->tempDir)) {
+            cleanupTempDir($this->tempDir);
+        }
+    });
+    
     describe('adding custom stages', function () {
         
         it('adds a new custom stage via argument', function () {
