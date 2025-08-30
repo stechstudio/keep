@@ -14,6 +14,9 @@ hero:
       link: https://github.com/stechstudio/keep
 
 features:
+  - title: Interactive Shell
+    details: Full REPL with tab completion, context persistence, and instant secret access.
+    
   - title: Multi-Vault Support
     details: AWS SSM and Secrets Manager, with more providers coming soon.
     
@@ -25,9 +28,6 @@ features:
     
   - title: CLI First
     details: Powerful command-line interface built for CI/CD automation.
-    
-  - title: Team Collaboration
-    details: Share vault configurations and manage secrets across your team.
     
   - title: Security Focused
     details: Encrypted storage, secure AWS integration, and masked output by default.
@@ -58,4 +58,20 @@ keep export --stage=production --output=.env
 keep export --template=.env.template --stage=production --output=.env
 ```
 
-Get started with our [installation guide](/guide/installation) or see all [CLI commands](/guide/reference/cli-reference).
+## Interactive Shell
+
+Launch the Keep shell for faster secret management with tab completion:
+
+```bash
+# Start the interactive shell
+keep shell
+
+# In the shell, use shortcuts and tab completion
+>>> use production           # Switch to production stage
+>>> get DB_<TAB>            # Tab completes secret names
+>>> set NEW_SECRET "value"  # Set secrets instantly
+>>> diff staging production # Compare environments
+>>> exit                    # Exit when done
+```
+
+Get started with our [installation guide](/guide/installation), explore the [interactive shell](/guide/shell), or see all [CLI commands](/guide/reference/cli-reference).
