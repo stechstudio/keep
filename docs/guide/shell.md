@@ -31,7 +31,7 @@ The shell provides intelligent tab completion for:
 >>> get DB_<TAB>
 DB_HOST     DB_PASSWORD     DB_PORT     DB_USERNAME
 
->>> use <TAB>
+>>> stage <TAB>
 development     staging     production
 
 >>> vault <TAB>
@@ -47,7 +47,7 @@ The shell maintains your current vault and stage context throughout your session
 Current vault: myapp
 Current stage: staging
 
->>> use production
+>>> stage production
 Switched to stage: production
 
 >>> context
@@ -65,7 +65,7 @@ Use short aliases for common commands:
 | `set KEY VALUE` | `s KEY VALUE` | Set a secret |
 | `delete KEY` | `d KEY` | Delete a secret |
 | `list` | `l` | List all secrets |
-| `use STAGE` | - | Switch to a different stage |
+| `stage STAGE` | `s STAGE` | Switch to a different stage |
 | `vault NAME` | - | Switch to a different vault |
 
 ## Usage Examples
@@ -73,7 +73,7 @@ Use short aliases for common commands:
 ### Quick Secret Management
 
 ```bash
->>> use production
+>>> stage production
 Switched to stage: production
 
 >>> set API_KEY "sk-1234567890"
@@ -128,7 +128,7 @@ Copied 4 secrets
 ✓ Created stage 'testing' in vault 'myapp'
 ✓ Copied 15 secrets from development to testing
 
->>> use testing
+>>> stage testing
 Switched to stage: testing
 
 >>> list
@@ -139,7 +139,8 @@ Switched to stage: testing
 
 ### Context Management
 
-- **`use <stage>`** - Switch to a different stage
+- **`stage <name>`** - Switch to a different stage
+- **`use <vault:stage>`** - Switch both vault and stage at once
 - **`vault <name>`** - Switch to a different vault
 - **`context`** - Show current vault and stage
 
@@ -191,12 +192,12 @@ composer require psy/psysh
 
 ### 1. Quick Context Switching
 
-Use the `use` command to quickly switch between environments:
+Use the `stage` command to quickly switch between environments:
 
 ```bash
->>> use staging
+>>> stage staging
 >>> set DEBUG true
->>> use production
+>>> stage production
 >>> set DEBUG false
 ```
 
