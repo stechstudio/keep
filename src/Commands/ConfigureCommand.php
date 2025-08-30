@@ -4,6 +4,7 @@ namespace STS\Keep\Commands;
 
 use Illuminate\Support\Str;
 use STS\Keep\Commands\Concerns\ConfiguresVaults;
+use STS\Keep\Commands\Concerns\ValidatesStages;
 use STS\Keep\Data\Settings;
 use STS\Keep\Facades\Keep;
 
@@ -15,7 +16,7 @@ use function Laravel\Prompts\text;
 
 class ConfigureCommand extends BaseCommand
 {
-    use ConfiguresVaults;
+    use ConfiguresVaults, ValidatesStages;
 
     protected $signature = 'configure';
 
@@ -55,11 +56,26 @@ class ConfigureCommand extends BaseCommand
                 'staging' => 'Staging (pre-production)',
                 'sandbox' => 'Sandbox (demos / experiments)',
                 'production' => 'Production (live)',
+                'custom' => '➕ Add custom stage...',
             ],
             default: $existingSettings['stages'] ?? ['local', 'staging', 'production'],
             scroll: 6,
-            hint: 'You can add more later. Toggle with space bar, confirm with enter.',
+            hint: 'You can add more later with "keep stage:add". Toggle with space bar, confirm with enter.',
         );
+        
+        // Handle custom stage input
+        if (in_array('custom', $stages)) {
+            $stages = array_diff($stages, ['custom']); // Remove 'custom' from list
+            
+            $customStages = text(
+                label: 'Enter custom stage names (comma-separated, lowercase only)',
+                placeholder: 'e.g., dev2, demo, integration',
+                validate: fn($value) => $this->validateCustomStagesInput($value)
+            );
+            
+            $customStagesList = array_map('trim', explode(',', $customStages));
+            $stages = array_merge($stages, $customStagesList);
+        }
 
         // Create configuration structure
         $this->createKeepDirectory();
@@ -138,5 +154,22 @@ class ConfigureCommand extends BaseCommand
             'updated_at' => date('c'),
             'version' => '1.0',
         ])->save();
+    }
+
+    private function validateCustomStagesInput(string $value): ?string
+    {
+        if (empty($value)) {
+            return 'Please enter at least one custom stage name';
+        }
+        
+        $stages = array_map('trim', explode(',', $value));
+        foreach ($stages as $stage) {
+            $error = $this->getStageValidationError($stage);
+            if ($error) {
+                return $error;
+            }
+        }
+        
+        return null;
     }
 }
