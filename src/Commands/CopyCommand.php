@@ -74,7 +74,8 @@ class CopyCommand extends BaseCommand
 
             $this->info("Successfully copied secret [{$key}] from {$sourceContext->toString()} to {$destinationContext->toString()}");
         } catch (SecretNotFoundException $e) {
-            return $this->error("Source secret [{$key}] not found in {$sourceContext->toString()}");
+            $this->error("Source secret [{$key}] not found in {$sourceContext->toString()}");
+            return self::FAILURE;
         }
     }
 

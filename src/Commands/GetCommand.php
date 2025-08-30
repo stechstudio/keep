@@ -15,7 +15,7 @@ class GetCommand extends BaseCommand
 
     public function process()
     {
-        $context = $this->context();
+        $context = $this->vaultContext();
         $secret = $context->createVault()->get($this->key());
 
         match ($this->option('format')) {

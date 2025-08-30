@@ -19,7 +19,7 @@ class SetCommand extends BaseCommand
         $key = $this->key();
         $this->validateUserKey($key);
         
-        $context = $this->context();
+        $context = $this->vaultContext();
         $secret = $context->createVault()->set($key, $this->value(), $this->secure());
 
         $this->info(

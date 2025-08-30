@@ -29,11 +29,13 @@ class DiffCommand extends BaseCommand
         $stages = $this->getStagesToCompare();
 
         if (empty($vaults)) {
-            return $this->error('No vaults available for comparison.');
+            $this->error('No vaults available for comparison.');
+            return self::FAILURE;
         }
 
         if (empty($stages)) {
-            return $this->error('No stages available for comparison.');
+            $this->error('No stages available for comparison.');
+            return self::FAILURE;
         }
 
         $diffService = new DiffService;

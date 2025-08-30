@@ -5,22 +5,18 @@ use STS\Keep\Data\Secret;
 use STS\Keep\Data\Template;
 use STS\Keep\Enums\MissingSecretStrategy;
 use STS\Keep\Exceptions\SecretNotFoundException;
-use STS\Keep\Vaults\AbstractVault;
+use STS\Keep\Tests\Support\TestVault;
 
 beforeEach(function () {
-    // Create mock vault for SSM
-    $this->ssmVault = Mockery::mock(AbstractVault::class);
-    $this->ssmVault->shouldReceive('name')->andReturn('ssm');
+    // Create test vaults
+    $this->ssmVault = new TestVault('ssm', [], 'testing');
 
-    // Create mock vault for other vault names used in tests
-    $this->vaultOne = Mockery::mock(AbstractVault::class);
-    $this->vaultOne->shouldReceive('name')->andReturn('vault-one');
+    // Create test vault for other vault names used in tests
+    $this->vaultOne = new TestVault('vault-one', [], 'testing');
 
-    $this->vaultTwo = Mockery::mock(AbstractVault::class);
-    $this->vaultTwo->shouldReceive('name')->andReturn('vault-two');
+    $this->vaultTwo = new TestVault('vault-two', [], 'testing');
 
-    $this->ssmProdVault = Mockery::mock(AbstractVault::class);
-    $this->ssmProdVault->shouldReceive('name')->andReturn('ssm-prod');
+    $this->ssmProdVault = new TestVault('ssm-prod', [], 'testing');
 
     // Create secrets with SSM vault attached
     $this->secrets = new SecretCollection([
@@ -703,12 +699,10 @@ describe('Template', function () {
 
     describe('multi-vault template scenarios', function () {
         it('handles templates with placeholders from multiple vaults', function () {
-            // Create mock vaults for different providers
-            $secretsManagerVault = Mockery::mock(AbstractVault::class);
-            $secretsManagerVault->shouldReceive('name')->andReturn('secretsmanager');
+            // Create test vaults for different providers
+            $secretsManagerVault = new TestVault('secretsmanager', [], 'testing');
 
-            $ssmUsWest2Vault = Mockery::mock(AbstractVault::class);
-            $ssmUsWest2Vault->shouldReceive('name')->andReturn('ssm-usw-2');
+            $ssmUsWest2Vault = new TestVault('ssm-usw-2', [], 'testing');
 
             // Create secrets from different vaults
             $multiVaultSecrets = new SecretCollection([
@@ -775,8 +769,7 @@ describe('Template', function () {
         });
 
         it('handles same key from different vaults', function () {
-            $secretsManagerVault = Mockery::mock(AbstractVault::class);
-            $secretsManagerVault->shouldReceive('name')->andReturn('secretsmanager');
+            $secretsManagerVault = new TestVault('secretsmanager', [], 'testing');
 
             // Same key name but from different vaults with different values
             $sameKeySecrets = new SecretCollection([

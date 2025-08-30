@@ -17,7 +17,7 @@ class DeleteCommand extends BaseCommand
     public function process()
     {
         $key = $this->key();
-        $context = $this->context();
+        $context = $this->vaultContext();
         $vault = $context->createVault();
 
         // Get the secret first to verify it exists
@@ -39,7 +39,8 @@ class DeleteCommand extends BaseCommand
             );
 
             if (! $confirmed) {
-                return $this->info('Secret deletion cancelled.');
+                $this->info('Secret deletion cancelled.');
+                return self::SUCCESS;
             }
         }
 

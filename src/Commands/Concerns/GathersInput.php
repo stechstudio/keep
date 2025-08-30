@@ -101,7 +101,7 @@ trait GathersInput
         };
     }
 
-    protected function context(string $vaultPrompt = 'Vault', string $stagePrompt = 'Stage'): Context
+    protected function vaultContext(string $vaultPrompt = 'Vault', string $stagePrompt = 'Stage'): Context
     {
         // Create context from separate vault/stage selection
         return new Context($this->vaultName($vaultPrompt), $this->stage($stagePrompt));

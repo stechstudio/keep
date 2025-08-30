@@ -25,12 +25,14 @@ class ImportCommand extends BaseCommand
     public function process()
     {
         if ($this->option('overwrite') && $this->option('skip-existing')) {
-            return $this->error('You cannot use --overwrite and --skip-existing together.');
+            $this->error('You cannot use --overwrite and --skip-existing together.');
+            return self::FAILURE;
         }
 
         $envFilePath = $this->argument('from') ?? text('Path to .env file', required: true);
         if (! file_exists($envFilePath) || ! is_readable($envFilePath)) {
-            return $this->error("Env file [$envFilePath] does not exist or is not readable.");
+            $this->error("Env file [$envFilePath] does not exist or is not readable.");
+            return self::FAILURE;
         }
 
         $env = Env::fromFile($envFilePath);
@@ -41,7 +43,7 @@ class ImportCommand extends BaseCommand
             except: $this->option('except')
         );
 
-        $context = $this->context();
+        $context = $this->vaultContext();
         $vault = $context->createVault();
         $vaultSecrets = $vault->list();
 

@@ -29,7 +29,7 @@ class HistoryCommand extends BaseCommand
     {
         $key = $this->key();
         $limit = (int) $this->option('limit');
-        $context = $this->context();
+        $context = $this->vaultContext();
         $vault = $context->createVault();
 
         $historyCollection = $vault->history($key, new FilterCollection(array_filter([
