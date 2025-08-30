@@ -1,6 +1,6 @@
 # Interactive Shell
 
-Keep provides a powerful interactive shell (REPL) with tab completion and persistent context for efficient secret management. The shell is powered by [PsySH](https://psysh.org/), a runtime developer console for PHP.
+Keep provides a powerful interactive shell with tab completion and persistent context for efficient secret management.
 
 ## Starting the Shell
 
@@ -13,7 +13,7 @@ keep shell
 You can also start with a specific vault and stage:
 
 ```bash
-keep shell --vault=myapp --stage=production
+keep shell --vault=ssm --stage=production
 ```
 
 ## Features
@@ -24,18 +24,19 @@ The shell provides intelligent tab completion for:
 
 - **Commands**: Type partial commands and press TAB to complete
 - **Secret names**: When using `get`, `set`, `delete`, and other secret commands
-- **Vault names**: When switching vaults with the `vault` command
 - **Stage names**: When switching stages with the `stage` command
+- **Vault names**: When switching vaults with the `vault` command
 
 ```bash
->>> get DB_<TAB>
+>>> get<TAB>                 # Shows all available secrets
+>>> get DB_<TAB>             # Shows secrets starting with DB_
 DB_HOST     DB_PASSWORD     DB_PORT     DB_USERNAME
 
->>> stage <TAB>
+>>> stage <TAB>              # Shows all configured stages
 development     staging     production
 
->>> vault <TAB>
-myapp     shared-config     infrastructure
+>>> vault <TAB>              # Shows all configured vaults
+ssm     secretsmanager     test
 ```
 
 ### Persistent Context
@@ -44,14 +45,14 @@ The shell maintains your current vault and stage context throughout your session
 
 ```bash
 >>> context
-Current vault: myapp
+Current vault: ssm
 Current stage: staging
 
 >>> stage production
 Switched to stage: production
 
 >>> context
-Current vault: myapp
+Current vault: ssm
 Current stage: production
 ```
 
@@ -77,62 +78,78 @@ Use short aliases for common commands:
 Switched to stage: production
 
 >>> set API_KEY "sk-1234567890"
-✓ Set API_KEY in myapp:production
+Secret [/test-app/production/API_KEY] created in vault [ssm].
 
 >>> get API_KEY
-sk-1234567890
+┌─────────┬────────┬────────────────┬──────────┐
+│ Key     │ Vault  │ Value          │ Revision │
+├─────────┼────────┼────────────────┼──────────┤
+│ API_KEY │ ssm    │ ************90 │ 1        │
+└─────────┴────────┴────────────────┴──────────┘
 
 >>> show
-API_KEY
-DB_HOST
-DB_PASSWORD
-DB_USERNAME
+┌──────────────┬────────────────┬──────────┐
+│ Key          │ Value          │ Revision │
+├──────────────┼────────────────┼──────────┤
+│ API_KEY      │ ************90 │ 1        │
+│ DB_HOST      │ *****mysql.com │ 1        │
+│ DB_PASSWORD  │ ************** │ 1        │
+│ DB_USERNAME  │ app_user       │ 1        │
+└──────────────┴────────────────┴──────────┘
 ```
 
 ### Comparing Environments
 
 ```bash
 >>> diff staging production
-Comparing staging vs production
 
-Only in staging:
-  DEBUG_MODE = true
+Secret Comparison Matrix
+┌──────────────┬─────────────────┬──────────────────┬─────────────┐
+│ Key          │ staging         │ production       │ Status      │
+├──────────────┼─────────────────┼──────────────────┼─────────────┤
+│ API_ENDPOINT │ api-staging.com │ api.example.com  │ ⚠ Different │
+│ DB_HOST      │ localhost       │ prod.mysql.com   │ ⚠ Different │
+│ DEBUG_MODE   │ true            │ -                │ ⚠ Missing   │
+│ SENTRY_DSN   │ -               │ https://...      │ ⚠ Missing   │
+│ APP_KEY      │ ************    │ ************     │ ✓ Identical │
+└──────────────┴─────────────────┴──────────────────┴─────────────┘
 
-Only in production:
-  SENTRY_DSN = https://...
-
-Different values:
-  API_ENDPOINT:
-    staging:    https://api-staging.example.com
-    production: https://api.example.com
+>>> diff staging production unmask  # Show actual values
 ```
 
 ### Bulk Operations
 
-The shell supports all Keep commands, including bulk operations:
+The shell supports all Keep commands with natural syntax:
 
 ```bash
->>> copy --key="DB_*" --stage=staging,production
-Copying from staging to production...
+>>> copy only DB_*
+Copying secrets from ssm:staging to ssm:production
 ✓ Copied DB_HOST
 ✓ Copied DB_PASSWORD
 ✓ Copied DB_USERNAME
 ✓ Copied DB_PORT
-Copied 4 secrets
+
+4 secrets copied successfully.
 ```
 
-### Stage Promotion
+Note: The copy command uses the current stage as source and requires a `--to` option or uses default behavior based on your context.
+
+### Creating New Stages
 
 ```bash
->>> stage:add testing --copy-from=development
-✓ Created stage 'testing' in vault 'myapp'
-✓ Copied 15 secrets from development to testing
+>>> stage:add testing
+Stage 'testing' has been added.
 
 >>> stage testing
 Switched to stage: testing
 
 >>> show
-# Shows all copied secrets
+# Empty - new stage has no secrets yet
+
+# To copy secrets, switch to source stage first:
+>>> stage development
+>>> copy only * --to=testing  
+# Copies all secrets from development to testing
 ```
 
 ## Shell Commands
@@ -152,9 +169,9 @@ All standard Keep commands work in the shell:
 - **`set <key> <value>`** - Set a secret
 - **`delete <key>`** - Delete a secret
 - **`show`** - Show all secrets in current context
-- **`search <pattern>`** - Search for secrets by pattern
 - **`history <key>`** - View secret history
-- **`copy`** - Copy secrets between stages
+- **`copy <key>`** - Copy a single secret (use --to option for destination)
+- **`copy only <pattern>`** - Copy secrets matching pattern
 
 ### Vault Management
 
@@ -180,14 +197,6 @@ Goodbye!
 
 Or use the keyboard shortcut `Ctrl+D`.
 
-## Requirements
-
-The interactive shell requires PsySH. If not already installed, add it to your project:
-
-```bash
-composer require psy/psysh
-```
-
 ## Options Syntax
 
 The shell uses a natural, dash-free syntax for options:
@@ -196,7 +205,6 @@ The shell uses a natural, dash-free syntax for options:
 >>> show unmask              # Show secrets with actual values
 >>> show json                # Output in JSON format
 >>> show env unmask          # Export format with real values
->>> show only DB_*           # Filter secrets by pattern
 >>> get NAME raw             # Get raw value without table
 >>> diff staging prod unmask # Compare with unmasked values
 ```
@@ -211,9 +219,9 @@ Use the `stage` command to quickly switch between environments:
 
 ```bash
 >>> stage staging
->>> set DEBUG true
->>> stage production
->>> set DEBUG false
+>>> set API_ENDPOINT "https://api-staging.example.com"
+>>> stage production  
+>>> set API_ENDPOINT "https://api.example.com"
 ```
 
 ### 2. Secret Name Patterns
@@ -229,24 +237,16 @@ AWS_ACCESS_KEY_ID     AWS_SECRET_ACCESS_KEY     AWS_REGION
 
 Use arrow keys to navigate through command history, making it easy to repeat or modify previous commands.
 
-### 4. Inline PHP
+### 4. Multi-line Input
 
-Since the shell is powered by PsySH, you can execute PHP code directly:
-
-```bash
->>> $secrets = Keep::vault('myapp', 'production')->list();
->>> count($secrets)
-42
-```
-
-### 5. Multi-line Input
-
-For complex commands or values, the shell supports multi-line input:
+For complex values, the shell supports multi-line input:
 
 ```bash
 >>> set PRIVATE_KEY "-----BEGIN PRIVATE KEY-----
 ... MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEA
+... [additional key content]
 ... -----END PRIVATE KEY-----"
+Secret [/test-app/staging/PRIVATE_KEY] created in vault [ssm].
 ```
 
 ## Performance
