@@ -155,7 +155,7 @@ class CopyCommand extends BaseCommand
     protected function getFilteredSecrets(Context $sourceContext)
     {
         $sourceVault = $sourceContext->createVault();
-        $allSecrets = $sourceVault->all();
+        $allSecrets = $sourceVault->list();
 
         return $allSecrets->filterByPatterns(
             $this->option('only'),
