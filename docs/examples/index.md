@@ -24,14 +24,20 @@ Configure IAM roles, SSM Parameter Store, and Secrets Manager for Keep.
 keep configure
 keep vault:add
 
-# Set development secret
+# Set development secrets
 keep set API_KEY "dev-key" --stage=development
+keep set DB_HOST "localhost" --stage=development
+keep set DB_PASSWORD "dev-pass" --stage=development
 
-# Copy to staging
+# Copy single secret to staging
 keep copy API_KEY --from=development --to=staging
 
-# Promote to production
-keep copy API_KEY --from=staging --to=production
+# Bulk copy all database configs to staging
+keep copy --only="DB_*" --from=development --to=staging
+
+# Promote everything to production (preview first)
+keep copy --only="*" --from=staging --to=production --dry-run
+keep copy --only="*" --from=staging --to=production --overwrite
 ```
 
 ### Using Templates

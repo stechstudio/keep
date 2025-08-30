@@ -2,7 +2,7 @@
 
 ## Copying Secrets
 
-`keep copy` copies secrets between stages or vaults.
+`keep copy` copies secrets between stages or vaults, supporting both single secret and bulk operations.
 
 ### Command Reference: `keep copy`
 
@@ -12,11 +12,14 @@
 | `--to` | string | *required* | Destination context (stage or vault:stage) |
 | `--overwrite` | boolean | `false` | Overwrite existing secrets without confirmation |
 | `--dry-run` | boolean | `false` | Show what would be copied without making changes |
+| `--only` | string | | Pattern for bulk copy - include only matching keys |
+| `--except` | string | | Pattern for bulk copy - exclude matching keys |
 
 **Arguments:**
-- `[key]` - Specific secret key to copy (required)
+- `[key]` - Specific secret key to copy (omit when using --only or --except)
 
-**Examples:**
+### Single Secret Copy
+
 ```bash
 # Basic copy
 keep copy DB_PASSWORD --from=development --to=staging
@@ -29,6 +32,27 @@ keep copy API_KEY --from=staging --to=production --dry-run
 
 # Cross-vault
 keep copy DB_PASSWORD --from=secretsmanager:development --to=ssm:production
+```
+
+### Bulk Copy Operations
+
+Copy multiple secrets at once using pattern matching:
+
+```bash
+# Copy all database configurations
+keep copy --only="DB_*" --from=development --to=staging
+
+# Copy everything except sensitive keys
+keep copy --except="*_SECRET,*_TOKEN" --from=staging --to=production
+
+# Copy all API-related secrets with overwrite
+keep copy --only="API_*" --from=development --to=production --overwrite
+
+# Preview what would be copied (dry-run)
+keep copy --only="*" --from=staging --to=production --dry-run
+
+# Complex patterns - copy configs but not passwords
+keep copy --only="*_CONFIG,*_URL" --except="*_PASSWORD" --from=dev --to=staging
 ```
 
 ## Comparing Environments
@@ -106,6 +130,8 @@ keep import .env --stage=development --except="PRIVATE_KEY"
 
 ## Promotion Workflows
 
+### Individual Secret Promotion
+
 ```bash
 # 1. Review current state
 keep diff --stage=development,staging
@@ -121,13 +147,33 @@ keep set API_URL "https://staging-api.example.com" --stage=staging
 keep diff --stage=development,staging
 ```
 
+### Bulk Promotion
+
+```bash
+# 1. Preview what will be promoted
+keep copy --only="*" --from=development --to=staging --dry-run
+
+# 2. Promote all configs except debug/test values
+keep copy --except="*_DEBUG,*_TEST" --from=development --to=staging
+
+# 3. Or promote specific service configurations
+keep copy --only="API_*,DB_*,REDIS_*" --from=development --to=staging
+
+# 4. Verify the promotion
+keep diff --stage=development,staging
+```
+
 ### Cross-Vault Promotion
 
 ```bash
-# Promote from local development to AWS production
+# Individual secrets
 keep copy API_KEY --from=secretsmanager:development --to=ssm:production --dry-run
 keep copy API_KEY --from=secretsmanager:development --to=ssm:production
 keep copy DB_PASSWORD --from=secretsmanager:development --to=ssm:production
+
+# Bulk cross-vault promotion
+keep copy --only="API_*" --from=secretsmanager:development --to=ssm:production
+keep copy --except="*_LOCAL" --from=secretsmanager:staging --to=ssm:production
 ```
 
 ## Best Practices
