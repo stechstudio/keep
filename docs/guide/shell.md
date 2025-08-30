@@ -81,21 +81,21 @@ Switched to stage: production
 Secret [/test-app/production/API_KEY] created in vault [ssm].
 
 >>> get API_KEY
-┌─────────┬────────┬────────────────┬──────────┐
-│ Key     │ Vault  │ Value          │ Revision │
-├─────────┼────────┼────────────────┼──────────┤
-│ API_KEY │ ssm    │ ************90 │ 1        │
-└─────────┴────────┴────────────────┴──────────┘
+┌─────────┬───────┬───────────────┬──────────┐
+│ Key     │ Vault │ Value         │ Revision │
+├─────────┼───────┼───────────────┼──────────┤
+│ API_KEY │ ssm   │ sk-1********* │ 1        │
+└─────────┴───────┴───────────────┴──────────┘
 
 >>> show
-┌──────────────┬────────────────┬──────────┐
-│ Key          │ Value          │ Revision │
-├──────────────┼────────────────┼──────────┤
-│ API_KEY      │ ************90 │ 1        │
-│ DB_HOST      │ *****mysql.com │ 1        │
-│ DB_PASSWORD  │ ************** │ 1        │
-│ DB_USERNAME  │ app_user       │ 1        │
-└──────────────┴────────────────┴──────────┘
+┌─────────────┬─────────────────┬──────────┐
+│ Key         │ Value           │ Revision │
+├─────────────┼─────────────────┼──────────┤
+│ API_KEY     │ sk-1*********   │ 1        │
+│ DB_HOST     │ prod**********  │ 1        │
+│ DB_PASSWORD │ supe*********** │ 1        │
+│ DB_USERNAME │ ****            │ 1        │
+└─────────────┴─────────────────┴──────────┘
 ```
 
 ### Comparing Environments
@@ -104,15 +104,15 @@ Secret [/test-app/production/API_KEY] created in vault [ssm].
 >>> diff staging production
 
 Secret Comparison Matrix
-┌──────────────┬─────────────────┬──────────────────┬─────────────┐
-│ Key          │ staging         │ production       │ Status      │
-├──────────────┼─────────────────┼──────────────────┼─────────────┤
-│ API_ENDPOINT │ api-staging.com │ api.example.com  │ ⚠ Different │
-│ DB_HOST      │ localhost       │ prod.mysql.com   │ ⚠ Different │
-│ DEBUG_MODE   │ true            │ -                │ ⚠ Missing   │
-│ SENTRY_DSN   │ -               │ https://...      │ ⚠ Missing   │
-│ APP_KEY      │ ************    │ ************     │ ✓ Identical │
-└──────────────┴─────────────────┴──────────────────┴─────────────┘
+┌──────────────┬──────────────────┬──────────────────┬─────────────┐
+│ Key          │ staging          │ production       │ Status      │
+├──────────────┼──────────────────┼──────────────────┼─────────────┤
+│ API_ENDPOINT │ ✓ api-*********  │ ✓ api.********** │ ⚠ Different │
+│ DB_HOST      │ ✓ loca*****      │ ✓ prod********** │ ⚠ Different │
+│ DEBUG_MODE   │ ✓ ****           │ —                │ ⚠ Missing   │
+│ SENTRY_DSN   │ —                │ ✓ http********** │ ⚠ Missing   │
+│ APP_KEY      │ ✓ base********** │ ✓ base********** │ ✓ Identical │
+└──────────────┴──────────────────┴──────────────────┴─────────────┘
 
 >>> diff staging production unmask  # Show actual values
 ```
