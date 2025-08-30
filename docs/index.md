@@ -67,7 +67,7 @@ Launch the Keep shell for faster secret management with tab completion:
 keep shell
 
 # In the shell, use shortcuts and tab completion
->>> use production           # Switch to production stage
+>>> stage production         # Switch to production stage
 >>> get DB_<TAB>            # Tab completes secret names
 >>> set NEW_SECRET "value"  # Set secrets instantly
 >>> diff staging production # Compare environments
