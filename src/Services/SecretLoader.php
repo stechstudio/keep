@@ -13,12 +13,12 @@ class SecretLoader
      */
     public function loadFromVaults(array $vaultNames, string $stage): SecretCollection
     {
-        $allSecrets = new SecretCollection();
+        $allSecrets = new SecretCollection;
 
         foreach ($vaultNames as $vaultName) {
             $vault = Keep::vault($vaultName, $stage);
             $vaultSecrets = $vault->list();
-            
+
             // Merge secrets, later vaults override earlier ones for duplicate keys
             $allSecrets = $allSecrets->merge($vaultSecrets);
         }

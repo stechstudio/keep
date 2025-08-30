@@ -2,7 +2,6 @@
 
 namespace STS\Keep\Data;
 
-use Illuminate\Filesystem\Filesystem;
 use InvalidArgumentException;
 use STS\Keep\Data\Concerns\InteractsWithJsonFiles;
 

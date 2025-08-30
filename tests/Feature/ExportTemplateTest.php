@@ -363,10 +363,10 @@ describe('ExportCommand template functionality', function () {
                 $output = $commandTester->getDisplay();
                 // Strip ANSI color codes and extract just the JSON content
                 $output = stripAnsi($output);
-                
+
                 // Debug: print the actual output to understand what we're getting
                 // var_dump("RAW OUTPUT:", $output);
-                
+
                 // The output may contain info messages before the JSON
                 // Try to find JSON - it should be all the content after info messages
                 $lines = explode("\n", $output);
@@ -374,14 +374,14 @@ describe('ExportCommand template functionality', function () {
                 $jsonStarted = false;
                 foreach ($lines as $line) {
                     $trimmed = trim($line);
-                    if (!$jsonStarted && str_starts_with($trimmed, '{')) {
+                    if (! $jsonStarted && str_starts_with($trimmed, '{')) {
                         $jsonStarted = true;
                         $jsonStr = $trimmed;
                     } elseif ($jsonStarted) {
-                        $jsonStr .= "\n" . $line;
+                        $jsonStr .= "\n".$line;
                     }
                 }
-                
+
                 // If no JSON found, last line might be JSON
                 if (empty($jsonStr)) {
                     $lastLine = end($lines);
@@ -389,19 +389,19 @@ describe('ExportCommand template functionality', function () {
                         $jsonStr = trim($lastLine);
                     }
                 }
-                
+
                 // Should be valid JSON (may have empty values if TestVault has no secrets)
                 $decoded = json_decode($jsonStr, true);
-                if (json_last_error() !== JSON_ERROR_NONE && !empty($jsonStr)) {
+                if (json_last_error() !== JSON_ERROR_NONE && ! empty($jsonStr)) {
                     // Debug: show what we tried to decode
-                    throw new \Exception("Failed to decode JSON. Got: " . substr($jsonStr, 0, 500));
+                    throw new \Exception('Failed to decode JSON. Got: '.substr($jsonStr, 0, 500));
                 }
-                
+
                 // If we got empty JSON string, that's okay - TestVault might be empty
                 if (empty($jsonStr) || $jsonStr === '{}') {
                     $decoded = [];
                 }
-                
+
                 expect($decoded)->toBeArray();
                 // Since TestVault may not have actual secrets, just check structure
                 // The keys should exist (even with blank values due to --missing=blank)
@@ -428,21 +428,21 @@ describe('ExportCommand template functionality', function () {
                 $output = $commandTester->getDisplay();
                 // Strip ANSI and extract JSON
                 $output = stripAnsi($output);
-                
+
                 // Find JSON in output (skip info messages)
                 $lines = explode("\n", $output);
                 $jsonStr = '';
                 $jsonStarted = false;
                 foreach ($lines as $line) {
                     $trimmed = trim($line);
-                    if (!$jsonStarted && str_starts_with($trimmed, '{')) {
+                    if (! $jsonStarted && str_starts_with($trimmed, '{')) {
                         $jsonStarted = true;
                         $jsonStr = $trimmed;
                     } elseif ($jsonStarted) {
-                        $jsonStr .= "\n" . $line;
+                        $jsonStr .= "\n".$line;
                     }
                 }
-                
+
                 // If no JSON found, check last line
                 if (empty($jsonStr)) {
                     $lastLine = end($lines);
@@ -450,9 +450,9 @@ describe('ExportCommand template functionality', function () {
                         $jsonStr = trim($lastLine);
                     }
                 }
-                
+
                 // Should be valid JSON (may be empty object if TestVault has no secrets)
-                if (!empty($jsonStr) && $jsonStr !== '{}') {
+                if (! empty($jsonStr) && $jsonStr !== '{}') {
                     $decoded = json_decode($jsonStr, true);
                     expect(json_last_error())->toBe(JSON_ERROR_NONE);
                     expect($decoded)->toBeArray();
@@ -480,37 +480,37 @@ describe('ExportCommand template functionality', function () {
                 $output = $commandTester->getDisplay();
                 // Strip ANSI and extract JSON
                 $output = stripAnsi($output);
-                
+
                 // Find JSON in output
                 $lines = explode("\n", $output);
                 $jsonStr = '';
                 $jsonStarted = false;
                 foreach ($lines as $line) {
                     $trimmed = trim($line);
-                    if (!$jsonStarted && str_starts_with($trimmed, '{')) {
+                    if (! $jsonStarted && str_starts_with($trimmed, '{')) {
                         $jsonStarted = true;
                         $jsonStr = $trimmed;
                     } elseif ($jsonStarted) {
-                        $jsonStr .= "\n" . $line;
+                        $jsonStr .= "\n".$line;
                     }
                 }
-                
+
                 if (empty($jsonStr)) {
                     $lastLine = end($lines);
                     if ($lastLine !== false) {
                         $jsonStr = trim($lastLine);
                     }
                 }
-                
+
                 $decoded = json_decode($jsonStr, true);
                 if ($decoded === null || $decoded === false) {
                     // TestVault might return empty, which is okay
                     $decoded = ['APPLE' => '', 'MONKEY' => '', 'ZEBRA' => ''];
                 }
-                
+
                 expect($decoded)->toBeArray();
                 $keys = array_keys($decoded);
-                
+
                 // Should be alphabetically sorted
                 expect($keys)->toBe(['APPLE', 'MONKEY', 'ZEBRA']);
             } finally {

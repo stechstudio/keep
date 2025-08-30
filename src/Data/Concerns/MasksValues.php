@@ -18,15 +18,15 @@ trait MasksValues
         }
 
         // Show first 4 characters plus asterisks
-        $masked = substr($value, 0, 4) . str_repeat('*', $length - 4);
-        
-        if (!$truncate) {
+        $masked = substr($value, 0, 4).str_repeat('*', $length - 4);
+
+        if (! $truncate) {
             return $masked;
         }
 
-        return match(true) {
+        return match (true) {
             $length <= 24 => $masked,
-            default => substr($masked, 0, 24) . " ({$length} chars)"
+            default => substr($masked, 0, 24)." ({$length} chars)"
         };
     }
 }

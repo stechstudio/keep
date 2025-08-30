@@ -25,7 +25,6 @@ trait GathersInput
 
     protected const string UNMASK_SIGNATURE = '{--unmask : Show full secret values instead of masked values}';
 
-
     protected string $key;
 
     protected string $value;

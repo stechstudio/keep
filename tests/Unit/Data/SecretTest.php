@@ -125,7 +125,6 @@ describe('Secret', function () {
         });
     });
 
-
     it('can be created with all parameters', function () {
         $vault = new TestVault('test-vault', [], 'production');
 
@@ -149,7 +148,6 @@ describe('Secret', function () {
         expect($secret->path())->toBe('/app/production/API_KEY');
         expect($secret->vault())->toBe($vault);
     });
-
 
     it('converts to array correctly', function () {
         $vault = new TestVault('test-vault', [], 'staging');
@@ -179,7 +177,6 @@ describe('Secret', function () {
         ]);
     });
 
-
     it('can filter array output with only()', function () {
         $secret = new Secret(
             key: 'APP_KEY',
@@ -197,7 +194,6 @@ describe('Secret', function () {
         expect($filtered['key'])->toBe('APP_KEY');
         expect($filtered['value'])->toBe('base64_key');
     });
-
 
     it('handles special characters in values', function () {
         $specialValue = "Special!@#$%^&*()_+{}|:\"<>?[];',./`~\n\t";
@@ -236,8 +232,6 @@ describe('Secret', function () {
         expect(strlen($secret->value()))->toBe(27000);
     });
 
-
-
     it('handles encrypted value without plain value', function () {
         $secret = new Secret(
             key: 'ENCRYPTED_ONLY',
@@ -272,7 +266,6 @@ describe('Secret', function () {
         expect($secret2->revision())->toBe(999999);
         expect($secret3->revision())->toBeNull();
     });
-
 
     describe('masked() method', function () {
         it('returns null for null values', function () {
@@ -321,11 +314,11 @@ describe('Secret', function () {
         it('masks and truncates very long values (>24 chars)', function () {
             $testCases = [
                 'very_long_password_value2' => 'very******************** (25 chars)',  // 25 chars - just over boundary
-                str_repeat('a', 30) => 'aaaa' . str_repeat('*', 20) . ' (30 chars)',
-                str_repeat('a', 50) => 'aaaa' . str_repeat('*', 20) . ' (50 chars)',
-                str_repeat('a', 100) => 'aaaa' . str_repeat('*', 20) . ' (100 chars)',
-                str_repeat('a', 1000) => 'aaaa' . str_repeat('*', 20) . ' (1000 chars)',
-                str_repeat('a', 5000) => 'aaaa' . str_repeat('*', 20) . ' (5000 chars)',
+                str_repeat('a', 30) => 'aaaa'.str_repeat('*', 20).' (30 chars)',
+                str_repeat('a', 50) => 'aaaa'.str_repeat('*', 20).' (50 chars)',
+                str_repeat('a', 100) => 'aaaa'.str_repeat('*', 20).' (100 chars)',
+                str_repeat('a', 1000) => 'aaaa'.str_repeat('*', 20).' (1000 chars)',
+                str_repeat('a', 5000) => 'aaaa'.str_repeat('*', 20).' (5000 chars)',
             ];
 
             foreach ($testCases as $value => $expected) {
@@ -351,7 +344,7 @@ describe('Secret', function () {
             );
 
             // 24 chars: shows first 4 chars + asterisks
-            expect($secret->masked())->toBe('Hell' . str_repeat('*', 20));
+            expect($secret->masked())->toBe('Hell'.str_repeat('*', 20));
             expect(strlen($value))->toBe(24);
         });
 
@@ -362,7 +355,7 @@ describe('Secret', function () {
             );
 
             // 21 chars: shows first 4 chars + asterisks
-            expect($secret->masked())->toBe('valu' . str_repeat('*', 17));
+            expect($secret->masked())->toBe('valu'.str_repeat('*', 17));
         });
     });
 
@@ -378,7 +371,7 @@ describe('Secret', function () {
             expect($secret->key())->toBe($key);
         })->with([
             'hyphen' => ['my-api-key'],
-            'underscore' => ['my_api_key'], 
+            'underscore' => ['my_api_key'],
             'mixed case' => ['MyApiKey'],
             'numbers' => ['api_key_v2'],
             'leading underscore' => ['_private_key'],
@@ -424,18 +417,18 @@ describe('Secret', function () {
             expect($secret->sanitizedKey())->toBe($expected);
         })->with([
             'hyphen to underscore' => ['my-api-key', 'MY_API_KEY'],
-            'dot to underscore' => ['user.email', 'USER_EMAIL'], 
+            'dot to underscore' => ['user.email', 'USER_EMAIL'],
             'space to underscore' => ['my key', 'MY_KEY'],
             'multiple special chars' => ['user@domain.com', 'USER_DOMAIN_COM'],
             'mixed special chars' => ['app-config.json', 'APP_CONFIG_JSON'],
         ]);
-        
+
         it('preserves valid env-compatible keys in uppercase', function ($original, $expected) {
             $secret = Secret::fromVault($original, 'value');
             expect($secret->sanitizedKey())->toBe($expected);
         })->with([
             'already valid lowercase' => ['my_api_key', 'MY_API_KEY'],
-            'already valid uppercase' => ['API_KEY', 'API_KEY'], 
+            'already valid uppercase' => ['API_KEY', 'API_KEY'],
             'mixed case valid' => ['MyApi_Key', 'MYAPI_KEY'],
         ]);
 

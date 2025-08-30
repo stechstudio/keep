@@ -15,7 +15,7 @@ use STS\Keep\Services\VaultDiscovery;
 class ExportCommand extends BaseCommand
 {
     use GathersInput;
-    
+
     public $signature = 'export 
         {--format=env : Output format (env or json)} 
         {--template= : Template file with {vault:key} placeholders to replace}
@@ -27,26 +27,28 @@ class ExportCommand extends BaseCommand
         {--stage= : Stage to export secrets from}
         {--vault= : Vault(s) to use (comma-separated, auto-detected from template if not specified)}'
         .self::ONLY_EXCLUDE_SIGNATURE;
-        
+
     // Future enhancement: Cache export
     // {--cache : Export to encrypted cache in .keep/cache/}
 
     public $description = 'Export secrets from vaults with flexible output options';
 
     protected DirectExportService $directExport;
+
     protected TemplatePreserveService $templatePreserve;
+
     protected TemplateParseService $templateParse;
     // protected CacheExportService $cacheExport; // Future enhancement
 
     public function __construct(Filesystem $filesystem)
     {
         parent::__construct($filesystem);
-        
+
         // Initialize services
-        $secretLoader = new SecretLoader();
-        $vaultDiscovery = new VaultDiscovery();
+        $secretLoader = new SecretLoader;
+        $vaultDiscovery = new VaultDiscovery;
         $outputWriter = new OutputWriter($filesystem);
-        
+
         $this->directExport = new DirectExportService($secretLoader, $outputWriter);
         $this->templatePreserve = new TemplatePreserveService($secretLoader, $vaultDiscovery, $outputWriter);
         $this->templateParse = new TemplateParseService($secretLoader, $vaultDiscovery, $outputWriter);
@@ -57,27 +59,27 @@ class ExportCommand extends BaseCommand
     {
         // Gather all options including stage
         $options = array_merge($this->options(), [
-            'stage' => $this->stage()
+            'stage' => $this->stage(),
         ]);
 
         // Route to appropriate service based on options
-        
+
         // Future enhancement: Cache export
         // if ($this->option('cache')) {
         //     // Cache export mode
         //     return $this->cacheExport->handle($options, $this->output);
         // }
-        
-        if (!$this->option('template')) {
+
+        if (! $this->option('template')) {
             // Direct export mode
             return $this->directExport->handle($options, $this->output);
         }
-        
+
         if ($this->option('format') === 'json') {
             // Template with JSON output - parse mode
             return $this->templateParse->handle($options, $this->output);
         }
-        
+
         // Template with env output - preserve mode
         return $this->templatePreserve->handle($options, $this->output);
     }

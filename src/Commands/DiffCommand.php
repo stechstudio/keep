@@ -4,7 +4,6 @@ namespace STS\Keep\Commands;
 
 use Illuminate\Support\Collection;
 use STS\Keep\Commands\Concerns\GathersInput;
-use STS\Keep\Data\Context;
 use STS\Keep\Data\SecretDiff;
 use STS\Keep\Facades\Keep;
 use STS\Keep\Services\DiffService;
@@ -15,6 +14,7 @@ use function Laravel\Prompts\table;
 class DiffCommand extends BaseCommand
 {
     use GathersInput;
+
     public $signature = 'diff 
         {--stage= : Comma-separated list of stages to compare (defaults to all configured stages)}
         {--vault= : Comma-separated list of vaults to compare (defaults to all configured vaults)}'
@@ -30,11 +30,13 @@ class DiffCommand extends BaseCommand
 
         if (empty($vaults)) {
             $this->error('No vaults available for comparison.');
+
             return self::FAILURE;
         }
 
         if (empty($stages)) {
             $this->error('No stages available for comparison.');
+
             return self::FAILURE;
         }
 
@@ -149,5 +151,4 @@ class DiffCommand extends BaseCommand
             $this->line("• Vault: {$summary['vaults_compared']}");
         }
     }
-
 }

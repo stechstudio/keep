@@ -17,8 +17,8 @@ class ExceptionFactory
             ->withContext(array_filter([
                 'vault' => $vault,
                 'key' => $key,
-                'suggestion' => $suggestion ?: ($vault ? "Check if this secret exists using 'keep list'" : null)
-            ], fn($v) => $v !== null));
+                'suggestion' => $suggestion ?: ($vault ? "Check if this secret exists using 'keep list'" : null),
+            ], fn ($v) => $v !== null));
     }
 
     /**
@@ -39,8 +39,8 @@ class ExceptionFactory
                 'key' => $key,
                 'path' => $path,
                 'lineNumber' => $lineNumber,
-                'suggestion' => "Check if this secret exists using 'keep list'"
-            ], fn($v) => $v !== null));
+                'suggestion' => "Check if this secret exists using 'keep list'",
+            ], fn ($v) => $v !== null));
     }
 
     /**
@@ -51,8 +51,8 @@ class ExceptionFactory
         return (new KeepException($message))
             ->withContext(array_filter([
                 'vault' => $vault,
-                'stage' => $stage
-            ], fn($v) => $v !== null));
+                'stage' => $stage,
+            ], fn ($v) => $v !== null));
     }
 
     /**
@@ -63,8 +63,8 @@ class ExceptionFactory
         return (new KeepException($awsMessage))
             ->withContext(array_filter([
                 'vault' => $vault,
-                'key' => $key
-            ], fn($v) => $v !== null));
+                'key' => $key,
+            ], fn ($v) => $v !== null));
     }
 
     /**
