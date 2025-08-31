@@ -100,7 +100,7 @@ class BuiltInCommands
     protected function context(): void
     {
         $this->output->writeln(sprintf(
-            'Current context: <context>%s:%s</context>',
+            "Vault: <context>%s</context>\nStage: <context>%s</context>",
             $this->context->getVault(),
             $this->context->getStage()
         ));
