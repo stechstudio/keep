@@ -11,29 +11,29 @@ Integrate Keep with Laravel applications using the service provider and helper f
 Use Keep in GitHub Actions, GitLab CI, and other automation pipelines.
 
 ### [Multi-Environment Setup](./multi-environment)
-Organize secrets across development, staging, and production environments.
+Organize secrets across local, staging, and production environments.
 
 ### [AWS Setup](./aws-setup)
 Configure IAM roles, SSM Parameter Store, and Secrets Manager for Keep.
 
 ## Quick Examples
 
-### Development to Production
+### Local to Production
 ```bash
 # Configure project
 keep configure
 keep vault:add
 
-# Set development secrets
-keep set API_KEY "dev-key" --stage=development
-keep set DB_HOST "localhost" --stage=development
-keep set DB_PASSWORD "dev-pass" --stage=development
+# Set local development secrets
+keep set API_KEY "dev-key" --stage=local
+keep set DB_HOST "localhost" --stage=local
+keep set DB_PASSWORD "dev-pass" --stage=local
 
 # Copy single secret to staging
-keep copy API_KEY --from=development --to=staging
+keep copy API_KEY --from=local --to=staging
 
 # Bulk copy all database configs to staging
-keep copy --only="DB_*" --from=development --to=staging
+keep copy --only="DB_*" --from=local --to=staging
 
 # Promote everything to production (preview first)
 keep copy --only="*" --from=staging --to=production --dry-run

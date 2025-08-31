@@ -13,7 +13,7 @@ This creates a `.keep/` directory with your project configuration.
 You'll be prompted for:
 - **Project name**: Display name for your project
 - **Namespace**: Unique identifier for secret prefixes
-- **Stages**: Environment names (defaults to development, staging, production)
+- **Stages**: Environment names (defaults to local, staging, production)
 
 ## Project Structure
 
@@ -31,14 +31,14 @@ The `settings.json` file contains:
 {
   "app_name": "My Application",
   "namespace": "myapp",
-  "stages": ["development", "staging", "production"],
+  "stages": ["local", "staging", "production"],
   "default_vault": "aws-ssm"
 }
 ```
 
 ## Managing Stages
 
-The default stages are development, staging, and production. You can add custom stages as needed:
+The default stages are local, staging, and production. You can add custom stages as needed:
 
 ```bash
 # Add a custom stage
@@ -53,7 +53,7 @@ keep stage:add sandbox
 Custom stages can be used with all commands:
 ```bash
 keep set API_KEY "integration-key" --stage=integration
-keep copy --only="*" --from=development --to=integration
+keep copy --only="*" --from=local --to=integration
 ```
 
 ## Add a Vault

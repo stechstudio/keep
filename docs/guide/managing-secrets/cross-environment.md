@@ -22,16 +22,16 @@
 
 ```bash
 # Basic copy
-keep copy DB_PASSWORD --from=development --to=staging
+keep copy DB_PASSWORD --from=local --to=staging
 
 # With overwrite
-keep copy DB_PASSWORD --from=development --to=staging --overwrite
+keep copy DB_PASSWORD --from=local --to=staging --overwrite
 
 # Dry run first
 keep copy API_KEY --from=staging --to=production --dry-run
 
 # Cross-vault
-keep copy DB_PASSWORD --from=secretsmanager:development --to=ssm:production
+keep copy DB_PASSWORD --from=secretsmanager:local --to=ssm:production
 ```
 
 ### Bulk Copy Operations
@@ -40,13 +40,13 @@ Copy multiple secrets at once using pattern matching:
 
 ```bash
 # Copy all database configurations
-keep copy --only="DB_*" --from=development --to=staging
+keep copy --only="DB_*" --from=local --to=staging
 
 # Copy everything except sensitive keys
 keep copy --except="*_SECRET,*_TOKEN" --from=staging --to=production
 
 # Copy all API-related secrets with overwrite
-keep copy --only="API_*" --from=development --to=production --overwrite
+keep copy --only="API_*" --from=local --to=production --overwrite
 
 # Preview what would be copied (dry-run)
 keep copy --only="*" --from=staging --to=production --dry-run
@@ -81,8 +81,8 @@ keep diff --stage=staging,production
 keep diff --stage=staging,production --unmask
 
 # Filter keys
-keep diff --stage=development,production --only="DB_*"
-keep diff --stage=development,production --except="APP_DEBUG"
+keep diff --stage=local,production --only="DB_*"
+keep diff --stage=local,production --except="APP_DEBUG"
 ```
 
 ## Importing Secrets
@@ -107,7 +107,7 @@ keep diff --stage=development,production --except="APP_DEBUG"
 **Examples:**
 ```bash
 # Import from .env file
-keep import .env.development --stage=development
+keep import .env.development --stage=local
 
 # Import with existing secret protection
 keep import production.env --stage=production --skip-existing
@@ -116,16 +116,16 @@ keep import production.env --stage=production --skip-existing
 keep import staging.env --stage=staging --overwrite
 
 # Dry run to preview import
-keep import .env --stage=development --dry-run
+keep import .env --stage=local --dry-run
 
 # Import only specific keys
 keep import secrets.json --stage=production --only="API_KEY,DB_PASSWORD"
 
 # Import from stdin
-cat .env | keep import --stage=development
+cat .env | keep import --stage=local
 
 # Exclude sensitive keys
-keep import .env --stage=development --except="PRIVATE_KEY"
+keep import .env --stage=local --except="PRIVATE_KEY"
 ```
 
 ## Promotion Workflows
@@ -134,45 +134,45 @@ keep import .env --stage=development --except="PRIVATE_KEY"
 
 ```bash
 # 1. Review current state
-keep diff --stage=development,staging
+keep diff --stage=local,staging
 
 # 2. Copy individual secrets as needed
-keep copy API_KEY --from=development --to=staging
-keep copy DB_USERNAME --from=development --to=staging
+keep copy API_KEY --from=local --to=staging
+keep copy DB_USERNAME --from=local --to=staging
 
 # 3. Set staging-specific values
 keep set API_URL "https://staging-api.example.com" --stage=staging
 
 # 4. Verify the promotion
-keep diff --stage=development,staging
+keep diff --stage=local,staging
 ```
 
 ### Bulk Promotion
 
 ```bash
 # 1. Preview what will be promoted
-keep copy --only="*" --from=development --to=staging --dry-run
+keep copy --only="*" --from=local --to=staging --dry-run
 
 # 2. Promote all configs except debug/test values
-keep copy --except="*_DEBUG,*_TEST" --from=development --to=staging
+keep copy --except="*_DEBUG,*_TEST" --from=local --to=staging
 
 # 3. Or promote specific service configurations
-keep copy --only="API_*,DB_*,REDIS_*" --from=development --to=staging
+keep copy --only="API_*,DB_*,REDIS_*" --from=local --to=staging
 
 # 4. Verify the promotion
-keep diff --stage=development,staging
+keep diff --stage=local,staging
 ```
 
 ### Cross-Vault Promotion
 
 ```bash
 # Individual secrets
-keep copy API_KEY --from=secretsmanager:development --to=ssm:production --dry-run
-keep copy API_KEY --from=secretsmanager:development --to=ssm:production
-keep copy DB_PASSWORD --from=secretsmanager:development --to=ssm:production
+keep copy API_KEY --from=secretsmanager:local --to=ssm:production --dry-run
+keep copy API_KEY --from=secretsmanager:local --to=ssm:production
+keep copy DB_PASSWORD --from=secretsmanager:local --to=ssm:production
 
 # Bulk cross-vault promotion
-keep copy --only="API_*" --from=secretsmanager:development --to=ssm:production
+keep copy --only="API_*" --from=secretsmanager:local --to=ssm:production
 keep copy --except="*_LOCAL" --from=secretsmanager:staging --to=ssm:production
 ```
 

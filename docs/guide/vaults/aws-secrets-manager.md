@@ -244,14 +244,14 @@ For production deployment processes that only need to read production secrets:
 Keep organizes secrets using simple path-style naming for duplicate avoidance, with tags providing the real organizational structure:
 
 **Secret Names:**
-- `myapp/development/DB_PASSWORD`
+- `myapp/local/DB_PASSWORD`
 - `myapp/staging/API_KEY` 
 - `myapp/production/NIGHTWATCH_TOKEN`
 
 **Tags for Organization:**
 - `ManagedBy: Keep`
 - `Namespace: myapp`
-- `Stage: development|staging|production`
+- `Stage: local|staging|production`
 - `VaultSlug: secretsmanager`
 
 ## Security Best Practices

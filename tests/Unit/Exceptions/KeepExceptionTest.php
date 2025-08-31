@@ -49,7 +49,7 @@ describe('KeepException', function () {
                 'key' => 'DB_PASSWORD',
                 'path' => '/app/production/DB_PASSWORD',
                 'lineNumber' => 15,
-                'suggestion' => "Check if this secret exists using 'keep list'",
+                'suggestion' => "Check if this secret exists using 'show'",
             ]);
 
         $exception->renderConsole($outputCallback);
@@ -62,7 +62,7 @@ describe('KeepException', function () {
             ['message' => '  Path: /app/production/DB_PASSWORD', 'style' => 'line'],
             ['message' => '  Template line: 15', 'style' => 'line'],
             ['message' => '', 'style' => 'line'],
-            ['message' => "💡  Check if this secret exists using 'keep list'", 'style' => 'comment'],
+            ['message' => "💡  Check if this secret exists using 'show'", 'style' => 'comment'],
         ]);
     });
 

@@ -98,7 +98,7 @@ For developers who should only access development and staging environments:
                 "ssm:GetParameterHistory"
             ],
             "Resource": [
-                "arn:aws:ssm:*:*:parameter/myapp/development/*",
+                "arn:aws:ssm:*:*:parameter/myapp/local/*",
                 "arn:aws:ssm:*:*:parameter/myapp/staging/*"
             ]
         },
@@ -153,7 +153,7 @@ With the example configuration above, Keep will organize your parameters like th
 
 ```
 /myapp/
-├── development/
+├── local/
 │   ├── DB_PASSWORD
 │   ├── API_KEY
 │   └── NIGHTWATCH_TOKEN
