@@ -71,7 +71,7 @@ class CopyCommand extends BaseCommand
 
             // Handle overwrite protection
             if ($destinationExists && ! $this->option('overwrite') && ! $this->option('dry-run')) {
-                $this->error("Secret [{$key}] already exists in destination. Use --overwrite to replace it.");
+                $this->error(sprintf('Secret [<secret-name>%s</secret-name>] already exists in destination. Use --overwrite to replace it.', $key));
 
                 return self::FAILURE;
             }
@@ -89,7 +89,7 @@ class CopyCommand extends BaseCommand
             // Confirm if overwriting
             if ($destinationExists && $this->option('overwrite')) {
                 if (! confirm("Are you sure you want to overwrite the existing secret [{$key}]?")) {
-                    $this->info('Copy operation cancelled.');
+                    $this->neutral('Copy operation cancelled.');
 
                     return self::SUCCESS;
                 }
@@ -98,12 +98,19 @@ class CopyCommand extends BaseCommand
             // Perform the copy
             $destinationVault->set($key, $sourceSecret->value(), $sourceSecret->isSecure());
 
-            $this->info("Successfully copied secret [{$key}] from {$sourceContext->toString()} to {$destinationContext->toString()}");
+            $this->success(sprintf('Copied secret [<secret-name>%s</secret-name>] from <context>%s</context> to <context>%s</context>',
+                $key,
+                $sourceContext->toString(),
+                $destinationContext->toString()
+            ));
 
             return self::SUCCESS;
 
         } catch (SecretNotFoundException $e) {
-            $this->error("Source secret [{$key}] not found in {$sourceContext->toString()}");
+            $this->error(sprintf('Source secret [<secret-name>%s</secret-name>] not found in <context>%s</context>',
+                $key,
+                $sourceContext->toString()
+            ));
 
             return self::FAILURE;
         }
@@ -143,7 +150,7 @@ class CopyCommand extends BaseCommand
 
         // Confirm operation
         if (! $this->confirmBulkCopy($copyOperations, $sourceContext, $destinationContext)) {
-            $this->info('Bulk copy operation cancelled.');
+            $this->neutral('Bulk copy operation cancelled.');
 
             return self::SUCCESS;
         }
@@ -216,7 +223,11 @@ class CopyCommand extends BaseCommand
 
         // Report results
         if ($errorCount === 0) {
-            $this->info("Successfully copied {$successCount} secret(s) from {$sourceContext->toString()} to {$destinationContext->toString()}");
+            $this->success(sprintf('Copied %d secret(s) from <context>%s</context> to <context>%s</context>',
+                $successCount,
+                $sourceContext->toString(),
+                $destinationContext->toString()
+            ));
 
             return self::SUCCESS;
         }

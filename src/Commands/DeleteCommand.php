@@ -25,7 +25,7 @@ class DeleteCommand extends BaseCommand
 
         // Show secret details
         $this->newLine();
-        $this->info('Secret to be deleted:');
+        $this->line('Secret to be deleted:');
         table(['Key', 'Stage', 'Vault'], [
             [$secret->key(), $context->stage, $context->vault],
         ]);
@@ -39,7 +39,7 @@ class DeleteCommand extends BaseCommand
             );
 
             if (! $confirmed) {
-                $this->info('Secret deletion cancelled.');
+                $this->neutral('Secret deletion cancelled.');
 
                 return self::SUCCESS;
             }
@@ -49,6 +49,10 @@ class DeleteCommand extends BaseCommand
         $vault->delete($key);
 
         $this->newLine();
-        $this->info("Secret [{$key}] has been permanently deleted from vault [{$context->vault}] in stage [{$context->stage}].");
+        $this->success(sprintf('Secret [<secret-name>%s</secret-name>] has been permanently deleted from <context>%s:%s</context>.',
+            $key,
+            $context->vault,
+            $context->stage
+        ));
     }
 }
