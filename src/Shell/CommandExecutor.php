@@ -184,6 +184,15 @@ class CommandExecutor
             case 'stage:add':
                 $this->addIfExists($positionals, 0, 'name', $input);
                 break;
+                
+            case 'show':
+                // Handle "show unmask" as a convenience (without -- prefix)
+                foreach ($positionals as $arg) {
+                    if ($arg === 'unmask') {
+                        $input['--unmask'] = true;
+                    }
+                }
+                break;
         }
     }
     
