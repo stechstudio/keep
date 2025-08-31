@@ -3,19 +3,27 @@
 namespace STS\Keep\Shell;
 
 use Illuminate\Console\Application;
-use STS\Keep\Facades\Keep;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
 class CommandExecutor
 {
-    private ShellContext $context;
-    private Application $application;
+    private const COMMAND_ALIASES = [
+        'g' => 'get',
+        's' => 'set',
+        'd' => 'delete',
+        'l' => 'show',
+        'ls' => 'show',
+    ];
     
-    public function __construct(ShellContext $context, Application $application)
-    {
-        $this->context = $context;
-        $this->application = $application;
+    private const NO_STAGE_COMMANDS = ['diff', 'copy', 'info', 'verify'];
+    private const NO_VAULT_COMMANDS = ['export', 'copy', 'info', 'verify'];
+    private const WRITE_COMMANDS = ['set', 'delete', 'copy', 'import'];
+    
+    public function __construct(
+        private ShellContext $context,
+        private Application $application
+    ) {
     }
     
     public function execute(string $input): int
@@ -26,165 +34,71 @@ class CommandExecutor
             return 0;
         }
         
-        // Parse the command
-        $parts = str_getcsv($input, ' ', '"', '\\');
-        $command = array_shift($parts);
-        
-        // Map shortcuts to full commands
-        $command = $this->mapShortcut($command);
-        
         try {
-            // Build the full command with context
-            $fullCommand = $this->buildFullCommand($command, $parts);
+            $parsed = $this->parseInput($input);
+            $commandName = $this->resolveCommand($parsed['command']);
             
-            // Find the command
-            $commandName = $this->resolveCommandName($command);
-            if (!$this->application->has($commandName)) {
-                throw new \Exception("Unknown command: {$command}");
-            }
+            $this->validateCommand($commandName);
             
-            // Create input/output
-            $input = new ArrayInput($fullCommand);
-            $output = new ConsoleOutput();
+            $exitCode = $this->runCommand($commandName, $parsed);
             
-            // Find the command and reset any cached input
-            $commandInstance = $this->application->find($commandName);
-            if (method_exists($commandInstance, 'resetInput')) {
-                $commandInstance->resetInput();
-            }
-            
-            // Run the command
-            $exitCode = $commandInstance->run($input, $output);
-            
-            // Invalidate cache if it's a write operation
-            if ($this->isWriteCommand($command)) {
+            if ($this->isWriteCommand($parsed['command'])) {
                 $this->context->invalidateCache();
             }
             
-            return $exitCode ?? 0;
-            
+            return $exitCode;
         } catch (\Exception $e) {
-            $output = new ConsoleOutput();
-            $output->writeln("<error>{$e->getMessage()}</error>");
+            $this->outputError($e->getMessage());
             return 1;
         }
     }
     
-    private function mapShortcut(string $command): string
+    protected function parseInput(string $input): array
     {
-        return match($command) {
-            'g' => 'get',
-            's' => 'set',
-            'd' => 'delete',
-            'l', 'ls' => 'show',
-            default => $command
-        };
-    }
-    
-    private function buildFullCommand(string $command, array $args): array
-    {
-        $fullCommand = ['command' => $this->resolveCommandName($command)];
+        $parts = str_getcsv($input, ' ', '"', '\\');
+        $command = array_shift($parts);
         
-        // Commands that don't need context
-        $noStageCommands = ['diff', 'copy', 'info', 'verify'];
-        $noVaultCommands = ['export', 'copy', 'info', 'verify'];
-        
-        $needsStage = !in_array($command, $noStageCommands);
-        $needsVault = !in_array($command, $noVaultCommands);
-        
-        // Parse arguments and options
         $positionals = [];
         $options = [];
         
-        foreach ($args as $arg) {
+        foreach ($parts as $arg) {
             if (str_starts_with($arg, '--')) {
-                if (str_contains($arg, '=')) {
-                    [$key, $value] = explode('=', $arg, 2);
-                    $options[substr($key, 2)] = $value;
-                } else {
-                    $options[substr($arg, 2)] = true;
-                }
+                $this->parseOption($arg, $options);
             } else {
                 $positionals[] = $arg;
             }
         }
         
-        // Add positional arguments based on command
-        $this->addPositionalArguments($command, $positionals, $fullCommand);
-        
-        // Add options
-        foreach ($options as $key => $value) {
-            $fullCommand['--' . $key] = $value;
-        }
-        
-        // Add context if not specified
-        if ($needsStage && !isset($options['stage'])) {
-            $fullCommand['--stage'] = $this->context->getStage();
-        }
-        if ($needsVault && !isset($options['vault'])) {
-            $fullCommand['--vault'] = $this->context->getVault();
-        }
-        
-        // Special handling for copy command
-        if ($command === 'copy' && !isset($options['from'])) {
-            $fullCommand['--from'] = sprintf(
-                "%s:%s",
-                $this->context->getVault(),
-                $this->context->getStage()
-            );
-        }
-        
-        return $fullCommand;
+        return [
+            'command' => $this->mapAlias($command),
+            'positionals' => $positionals,
+            'options' => $options,
+        ];
     }
     
-    private function addPositionalArguments(string $command, array $positionals, array &$fullCommand): void
+    protected function parseOption(string $arg, array &$options): void
     {
-        switch ($command) {
-            case 'set':
-                if (isset($positionals[0])) {
-                    $fullCommand['key'] = $positionals[0];
-                }
-                if (isset($positionals[1])) {
-                    $fullCommand['value'] = $positionals[1];
-                }
-                break;
-                
-            case 'get':
-            case 'delete':
-            case 'history':
-                if (isset($positionals[0])) {
-                    $fullCommand['key'] = $positionals[0];
-                }
-                break;
-                
-            case 'copy':
-                if (isset($positionals[0])) {
-                    $fullCommand['key'] = $positionals[0];
-                }
-                break;
-                
-            case 'import':
-                if (isset($positionals[0])) {
-                    $fullCommand['file'] = $positionals[0];
-                }
-                break;
-                
-            case 'stage:add':
-                if (isset($positionals[0])) {
-                    $fullCommand['name'] = $positionals[0];
-                }
-                break;
+        $arg = substr($arg, 2); // Remove --
+        
+        if (str_contains($arg, '=')) {
+            [$key, $value] = explode('=', $arg, 2);
+            $options[$key] = $value;
+        } else {
+            $options[$arg] = true;
         }
     }
     
-    private function resolveCommandName(string $command): string
+    protected function mapAlias(string $command): string
     {
-        // Handle commands with colons
+        return self::COMMAND_ALIASES[$command] ?? $command;
+    }
+    
+    protected function resolveCommand(string $command): string
+    {
         if (str_contains($command, ':')) {
             return $command;
         }
         
-        // Map to actual command names
         return match($command) {
             'configure' => 'configure',
             'set' => 'set',
@@ -202,9 +116,115 @@ class CommandExecutor
         };
     }
     
-    private function isWriteCommand(string $command): bool
+    protected function validateCommand(string $commandName): void
     {
-        $writeCommands = ['set', 'delete', 'copy', 'import'];
-        return in_array($command, $writeCommands);
+        if (!$this->application->has($commandName)) {
+            throw new \Exception("Unknown command: {$commandName}");
+        }
+    }
+    
+    protected function runCommand(string $commandName, array $parsed): int
+    {
+        $input = $this->buildCommandInput($commandName, $parsed);
+        $output = new ConsoleOutput();
+        
+        $command = $this->application->find($commandName);
+        
+        if (method_exists($command, 'resetInput')) {
+            $command->resetInput();
+        }
+        
+        $exitCode = $command->run(new ArrayInput($input), $output);
+        return $exitCode === null ? 0 : $exitCode;
+    }
+    
+    protected function buildCommandInput(string $commandName, array $parsed): array
+    {
+        $input = ['command' => $commandName];
+        
+        $this->addPositionalArguments(
+            $parsed['command'],
+            $parsed['positionals'],
+            $input
+        );
+        
+        $this->addOptions($parsed['options'], $input);
+        
+        $this->addContextIfNeeded($parsed['command'], $parsed['options'], $input);
+        
+        return $input;
+    }
+    
+    protected function addPositionalArguments(string $command, array $positionals, array &$input): void
+    {
+        switch ($command) {
+            case 'set':
+                $this->addIfExists($positionals, 0, 'key', $input);
+                $this->addIfExists($positionals, 1, 'value', $input);
+                break;
+                
+            case 'get':
+            case 'delete':
+            case 'history':
+            case 'copy':
+                $this->addIfExists($positionals, 0, 'key', $input);
+                break;
+                
+            case 'import':
+                $this->addIfExists($positionals, 0, 'file', $input);
+                break;
+                
+            case 'stage:add':
+                $this->addIfExists($positionals, 0, 'name', $input);
+                break;
+        }
+    }
+    
+    protected function addIfExists(array $array, int $index, string $key, array &$target): void
+    {
+        if (isset($array[$index])) {
+            $target[$key] = $array[$index];
+        }
+    }
+    
+    protected function addOptions(array $options, array &$input): void
+    {
+        foreach ($options as $key => $value) {
+            $input['--' . $key] = $value;
+        }
+    }
+    
+    protected function addContextIfNeeded(string $command, array $options, array &$input): void
+    {
+        $needsStage = !in_array($command, self::NO_STAGE_COMMANDS);
+        $needsVault = !in_array($command, self::NO_VAULT_COMMANDS);
+        
+        if ($needsStage && !isset($options['stage'])) {
+            $input['--stage'] = $this->context->getStage();
+        }
+        
+        if ($needsVault && !isset($options['vault'])) {
+            $input['--vault'] = $this->context->getVault();
+        }
+        
+        // Special handling for copy command
+        if ($command === 'copy' && !isset($options['from'])) {
+            $input['--from'] = sprintf(
+                "%s:%s",
+                $this->context->getVault(),
+                $this->context->getStage()
+            );
+        }
+    }
+    
+    protected function isWriteCommand(string $command): bool
+    {
+        return in_array($command, self::WRITE_COMMANDS);
+    }
+    
+    protected function outputError(string $message): void
+    {
+        $output = new ConsoleOutput();
+        $output->writeln("<error>{$message}</error>");
     }
 }

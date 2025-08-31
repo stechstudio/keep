@@ -3,92 +3,82 @@
 namespace STS\Keep\Shell;
 
 use Illuminate\Console\Application;
+use STS\Keep\Shell\Commands\BuiltInCommands;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
-use function Laravel\Prompts\select;
 
 class SimpleShell
 {
-    private ShellContext $context;
-    private CommandExecutor $executor;
     private ConsoleOutput $output;
+    private CommandExecutor $executor;
+    private BuiltInCommands $builtIn;
+    private TabCompletion $completion;
+    private CommandSuggestion $suggestion;
     private string $historyFile;
-    private array $commands = [
-        'get', 'g', 'set', 's', 'delete', 'd', 'show', 'ls',
-        'copy', 'export', 'diff', 'verify', 'info', 'history',
-        'stage', 'vault', 'use', 'u', 'context', 'ctx',
-        'help', '?', 'clear', 'cls', 'exit', 'quit', 'q'
+    
+    private const KNOWN_COMMANDS = [
+        'get', 'set', 'delete', 'show', 'copy', 'export',
+        'diff', 'verify', 'info', 'history'
     ];
     
-    public function __construct(ShellContext $context, Application $application)
-    {
-        $this->context = $context;
-        $this->executor = new CommandExecutor($context, $application);
+    private const COMMAND_ALIASES = [
+        'g' => 'get',
+        's' => 'set',
+        'd' => 'delete',
+        'ls' => 'show',
+    ];
+    
+    public function __construct(
+        private ShellContext $context,
+        Application $application
+    ) {
         $this->output = new ConsoleOutput();
-        
-        // Set up history file
+        $this->executor = new CommandExecutor($context, $application);
+        $this->builtIn = new BuiltInCommands($context, $this->output);
+        $this->completion = new TabCompletion($context);
+        $this->suggestion = new CommandSuggestion();
         $this->historyFile = $_SERVER['HOME'] . '/.keep_history';
         
-        // Configure output styles
-        $this->configureOutputStyles();
-        
-        // Set up readline completion
-        readline_completion_function([$this, 'completer']);
-        
-        // Load history
-        if (file_exists($this->historyFile)) {
-            readline_read_history($this->historyFile);
-        }
+        $this->initialize();
     }
     
-    private function configureOutputStyles(): void
+    protected function initialize(): void
+    {
+        $this->configureOutputStyles();
+        $this->setupReadline();
+        $this->loadHistory();
+    }
+    
+    protected function configureOutputStyles(): void
     {
         $formatter = $this->output->getFormatter();
+        
         $formatter->setStyle('info', new OutputFormatterStyle('green'));
         $formatter->setStyle('comment', new OutputFormatterStyle('yellow'));
         $formatter->setStyle('error', new OutputFormatterStyle('red'));
         $formatter->setStyle('warning', new OutputFormatterStyle('yellow'));
     }
     
-    public function run(): void
+    protected function setupReadline(): void
     {
-        $this->showWelcomeMessage();
-        
-        while (true) {
-            $prompt = $this->getPrompt();
-            $input = readline($prompt);
-            
-            // Handle Ctrl+D
-            if ($input === false) {
-                $this->output->writeln('');
-                break;
-            }
-            
-            $input = trim($input);
-            
-            // Skip empty input
-            if (empty($input)) {
-                continue;
-            }
-            
-            // Add to history (sanitized for security)
-            $this->addToHistory($input);
-            
-            // Handle built-in commands
-            if ($this->handleBuiltInCommand($input)) {
-                $this->output->writeln('');
-                continue;
-            }
-            
-            // Execute Keep command
-            $this->executeCommand($input);
-            $this->output->writeln('');
-        }
-        
-        $this->output->writeln('Goodbye!');
+        readline_completion_function([$this->completion, 'complete']);
     }
     
-    private function showWelcomeMessage(): void
+    protected function loadHistory(): void
+    {
+        if (file_exists($this->historyFile)) {
+            readline_read_history($this->historyFile);
+        }
+    }
+    
+    public function run(): void
+    {
+        $this->showWelcome();
+        $this->loop();
+        $this->showGoodbye();
+    }
+    
+    protected function showWelcome(): void
     {
         $this->output->writeln('');
         $this->output->writeln('<info>Welcome to Keep Shell v1.0.0</info>');
@@ -102,7 +92,34 @@ class SimpleShell
         $this->output->writeln('');
     }
     
-    private function getPrompt(): string
+    protected function showGoodbye(): void
+    {
+        $this->output->writeln('Goodbye!');
+    }
+    
+    protected function loop(): void
+    {
+        while (true) {
+            $input = readline($this->getPrompt());
+            
+            if ($input === false) {
+                $this->output->writeln('');
+                break;
+            }
+            
+            $input = trim($input);
+            
+            if (empty($input)) {
+                continue;
+            }
+            
+            $this->recordHistory($input);
+            $this->processInput($input);
+            $this->output->writeln('');
+        }
+    }
+    
+    protected function getPrompt(): string
     {
         return sprintf(
             "\033[32m%s:%s\033[0m> ",
@@ -111,99 +128,29 @@ class SimpleShell
         );
     }
     
-    private function handleBuiltInCommand(string $input): bool
+    protected function processInput(string $input): void
     {
         $parts = explode(' ', $input);
-        $command = $parts[0];
+        $command = array_shift($parts);
         
-        switch ($command) {
-            case 'exit':
-            case 'quit':
-            case 'q':
-                $this->output->writeln('Goodbye!');
-                exit(0);
-                
-            case 'clear':
-            case 'cls':
-                // Clear screen
-                system('clear');
-                return true;
-                
-            case 'help':
-            case '?':
-                $this->showHelp();
-                return true;
-                
-            case 'context':
-            case 'ctx':
-                $this->showContext();
-                return true;
-                
-            case 'stage':
-                if (isset($parts[1])) {
-                    $this->switchStage($parts[1]);
-                } else {
-                    $this->listStages();
-                }
-                return true;
-                
-            case 'vault':
-                if (isset($parts[1])) {
-                    $this->switchVault($parts[1]);
-                } else {
-                    $this->listVaults();
-                }
-                return true;
-                
-            case 'use':
-            case 'u':
-                if (isset($parts[1])) {
-                    $this->switchContext($parts[1]);
-                } else {
-                    $this->output->writeln('<error>Usage: use <vault:stage></error>');
-                }
-                return true;
+        if ($this->builtIn->handle($command, $parts)) {
+            return;
         }
         
-        return false;
+        $this->executeKeepCommand($command, $parts, $input);
     }
     
-    private function executeCommand(string $input): void
+    protected function executeKeepCommand(string $command, array $args, string $fullInput): void
     {
-        // Check if it looks like a valid command
-        $parts = explode(' ', $input);
-        $command = $parts[0];
+        $command = self::COMMAND_ALIASES[$command] ?? $command;
         
-        // Map shortcuts
-        $command = match($command) {
-            'g' => 'get',
-            's' => 'set',
-            'd' => 'delete',
-            'ls' => 'show',
-            default => $command
-        };
-        
-        // Check if it's a known Keep command
-        $knownCommands = ['get', 'set', 'delete', 'show', 'copy', 'export', 
-                         'diff', 'verify', 'info', 'history'];
-        
-        if (!in_array($command, $knownCommands)) {
-            // Check for suggestions
-            $suggestions = $this->getSuggestions($command);
-            
-            $message = sprintf('Command "%s" not found.', $command);
-            if (!empty($suggestions)) {
-                $message .= sprintf(' Did you mean: %s?', implode(', ', $suggestions));
-            } else {
-                $message .= ' Type "help" to see available commands.';
-            }
-            
-            $this->output->writeln("<error>$message</error>");
+        if (!in_array($command, self::KNOWN_COMMANDS)) {
+            $this->handleUnknownCommand($command);
             return;
         }
         
         try {
-            $exitCode = $this->executor->execute($input);
+            $exitCode = $this->executor->execute($fullInput);
             
             if ($exitCode !== 0) {
                 $this->output->writeln('<error>Command failed.</error>');
@@ -213,351 +160,43 @@ class SimpleShell
         }
     }
     
-    private function showHelp(): void
+    protected function handleUnknownCommand(string $command): void
     {
-        $this->output->writeln('');
-        $this->output->writeln('<info>Keep Shell Commands</info>');
-        $this->output->writeln('');
+        $message = sprintf('Command "%s" not found.', $command);
         
-        $commands = [
-            '<comment>Secret Management</comment>' => [
-                'get <key>' => 'Get a secret value (alias: g)',
-                'set <key> <value>' => 'Set a secret (alias: s)',
-                'delete <key>' => 'Delete a secret (alias: d)',
-                'show' => 'Show all secrets (alias: ls)',
-                'history <key>' => 'View secret history',
-                'copy <key>' => 'Copy single secret',
-                'copy only <pattern>' => 'Copy secrets matching pattern',
-                'diff <stage1> <stage2>' => 'Compare secrets between stages',
-            ],
-            '<comment>Context Management</comment>' => [
-                'stage <name>' => 'Switch to a different stage',
-                'vault <name>' => 'Switch to a different vault',
-                'use <vault:stage>' => 'Switch both vault and stage (alias: u)',
-                'context' => 'Show current context (alias: ctx)',
-            ],
-            '<comment>Analysis & Export</comment>' => [
-                'export' => 'Export secrets to .env format',
-                'verify' => 'Verify template placeholders',
-                'info' => 'Show Keep information',
-            ],
-            '<comment>Other</comment>' => [
-                'exit' => 'Exit the shell (or Ctrl+D)',
-                'help' => 'Show this help message (alias: ?)',
-                'clear' => 'Clear the screen (alias: cls)',
-            ],
-        ];
-        
-        foreach ($commands as $section => $sectionCommands) {
-            $this->output->writeln($section);
-            
-            $maxLen = max(array_map('strlen', array_keys($sectionCommands)));
-            
-            foreach ($sectionCommands as $cmd => $description) {
-                $this->output->writeln(sprintf(
-                    '  <info>%-' . ($maxLen + 2) . 's</info> %s',
-                    $cmd,
-                    $description
-                ));
-            }
-            
-            $this->output->writeln('');
-        }
-    }
-    
-    private function showContext(): void
-    {
-        $this->output->writeln(sprintf(
-            'Current context: <info>%s:%s</info>',
-            $this->context->getVault(),
-            $this->context->getStage()
-        ));
-    }
-    
-    private function switchStage(string $stage): void
-    {
-        $this->context->setStage($stage);
-        $this->output->writeln(sprintf(
-            'Switched to stage: <info>%s</info>',
-            $stage
-        ));
-    }
-    
-    private function switchVault(string $vault): void
-    {
-        $this->context->setVault($vault);
-        $this->output->writeln(sprintf(
-            'Switched to vault: <info>%s</info>',
-            $vault
-        ));
-    }
-    
-    private function switchContext(string $context): void
-    {
-        if (!str_contains($context, ':')) {
-            $this->output->writeln('<error>Format must be vault:stage</error>');
-            return;
-        }
-        
-        [$vault, $stage] = explode(':', $context, 2);
-        $this->context->setVault($vault);
-        $this->context->setStage($stage);
-        
-        $this->output->writeln(sprintf(
-            'Switched to: <info>%s:%s</info>',
-            $vault,
-            $stage
-        ));
-    }
-    
-    private function listStages(): void
-    {
-        $stages = $this->context->getAvailableStages();
-        $current = $this->context->getStage();
-        
-        // Use interactive selection
-        $selected = select(
-            label: 'Select a stage:',
-            options: $stages,
-            default: $current,
-            hint: 'Use arrow keys to navigate, Enter to select'
-        );
-        
-        if ($selected !== $current) {
-            $this->switchStage($selected);
+        $suggestions = $this->suggestion->suggest($command);
+        if (!empty($suggestions)) {
+            $message .= $this->suggestion->formatSuggestions($suggestions);
         } else {
-            $this->output->writeln(sprintf(
-                'Already on stage: <info>%s</info>',
-                $current
-            ));
+            $message .= ' Type "help" to see available commands.';
         }
+        
+        $this->output->writeln("<error>$message</error>");
     }
     
-    private function listVaults(): void
-    {
-        $vaults = $this->context->getAvailableVaults();
-        $current = $this->context->getVault();
-        
-        // Use interactive selection
-        $selected = select(
-            label: 'Select a vault:',
-            options: $vaults,
-            default: $current,
-            hint: 'Use arrow keys to navigate, Enter to select'
-        );
-        
-        if ($selected !== $current) {
-            $this->switchVault($selected);
-        } else {
-            $this->output->writeln(sprintf(
-                'Already on vault: <info>%s</info>',
-                $current
-            ));
-        }
-    }
-    
-    /**
-     * Readline tab completion callback
-     */
-    public function completer(string $input, int $index): array
-    {
-        $info = readline_info();
-        $line = substr($info['line_buffer'], 0, $info['end']);
-        $parts = explode(' ', $line);
-        
-        // If we're completing the first word, return commands
-        if (count($parts) === 1) {
-            return $this->getCommandCompletions($parts[0]);
-        }
-        
-        // Otherwise, complete based on the command
-        $command = $parts[0];
-        $currentArg = end($parts);
-        
-        // Map shortcuts
-        $command = match($command) {
-            'g' => 'get',
-            's' => 'set',
-            'd' => 'delete',
-            'ls' => 'show',
-            'u' => 'use',
-            default => $command
-        };
-        
-        // Complete based on command type
-        switch ($command) {
-            case 'get':
-            case 'set':
-            case 'delete':
-            case 'history':
-                return $this->getSecretCompletions($currentArg);
-                
-            case 'stage':
-                return $this->getStageCompletions($currentArg);
-                
-            case 'vault':
-                return $this->getVaultCompletions($currentArg);
-                
-            case 'use':
-                return $this->getContextCompletions($currentArg);
-                
-            case 'diff':
-                // Complete stages
-                return $this->getStageCompletions($currentArg);
-                
-            case 'show':
-                // If typing "only" or "except", don't complete
-                if (in_array($currentArg, ['only', 'except'])) {
-                    return [];
-                }
-                // Otherwise might be typing those keywords
-                if (str_starts_with('only', $currentArg)) {
-                    return ['only'];
-                }
-                if (str_starts_with('except', $currentArg)) {
-                    return ['except'];
-                }
-                return [];
-                
-            default:
-                return [];
-        }
-    }
-    
-    private function getCommandCompletions(string $prefix): array
-    {
-        if (empty($prefix)) {
-            return $this->commands;
-        }
-        
-        return array_filter($this->commands, function($cmd) use ($prefix) {
-            return str_starts_with($cmd, $prefix);
-        });
-    }
-    
-    private function getSecretCompletions(string $prefix): array
-    {
-        $secrets = $this->context->getCachedSecretNames();
-        
-        if (empty($prefix)) {
-            return $secrets;
-        }
-        
-        return array_filter($secrets, function($secret) use ($prefix) {
-            return str_starts_with($secret, $prefix);
-        });
-    }
-    
-    private function getStageCompletions(string $prefix): array
-    {
-        $stages = $this->context->getAvailableStages();
-        
-        if (empty($prefix)) {
-            return $stages;
-        }
-        
-        return array_filter($stages, function($stage) use ($prefix) {
-            return str_starts_with($stage, $prefix);
-        });
-    }
-    
-    private function getVaultCompletions(string $prefix): array
-    {
-        $vaults = $this->context->getAvailableVaults();
-        
-        if (empty($prefix)) {
-            return $vaults;
-        }
-        
-        return array_filter($vaults, function($vault) use ($prefix) {
-            return str_starts_with($vault, $prefix);
-        });
-    }
-    
-    private function getContextCompletions(string $prefix): array
-    {
-        $contexts = [];
-        $vaults = $this->context->getAvailableVaults();
-        $stages = $this->context->getAvailableStages();
-        
-        foreach ($vaults as $vault) {
-            foreach ($stages as $stage) {
-                $contexts[] = "$vault:$stage";
-            }
-        }
-        
-        if (empty($prefix)) {
-            return $contexts;
-        }
-        
-        return array_filter($contexts, function($ctx) use ($prefix) {
-            return str_starts_with($ctx, $prefix);
-        });
-    }
-    
-    private function getSuggestions(string $input): array
-    {
-        $commands = [
-            'get', 'set', 'delete', 'show', 'copy', 'export', 'diff',
-            'verify', 'info', 'history', 'stage', 'vault', 'use',
-            'context', 'help', 'exit', 'clear'
-        ];
-        
-        $suggestions = [];
-        $input = strtolower($input);
-        
-        foreach ($commands as $command) {
-            // Check for commands that start with the input
-            if (str_starts_with($command, $input)) {
-                $suggestions[] = $command;
-                continue;
-            }
-            
-            // Check for similar commands (Levenshtein distance)
-            if (levenshtein($input, $command) <= 2) {
-                $suggestions[] = $command;
-            }
-        }
-        
-        return array_unique($suggestions);
-    }
-    
-    /**
-     * Add command to history with security sanitization
-     */
-    private function addToHistory(string $input): void
+    protected function recordHistory(string $input): void
     {
         $sanitized = $this->sanitizeForHistory($input);
         
-        // Only add to history if there's something left after sanitization
         if (!empty($sanitized)) {
             readline_add_history($sanitized);
             readline_write_history($this->historyFile);
         }
     }
     
-    /**
-     * Sanitize commands before adding to history
-     * Removes secret values from set commands for security
-     */
-    private function sanitizeForHistory(string $input): string
+    protected function sanitizeForHistory(string $input): string
     {
         $parts = explode(' ', $input);
         $command = $parts[0];
         
-        // Map shortcuts to full commands
-        $command = match($command) {
-            's' => 'set',
-            default => $command
-        };
+        // Resolve aliases
+        $command = self::COMMAND_ALIASES[$command] ?? $command;
         
-        // If it's a set command with a value, redact the value
+        // Redact secret values from set commands
         if ($command === 'set' && count($parts) >= 3) {
-            // Keep command and key, but redact the value
             return $parts[0] . ' ' . $parts[1] . ' [REDACTED]';
         }
         
-        // For all other commands, return as-is
         return $input;
     }
 }
