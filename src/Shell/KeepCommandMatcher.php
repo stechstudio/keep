@@ -17,8 +17,8 @@ class KeepCommandMatcher extends AbstractMatcher
     
     private static array $keepCommands = [
         'get', 'g', 'set', 's', 'delete', 'd', 'show', 'l', 'ls', 
-        'copy', 'import', 'export', 'diff', 'verify', 'info', 
-        'history', 'configure', 'stage', 'vault', 'use', 'context'
+        'copy', 'export', 'diff', 'verify', 'info', 
+        'history', 'stage', 'vault', 'use', 'context'
     ];
     
     public function __construct(

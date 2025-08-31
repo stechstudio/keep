@@ -6,10 +6,8 @@ class CommandCompleter
 {
     private array $commands = [
         // Keep commands
-        'set', 'get', 'delete', 'show', 'copy', 'import', 'export', 'diff',
-        'configure', 'verify', 'info', 'history',
-        'vault:add', 'vault:edit', 'vault:list',
-        'stage:add',
+        'set', 'get', 'delete', 'show', 'copy', 'export', 'diff',
+        'verify', 'info', 'history',
         
         // Shell commands
         'stage', 'vault', 'use', 'context', 'help', 'clear', 'exit', 'quit',
