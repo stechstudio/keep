@@ -289,19 +289,21 @@ class BuiltInCommands
                 'aliases' => ['s'],
             ],
             'delete' => [
-                'usage' => 'delete <key>',
+                'usage' => 'delete <key> [force]',
                 'description' => 'Delete a secret from the current vault and stage.',
                 'examples' => [
                     'delete OLD_KEY',
+                    'delete API_KEY force      # Skip confirmation',
                     'd TEMP_SECRET      # Using alias',
                 ],
                 'aliases' => ['d'],
             ],
             'show' => [
-                'usage' => 'show',
+                'usage' => 'show [unmask]',
                 'description' => 'Display all secrets in the current vault and stage.',
                 'examples' => [
                     'show',
+                    'show unmask      # Show unmasked values',
                     'ls      # Using alias',
                 ],
                 'aliases' => ['ls'],
@@ -444,8 +446,8 @@ class BuiltInCommands
             '<comment>Secret Management</comment>' => [
                 'get <key>' => 'Get a secret value (alias: g)',
                 'set <key> <value>' => 'Set a secret (alias: s)',
-                'delete <key>' => 'Delete a secret (alias: d)',
-                'show' => 'Show all secrets (alias: ls)',
+                'delete <key> [force]' => 'Delete a secret (alias: d)',
+                'show [unmask]' => 'Show all secrets (alias: ls)',
                 'history <key>' => 'View secret history',
                 'copy <key> [destination]' => 'Copy single secret (e.g., copy DB_PASS staging)',
                 'copy only <pattern>' => 'Copy secrets matching pattern',
