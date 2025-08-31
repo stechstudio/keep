@@ -111,7 +111,8 @@ class KeepCommandMatcher extends AbstractMatcher
             
             // Only proceed if this is a Keep command
             if (!in_array($command, self::$keepCommands)) {
-                error_log("Not a Keep command: '$command'");
+                // Don't return empty - this causes PsySH to fall back to filesystem completion
+                // Instead, return no matches explicitly
                 return [];
             }
             
