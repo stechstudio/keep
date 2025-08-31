@@ -59,7 +59,7 @@ class ShellContext
     {
         try {
             return Keep::getConfiguredVaults()
-                ->map(fn($vault) => $vault->slug())
+                ->map->slug()
                 ->values()
                 ->toArray();
         } catch (\Exception) {
