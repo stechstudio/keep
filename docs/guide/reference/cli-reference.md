@@ -49,7 +49,7 @@ keep vault:list
 
 ## `keep stage:add`
 
-Add a custom stage/environment beyond the standard ones (development, staging, production).
+Add a custom stage/environment beyond the standard ones (local, staging, production).
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -86,7 +86,7 @@ Create or update secrets in vaults.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--stage` | string | *interactive* | Target stage (development, staging, production) |
+| `--stage` | string | *interactive* | Target stage (local, staging, production) |
 | `--vault` | string | *default vault* | Vault to store the secret in |
 | `--secure` | boolean | `true` | Whether to encrypt the secret |
 | `--force` | boolean | `false` | Overwrite existing secrets without confirmation |
@@ -101,7 +101,7 @@ Create or update secrets in vaults.
 keep set
 
 # Direct mode
-keep set API_KEY "abc123" --stage=development
+keep set API_KEY "abc123" --stage=local
 
 # Force overwrite
 keep set API_KEY "new-value" --stage=production --force
@@ -129,7 +129,7 @@ Retrieve a specific secret from a vault.
 keep get
 
 # Basic retrieval
-keep get API_KEY --stage=development
+keep get API_KEY --stage=local
 
 # JSON output
 keep get STRIPE_KEY --stage=production --format=json
@@ -154,7 +154,7 @@ Show all secrets from a vault and stage.
 **Examples:**
 ```bash
 # Basic listing (masked values)
-keep show --stage=development
+keep show --stage=local
 
 # Show actual values
 keep show --stage=production --unmask
@@ -163,7 +163,7 @@ keep show --stage=production --unmask
 keep show --stage=production --only="NIGHTWATCH_*,MAIL_*"
 
 # Exclude certain keys
-keep show --stage=development --except="DB_*,STRIPE_*"
+keep show --stage=local --except="DB_*,STRIPE_*"
 
 # JSON output
 keep show --stage=staging --format=json
@@ -257,7 +257,7 @@ Remove secrets from vaults.
 keep delete
 
 # Basic deletion (with confirmation)
-keep delete OLD_CONFIG --stage=development
+keep delete OLD_CONFIG --stage=local
 
 # Force deletion without prompt
 keep delete TEMP_KEY --stage=staging --force
@@ -352,10 +352,10 @@ keep diff --stage=staging,production
 keep diff --stage=staging,production --unmask
 
 # Compare specific keys only
-keep diff --stage=development,production --only="DB_*"
+keep diff --stage=local,production --only="DB_*"
 
 # Exclude specific keys
-keep diff --stage=development,production --except="APP_DEBUG"
+keep diff --stage=local,production --except="APP_DEBUG"
 ```
 
 ## `keep import`
@@ -378,7 +378,7 @@ Import secrets from `.env` files.
 **Examples:**
 ```bash
 # Import from .env file
-keep import .env.development --stage=development
+keep import .env.development --stage=local
 
 # Import with existing secret protection
 keep import production.env --stage=production --skip-existing
@@ -387,16 +387,16 @@ keep import production.env --stage=production --skip-existing
 keep import staging.env --stage=staging --overwrite
 
 # Dry run to preview import
-keep import .env --stage=development --dry-run
+keep import .env --stage=local --dry-run
 
 # Import only specific keys
 keep import secrets.json --stage=production --only="API_KEY,DB_PASSWORD"
 
 # Import from stdin
-cat .env | keep import --stage=development
+cat .env | keep import --stage=local
 
 # Exclude sensitive keys
-keep import .env --stage=development --except="PRIVATE_KEY"
+keep import .env --stage=local --except="PRIVATE_KEY"
 ```
 
 ## `keep export`

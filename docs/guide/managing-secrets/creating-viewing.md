@@ -8,7 +8,7 @@
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--stage` | string | *interactive* | Target stage (development, staging, production) |
+| `--stage` | string | *interactive* | Target stage (local, staging, production) |
 | `--vault` | string | *default vault* | Vault to store the secret in |
 | `--secure` | boolean | `true` | Whether to encrypt the secret (always true for AWS vaults) |
 | `--force` | boolean | `false` | Overwrite existing secrets without confirmation |
@@ -23,7 +23,7 @@
 keep set
 
 # Basic usage
-keep set DB_PASSWORD "my-secret" --stage=development
+keep set DB_PASSWORD "my-secret" --stage=local
 
 # Force overwrite
 keep set API_KEY "new-value" --stage=production --force
@@ -53,7 +53,7 @@ keep set STRIPE_KEY "sk_live_..." --stage=production --vault=secretsmanager
 keep get
 
 # Basic retrieval
-keep get API_KEY --stage=development
+keep get API_KEY --stage=local
 
 # JSON output
 keep get STRIPE_KEY --stage=production --format=json
@@ -80,14 +80,14 @@ keep get CONFIG_JSON --stage=staging --vault=ssm --format=raw
 **Examples:**
 ```bash
 # Basic listing
-keep show --stage=development
+keep show --stage=local
 
 # Show actual values
 keep show --stage=production --unmask
 
 # Filter keys
 keep show --stage=production --only="API_*,MAIL_*"
-keep show --stage=development --except="DB_*,STRIPE_*"
+keep show --stage=local --except="DB_*,STRIPE_*"
 
 # Different formats
 keep show --stage=staging --format=json
@@ -115,7 +115,7 @@ keep show --stage=production --vault=secretsmanager --format=env
 keep delete
 
 # Basic deletion
-keep delete OLD_CONFIG --stage=development
+keep delete OLD_CONFIG --stage=local
 
 # Force deletion
 keep delete TEMP_KEY --stage=staging --force
@@ -140,10 +140,10 @@ keep delete LEGACY_SECRET --stage=production --vault=ssm
 ### Common Workflows
 
 ```bash
-# Development workflow
-keep set DB_PASSWORD "dev-password" --stage=development
-keep export --stage=development --file=.env.local
-keep show --stage=development
+# Local development workflow
+keep set DB_PASSWORD "dev-password" --stage=local
+keep export --stage=local --file=.env.local
+keep show --stage=local
 
 # Production workflow (be careful!)
 keep show --stage=production  # Verify stage first

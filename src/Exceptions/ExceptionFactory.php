@@ -17,7 +17,7 @@ class ExceptionFactory
             ->withContext(array_filter([
                 'vault' => $vault,
                 'key' => $key,
-                'suggestion' => $suggestion ?: ($vault ? "Check if this secret exists using 'keep list'" : null),
+                'suggestion' => $suggestion ?: ($vault ? "Check if this secret exists using 'show'" : null),
             ], fn ($v) => $v !== null));
     }
 
@@ -39,7 +39,7 @@ class ExceptionFactory
                 'key' => $key,
                 'path' => $path,
                 'lineNumber' => $lineNumber,
-                'suggestion' => "Check if this secret exists using 'keep list'",
+                'suggestion' => "Check if this secret exists using 'show",
             ], fn ($v) => $v !== null));
     }
 

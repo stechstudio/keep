@@ -19,7 +19,7 @@ Secure, high-performance alternative using encrypted caches.
 ## Core Concepts
 
 **Stages** organize secrets by environment:
-- `development` - Local development
+- `local` - Local development environment
 - `staging` - Pre-production testing
 - `production` - Live environment
 
@@ -36,13 +36,13 @@ keep list --stage=production
 keep list --stage=production --vault=ssm
 
 # Vault:stage syntax
-keep copy DB_PASSWORD --from=secretsmanager:development --to=ssm:production
+keep copy DB_PASSWORD --from=secretsmanager:local --to=ssm:production
 ```
 
 ## Common Workflows
 
-**Development → Production:**
-1. Set secrets in development
+**Local → Production:**
+1. Set secrets in local environment
 2. Test with exported `.env` files
 3. Copy to staging for testing
 4. Promote to production

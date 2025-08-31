@@ -23,7 +23,7 @@ keep shell --vault=ssm --stage=production
 The shell prompt always displays your current vault and stage in the format `vault:stage>`, making it easy to see exactly where you're working:
 
 ```bash
-ssm:development>     # Working in SSM vault, development stage
+ssm:local>           # Working in SSM vault, local stage
 aws:production>      # Working in AWS vault, production stage
 test:staging>        # Working in test vault, staging stage
 ```
@@ -38,14 +38,14 @@ The shell provides intelligent tab completion for:
 - **Vault names**: When switching vaults with the `vault` command
 
 ```bash
-ssm:development> get<TAB>                 # Shows all available secrets
-ssm:development> get DB_<TAB>             # Shows secrets starting with DB_
+ssm:local> get<TAB>                 # Shows all available secrets
+ssm:local> get DB_<TAB>             # Shows secrets starting with DB_
 DB_HOST     DB_PASSWORD     DB_PORT     DB_USERNAME
 
-ssm:development> stage <TAB>              # Shows all configured stages
-development     staging     production
+ssm:local> stage <TAB>              # Shows all configured stages
+local     staging     production
 
-ssm:development> vault <TAB>              # Shows all configured vaults
+ssm:local> vault <TAB>              # Shows all configured vaults
 ssm     secretsmanager     test
 ```
 
@@ -89,11 +89,11 @@ ssm:production> set API_KEY "sk-1234567890"
 Secret [/test-app/production/API_KEY] created in vault [ssm].
 
 ssm:production> get API_KEY
-┌─────────┬───────┬───────────────┬──────────┐
-│ Key     │ Vault │ Value         │ Revision │
-├─────────┼───────┼───────────────┼──────────┤
-│ API_KEY │ ssm   │ sk-1********* │ 1        │
-└─────────┴───────┴───────────────┴──────────┘
+┌─────────┬───────────────┬──────────┐
+│ Key     │ Value         │ Revision │
+├─────────┼───────────────┼──────────┤
+│ API_KEY │ sk-1234567890 │ 1        │
+└─────────┴───────────────┴──────────┘
 
 ssm:production> show
 ┌─────────────┬─────────────────┬──────────┐
@@ -109,7 +109,7 @@ ssm:production> show
 ### Comparing Environments
 
 ```bash
-ssm:development> diff staging production
+ssm:local> diff staging production
 
 Secret Comparison Matrix
 ┌──────────────┬──────────────────┬──────────────────┬─────────────┐
@@ -129,25 +129,25 @@ Secret Comparison Matrix
 The shell supports all Keep commands with natural syntax. The copy command always uses your current context as the source:
 
 ```bash
-# Current context: ssm:development
-ssm:development> context
-Current context: ssm:development
+# Current context: ssm:local
+ssm:local> context
+Current context: ssm:local
 
 # Copy a single secret to another stage (same vault)
-ssm:development> copy API_KEY production
-Copying secret from ssm:development to ssm:production
+ssm:local> copy API_KEY production
+Copying secret from ssm:local to ssm:production
 ✓ Copied API_KEY
 
 # Copy to a different vault and stage
-ssm:development> copy DB_PASSWORD aws-secrets:staging
-Copying secret from ssm:development to aws-secrets:staging
+ssm:local> copy DB_PASSWORD aws-secrets:staging
+Copying secret from ssm:local to aws-secrets:staging
 ✓ Copied DB_PASSWORD
 
 # Copy with patterns (prompts for destination)
-ssm:development> copy only DB_*
+ssm:local> copy only DB_*
 To (vault): ssm
 To (stage): production
-Copying secrets from ssm:development to ssm:production
+Copying secrets from ssm:local to ssm:production
 ✓ Copied DB_HOST
 ✓ Copied DB_PASSWORD
 ✓ Copied DB_USERNAME
@@ -190,7 +190,7 @@ All standard Keep commands work in the shell:
 Exit the shell with:
 
 ```bash
-ssm:development> exit
+ssm:local> exit
 Goodbye!
 ```
 
@@ -201,9 +201,9 @@ Or use the keyboard shortcut `Ctrl+D`.
 The shell uses a natural, dash-free syntax for human-friendly interaction:
 
 ```bash
-ssm:development> show unmask              # Show secrets with actual values
-ssm:development> delete API_KEY force     # Delete without confirmation
-ssm:development> diff staging production  # Compare secrets between stages
+ssm:local> show unmask              # Show secrets with actual values
+ssm:local> delete API_KEY force     # Delete without confirmation
+ssm:local> diff staging production  # Compare secrets between stages
 ```
 
 Options are simply words after the command - no dashes or equals signs needed. The shell focuses on human-readable output formats. For JSON, CSV, or other machine-readable formats, use the standalone CLI commands instead.
@@ -215,7 +215,7 @@ Options are simply words after the command - no dashes or equals signs needed. T
 Use the `stage` command to quickly switch between environments:
 
 ```bash
-ssm:development> stage staging
+ssm:local> stage staging
 ssm:staging> set API_ENDPOINT "https://api-staging.example.com"
 ssm:staging> stage production  
 ssm:production> set API_ENDPOINT "https://api.example.com"
@@ -227,12 +227,12 @@ The copy command uses your current context as the source and accepts inline dest
 
 ```bash
 # Current context serves as source
-ssm:development> context
-Current context: ssm:development
+ssm:local> context
+Current context: ssm:local
 
-ssm:development> copy DB_PASSWORD staging        # Copies from current context to staging
-ssm:development> copy API_KEY aws:production     # Copies from current context to aws:production
-ssm:development> copy SECRET_KEY                 # Prompts for destination if not specified
+ssm:local> copy DB_PASSWORD staging        # Copies from current context to staging
+ssm:local> copy API_KEY aws:production     # Copies from current context to aws:production
+ssm:local> copy SECRET_KEY                 # Prompts for destination if not specified
 ```
 
 ### 3. Secret Name Patterns
@@ -240,7 +240,7 @@ ssm:development> copy SECRET_KEY                 # Prompts for destination if no
 Tab completion works with partial matches:
 
 ```bash
-ssm:development> get AWS<TAB>
+ssm:local> get AWS<TAB>
 AWS_ACCESS_KEY_ID     AWS_SECRET_ACCESS_KEY     AWS_REGION
 ```
 
@@ -253,7 +253,7 @@ Use arrow keys to navigate through command history, making it easy to repeat or 
 For complex values, the shell supports multi-line input:
 
 ```bash
-ssm:development> set PRIVATE_KEY "-----BEGIN PRIVATE KEY-----
+ssm:local> set PRIVATE_KEY "-----BEGIN PRIVATE KEY-----
 ... MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEA
 ... [additional key content]
 ... -----END PRIVATE KEY-----"

@@ -89,7 +89,7 @@ aws configure sso
 aws sso login --profile myproject
 
 # Keep uses the SSO session automatically
-keep list --stage=development
+keep show --stage=local
 ```
 
 ### Production Environment

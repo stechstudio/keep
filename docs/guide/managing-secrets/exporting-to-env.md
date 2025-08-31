@@ -13,7 +13,7 @@ The `keep export` command generates configuration files from your secrets in var
 keep export --stage=production --output=.env
 
 # Export as JSON
-keep export --stage=development --format=json
+keep export --stage=local --format=json
 
 # Export to stdout (default)
 keep export --stage=staging
@@ -61,7 +61,7 @@ The `keep export --template` command combines secrets with template files, allow
 keep export --template=.env.template --stage=production --file=.env
 
 # Output to stdout
-keep export --template=.env.template --stage=development
+keep export --template=.env.template --stage=local
 
 # Include all secrets beyond template placeholders
 keep export --template=.env.template --stage=production --all --file=.env
@@ -97,7 +97,7 @@ REDIS_URL={secretsmanager:REDIS_URL}
 keep export --template=.env.template --stage=production --file=.env
 
 # Handle missing secrets gracefully
-keep export --template=.env.template --stage=development --missing=skip --file=.env
+keep export --template=.env.template --stage=local --missing=skip --file=.env
 
 # Remove lines with missing secrets
 keep export --template=.env.template --stage=staging --missing=remove --file=.env
