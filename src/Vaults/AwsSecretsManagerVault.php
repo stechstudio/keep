@@ -351,8 +351,6 @@ class AwsSecretsManagerVault extends AbstractVault
 
     protected function client(): SecretsManagerClient
     {
-        dd('ssm client');
-
         return $this->client ??= new SecretsManagerClient([
             'version' => 'latest',
             'region' => $this->config['region'] ?? 'us-east-1',
