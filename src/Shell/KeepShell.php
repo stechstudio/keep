@@ -40,16 +40,6 @@ class KeepShell extends Shell
         
         // Pre-load secrets to ensure they're available for tab completion
         $this->preloadSecrets($context);
-        
-        // Add our custom tab completion matcher
-        $this->addMatchers([
-            new KeepCommandMatcher(
-                new Completers\CommandCompleter(),
-                new Completers\SecretCompleter($context),
-                new Completers\StageCompleter($context),
-                new Completers\VaultCompleter($context)
-            ),
-        ]);
     }
     
     private function preloadSecrets(ShellContext $context): void
@@ -81,6 +71,22 @@ class KeepShell extends Shell
         // We don't want any of PsySH's default matchers
         // Our KeepCommandMatcher will handle everything
         return [];
+    }
+    
+    /**
+     * Override to set our custom matchers
+     */
+    protected function getMatchers(): array
+    {
+        // Only use our custom matcher, no defaults
+        return [
+            new KeepCommandMatcher(
+                new Completers\CommandCompleter(),
+                new Completers\SecretCompleter($this->context),
+                new Completers\StageCompleter($this->context),
+                new Completers\VaultCompleter($this->context)
+            ),
+        ];
     }
     
     private function registerKeepCommands(): void
