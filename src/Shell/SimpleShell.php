@@ -57,6 +57,7 @@ class SimpleShell
         $formatter->setStyle('comment', new OutputFormatterStyle('yellow'));
         $formatter->setStyle('error', new OutputFormatterStyle('red'));
         $formatter->setStyle('warning', new OutputFormatterStyle('yellow'));
+        $formatter->setStyle('prompt', new OutputFormatterStyle('bright-blue', null, ['bold']));
     }
     
     protected function setupReadline(): void
@@ -121,8 +122,9 @@ class SimpleShell
     
     protected function getPrompt(): string
     {
+        // Use bright blue for distinct visibility
         return sprintf(
-            "\033[32m%s:%s\033[0m> ",
+            "\033[94m%s:%s\033[0m> ",
             $this->context->getVault(),
             $this->context->getStage()
         );
