@@ -149,7 +149,13 @@ class CommandExecutor
                 
             case 'get':
             case 'history':
+                // Just take the key, ignore any format options (shell is for humans)
                 $this->addIfExists($positionals, 0, 'key', $input);
+                break;
+                
+            case 'export':
+                // Export in shell always uses default .env format (no format options)
+                // No positional arguments needed
                 break;
                 
             case 'copy':
@@ -169,15 +175,11 @@ class CommandExecutor
                 break;
                 
             case 'show':
-                // Handle show options as positional arguments for better UX
-                foreach ($positionals as $arg) {
-                    if ($arg === 'unmask') {
-                        $input['--unmask'] = true;
-                    } elseif (in_array($arg, ['table', 'json', 'env'])) {
-                        $input['--format'] = $arg;
-                    }
+                // Only support 'unmask' in interactive shell (no format options)
+                if (in_array('unmask', $positionals)) {
+                    $input['--unmask'] = true;
                 }
-                // Don't pass any positionals to show command (they were converted to options)
+                // Don't pass any positionals to show command
                 $positionals = [];
                 break;
                 
