@@ -36,7 +36,7 @@ class ShowCommand extends BaseCommand
         match ($format) {
             'table' => table(['Key', 'Value', 'Revision'], $secrets->map->only(['key', 'value', 'revision'])),
             'env' => $this->line($secrets->toEnvString()),
-            'json' => $this->line($secrets->only(['key', 'value', 'revision'])->toJson(JSON_PRETTY_PRINT)),
+            'json' => $this->line($secrets->map->only(['key', 'value', 'revision'])->toJson(JSON_PRETTY_PRINT)),
         };
     }
 }
