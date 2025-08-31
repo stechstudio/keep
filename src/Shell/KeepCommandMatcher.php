@@ -39,6 +39,9 @@ class KeepCommandMatcher extends AbstractMatcher
     public function hasMatched(array $tokens): bool
     {
         // Always claim to match to prevent fallback to PsySH's default matchers
+        // or readline's filesystem completion
+        // Always claim to match to prevent fallback to PsySH's default matchers
+        // or readline's filesystem completion
         return true;
     }
     
@@ -140,13 +143,30 @@ class KeepCommandMatcher extends AbstractMatcher
         }
         
         if ($this->isSecretContext($command)) {
-            //error_log("Secret context detected for command '$command'");
+            //error_log("Secret context detected for command '$command', currentArg='$currentArg'");
             $matches = $this->secretCompleter->complete($currentArg, $command);
             //error_log("Secret completer returned: " . json_encode($matches));
-            return $matches;
+            // If we have matches, return them
+            if (!empty($matches)) {
+                //error_log("KeepCommandMatcher::getMatches - returning matches: " . json_encode($matches));
+                return $matches;
+            }
+            // No matches - return the current arg to block filesystem completion
+            // This tells readline "the completion is what you already typed"
+            $result = $currentArg ? [$currentArg] : [''];
+            //error_log("KeepCommandMatcher::getMatches - no matches, blocking with: " . json_encode($result));
+            return $result;
         }
         
-        //error_log("No context matched");
+        //error_log("No context matched, command='$command'");
+        // For any Keep command, block filesystem completion
+        if (in_array($command, self::$keepCommands)) {
+            // Return current arg to block filesystem completion
+            $result = $currentArg ? [$currentArg] : [''];
+            //error_log("KeepCommandMatcher::getMatches - blocking with: " . json_encode($result) . " for Keep command");
+            return $result;
+        }
+        //error_log("KeepCommandMatcher::getMatches - returning [] for non-Keep command");
         return [];
     }
     
