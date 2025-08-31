@@ -166,8 +166,15 @@ class CommandExecutor
             case 'get':
             case 'delete':
             case 'history':
+                $this->addIfExists($positionals, 0, 'key', $input);
+                break;
+                
             case 'copy':
                 $this->addIfExists($positionals, 0, 'key', $input);
+                // Handle optional destination argument
+                if (isset($positionals[1])) {
+                    $input['--to'] = $positionals[1];
+                }
                 break;
                 
             case 'import':

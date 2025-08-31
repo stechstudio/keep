@@ -4,7 +4,7 @@ namespace STS\Keep\Shell\Commands;
 
 use Closure;
 use STS\Keep\Shell\ShellContext;
-use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 use function Laravel\Prompts\select;
 
 class BuiltInCommands
@@ -13,7 +13,7 @@ class BuiltInCommands
     
     public function __construct(
         private ShellContext $context,
-        private ConsoleOutput $output
+        private OutputInterface $output
     ) {
         $this->registerCommands();
     }
@@ -211,7 +211,7 @@ class BuiltInCommands
                 'delete <key>' => 'Delete a secret (alias: d)',
                 'show' => 'Show all secrets (alias: ls)',
                 'history <key>' => 'View secret history',
-                'copy <key>' => 'Copy single secret',
+                'copy <key> [destination]' => 'Copy single secret (e.g., copy DB_PASS staging)',
                 'copy only <pattern>' => 'Copy secrets matching pattern',
                 'diff <stage1> <stage2>' => 'Compare secrets between stages',
             ],
