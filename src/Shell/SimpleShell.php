@@ -72,9 +72,8 @@ class SimpleShell
                 continue;
             }
             
-            // Add to history
-            readline_add_history($input);
-            readline_write_history($this->historyFile);
+            // Add to history (sanitized for security)
+            $this->addToHistory($input);
             
             // Handle built-in commands
             if ($this->handleBuiltInCommand($input)) {
@@ -140,7 +139,6 @@ class SimpleShell
                 return true;
                 
             case 'stage':
-            case 's':
                 if (isset($parts[1])) {
                     $this->switchStage($parts[1]);
                 } else {
@@ -149,7 +147,6 @@ class SimpleShell
                 return true;
                 
             case 'vault':
-            case 'v':
                 if (isset($parts[1])) {
                     $this->switchVault($parts[1]);
                 } else {
@@ -366,7 +363,6 @@ class SimpleShell
             's' => 'set',
             'd' => 'delete',
             'l', 'ls' => 'show',
-            'v' => 'vault',
             'u' => 'use',
             default => $command
         };
@@ -507,5 +503,44 @@ class SimpleShell
         }
         
         return array_unique($suggestions);
+    }
+    
+    /**
+     * Add command to history with security sanitization
+     */
+    private function addToHistory(string $input): void
+    {
+        $sanitized = $this->sanitizeForHistory($input);
+        
+        // Only add to history if there's something left after sanitization
+        if (!empty($sanitized)) {
+            readline_add_history($sanitized);
+            readline_write_history($this->historyFile);
+        }
+    }
+    
+    /**
+     * Sanitize commands before adding to history
+     * Removes secret values from set commands for security
+     */
+    private function sanitizeForHistory(string $input): string
+    {
+        $parts = explode(' ', $input);
+        $command = $parts[0];
+        
+        // Map shortcuts to full commands
+        $command = match($command) {
+            's' => 'set',
+            default => $command
+        };
+        
+        // If it's a set command with a value, redact the value
+        if ($command === 'set' && count($parts) >= 3) {
+            // Keep command and key, but redact the value
+            return $parts[0] . ' ' . $parts[1] . ' [REDACTED]';
+        }
+        
+        // For all other commands, return as-is
+        return $input;
     }
 }
