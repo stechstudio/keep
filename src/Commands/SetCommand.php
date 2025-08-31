@@ -22,13 +22,12 @@ class SetCommand extends BaseCommand
         $context = $this->vaultContext();
         $secret = $context->createVault()->set($key, $this->value(), $this->secure());
 
-        $this->info(
-            sprintf('Secret [%s] %s in vault [%s].',
-                $secret->path(),
-                $secret->revision() === 1 ? 'created' : 'updated',
-                $secret->vault()->name()
-            )
-        );
+        $action = $secret->revision() === 1 ? 'created' : 'updated';
+        $this->success(sprintf('Secret [<secret-name>%s</secret-name>] %s in vault [<context>%s</context>].',
+            $secret->path(),
+            $action,
+            $secret->vault()->name()
+        ));
     }
 
     /**

@@ -103,7 +103,7 @@ class ImportCommand extends BaseCommand
             }
 
             if (empty($secret->value())) {
-                $this->warn("Skipping key [{$secret->key()}] with empty value.");
+                $this->warn(sprintf('Skipping key [<secret-name>%s</secret-name>] with empty value.', $secret->key()));
 
                 continue;
             }
@@ -112,7 +112,10 @@ class ImportCommand extends BaseCommand
             try {
                 $this->validateUserKey($secret->key());
             } catch (\InvalidArgumentException $e) {
-                $this->error("Skipping invalid key [{$secret->key()}]: ".$e->getMessage());
+                $this->error(sprintf('Skipping invalid key [<secret-name>%s</secret-name>]: %s',
+                    $secret->key(),
+                    $e->getMessage()
+                ));
 
                 continue;
             }
@@ -121,10 +124,13 @@ class ImportCommand extends BaseCommand
                 $imported->push(
                     $importedSecret = $vault->set($secret->key(), $secret->value())
                 );
-                $this->info("Imported key [{$importedSecret->key()}]");
+                $this->success(sprintf('Imported key [<secret-name>%s</secret-name>]', $importedSecret->key()));
                 usleep(150000); // Slight delay to avoid rate limits
             } catch (KeepException $e) {
-                $this->error("Failed to import key [{$secret->key()}]: ".$e->getMessage());
+                $this->error(sprintf('Failed to import key [<secret-name>%s</secret-name>]: %s',
+                    $secret->key(),
+                    $e->getMessage()
+                ));
             }
         }
 
