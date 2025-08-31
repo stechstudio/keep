@@ -35,8 +35,9 @@ class TabCompletion
         
         $command = $this->resolveCommand($parts[0]);
         $currentArg = end($parts);
+        $argPosition = count($parts) - 2; // 0-based position of current argument
         
-        return $this->getCompletionsForCommand($command, $currentArg);
+        return $this->getCompletionsForCommand($command, $currentArg, $argPosition);
     }
     
     protected function resolveCommand(string $command): string
@@ -44,8 +45,23 @@ class TabCompletion
         return self::COMMAND_ALIASES[$command] ?? $command;
     }
     
-    protected function getCompletionsForCommand(string $command, string $prefix): array
+    protected function getCompletionsForCommand(string $command, string $prefix, int $argPosition): array
     {
+        // Special handling for copy command
+        if ($command === 'copy') {
+            if ($argPosition === 0) {
+                // First argument: secret names
+                return $this->getSecretCompletions($prefix);
+            } elseif ($argPosition === 1) {
+                // Second argument: destination (stage or vault:stage)
+                return array_merge(
+                    $this->getStageCompletions($prefix),
+                    $this->getContextCompletions($prefix)
+                );
+            }
+            return [];
+        }
+        
         return match ($command) {
             'get', 'set', 'delete', 'history' => $this->getSecretCompletions($prefix),
             'stage', 'diff' => $this->getStageCompletions($prefix),

@@ -18,6 +18,16 @@ keep shell --vault=ssm --stage=production
 
 ## Features
 
+### Context-Aware Prompt
+
+The shell prompt always displays your current vault and stage in the format `vault:stage>`, making it easy to see exactly where you're working:
+
+```bash
+ssm:development>     # Working in SSM vault, development stage
+aws:production>      # Working in AWS vault, production stage
+test:staging>        # Working in test vault, staging stage
+```
+
 ### Tab Completion
 
 The shell provides intelligent tab completion for:
@@ -28,14 +38,14 @@ The shell provides intelligent tab completion for:
 - **Vault names**: When switching vaults with the `vault` command
 
 ```bash
->>> get<TAB>                 # Shows all available secrets
->>> get DB_<TAB>             # Shows secrets starting with DB_
+ssm:development> get<TAB>                 # Shows all available secrets
+ssm:development> get DB_<TAB>             # Shows secrets starting with DB_
 DB_HOST     DB_PASSWORD     DB_PORT     DB_USERNAME
 
->>> stage <TAB>              # Shows all configured stages
+ssm:development> stage <TAB>              # Shows all configured stages
 development     staging     production
 
->>> vault <TAB>              # Shows all configured vaults
+ssm:development> vault <TAB>              # Shows all configured vaults
 ssm     secretsmanager     test
 ```
 
@@ -44,16 +54,14 @@ ssm     secretsmanager     test
 The shell maintains your current vault and stage context throughout your session:
 
 ```bash
->>> context
-Current vault: ssm
-Current stage: staging
+ssm:staging> context
+Current context: ssm:staging
 
->>> stage production
+ssm:staging> stage production
 Switched to stage: production
 
->>> context
-Current vault: ssm
-Current stage: production
+ssm:production> context
+Current context: ssm:production
 ```
 
 ### Command Shortcuts
@@ -65,7 +73,7 @@ Use short aliases for common commands:
 | `get KEY` | `g KEY` | Get a secret value |
 | `set KEY VALUE` | `s KEY VALUE` | Set a secret |
 | `delete KEY` | `d KEY` | Delete a secret |
-| `show` | `l`, `ls` | Show all secrets in current context |
+| `show` | `ls` | Show all secrets in current context |
 | `stage STAGE` | - | Switch to a different stage |
 | `vault NAME` | - | Switch to a different vault |
 
@@ -74,20 +82,20 @@ Use short aliases for common commands:
 ### Quick Secret Management
 
 ```bash
->>> stage production
+ssm:staging> stage production
 Switched to stage: production
 
->>> set API_KEY "sk-1234567890"
+ssm:production> set API_KEY "sk-1234567890"
 Secret [/test-app/production/API_KEY] created in vault [ssm].
 
->>> get API_KEY
+ssm:production> get API_KEY
 ┌─────────┬───────┬───────────────┬──────────┐
 │ Key     │ Vault │ Value         │ Revision │
 ├─────────┼───────┼───────────────┼──────────┤
 │ API_KEY │ ssm   │ sk-1********* │ 1        │
 └─────────┴───────┴───────────────┴──────────┘
 
->>> show
+ssm:production> show
 ┌─────────────┬─────────────────┬──────────┐
 │ Key         │ Value           │ Revision │
 ├─────────────┼─────────────────┼──────────┤
@@ -101,7 +109,7 @@ Secret [/test-app/production/API_KEY] created in vault [ssm].
 ### Comparing Environments
 
 ```bash
->>> diff staging production
+ssm:development> diff staging production
 
 Secret Comparison Matrix
 ┌──────────────┬──────────────────┬──────────────────┬─────────────┐
@@ -114,16 +122,33 @@ Secret Comparison Matrix
 │ APP_KEY      │ ✓ base********** │ ✓ base********** │ ✓ Identical │
 └──────────────┴──────────────────┴──────────────────┴─────────────┘
 
->>> diff staging production unmask  # Show actual values
+ssm:development> diff staging production unmask  # Show actual values
 ```
 
 ### Bulk Operations
 
-The shell supports all Keep commands with natural syntax:
+The shell supports all Keep commands with natural syntax. The copy command always uses your current context as the source:
 
 ```bash
->>> copy only DB_*
-Copying secrets from ssm:staging to ssm:production
+# Current context: ssm:development
+ssm:development> context
+Current context: ssm:development
+
+# Copy a single secret to another stage (same vault)
+ssm:development> copy API_KEY production
+Copying secret from ssm:development to ssm:production
+✓ Copied API_KEY
+
+# Copy to a different vault and stage
+ssm:development> copy DB_PASSWORD aws-secrets:staging
+Copying secret from ssm:development to aws-secrets:staging
+✓ Copied DB_PASSWORD
+
+# Copy with patterns (prompts for destination)
+ssm:development> copy only DB_*
+To (vault): ssm
+To (stage): production
+Copying secrets from ssm:development to ssm:production
 ✓ Copied DB_HOST
 ✓ Copied DB_PASSWORD
 ✓ Copied DB_USERNAME
@@ -132,25 +157,7 @@ Copying secrets from ssm:staging to ssm:production
 4 secrets copied successfully.
 ```
 
-Note: The copy command uses the current stage as source and requires a `--to` option or uses default behavior based on your context.
-
-### Creating New Stages
-
-```bash
->>> stage:add testing
-Stage 'testing' has been added.
-
->>> stage testing
-Switched to stage: testing
-
->>> show
-# Empty - new stage has no secrets yet
-
-# To copy secrets, switch to source stage first:
->>> stage development
->>> copy only * --to=testing  
-# Copies all secrets from development to testing
-```
+The copy command accepts an optional destination argument (stage or vault:stage). If not provided, it will prompt you interactively.
 
 ## Shell Commands
 
@@ -170,17 +177,10 @@ All standard Keep commands work in the shell:
 - **`delete <key>`** - Delete a secret
 - **`show`** - Show all secrets in current context
 - **`history <key>`** - View secret history
-- **`copy <key>`** - Copy a single secret (use --to option for destination)
-- **`copy only <pattern>`** - Copy secrets matching pattern
+- **`copy <key> [destination]`** - Copy a single secret from current context to another stage or vault:stage
+- **`copy only <pattern>`** - Copy secrets matching pattern from current context (prompts for destination)
 
-### Vault Management
-
-- **`vault:list`** - List all configured vaults
-- **`vault:info`** - Show current vault details
-- **`stage:list`** - List all stages in current vault
-- **`stage:add`** - Create a new stage
-
-### Comparison and Export
+### Analysis and Export
 
 - **`diff <stage1> <stage2>`** - Compare secrets between stages
 - **`export`** - Export secrets to .env format
@@ -191,7 +191,7 @@ All standard Keep commands work in the shell:
 Exit the shell with:
 
 ```bash
->>> exit
+ssm:development> exit
 Goodbye!
 ```
 
@@ -202,11 +202,11 @@ Or use the keyboard shortcut `Ctrl+D`.
 The shell uses a natural, dash-free syntax for options:
 
 ```bash
->>> show unmask              # Show secrets with actual values
->>> show json                # Output in JSON format
->>> show env unmask          # Export format with real values
->>> get NAME raw             # Get raw value without table
->>> diff staging prod unmask # Compare with unmasked values
+ssm:development> show unmask              # Show secrets with actual values
+ssm:development> show json                # Output in JSON format
+ssm:development> show env unmask          # Export format with real values
+ssm:development> get NAME raw             # Get raw value without table
+ssm:development> diff staging prod unmask # Compare with unmasked values
 ```
 
 Options are simply words after the command - no dashes or equals signs needed.
@@ -218,31 +218,45 @@ Options are simply words after the command - no dashes or equals signs needed.
 Use the `stage` command to quickly switch between environments:
 
 ```bash
->>> stage staging
->>> set API_ENDPOINT "https://api-staging.example.com"
->>> stage production  
->>> set API_ENDPOINT "https://api.example.com"
+ssm:development> stage staging
+ssm:staging> set API_ENDPOINT "https://api-staging.example.com"
+ssm:staging> stage production  
+ssm:production> set API_ENDPOINT "https://api.example.com"
 ```
 
-### 2. Secret Name Patterns
+### 2. Fast Secret Copying
+
+The copy command uses your current context as the source and accepts inline destinations:
+
+```bash
+# Current context serves as source
+ssm:development> context
+Current context: ssm:development
+
+ssm:development> copy DB_PASSWORD staging        # Copies from current context to staging
+ssm:development> copy API_KEY aws:production     # Copies from current context to aws:production
+ssm:development> copy SECRET_KEY                 # Prompts for destination if not specified
+```
+
+### 3. Secret Name Patterns
 
 Tab completion works with partial matches:
 
 ```bash
->>> get AWS<TAB>
+ssm:development> get AWS<TAB>
 AWS_ACCESS_KEY_ID     AWS_SECRET_ACCESS_KEY     AWS_REGION
 ```
 
-### 3. Command History
+### 4. Command History
 
 Use arrow keys to navigate through command history, making it easy to repeat or modify previous commands.
 
-### 4. Multi-line Input
+### 5. Multi-line Input
 
 For complex values, the shell supports multi-line input:
 
 ```bash
->>> set PRIVATE_KEY "-----BEGIN PRIVATE KEY-----
+ssm:development> set PRIVATE_KEY "-----BEGIN PRIVATE KEY-----
 ... MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEA
 ... [additional key content]
 ... -----END PRIVATE KEY-----"
