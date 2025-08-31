@@ -58,16 +58,10 @@ class CommandExecutor
         $parts = str_getcsv($input, ' ', '"', '\\');
         $command = array_shift($parts);
         
-        $positionals = [];
+        // In the interactive shell, we treat everything as positional arguments
+        // No -- prefix support for better UX
+        $positionals = $parts;
         $options = [];
-        
-        foreach ($parts as $arg) {
-            if (str_starts_with($arg, '--')) {
-                $this->parseOption($arg, $options);
-            } else {
-                $positionals[] = $arg;
-            }
-        }
         
         return [
             'command' => $this->mapAlias($command),
@@ -76,17 +70,6 @@ class CommandExecutor
         ];
     }
     
-    protected function parseOption(string $arg, array &$options): void
-    {
-        $arg = substr($arg, 2); // Remove --
-        
-        if (str_contains($arg, '=')) {
-            [$key, $value] = explode('=', $arg, 2);
-            $options[$key] = $value;
-        } else {
-            $options[$arg] = true;
-        }
-    }
     
     protected function mapAlias(string $command): string
     {
@@ -142,7 +125,8 @@ class CommandExecutor
     {
         $input = ['command' => $commandName];
         
-        $this->addPositionalArguments(
+        // Process positionals and options based on command
+        $positionals = $this->processPositionalArguments(
             $parsed['command'],
             $parsed['positionals'],
             $input
@@ -155,7 +139,7 @@ class CommandExecutor
         return $input;
     }
     
-    protected function addPositionalArguments(string $command, array $positionals, array &$input): void
+    protected function processPositionalArguments(string $command, array $positionals, array &$input): array
     {
         switch ($command) {
             case 'set':
@@ -164,7 +148,6 @@ class CommandExecutor
                 break;
                 
             case 'get':
-            case 'delete':
             case 'history':
                 $this->addIfExists($positionals, 0, 'key', $input);
                 break;
@@ -186,14 +169,32 @@ class CommandExecutor
                 break;
                 
             case 'show':
-                // Handle "show unmask" as a convenience (without -- prefix)
+                // Handle show options as positional arguments for better UX
                 foreach ($positionals as $arg) {
                     if ($arg === 'unmask') {
                         $input['--unmask'] = true;
+                    } elseif (in_array($arg, ['table', 'json', 'env'])) {
+                        $input['--format'] = $arg;
                     }
                 }
+                // Don't pass any positionals to show command (they were converted to options)
+                $positionals = [];
+                break;
+                
+            case 'delete':
+                // Handle "delete KEY force" without -- prefix
+                foreach ($positionals as $index => $arg) {
+                    if ($arg === 'force' && $index > 0) {
+                        $input['--force'] = true;
+                        unset($positionals[$index]);
+                    }
+                }
+                // First positional is the key
+                $this->addIfExists(array_values($positionals), 0, 'key', $input);
                 break;
         }
+        
+        return $positionals;
     }
     
     protected function addIfExists(array $array, int $index, string $key, array &$target): void
