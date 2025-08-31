@@ -68,17 +68,7 @@ class KeepShell extends Shell
      */
     protected function getDefaultMatchers(): array
     {
-        // We don't want any of PsySH's default matchers
-        // Our KeepCommandMatcher will handle everything
-        return [];
-    }
-    
-    /**
-     * Override to set our custom matchers
-     */
-    protected function getMatchers(): array
-    {
-        // Only use our custom matcher, no defaults
+        // Only return our custom matcher, no PsySH defaults
         return [
             new KeepCommandMatcher(
                 new Completers\CommandCompleter(),
