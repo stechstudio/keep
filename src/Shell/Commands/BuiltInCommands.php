@@ -27,6 +27,7 @@ class BuiltInCommands
         $this->register('stage', fn($args) => $this->stage($args));
         $this->register('vault', fn($args) => $this->vault($args));
         $this->register(['use', 'u'], fn($args) => $this->use($args));
+        $this->register('colors', fn() => $this->showColors());
     }
     
     protected function register(string|array $commands, Closure $handler): void
@@ -84,7 +85,7 @@ class BuiltInCommands
             
             foreach ($commands as $command => $description) {
                 $this->output->writeln(sprintf(
-                    '  <info>%-' . ($maxLength + 2) . 's</info> %s',
+                    '  <command-name>%-' . ($maxLength + 2) . 's</command-name> <neutral>%s</neutral>',
                     $command,
                     $description
                 ));
@@ -93,13 +94,13 @@ class BuiltInCommands
             $this->output->writeln('');
         }
         
-        $this->output->writeln('Type <info>help <command></info> for detailed information about a specific command.');
+        $this->output->writeln('Type <command-name>help <command></command-name> for detailed information about a specific command.');
     }
     
     protected function context(): void
     {
         $this->output->writeln(sprintf(
-            'Current context: <info>%s:%s</info>',
+            'Current context: <context>%s:%s</context>',
             $this->context->getVault(),
             $this->context->getStage()
         ));
@@ -143,7 +144,7 @@ class BuiltInCommands
         $this->context->setStage($stage);
         
         $this->output->writeln(sprintf(
-            'Switched to: <info>%s:%s</info>',
+            'Switched to: <context>%s:%s</context>',
             $vault,
             $stage
         ));
@@ -153,7 +154,7 @@ class BuiltInCommands
     {
         $this->context->setStage($stage);
         $this->output->writeln(sprintf(
-            'Switched to stage: <info>%s</info>',
+            'Switched to stage: <context>%s</context>',
             $stage
         ));
     }
@@ -162,7 +163,7 @@ class BuiltInCommands
     {
         $this->context->setVault($vault);
         $this->output->writeln(sprintf(
-            'Switched to vault: <info>%s</info>',
+            'Switched to vault: <context>%s</context>',
             $vault
         ));
     }
@@ -183,7 +184,7 @@ class BuiltInCommands
             $this->switchStage($selected);
         } else {
             $this->output->writeln(sprintf(
-                'Already on stage: <info>%s</info>',
+                'Already on stage: <context>%s</context>',
                 $current
             ));
         }
@@ -205,7 +206,7 @@ class BuiltInCommands
             $this->switchVault($selected);
         } else {
             $this->output->writeln(sprintf(
-                'Already on vault: <info>%s</info>',
+                'Already on vault: <context>%s</context>',
                 $current
             ));
         }
@@ -233,14 +234,14 @@ class BuiltInCommands
         
         if (!isset($help[$command])) {
             $this->output->writeln("<error>No help available for command: $command</error>");
-            $this->output->writeln("Type <info>help</info> to see all available commands.");
+            $this->output->writeln("Type <command-name>help</command-name> to see all available commands.");
             return;
         }
         
         $this->output->writeln('');
-        $this->output->writeln('<info>' . $help[$command]['usage'] . '</info>');
+        $this->output->writeln('<command-name>' . $help[$command]['usage'] . '</command-name>');
         $this->output->writeln('');
-        $this->output->writeln($help[$command]['description']);
+        $this->output->writeln('<neutral>' . $help[$command]['description'] . '</neutral>');
         
         if (isset($help[$command]['examples'])) {
             $this->output->writeln('');
@@ -254,7 +255,7 @@ class BuiltInCommands
             $this->output->writeln('');
             $this->output->writeln('<comment>Options:</comment>');
             foreach ($help[$command]['options'] as $option => $desc) {
-                $this->output->writeln(sprintf('  <info>%-20s</info> %s', $option, $desc));
+                $this->output->writeln(sprintf('  <command-name>%-20s</command-name> <neutral>%s</neutral>', $option, $desc));
             }
         }
         
@@ -419,6 +420,24 @@ class BuiltInCommands
         ];
     }
     
+    protected function showColors(): void
+    {
+        $this->output->writeln('');
+        $this->output->writeln('=== Shell Color Scheme ===');
+        $this->output->writeln('');
+        $this->output->writeln('<success>✓ Success message - operations completed successfully</success>');
+        $this->output->writeln('<info>→ Info message - general information</info>');
+        $this->output->writeln('<warning>⚠ Warning message - attention needed</warning>');
+        $this->output->writeln('<error>✗ Error message - something went wrong</error>');
+        $this->output->writeln('');
+        $this->output->writeln('<context>ssm:production</context> - Vault and stage context');
+        $this->output->writeln('<secret-name>DB_PASSWORD</secret-name> - Secret names');
+        $this->output->writeln('<command-name>get</command-name> <neutral>- Command names</neutral>');
+        $this->output->writeln('<suggestion>set</suggestion> - Command suggestions');
+        $this->output->writeln('<neutral>This is neutral descriptive text</neutral>');
+        $this->output->writeln('');
+    }
+    
     protected function getHelpSections(): array
     {
         return [
@@ -447,6 +466,7 @@ class BuiltInCommands
                 'exit' => 'Exit the shell (or Ctrl+D)',
                 'help' => 'Show this help message (alias: ?)',
                 'clear' => 'Clear the screen (alias: cls)',
+                'colors' => 'Show color scheme',
             ],
         ];
     }
