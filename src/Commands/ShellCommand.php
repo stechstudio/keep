@@ -2,9 +2,7 @@
 
 namespace STS\Keep\Commands;
 
-use Psy\Shell;
-use STS\Keep\Shell\CommandExecutor;
-use STS\Keep\Shell\KeepShell;
+use STS\Keep\Shell\SimpleShell;
 use STS\Keep\Shell\ShellContext;
 
 class ShellCommand extends BaseCommand
@@ -17,9 +15,10 @@ class ShellCommand extends BaseCommand
     
     public function process()
     {
-        if (!class_exists(Shell::class)) {
-            $this->error('PsySH is required to run the Keep shell.');
-            $this->line('Install it with: composer require psy/psysh');
+        // Check if readline is available
+        if (!function_exists('readline')) {
+            $this->error('The readline extension is required to run the Keep shell.');
+            $this->line('Please install the readline PHP extension.');
             return self::FAILURE;
         }
         
@@ -28,8 +27,7 @@ class ShellCommand extends BaseCommand
             $this->option('vault')
         );
 
-        $executor = new CommandExecutor($context, $this->getApplication());
-        $shell = new KeepShell($context, $executor);
+        $shell = new SimpleShell($context, $this->getApplication());
         
         try {
             $shell->run();
