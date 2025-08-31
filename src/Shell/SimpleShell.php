@@ -53,11 +53,20 @@ class SimpleShell
     {
         $formatter = $this->output->getFormatter();
         
+        // Existing styles
         $formatter->setStyle('info', new OutputFormatterStyle('green'));
         $formatter->setStyle('comment', new OutputFormatterStyle('yellow'));
         $formatter->setStyle('error', new OutputFormatterStyle('red'));
         $formatter->setStyle('warning', new OutputFormatterStyle('yellow'));
         $formatter->setStyle('prompt', new OutputFormatterStyle('bright-blue', null, ['bold']));
+        
+        // New semantic styles
+        $formatter->setStyle('success', new OutputFormatterStyle('green'));
+        $formatter->setStyle('secret-name', new OutputFormatterStyle('bright-magenta'));
+        $formatter->setStyle('command-name', new OutputFormatterStyle('bright-white'));
+        $formatter->setStyle('context', new OutputFormatterStyle('bright-blue'));
+        $formatter->setStyle('suggestion', new OutputFormatterStyle('bright-yellow'));
+        $formatter->setStyle('neutral', new OutputFormatterStyle('gray'));
     }
     
     protected function setupReadline(): void
@@ -83,9 +92,9 @@ class SimpleShell
     {
         $this->output->writeln('');
         $this->output->writeln('<info>Welcome to Keep Shell v1.0.0</info>');
-        $this->output->writeln("Type 'help' for available commands or 'exit' to quit.");
+        $this->output->writeln("<neutral>Type 'help' for available commands or 'exit' to quit.</neutral>");
         $this->output->writeln(sprintf(
-            'Current context: <comment>%s:%s</comment>',
+            'Current context: <context>%s:%s</context>',
             $this->context->getVault(),
             $this->context->getStage()
         ));
@@ -164,16 +173,18 @@ class SimpleShell
     
     protected function handleUnknownCommand(string $command): void
     {
-        $message = sprintf('Command "%s" not found.', $command);
+        $this->output->writeln(sprintf('<error>Command "%s" not found.</error>', $command));
         
         $suggestions = $this->suggestion->suggest($command);
         if (!empty($suggestions)) {
-            $message .= $this->suggestion->formatSuggestions($suggestions);
+            $suggestedCommands = array_map(
+                fn($cmd) => "<suggestion>$cmd</suggestion>",
+                $suggestions
+            );
+            $this->output->writeln('Did you mean: ' . implode(', ', $suggestedCommands) . '?');
         } else {
-            $message .= ' Type "help" to see available commands.';
+            $this->output->writeln('Type <command-name>help</command-name> to see available commands.');
         }
-        
-        $this->output->writeln("<error>$message</error>");
     }
     
     protected function recordHistory(string $input): void
