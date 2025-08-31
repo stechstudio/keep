@@ -44,7 +44,7 @@ class SecretCollection extends Collection
 
     public function allKeys(): static
     {
-        return $this->map(fn (Secret $secret) => $secret->key())->values();
+        return $this->map->key()->values();
     }
 
     public function hasKey(string $key): bool

@@ -66,7 +66,7 @@ class SecretHistoryCollection extends Collection
      */
     public function withMaskedValues(): static
     {
-        return $this->map(fn (SecretHistory $history) => $history->withMaskedValue());
+        return $this->map->withMaskedValue();
     }
 
     /**
@@ -112,7 +112,7 @@ class SecretHistoryCollection extends Collection
      */
     public function getDateRange(): array
     {
-        $dates = $this->map(fn (SecretHistory $entry) => $entry->lastModifiedDate())
+        $dates = $this->map->lastModifiedDate()
             ->filter()
             ->sort();
 

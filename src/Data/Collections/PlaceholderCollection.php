@@ -15,7 +15,7 @@ class PlaceholderCollection extends Collection
      */
     public function validate(string $defaultVault, string $stage): Collection
     {
-        return $this->map(fn (Placeholder $placeholder) => $placeholder->validate($defaultVault, $stage));
+        return $this->map->validate($defaultVault, $stage);
     }
 
     /**
@@ -35,7 +35,7 @@ class PlaceholderCollection extends Collection
      */
     public function getReferencedVaults(string $defaultVault): array
     {
-        return $this->map(fn (Placeholder $placeholder) => $placeholder->getEffectiveVault($defaultVault))
+        return $this->map->getEffectiveVault($defaultVault)
             ->unique()
             ->values()
             ->toArray();
@@ -46,7 +46,7 @@ class PlaceholderCollection extends Collection
      */
     public function getReferencedKeys(): array
     {
-        return $this->map(fn (Placeholder $placeholder) => $placeholder->key)
+        return $this->map->key
             ->unique()
             ->values()
             ->toArray();
@@ -58,7 +58,7 @@ class PlaceholderCollection extends Collection
     public function getReferencedKeysForVault(string $vaultName, string $defaultVault): array
     {
         return $this->filter(fn (Placeholder $placeholder) => $placeholder->getEffectiveVault($defaultVault) === $vaultName)
-            ->map(fn (Placeholder $placeholder) => $placeholder->key)
+            ->map->key
             ->unique()
             ->values()
             ->toArray();
@@ -69,6 +69,6 @@ class PlaceholderCollection extends Collection
      */
     public function toLegacyArray(): array
     {
-        return $this->map(fn (Placeholder $placeholder) => $placeholder->toArray())->all();
+        return $this->map->toArray()->all();
     }
 }
