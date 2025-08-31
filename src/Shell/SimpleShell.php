@@ -14,7 +14,7 @@ class SimpleShell
     private Application $application;
     private string $historyFile;
     private array $commands = [
-        'get', 'g', 'set', 's', 'delete', 'd', 'show', 'l', 'ls',
+        'get', 'g', 'set', 's', 'delete', 'd', 'show', 'ls',
         'copy', 'export', 'diff', 'verify', 'info', 'history',
         'stage', 'vault', 'use', 'u', 'context', 'ctx',
         'help', '?', 'clear', 'cls', 'exit', 'quit', 'q'
@@ -77,11 +77,13 @@ class SimpleShell
             
             // Handle built-in commands
             if ($this->handleBuiltInCommand($input)) {
+                $this->output->writeln('');
                 continue;
             }
             
             // Execute Keep command
             $this->executeCommand($input);
+            $this->output->writeln('');
         }
         
         $this->output->writeln('Goodbye!');
@@ -178,7 +180,7 @@ class SimpleShell
             'g' => 'get',
             's' => 'set',
             'd' => 'delete',
-            'l', 'ls' => 'show',
+            'ls' => 'show',
             default => $command
         };
         
@@ -223,7 +225,7 @@ class SimpleShell
                 'get <key>' => 'Get a secret value (alias: g)',
                 'set <key> <value>' => 'Set a secret (alias: s)',
                 'delete <key>' => 'Delete a secret (alias: d)',
-                'show' => 'Show all secrets (aliases: l, ls)',
+                'show' => 'Show all secrets (alias: ls)',
                 'history <key>' => 'View secret history',
                 'copy <key>' => 'Copy single secret',
                 'copy only <pattern>' => 'Copy secrets matching pattern',
@@ -238,7 +240,7 @@ class SimpleShell
             '<comment>Analysis & Export</comment>' => [
                 'export' => 'Export secrets to .env format',
                 'verify' => 'Verify template placeholders',
-                'info' => 'Show vault information',
+                'info' => 'Show Keep information',
             ],
             '<comment>Other</comment>' => [
                 'exit' => 'Exit the shell (or Ctrl+D)',
@@ -362,7 +364,7 @@ class SimpleShell
             'g' => 'get',
             's' => 'set',
             'd' => 'delete',
-            'l', 'ls' => 'show',
+            'ls' => 'show',
             'u' => 'use',
             default => $command
         };
