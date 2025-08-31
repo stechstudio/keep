@@ -1,6 +1,6 @@
 # Interactive Shell
 
-Keep provides a powerful interactive shell with tab completion and persistent context for efficient secret management.
+Keep provides a powerful interactive shell with tab completion and persistent context for efficient secret management. The shell is designed for human interaction with intuitive, natural commands - for scripting and automation, use the standalone CLI commands.
 
 ## Starting the Shell
 
@@ -72,8 +72,8 @@ Use short aliases for common commands:
 |-------------|----------|-------------|
 | `get KEY` | `g KEY` | Get a secret value |
 | `set KEY VALUE` | `s KEY VALUE` | Set a secret |
-| `delete KEY` | `d KEY` | Delete a secret |
-| `show` | `ls` | Show all secrets in current context |
+| `delete KEY [force]` | `d KEY` | Delete a secret (force skips confirmation) |
+| `show [unmask]` | `ls` | Show all secrets (unmask shows actual values) |
 | `stage STAGE` | - | Switch to a different stage |
 | `vault NAME` | - | Switch to a different vault |
 
@@ -122,7 +122,6 @@ Secret Comparison Matrix
 │ APP_KEY      │ ✓ base********** │ ✓ base********** │ ✓ Identical │
 └──────────────┴──────────────────┴──────────────────┴─────────────┘
 
-ssm:development> diff staging production unmask  # Show actual values
 ```
 
 ### Bulk Operations
@@ -174,8 +173,8 @@ All standard Keep commands work in the shell:
 
 - **`get <key>`** - Retrieve a secret value
 - **`set <key> <value>`** - Set a secret
-- **`delete <key>`** - Delete a secret
-- **`show`** - Show all secrets in current context
+- **`delete <key> [force]`** - Delete a secret (add 'force' to skip confirmation)
+- **`show [unmask]`** - Show all secrets in current context (add 'unmask' to see actual values)
 - **`history <key>`** - View secret history
 - **`copy <key> [destination]`** - Copy a single secret from current context to another stage or vault:stage
 - **`copy only <pattern>`** - Copy secrets matching pattern from current context (prompts for destination)
@@ -199,17 +198,15 @@ Or use the keyboard shortcut `Ctrl+D`.
 
 ## Options Syntax
 
-The shell uses a natural, dash-free syntax for options:
+The shell uses a natural, dash-free syntax for human-friendly interaction:
 
 ```bash
 ssm:development> show unmask              # Show secrets with actual values
-ssm:development> show json                # Output in JSON format
-ssm:development> show env unmask          # Export format with real values
-ssm:development> get NAME raw             # Get raw value without table
-ssm:development> diff staging prod unmask # Compare with unmasked values
+ssm:development> delete API_KEY force     # Delete without confirmation
+ssm:development> diff staging production  # Compare secrets between stages
 ```
 
-Options are simply words after the command - no dashes or equals signs needed.
+Options are simply words after the command - no dashes or equals signs needed. The shell focuses on human-readable output formats. For JSON, CSV, or other machine-readable formats, use the standalone CLI commands instead.
 
 ## Tips and Tricks
 
@@ -262,6 +259,22 @@ ssm:development> set PRIVATE_KEY "-----BEGIN PRIVATE KEY-----
 ... -----END PRIVATE KEY-----"
 Secret [/test-app/staging/PRIVATE_KEY] created in vault [ssm].
 ```
+
+## Shell vs CLI Commands
+
+### When to Use the Shell
+
+- **Interactive exploration**: Browsing secrets, switching contexts
+- **Quick edits**: Setting or updating individual secrets
+- **Context persistence**: Working within a single vault/stage for multiple operations
+- **Human-friendly output**: Always displays formatted tables for easy reading
+
+### When to Use CLI Commands
+
+- **Scripting and automation**: CI/CD pipelines, automated deployments
+- **Machine-readable output**: JSON format (`--format=json`), raw values (`--format=raw`)
+- **Batch operations**: Processing multiple secrets programmatically
+- **Integration**: Piping output to other tools or scripts
 
 ## Performance
 
