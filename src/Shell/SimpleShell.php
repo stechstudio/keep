@@ -5,13 +5,13 @@ namespace STS\Keep\Shell;
 use Illuminate\Console\Application;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
+use function Laravel\Prompts\select;
 
 class SimpleShell
 {
     private ShellContext $context;
     private CommandExecutor $executor;
     private ConsoleOutput $output;
-    private Application $application;
     private string $historyFile;
     private array $commands = [
         'get', 'g', 'set', 's', 'delete', 'd', 'show', 'ls',
@@ -23,7 +23,6 @@ class SimpleShell
     public function __construct(ShellContext $context, Application $application)
     {
         $this->context = $context;
-        $this->application = $application;
         $this->executor = new CommandExecutor($context, $application);
         $this->output = new ConsoleOutput();
         
@@ -206,7 +205,7 @@ class SimpleShell
         try {
             $exitCode = $this->executor->execute($input);
             
-            if ($exitCode !== 0 && $exitCode !== null) {
+            if ($exitCode !== 0) {
                 $this->output->writeln('<error>Command failed.</error>');
             }
         } catch (\Exception $e) {
@@ -316,13 +315,21 @@ class SimpleShell
         $stages = $this->context->getAvailableStages();
         $current = $this->context->getStage();
         
-        $this->output->writeln('Available stages:');
-        foreach ($stages as $stage) {
-            if ($stage === $current) {
-                $this->output->writeln("  <info>* $stage</info> (current)");
-            } else {
-                $this->output->writeln("    $stage");
-            }
+        // Use interactive selection
+        $selected = select(
+            label: 'Select a stage:',
+            options: $stages,
+            default: $current,
+            hint: 'Use arrow keys to navigate, Enter to select'
+        );
+        
+        if ($selected !== $current) {
+            $this->switchStage($selected);
+        } else {
+            $this->output->writeln(sprintf(
+                'Already on stage: <info>%s</info>',
+                $current
+            ));
         }
     }
     
@@ -331,13 +338,21 @@ class SimpleShell
         $vaults = $this->context->getAvailableVaults();
         $current = $this->context->getVault();
         
-        $this->output->writeln('Available vaults:');
-        foreach ($vaults as $vault) {
-            if ($vault === $current) {
-                $this->output->writeln("  <info>* $vault</info> (current)");
-            } else {
-                $this->output->writeln("    $vault");
-            }
+        // Use interactive selection
+        $selected = select(
+            label: 'Select a vault:',
+            options: $vaults,
+            default: $current,
+            hint: 'Use arrow keys to navigate, Enter to select'
+        );
+        
+        if ($selected !== $current) {
+            $this->switchVault($selected);
+        } else {
+            $this->output->writeln(sprintf(
+                'Already on vault: <info>%s</info>',
+                $current
+            ));
         }
     }
     
