@@ -82,24 +82,19 @@ class KeepShell extends Shell
     private function registerKeepCommands(): void
     {
         // Define Keep commands and their aliases
+        // Note: Configuration commands (configure, vault:add, stage:add, etc.) 
+        // are intentionally excluded from the shell - use the standalone CLI for those
         $commands = [
             'get' => ['g'],
             'set' => ['s'],
             'delete' => ['d'],
             'show' => ['l', 'ls'],
             'copy' => [],
-            'import' => [],
             'export' => [],
             'diff' => [],
             'verify' => [],
             'info' => [],
             'history' => [],
-            'configure' => [],
-            'vault:add' => [],
-            'vault:list' => [],
-            'vault:info' => [],
-            'stage:add' => [],
-            'stage:list' => [],
         ];
         
         foreach ($commands as $command => $aliases) {

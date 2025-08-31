@@ -61,21 +61,12 @@ HELP
                 'use <vault:stage>' => 'Switch both vault and stage (alias: u)',
                 'context' => 'Show current context (alias: ctx)',
             ],
-            '<comment>Vault & Stage Management</comment>' => [
-                'vault:add' => 'Add a new vault',
-                'vault:list' => 'List all vaults',
-                'vault:info' => 'Show vault details',
-                'stage:add <name>' => 'Create a new stage',
-                'stage:list' => 'List all stages',
-            ],
-            '<comment>Import/Export</comment>' => [
-                'import <file>' => 'Import secrets from file',
+            '<comment>Analysis & Export</comment>' => [
                 'export' => 'Export secrets to .env format',
                 'verify' => 'Verify template placeholders',
+                'info' => 'Show vault information',
             ],
             '<comment>Other</comment>' => [
-                'info' => 'Show vault information',
-                'configure' => 'Configure Keep for this project',
                 'exit' => 'Exit the shell (or Ctrl+D)',
                 'help' => 'Show this help message (alias: ?)',
             ],
