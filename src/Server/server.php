@@ -250,23 +250,17 @@ function getSettings(KeepManager $manager): array
 
 function listVaults(KeepManager $manager): array
 {
-    $vaults = $manager->getAvailableVaults();
+    $vaults = $manager->getConfiguredVaults();
     
     return [
-        'vaults' => array_values(array_map(fn($name) => $name, $vaults))
+        'vaults' => $vaults->pluck('name')->values()->toArray()
     ];
 }
 
 function listStages(KeepManager $manager): array
 {
-    // Get stages from settings
-    $settingsPath = $_SERVER['HOME'] . '/.keep/settings.json';
-    if (file_exists($settingsPath)) {
-        $settings = json_decode(file_get_contents($settingsPath), true);
-        $stages = $settings['stages'] ?? ['local', 'staging', 'production'];
-    } else {
-        $stages = ['local', 'staging', 'production'];
-    }
+    $settings = $manager->getSettings();
+    $stages = $settings['stages'] ?? ['local', 'staging', 'production'];
     
     return [
         'stages' => $stages
