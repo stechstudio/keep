@@ -15,7 +15,24 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
 
 use STS\Keep\KeepApplication;
 use STS\Keep\Enums\KeepInstall;
+use Symfony\Component\Console\Exception\CommandNotFoundException;
 
 // Create and run the application
 $app = new KeepApplication(KeepInstall::from($install));
-exit($app->run());
+
+try {
+    exit($app->run());
+} catch (CommandNotFoundException $e) {
+    // Extract the command name from the error message
+    preg_match('/Command "([^"]+)" is not defined/', $e->getMessage(), $matches);
+    $invalidCommand = $matches[1] ?? 'unknown';
+    
+    echo "\n";
+    echo "\033[41;37m Error: \"$invalidCommand\" is not a valid Keep command. \033[0m\n";
+    echo "\n";
+    echo "Use \033[32mkeep list\033[0m to see all available commands.\n";
+    echo "Use \033[32mkeep --help\033[0m for more information.\n";
+    echo "\n";
+    
+    exit(1);
+}
