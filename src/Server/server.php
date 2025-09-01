@@ -121,8 +121,7 @@ function listSecrets(array $query, KeepManager $manager): array
     $secrets = $vaultInstance->all($stage);
     
     return [
-        'success' => true,
-        'data' => $secrets->map(fn($secret) => [
+        'secrets' => $secrets->map(fn($secret) => [
             'key' => $secret->key,
             'value' => $unmask ? $secret->value : $secret->getMaskedValue(),
             'revision' => $secret->revision ?? null,
@@ -145,8 +144,7 @@ function getSecret(string $key, array $query, KeepManager $manager): array
     }
     
     return [
-        'success' => true,
-        'data' => [
+        'secret' => [
             'key' => $secret->key,
             'value' => $unmask ? $secret->value : $secret->getMaskedValue(),
             'revision' => $secret->revision ?? null,
@@ -226,8 +224,7 @@ function searchSecrets(array $query, KeepManager $manager): array
     });
     
     return [
-        'success' => true,
-        'data' => $results->map(fn($secret) => [
+        'secrets' => $results->map(fn($secret) => [
             'key' => $secret->key,
             'value' => $unmask ? $secret->value : $secret->getMaskedValue(),
             'match' => stripos($secret->value, $q) !== false ? 'value' : 'key'
@@ -240,12 +237,7 @@ function listVaults(KeepManager $manager): array
     $vaults = $manager->getAvailableVaults();
     
     return [
-        'success' => true,
-        'data' => array_map(fn($name) => [
-            'name' => $name,
-            'driver' => $manager->getVaultDriver($name),
-            'default' => $name === $manager->getDefaultVault()
-        ], $vaults)
+        'vaults' => array_values(array_map(fn($name) => $name, $vaults))
     ];
 }
 
@@ -261,8 +253,7 @@ function listStages(KeepManager $manager): array
     }
     
     return [
-        'success' => true,
-        'data' => $stages
+        'stages' => $stages
     ];
 }
 
@@ -285,8 +276,7 @@ function verifyVaults(array $data, KeepManager $manager): array
     }
     
     return [
-        'success' => true,
-        'data' => $results
+        'results' => $results
     ];
 }
 
@@ -312,12 +302,9 @@ function getDiff(array $query, KeepManager $manager): array
     }
     
     return [
-        'success' => true,
-        'data' => [
-            'matrix' => $matrix,
-            'stages' => $stages,
-            'vaults' => $vaults
-        ]
+        'diff' => $matrix,
+        'stages' => $stages,
+        'vaults' => $vaults
     ];
 }
 
@@ -340,12 +327,9 @@ function exportSecrets(array $data, KeepManager $manager): array
     }
     
     return [
-        'success' => true,
-        'data' => [
-            'content' => $output,
-            'format' => $format,
-            'count' => $secrets->count()
-        ]
+        'content' => $output,
+        'format' => $format,
+        'count' => $secrets->count()
     ];
 }
 

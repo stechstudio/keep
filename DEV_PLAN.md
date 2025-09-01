@@ -74,45 +74,45 @@ src/
 - [x] Add error handling and validation to all endpoints
 
 ### Phase 3: Frontend Foundation
-- [ ] Set up Vue 3 build pipeline (vite)
-- [ ] Create base Vue app structure
+- [x] Set up Vue 3 build pipeline (vite)
+- [x] Create base Vue app structure
 - [ ] Set up Vue Router for navigation
 - [ ] Implement Pinia store for state management
-- [ ] Add Tailwind CSS for styling
-- [ ] Create API client service with:
-  - [ ] Automatic CSRF token inclusion
-  - [ ] Error handling
+- [x] Add Tailwind CSS for styling
+- [x] Create API client service with:
+  - [x] Automatic CSRF token inclusion
+  - [x] Error handling
   - [ ] Loading states
-- [ ] Implement authentication flow (token input)
+- [x] Implement authentication flow (token injection)
 
 ### Phase 4: Core UI Components
-- [ ] Create layout components:
-  - [ ] AppHeader with vault/stage selector
-  - [ ] AppSidebar with navigation
+- [x] Create layout components:
+  - [x] AppHeader with vault/stage selector
+  - [x] Navigation with pill-style tabs
   - [ ] AppFooter with connection status
-- [ ] Create shared components:
-  - [ ] SecretValue (with mask/unmask toggle)
+- [x] Create shared components:
+  - [x] SecretValue (with mask/unmask toggle)
   - [ ] LoadingSpinner
   - [ ] ErrorAlert
   - [ ] SuccessToast
-  - [ ] ConfirmDialog
-  - [ ] SearchInput with debouncing
+  - [x] ConfirmDialog (basic implementation)
+  - [x] SearchInput with debouncing
 
 ### Phase 5: Secret Management Views
-- [ ] Secrets List View:
-  - [ ] Table with sortable columns
-  - [ ] Search/filter functionality
+- [x] Secrets List View:
+  - [x] Table with columns
+  - [x] Search/filter functionality
   - [ ] Bulk selection checkboxes
-  - [ ] Quick actions (copy value, edit, delete)
+  - [x] Quick actions (copy value, edit, delete)
   - [ ] Pagination for large lists
 - [ ] Secret Detail View:
-  - [ ] View/edit secret value
-  - [ ] Show metadata (created, modified, revision)
+  - [x] View/edit secret value
+  - [x] Show metadata (created, modified, revision)
   - [ ] History timeline
-  - [ ] Copy to clipboard
-- [ ] Add/Edit Secret Modal:
-  - [ ] Key validation
-  - [ ] Value input (with multiline support)
+  - [x] Copy to clipboard
+- [x] Add/Edit Secret Modal:
+  - [x] Key validation
+  - [x] Value input (with multiline support)
   - [ ] Encryption toggle
   - [ ] Save with loading state
 - [ ] Bulk Operations:
@@ -122,9 +122,9 @@ src/
   - [ ] Bulk copy to another stage
 
 ### Phase 6: Advanced Features
-- [ ] Diff Matrix View:
-  - [ ] Visual grid showing all stages vs vaults
-  - [ ] Color coding (present/missing/different)
+- [x] Diff Matrix View:
+  - [x] Visual comparison across stages/vaults
+  - [x] Color coding (present/missing/different)
   - [ ] Click cell to see value comparison
   - [ ] Export diff as CSV
 - [ ] Template Builder:
@@ -132,6 +132,11 @@ src/
   - [ ] Live preview
   - [ ] Save/load templates
   - [ ] Test template processing
+- [x] Export View:
+  - [x] Multiple format support (env, json, yaml, shell)
+  - [x] Copy to clipboard
+  - [x] Download as file
+  - [x] Live preview
 - [ ] Import Wizard:
   - [ ] File upload or paste
   - [ ] Preview what will be imported
