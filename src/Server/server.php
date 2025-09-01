@@ -122,7 +122,7 @@ function listSecrets(array $query, KeepManager $manager): array
     $stage = $query['stage'] ?? 'local';
     $unmask = isset($query['unmask']) && $query['unmask'] === 'true';
     
-    $vaultInstance = $manager->vault($vault);
+    $vaultInstance = $manager->vault($vault, $stage);
     $secrets = $vaultInstance->all($stage);
     
     return [
@@ -141,7 +141,7 @@ function getSecret(string $key, array $query, KeepManager $manager): array
     $stage = $query['stage'] ?? 'local';
     $unmask = isset($query['unmask']) && $query['unmask'] === 'true';
     
-    $vaultInstance = $manager->vault($vault);
+    $vaultInstance = $manager->vault($vault, $stage);
     $secret = $vaultInstance->get(urldecode($key), $stage);
     
     if (!$secret) {
@@ -167,7 +167,7 @@ function createSecret(array $data, KeepManager $manager): array
     $vault = $data['vault'] ?? $manager->getDefaultVault();
     $stage = $data['stage'] ?? 'local';
     
-    $vaultInstance = $manager->vault($vault);
+    $vaultInstance = $manager->vault($vault, $stage);
     $vaultInstance->put($data['key'], $data['value'], $stage);
     
     return [
@@ -185,7 +185,7 @@ function updateSecret(string $key, array $data, KeepManager $manager): array
     $vault = $data['vault'] ?? $manager->getDefaultVault();
     $stage = $data['stage'] ?? 'local';
     
-    $vaultInstance = $manager->vault($vault);
+    $vaultInstance = $manager->vault($vault, $stage);
     $vaultInstance->put(urldecode($key), $data['value'], $stage);
     
     return [
@@ -199,7 +199,7 @@ function deleteSecret(string $key, array $data, KeepManager $manager): array
     $vault = $data['vault'] ?? $manager->getDefaultVault();
     $stage = $data['stage'] ?? 'local';
     
-    $vaultInstance = $manager->vault($vault);
+    $vaultInstance = $manager->vault($vault, $stage);
     $vaultInstance->forget(urldecode($key), $stage);
     
     return [
@@ -219,7 +219,7 @@ function searchSecrets(array $query, KeepManager $manager): array
         return ['error' => 'Missing search query', '_status' => 400];
     }
     
-    $vaultInstance = $manager->vault($vault);
+    $vaultInstance = $manager->vault($vault, $stage);
     $secrets = $vaultInstance->all($stage);
     
     // Simple search implementation
@@ -294,9 +294,10 @@ function verifyVaults(array $data, KeepManager $manager): array
 {
     $results = [];
     
-    foreach ($manager->getAvailableVaults() as $vaultName) {
+    foreach ($manager->getConfiguredVaults() as $vaultConfig) {
+        $vaultName = $vaultConfig->slug();
         try {
-            $vault = $manager->vault($vaultName);
+            $vault = $manager->vault($vaultName, 'local');
             // Simple verification - just try to list
             $vault->all('local');
             $results[$vaultName] = ['success' => true];
@@ -322,8 +323,8 @@ function getDiff(array $query, KeepManager $manager): array
     
     foreach ($vaults as $vaultName) {
         try {
-            $vault = $manager->vault($vaultName);
             foreach ($stages as $stage) {
+                $vault = $manager->vault($vaultName, $stage);
                 $secrets = $vault->all($stage);
                 foreach ($secrets as $secret) {
                     $matrix[$secret->key][$vaultName][$stage] = $secret->getMaskedValue();
@@ -347,7 +348,7 @@ function exportSecrets(array $data, KeepManager $manager): array
     $stage = $data['stage'] ?? 'local';
     $format = $data['format'] ?? 'env';
     
-    $vaultInstance = $manager->vault($vault);
+    $vaultInstance = $manager->vault($vault, $stage);
     $secrets = $vaultInstance->all($stage);
     
     if ($format === 'json') {
