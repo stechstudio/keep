@@ -122,17 +122,25 @@ function listSecrets(array $query, KeepManager $manager): array
     $stage = $query['stage'] ?? 'local';
     $unmask = isset($query['unmask']) && $query['unmask'] === 'true';
     
-    $vaultInstance = $manager->vault($vault, $stage);
-    $secrets = $vaultInstance->all($stage);
-    
-    return [
-        'secrets' => $secrets->map(fn($secret) => [
-            'key' => $secret->key,
-            'value' => $unmask ? $secret->value : $secret->getMaskedValue(),
-            'revision' => $secret->revision ?? null,
-            'modified' => $secret->modified ?? null,
-        ])->values()->toArray()
-    ];
+    try {
+        $vaultInstance = $manager->vault($vault, $stage);
+        $secrets = $vaultInstance->list();
+        
+        return [
+            'secrets' => $secrets->map(fn($secret) => [
+                'key' => $secret->key,
+                'value' => $unmask ? $secret->value : $secret->getMaskedValue(),
+                'revision' => $secret->revision ?? null,
+                'modified' => $secret->modified ?? null,
+            ])->values()->toArray()
+        ];
+    } catch (Exception $e) {
+        // Return empty array if vault is not accessible
+        return [
+            'secrets' => [],
+            'error' => 'Could not access vault: ' . $e->getMessage()
+        ];
+    }
 }
 
 function getSecret(string $key, array $query, KeepManager $manager): array
@@ -220,7 +228,7 @@ function searchSecrets(array $query, KeepManager $manager): array
     }
     
     $vaultInstance = $manager->vault($vault, $stage);
-    $secrets = $vaultInstance->all($stage);
+    $secrets = $vaultInstance->list();
     
     // Simple search implementation
     $results = $secrets->filter(function($secret) use ($q) {
@@ -299,7 +307,7 @@ function verifyVaults(array $data, KeepManager $manager): array
         try {
             $vault = $manager->vault($vaultName, 'local');
             // Simple verification - just try to list
-            $vault->all('local');
+            $vault->list();
             $results[$vaultName] = ['success' => true];
         } catch (Exception $e) {
             $results[$vaultName] = [
@@ -325,7 +333,7 @@ function getDiff(array $query, KeepManager $manager): array
         try {
             foreach ($stages as $stage) {
                 $vault = $manager->vault($vaultName, $stage);
-                $secrets = $vault->all($stage);
+                $secrets = $vault->list();
                 foreach ($secrets as $secret) {
                     $matrix[$secret->key][$vaultName][$stage] = $secret->getMaskedValue();
                 }
@@ -349,7 +357,7 @@ function exportSecrets(array $data, KeepManager $manager): array
     $format = $data['format'] ?? 'env';
     
     $vaultInstance = $manager->vault($vault, $stage);
-    $secrets = $vaultInstance->all($stage);
+    $secrets = $vaultInstance->list();
     
     if ($format === 'json') {
         $output = json_encode(
