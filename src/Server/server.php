@@ -380,9 +380,6 @@ function serveIndexWithToken(string $path, string $token): void
     $injection = "<script>window.KEEP_AUTH_TOKEN = '" . htmlspecialchars($token) . "';</script>";
     $html = str_replace('</head>', $injection . "\n</head>", $html);
     
-    // Debug: Log that we're injecting the token
-    error_log("Injecting token into HTML: " . substr($token, 0, 8) . "...");
-    
     header('Content-Type: text/html');
     header('Cache-Control: no-cache, no-store, must-revalidate');
     header('Pragma: no-cache');
