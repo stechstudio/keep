@@ -57,6 +57,10 @@ class KeepApplication extends Application
             
             Commands\ShellCommand::class,
         ]);
+        
+        // Make shell the default command when running 'keep' without arguments
+        // Second parameter false = still allow other commands to be run
+        $this->setDefaultCommand('shell', false);
     }
 
     #[\Override]
