@@ -1,18 +1,19 @@
 <template>
   <div>
-    <!-- Vault & Stage Selector -->
-    <div class="mb-4">
-      <VaultStageSelector 
-        v-model:vault="vault"
-        v-model:stage="stage"
-        :vaults="vaults"
-        :stages="stages"
-      />
-    </div>
-    
-    <!-- Header with search and add button -->
+    <!-- Header with vault/stage selectors on left, search and add button on right -->
     <div class="flex items-center justify-between mb-6">
-      <div class="flex items-center space-x-4">
+      <!-- Left side: Vault & Stage Selectors -->
+      <div class="flex items-center">
+        <VaultStageSelector 
+          v-model:vault="vault"
+          v-model:stage="stage"
+          :vaults="vaults"
+          :stages="stages"
+        />
+      </div>
+      
+      <!-- Right side: Search and Add button -->
+      <div class="flex items-center space-x-3">
         <div class="relative">
           <input
             v-model="searchQuery"
@@ -25,17 +26,17 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
+        
+        <button
+          @click="showAddDialog = true"
+          class="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Add Secret</span>
+        </button>
       </div>
-      
-      <button
-        @click="showAddDialog = true"
-        class="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
-        <span>Add Secret</span>
-      </button>
     </div>
 
     <!-- Table -->
