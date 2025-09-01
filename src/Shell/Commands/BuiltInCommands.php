@@ -416,7 +416,7 @@ class BuiltInCommands
             ],
             'verify' => [
                 'usage' => 'verify',
-                'description' => 'Verify that all template placeholders can be resolved.',
+                'description' => 'Verify vault configuration, authentication, and permissions.',
                 'examples' => [
                     'verify',
                 ],
@@ -501,7 +501,7 @@ class BuiltInCommands
             ],
             '<comment>Analysis & Export</comment>' => [
                 'export' => 'Export secrets interactively',
-                'verify' => 'Verify template placeholders',
+                'verify' => 'Verify vault setup and permissions',
                 'info' => 'Show Keep information',
             ],
             '<comment>Other</comment>' => [
