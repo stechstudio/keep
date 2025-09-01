@@ -80,6 +80,74 @@ keep stage:add sandbox --no-interaction
 - Can contain letters, numbers, hyphens, and underscores
 - Examples: `qa`, `demo`, `integration`, `sandbox`, `dev2`, `staging-eu`
 
+## `keep verify`
+
+Verify vault configuration, authentication, and permissions by running a comprehensive test matrix.
+
+**Examples:**
+```bash
+# Verify all configured vaults
+keep verify
+```
+
+**What it checks:**
+- **Vault Configuration**: Validates that all configured vaults are properly set up
+- **Authentication**: Tests that Keep can authenticate with AWS using current credentials
+- **Permissions Matrix**: Runs through a complete test of read, write, and delete operations
+- **Stage Access**: Verifies access to all configured stages (local, staging, production, etc.)
+
+**Output includes:**
+- Connection status for each vault
+- Authentication method being used (IAM role, profile, etc.)
+- Permission check results for each operation
+- Any errors or warnings about missing permissions
+
+**Common use cases:**
+```bash
+# Run after initial setup
+keep configure
+keep vault:add
+keep verify
+
+# Check before deploying to production
+keep verify
+
+# Troubleshoot permission issues
+keep verify
+```
+
+## `keep info`
+
+Display information about the Keep configuration, including version, paths, and settings.
+
+**Examples:**
+```bash
+# Show Keep configuration info
+keep info
+```
+
+**Information displayed:**
+- **Keep Version**: Current version of the Keep package
+- **Configuration Path**: Location of `.keep` directory
+- **Settings Path**: Location of `settings.json`
+- **Available Vaults**: List of configured vaults with their types
+- **Configured Stages**: All available stages (local, staging, production, custom)
+- **Default Vault**: The vault used when no `--vault` is specified
+- **Cache Status**: Whether caching is enabled and cache location
+
+**Common use cases:**
+```bash
+# Check Keep version
+keep info
+
+# Verify configuration after setup
+keep configure
+keep info
+
+# Debug path issues
+keep info
+```
+
 ## `keep set`
 
 Create or update secrets in vaults.
