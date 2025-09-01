@@ -109,7 +109,7 @@ class CommandExecutor
         $input = ['command' => $commandName];
         
         // Process positionals and options based on command
-        $positionals = $this->processPositionalArguments(
+        $this->processPositionalArguments(
             $parsed['command'],
             $parsed['positionals'],
             $input
@@ -122,7 +122,7 @@ class CommandExecutor
         return $input;
     }
     
-    protected function processPositionalArguments(string $command, array $positionals, array &$input): array
+    protected function processPositionalArguments(string $command, array $positionals, array &$input): void
     {
         switch ($command) {
             case 'set':
@@ -197,8 +197,6 @@ class CommandExecutor
                 }
                 break;
         }
-        
-        return $positionals;
     }
     
     protected function addIfExists(array $array, int $index, string $key, array &$target): void
