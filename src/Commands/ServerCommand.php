@@ -41,8 +41,10 @@ class ServerCommand extends BaseCommand
         $this->info('🚀 Starting Keep Web UI...');
         $this->info('');
         $this->info("URL: <comment>http://{$host}:{$port}</comment>");
+        $this->info("Debug Token: <comment>{$token}</comment>");
         $this->info('');
-        $this->info('✨ Authentication is automatic - no token copy/paste needed!');
+        $this->info('✨ Authentication should be automatic - token is injected into browser.');
+        $this->info('If prompted, use the debug token above.');
         $this->info('Press <comment>Ctrl+C</comment> to stop the server.');
         $this->info('');
         

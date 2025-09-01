@@ -65,11 +65,17 @@
     </div>
 
     <script>
-        // Token is injected by server - no need to prompt!
-        const AUTH_TOKEN = window.KEEP_AUTH_TOKEN;
+        // Token is injected by server - fallback to prompt if not found
+        const AUTH_TOKEN = window.KEEP_AUTH_TOKEN || prompt('Enter auth token (check server console):');
         
-        // Update status
-        document.getElementById('status').textContent = 'Authenticated';
+        // Debug: Show if token was injected or prompted
+        if (window.KEEP_AUTH_TOKEN) {
+            console.log('Token was injected successfully');
+            document.getElementById('status').textContent = 'Authenticated (auto)';
+        } else {
+            console.log('Token was NOT injected, had to prompt');
+            document.getElementById('status').textContent = AUTH_TOKEN ? 'Authenticated (manual)' : 'Not authenticated';
+        }
         
         async function loadSecrets() {
             try {
