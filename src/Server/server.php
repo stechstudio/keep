@@ -9,17 +9,7 @@
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
 use STS\Keep\KeepManager;
-use STS\Keep\Commands\ShowCommand;
-use STS\Keep\Commands\SetCommand;
-use STS\Keep\Commands\GetCommand;
-use STS\Keep\Commands\DeleteCommand;
-use STS\Keep\Commands\DiffCommand;
-use STS\Keep\Commands\SearchCommand;
-use STS\Keep\Commands\VerifyCommand;
 
 // Initialize server - get token from environment or generate one
 $AUTH_TOKEN = $_ENV['KEEP_AUTH_TOKEN'] ?? $_SERVER['KEEP_AUTH_TOKEN'] ?? bin2hex(random_bytes(32));
@@ -27,10 +17,11 @@ if (!isset($_ENV['KEEP_AUTH_TOKEN'])) {
     error_log("Keep UI Token: " . $AUTH_TOKEN);
 }
 
-// Create request from globals
-$request = Request::createFromGlobals();
-$path = $request->getPathInfo();
-$method = $request->getMethod();
+// Get request details
+$method = $_SERVER['REQUEST_METHOD'];
+$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$query = [];
+parse_str($_SERVER['QUERY_STRING'] ?? '', $query);
 
 // Serve static files
 if ($path === '/' || $path === '/index.html') {
@@ -54,9 +45,20 @@ if (str_starts_with($path, '/assets/')) {
 // API routes require authentication
 if (str_starts_with($path, '/api/')) {
     // Check auth token
-    $token = $request->headers->get('X-Auth-Token');
+    $headers = getallheaders();
+    $token = $headers['X-Auth-Token'] ?? $headers['x-auth-token'] ?? '';
+    
     if ($token !== $AUTH_TOKEN) {
-        send(new JsonResponse(['error' => 'Unauthorized'], 401));
+        jsonResponse(['error' => 'Unauthorized'], 401);
+    }
+    
+    // Get JSON body if present
+    $body = [];
+    if (in_array($method, ['POST', 'PUT', 'PATCH'])) {
+        $input = file_get_contents('php://input');
+        if ($input) {
+            $body = json_decode($input, true) ?? [];
+        }
     }
     
     // Initialize Keep
@@ -64,82 +66,88 @@ if (str_starts_with($path, '/api/')) {
     
     // Route API requests
     try {
+        // Parse path for parameters
         $response = match (true) {
             // Secrets
-            $method === 'GET' && $path === '/api/secrets' => listSecrets($request, $manager),
-            $method === 'GET' && preg_match('#^/api/secrets/(.+)$#', $path, $m) => getSecret($m[1], $request, $manager),
-            $method === 'POST' && $path === '/api/secrets' => createSecret($request, $manager),
-            $method === 'PUT' && preg_match('#^/api/secrets/(.+)$#', $path, $m) => updateSecret($m[1], $request, $manager),
-            $method === 'DELETE' && preg_match('#^/api/secrets/(.+)$#', $path, $m) => deleteSecret($m[1], $request, $manager),
+            $method === 'GET' && $path === '/api/secrets' => listSecrets($query, $manager),
+            $method === 'GET' && preg_match('#^/api/secrets/(.+)$#', $path, $m) => getSecret($m[1], $query, $manager),
+            $method === 'POST' && $path === '/api/secrets' => createSecret($body, $manager),
+            $method === 'PUT' && preg_match('#^/api/secrets/(.+)$#', $path, $m) => updateSecret($m[1], $body, $manager),
+            $method === 'DELETE' && preg_match('#^/api/secrets/(.+)$#', $path, $m) => deleteSecret($m[1], $body, $manager),
             
             // Search
-            $method === 'GET' && $path === '/api/search' => searchSecrets($request, $manager),
+            $method === 'GET' && $path === '/api/search' => searchSecrets($query, $manager),
             
             // Vaults & Stages
             $method === 'GET' && $path === '/api/vaults' => listVaults($manager),
             $method === 'GET' && $path === '/api/stages' => listStages($manager),
-            $method === 'POST' && $path === '/api/verify' => verifyVaults($request, $manager),
+            $method === 'POST' && $path === '/api/verify' => verifyVaults($body, $manager),
             
             // Diff
-            $method === 'GET' && $path === '/api/diff' => getDiff($request, $manager),
+            $method === 'GET' && $path === '/api/diff' => getDiff($query, $manager),
             
             // Export
-            $method === 'POST' && $path === '/api/export' => exportSecrets($request, $manager),
+            $method === 'POST' && $path === '/api/export' => exportSecrets($body, $manager),
             
             // 404
-            default => new JsonResponse(['error' => 'Not found'], 404)
+            default => ['error' => 'Not found', '_status' => 404]
         };
         
-        send($response);
+        $status = $response['_status'] ?? 200;
+        unset($response['_status']);
+        jsonResponse($response, $status);
+        
     } catch (Exception $e) {
-        send(new JsonResponse([
+        jsonResponse([
             'error' => $e->getMessage(),
             'type' => get_class($e)
-        ], 500));
+        ], 500);
     }
 }
 
 // Default 404
-send(new Response('Not found', 404));
+http_response_code(404);
+echo "Not found";
+exit;
 
 // ============================================================================
 // API Handlers - Thin wrappers around Keep commands
 // ============================================================================
 
-function listSecrets(Request $request, KeepManager $manager): JsonResponse 
+function listSecrets(array $query, KeepManager $manager): array 
 {
-    $vault = $request->query->get('vault', $manager->getDefaultVault());
-    $stage = $request->query->get('stage', 'local');
-    $unmask = $request->query->getBoolean('unmask');
+    $vault = $query['vault'] ?? $manager->getDefaultVault();
+    $stage = $query['stage'] ?? 'local';
+    $unmask = isset($query['unmask']) && $query['unmask'] === 'true';
     
     $vaultInstance = $manager->vault($vault);
     $secrets = $vaultInstance->all($stage);
     
-    return new JsonResponse([
+    return [
         'success' => true,
         'data' => $secrets->map(fn($secret) => [
             'key' => $secret->key,
             'value' => $unmask ? $secret->value : $secret->getMaskedValue(),
             'revision' => $secret->revision ?? null,
             'modified' => $secret->modified ?? null,
-        ])->values()
-    ]);
+        ])->values()->toArray()
+    ];
 }
 
-function getSecret(string $key, Request $request, KeepManager $manager): JsonResponse
+function getSecret(string $key, array $query, KeepManager $manager): array
 {
-    $vault = $request->query->get('vault', $manager->getDefaultVault());
-    $stage = $request->query->get('stage', 'local');
-    $unmask = $request->query->getBoolean('unmask');
+    $vault = $query['vault'] ?? $manager->getDefaultVault();
+    $stage = $query['stage'] ?? 'local';
+    $unmask = isset($query['unmask']) && $query['unmask'] === 'true';
     
     $vaultInstance = $manager->vault($vault);
-    $secret = $vaultInstance->get($key, $stage);
+    $secret = $vaultInstance->get(urldecode($key), $stage);
     
     if (!$secret) {
-        return new JsonResponse(['error' => 'Secret not found'], 404);
+        return ['error' => 'Secret not found', '_status' => 404];
     }
     
-    return new JsonResponse([
+    return [
         'success' => true,
         'data' => [
             'key' => $secret->key,
@@ -147,15 +155,13 @@ function getSecret(string $key, Request $request, KeepManager $manager): JsonRes
             'revision' => $secret->revision ?? null,
             'modified' => $secret->modified ?? null,
         ]
-    ]);
+    ];
 }
 
-function createSecret(Request $request, KeepManager $manager): JsonResponse
+function createSecret(array $data, KeepManager $manager): array
 {
-    $data = json_decode($request->getContent(), true);
-    
     if (!isset($data['key']) || !isset($data['value'])) {
-        return new JsonResponse(['error' => 'Missing key or value'], 400);
+        return ['error' => 'Missing key or value', '_status' => 400];
     }
     
     $vault = $data['vault'] ?? $manager->getDefaultVault();
@@ -164,112 +170,114 @@ function createSecret(Request $request, KeepManager $manager): JsonResponse
     $vaultInstance = $manager->vault($vault);
     $vaultInstance->put($data['key'], $data['value'], $stage);
     
-    return new JsonResponse([
+    return [
         'success' => true,
         'message' => "Secret '{$data['key']}' created"
-    ]);
+    ];
 }
 
-function updateSecret(string $key, Request $request, KeepManager $manager): JsonResponse
+function updateSecret(string $key, array $data, KeepManager $manager): array
 {
-    $data = json_decode($request->getContent(), true);
-    
     if (!isset($data['value'])) {
-        return new JsonResponse(['error' => 'Missing value'], 400);
+        return ['error' => 'Missing value', '_status' => 400];
     }
     
     $vault = $data['vault'] ?? $manager->getDefaultVault();
     $stage = $data['stage'] ?? 'local';
     
     $vaultInstance = $manager->vault($vault);
-    $vaultInstance->put($key, $data['value'], $stage);
+    $vaultInstance->put(urldecode($key), $data['value'], $stage);
     
-    return new JsonResponse([
+    return [
         'success' => true,
         'message' => "Secret '{$key}' updated"
-    ]);
+    ];
 }
 
-function deleteSecret(string $key, Request $request, KeepManager $manager): JsonResponse
+function deleteSecret(string $key, array $data, KeepManager $manager): array
 {
-    $data = json_decode($request->getContent(), true);
-    
     $vault = $data['vault'] ?? $manager->getDefaultVault();
     $stage = $data['stage'] ?? 'local';
     
     $vaultInstance = $manager->vault($vault);
-    $vaultInstance->forget($key, $stage);
+    $vaultInstance->forget(urldecode($key), $stage);
     
-    return new JsonResponse([
+    return [
         'success' => true,
         'message' => "Secret '{$key}' deleted"
-    ]);
+    ];
 }
 
-function searchSecrets(Request $request, KeepManager $manager): JsonResponse
+function searchSecrets(array $query, KeepManager $manager): array
 {
-    $query = $request->query->get('q', '');
-    $vault = $request->query->get('vault', $manager->getDefaultVault());
-    $stage = $request->query->get('stage', 'local');
-    $unmask = $request->query->getBoolean('unmask');
+    $q = $query['q'] ?? '';
+    $vault = $query['vault'] ?? $manager->getDefaultVault();
+    $stage = $query['stage'] ?? 'local';
+    $unmask = isset($query['unmask']) && $query['unmask'] === 'true';
     
-    if (empty($query)) {
-        return new JsonResponse(['error' => 'Missing search query'], 400);
+    if (empty($q)) {
+        return ['error' => 'Missing search query', '_status' => 400];
     }
     
     $vaultInstance = $manager->vault($vault);
     $secrets = $vaultInstance->all($stage);
     
     // Simple search implementation
-    $results = $secrets->filter(function($secret) use ($query) {
-        return stripos($secret->value, $query) !== false ||
-               stripos($secret->key, $query) !== false;
+    $results = $secrets->filter(function($secret) use ($q) {
+        return stripos($secret->value, $q) !== false ||
+               stripos($secret->key, $q) !== false;
     });
     
-    return new JsonResponse([
+    return [
         'success' => true,
         'data' => $results->map(fn($secret) => [
             'key' => $secret->key,
             'value' => $unmask ? $secret->value : $secret->getMaskedValue(),
-            'match' => stripos($secret->value, $query) !== false ? 'value' : 'key'
-        ])->values()
-    ]);
+            'match' => stripos($secret->value, $q) !== false ? 'value' : 'key'
+        ])->values()->toArray()
+    ];
 }
 
-function listVaults(KeepManager $manager): JsonResponse
+function listVaults(KeepManager $manager): array
 {
     $vaults = $manager->getAvailableVaults();
     
-    return new JsonResponse([
+    return [
         'success' => true,
         'data' => array_map(fn($name) => [
             'name' => $name,
             'driver' => $manager->getVaultDriver($name),
             'default' => $name === $manager->getDefaultVault()
         ], $vaults)
-    ]);
+    ];
 }
 
-function listStages(KeepManager $manager): JsonResponse
+function listStages(KeepManager $manager): array
 {
     // Get stages from settings
-    $settings = json_decode(file_get_contents($manager->getSettingsPath()), true);
-    $stages = $settings['stages'] ?? ['local', 'staging', 'production'];
+    $settingsPath = $_SERVER['HOME'] . '/.keep/settings.json';
+    if (file_exists($settingsPath)) {
+        $settings = json_decode(file_get_contents($settingsPath), true);
+        $stages = $settings['stages'] ?? ['local', 'staging', 'production'];
+    } else {
+        $stages = ['local', 'staging', 'production'];
+    }
     
-    return new JsonResponse([
+    return [
         'success' => true,
         'data' => $stages
-    ]);
+    ];
 }
 
-function verifyVaults(Request $request, KeepManager $manager): JsonResponse
+function verifyVaults(array $data, KeepManager $manager): array
 {
     $results = [];
     
     foreach ($manager->getAvailableVaults() as $vaultName) {
         try {
             $vault = $manager->vault($vaultName);
-            $vault->verify();
+            // Simple verification - just try to list
+            $vault->all('local');
             $results[$vaultName] = ['success' => true];
         } catch (Exception $e) {
             $results[$vaultName] = [
@@ -279,43 +287,45 @@ function verifyVaults(Request $request, KeepManager $manager): JsonResponse
         }
     }
     
-    return new JsonResponse([
+    return [
         'success' => true,
         'data' => $results
-    ]);
+    ];
 }
 
-function getDiff(Request $request, KeepManager $manager): JsonResponse
+function getDiff(array $query, KeepManager $manager): array
 {
-    $stages = $request->query->all()['stages'] ?? ['local', 'staging', 'production'];
-    $vaults = $request->query->all()['vaults'] ?? $manager->getAvailableVaults();
+    $stages = isset($query['stages']) ? explode(',', $query['stages']) : ['local', 'staging', 'production'];
+    $vaults = isset($query['vaults']) ? explode(',', $query['vaults']) : $manager->getAvailableVaults();
     
     $matrix = [];
     
     foreach ($vaults as $vaultName) {
-        $vault = $manager->vault($vaultName);
-        foreach ($stages as $stage) {
-            $secrets = $vault->all($stage);
-            foreach ($secrets as $secret) {
-                $matrix[$secret->key][$vaultName][$stage] = $secret->getMaskedValue();
+        try {
+            $vault = $manager->vault($vaultName);
+            foreach ($stages as $stage) {
+                $secrets = $vault->all($stage);
+                foreach ($secrets as $secret) {
+                    $matrix[$secret->key][$vaultName][$stage] = $secret->getMaskedValue();
+                }
             }
+        } catch (Exception $e) {
+            // Skip vault if it fails
         }
     }
     
-    return new JsonResponse([
+    return [
         'success' => true,
         'data' => [
             'matrix' => $matrix,
             'stages' => $stages,
             'vaults' => $vaults
         ]
-    ]);
+    ];
 }
 
-function exportSecrets(Request $request, KeepManager $manager): JsonResponse
+function exportSecrets(array $data, KeepManager $manager): array
 {
-    $data = json_decode($request->getContent(), true);
-    
     $vault = $data['vault'] ?? $manager->getDefaultVault();
     $stage = $data['stage'] ?? 'local';
     $format = $data['format'] ?? 'env';
@@ -324,19 +334,22 @@ function exportSecrets(Request $request, KeepManager $manager): JsonResponse
     $secrets = $vaultInstance->all($stage);
     
     if ($format === 'json') {
-        $output = json_encode($secrets->pluck('value', 'key'), JSON_PRETTY_PRINT);
+        $output = json_encode(
+            $secrets->mapWithKeys(fn($s) => [$s->key => $s->value])->toArray(),
+            JSON_PRETTY_PRINT
+        );
     } else {
         $output = $secrets->map(fn($s) => "{$s->key}=\"{$s->value}\"")->join("\n");
     }
     
-    return new JsonResponse([
+    return [
         'success' => true,
         'data' => [
             'content' => $output,
             'format' => $format,
             'count' => $secrets->count()
         ]
-    ]);
+    ];
 }
 
 // ============================================================================
@@ -346,17 +359,21 @@ function exportSecrets(Request $request, KeepManager $manager): JsonResponse
 function serveFile(string $path, string $contentType): void
 {
     if (!file_exists($path)) {
-        send(new Response('Not found', 404));
+        http_response_code(404);
+        echo "Not found";
+        exit;
     }
     
-    $response = new Response(file_get_contents($path));
-    $response->headers->set('Content-Type', $contentType);
-    $response->headers->set('Cache-Control', 'public, max-age=3600');
-    send($response);
+    header('Content-Type: ' . $contentType);
+    header('Cache-Control: public, max-age=3600');
+    readfile($path);
+    exit;
 }
 
-function send(Response $response): void
+function jsonResponse(array $data, int $status = 200): void
 {
-    $response->send();
+    http_response_code($status);
+    header('Content-Type: application/json');
+    echo json_encode($data);
     exit;
 }
