@@ -105,8 +105,8 @@ class CommandExecutor
             $input['--vault'] = $this->context->getVault();
         }
         
-        // Special handling for copy command's 'from' context
-        if ($command === 'copy' && !isset($input['--from'])) {
+        // Copy command always uses current context as 'from'
+        if ($command === 'copy') {
             $input['--from'] = sprintf(
                 "%s:%s",
                 $this->context->getVault(),
