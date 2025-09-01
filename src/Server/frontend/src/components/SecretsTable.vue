@@ -1,5 +1,15 @@
 <template>
   <div>
+    <!-- Vault & Stage Selector -->
+    <div class="mb-4">
+      <VaultStageSelector 
+        v-model:vault="vault"
+        v-model:stage="stage"
+        :vaults="vaults"
+        :stages="stages"
+      />
+    </div>
+    
     <!-- Header with search and add button -->
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center space-x-4">
@@ -133,17 +143,17 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
+import VaultStageSelector from './VaultStageSelector.vue'
 import SecretValue from './SecretValue.vue'
 import SecretDialog from './SecretDialog.vue'
 import ExportDialog from './ExportDialog.vue'
 
-const props = defineProps({
-  vault: String,
-  stage: String
-})
-
 const emit = defineEmits(['refresh'])
 
+const vault = ref('')
+const stage = ref('')
+const vaults = ref([])
+const stages = ref([])
 const secrets = ref([])
 const loading = ref(false)
 const searchQuery = ref('')
@@ -155,22 +165,45 @@ const editingSecret = ref(null)
 
 let searchTimeout = null
 
-onMounted(() => {
+onMounted(async () => {
+  await loadVaultsAndStages()
+  await loadSecrets()
+})
+
+watch(() => [vault.value, stage.value], () => {
   loadSecrets()
 })
 
-watch(() => [props.vault, props.stage], () => {
-  loadSecrets()
-})
+async function loadVaultsAndStages() {
+  try {
+    const [vaultsData, stagesData, settings] = await Promise.all([
+      window.$api.listVaults(),
+      window.$api.listStages(),
+      window.$api.getSettings()
+    ])
+    vaults.value = vaultsData.vaults || []
+    stages.value = stagesData.stages || []
+    
+    // Set defaults
+    if (!vault.value) {
+      vault.value = settings.default_vault || vaults.value[0] || ''
+    }
+    if (!stage.value && stages.value.length) {
+      stage.value = stages.value[0]
+    }
+  } catch (error) {
+    console.error('Failed to load vaults and stages:', error)
+  }
+}
 
 async function loadSecrets() {
-  if (!props.vault || !props.stage) return
+  if (!vault.value || !stage.value) return
   
   loading.value = true
   try {
     const data = searchQuery.value
-      ? await window.$api.searchSecrets(searchQuery.value, props.vault, props.stage)
-      : await window.$api.listSecrets(props.vault, props.stage)
+      ? await window.$api.searchSecrets(searchQuery.value, vault.value, stage.value)
+      : await window.$api.listSecrets(vault.value, stage.value)
     secrets.value = data.secrets || []
   } catch (error) {
     console.error('Failed to load secrets:', error)
@@ -207,9 +240,9 @@ function editSecret(secret) {
 async function saveSecret(data) {
   try {
     if (editingSecret.value) {
-      await window.$api.updateSecret(data.key, data.value, props.vault, props.stage)
+      await window.$api.updateSecret(data.key, data.value, vault.value, stage.value)
     } else {
-      await window.$api.createSecret(data.key, data.value, props.vault, props.stage)
+      await window.$api.createSecret(data.key, data.value, vault.value, stage.value)
     }
     await loadSecrets()
     closeDialog()
@@ -223,7 +256,7 @@ async function deleteSecret(key) {
   if (!confirm(`Delete secret "${key}"?`)) return
   
   try {
-    await window.$api.deleteSecret(key, props.vault, props.stage)
+    await window.$api.deleteSecret(key, vault.value, stage.value)
     await loadSecrets()
     openMenu.value = null
   } catch (error) {

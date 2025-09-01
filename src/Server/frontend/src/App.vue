@@ -10,7 +10,7 @@
               <rect x="3" y="11" width="18" height="10" rx="2" ry="2"/>
               <path d="M7 11V7a5 5 0 0110 0v4"/>
             </svg>
-            <span class="text-xl font-semibold">Keep</span>
+            <span class="text-xl font-semibold">{{ appName }}</span>
           </div>
 
           <!-- Pill Navigation -->
@@ -29,16 +29,6 @@
               {{ tab.label }}
             </button>
           </div>
-
-          <!-- Vault & Stage Selectors -->
-          <div class="flex items-center space-x-4">
-            <VaultStageSelector 
-              v-model:vault="selectedVault"
-              v-model:stage="selectedStage"
-              :vaults="vaults"
-              :stages="stages"
-            />
-          </div>
         </div>
       </div>
     </nav>
@@ -47,11 +37,7 @@
     <main class="max-w-full px-4 sm:px-6 lg:px-8 py-6">
       <!-- Secrets Tab -->
       <div v-if="activeTab === 'secrets'">
-        <SecretsTable
-          :vault="selectedVault"
-          :stage="selectedStage"
-          @refresh="loadSecrets"
-        />
+        <SecretsTable />
       </div>
 
       <!-- Diff Tab -->
@@ -68,8 +54,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import VaultStageSelector from './components/VaultStageSelector.vue'
+import { ref, onMounted } from 'vue'
 import SecretsTable from './components/SecretsTable.vue'
 import DiffView from './components/DiffView.vue'
 import SettingsView from './components/SettingsView.vue'
@@ -81,37 +66,18 @@ const tabs = [
   { id: 'settings', label: 'Settings' }
 ]
 
-const selectedVault = ref('')
-const selectedStage = ref('')
-const vaults = ref([])
-const stages = ref([])
+const appName = ref('Keep')
 
 onMounted(async () => {
-  await loadVaultsAndStages()
+  await loadSettings()
 })
 
-async function loadVaultsAndStages() {
+async function loadSettings() {
   try {
-    const [vaultsData, stagesData] = await Promise.all([
-      window.$api.listVaults(),
-      window.$api.listStages()
-    ])
-    vaults.value = vaultsData.vaults || []
-    stages.value = stagesData.stages || []
-    
-    // Set defaults
-    if (vaults.value.length && !selectedVault.value) {
-      selectedVault.value = vaults.value[0]
-    }
-    if (stages.value.length && !selectedStage.value) {
-      selectedStage.value = stages.value[0]
-    }
+    const settings = await window.$api.getSettings()
+    appName.value = settings.app_name || 'Keep'
   } catch (error) {
-    console.error('Failed to load vaults and stages:', error)
+    console.error('Failed to load settings:', error)
   }
-}
-
-async function loadSecrets() {
-  // This will be called by child components when they need a refresh
 }
 </script>
