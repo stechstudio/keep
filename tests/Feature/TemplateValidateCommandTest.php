@@ -35,7 +35,7 @@ describe('TemplateValidateCommand', function () {
         it('accepts template file argument', function () {
             // Create a simple template file (will fail validation since secret doesn't exist)
             $templatePath = 'test-template.env';
-            file_put_contents($templatePath, "DB_PASSWORD={DB_PASSWORD}\n");
+            file_put_contents($templatePath, "DB_PASSWORD={test:DB_PASSWORD}\n");
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
@@ -53,7 +53,7 @@ describe('TemplateValidateCommand', function () {
 
         it('accepts stage and vault options', function () {
             $templatePath = 'test-template.env';
-            file_put_contents($templatePath, "DB_PASSWORD={DB_PASSWORD}\n");
+            file_put_contents($templatePath, "DB_PASSWORD={test:DB_PASSWORD}\n");
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
@@ -103,7 +103,7 @@ describe('TemplateValidateCommand', function () {
 
     describe('placeholder parsing', function () {
         it('parses simple placeholders correctly', function () {
-            $templateContent = "DB_PASSWORD={DB_PASSWORD}\nAPI_KEY={API_KEY}\n";
+            $templateContent = "DB_PASSWORD={test:DB_PASSWORD}\nAPI_KEY={test:API_KEY}\n";
             $templatePath = 'simple-template.env';
             file_put_contents($templatePath, $templateContent);
 
@@ -137,7 +137,7 @@ describe('TemplateValidateCommand', function () {
         });
 
         it('ignores environment variable substitution syntax', function () {
-            $templateContent = "PATH=\${PATH}:/usr/local/bin\nDB_PASSWORD={DB_PASSWORD}\n";
+            $templateContent = "PATH=\${PATH}:/usr/local/bin\nDB_PASSWORD={test:DB_PASSWORD}\n";
             $templatePath = 'mixed-template.env';
             file_put_contents($templatePath, $templateContent);
 
@@ -193,7 +193,7 @@ describe('TemplateValidateCommand', function () {
         });
 
         it('reports missing secrets', function () {
-            $templateContent = "DB_PASSWORD={DB_PASSWORD}\nMISSING_SECRET={MISSING_SECRET}\n";
+            $templateContent = "DB_PASSWORD={test:DB_PASSWORD}\nMISSING_SECRET={test:MISSING_SECRET}\n";
             $templatePath = 'missing-secrets.env';
             file_put_contents($templatePath, $templateContent);
 
@@ -249,7 +249,7 @@ describe('TemplateValidateCommand', function () {
     describe('unused secrets detection', function () {
         it('reports when no secrets exist in vault', function () {
             // Template with missing secrets (vault is empty)
-            $templateContent = "MISSING_VALUE={MISSING_SECRET}\n";
+            $templateContent = "MISSING_VALUE={test:MISSING_SECRET}\n";
             $templatePath = 'missing-template.env';
             file_put_contents($templatePath, $templateContent);
 
@@ -264,7 +264,7 @@ describe('TemplateValidateCommand', function () {
 
             $output = stripAnsi($commandTester->getDisplay());
             // Since vault is empty, there are no unused secrets to report
-            expect($output)->toContain('All secrets in test:testing are referenced');
+            expect($output)->toContain('All secrets in test:testing are referenced in the template');
         });
 
         it('handles empty vault gracefully', function () {
@@ -282,7 +282,7 @@ describe('TemplateValidateCommand', function () {
             expect($commandTester->getStatusCode())->toBe(0);
 
             $output = stripAnsi($commandTester->getDisplay());
-            expect($output)->toContain('All secrets in test:testing are referenced');
+            expect($output)->toContain('All secrets in test:testing are referenced in the template');
         });
     });
 
@@ -297,7 +297,7 @@ describe('TemplateValidateCommand', function () {
             ]);
             expect($setCommand->getStatusCode())->toBe(0);
 
-            $templateContent = "VALID={VALID_SECRET}\nINVALID={INVALID_SECRET}\n";
+            $templateContent = "VALID={test:VALID_SECRET}\nINVALID={test:INVALID_SECRET}\n";
             $templatePath = 'mixed-template.env';
             file_put_contents($templatePath, $templateContent);
 
@@ -342,7 +342,7 @@ describe('TemplateValidateCommand', function () {
             rmdir('.keep');
 
             $templatePath = 'test-template.env';
-            file_put_contents($templatePath, "DB_PASSWORD={DB_PASSWORD}\n");
+            file_put_contents($templatePath, "DB_PASSWORD={test:DB_PASSWORD}\n");
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
@@ -361,17 +361,17 @@ describe('TemplateValidateCommand', function () {
             // Create complex template with realistic content
             $templateContent = <<<'EOT'
 # Database Configuration
-DB_HOST={DB_HOST}
-DB_PORT={DB_PORT}
-DB_NAME={DB_NAME}
-DB_USER={DB_USER}
-DB_PASSWORD={DB_PASSWORD}
+DB_HOST={test:DB_HOST}
+DB_PORT={test:DB_PORT}
+DB_NAME={test:DB_NAME}
+DB_USER={test:DB_USER}
+DB_PASSWORD={test:DB_PASSWORD}
 
 # Redis Configuration  
-REDIS_URL={REDIS_URL}
+REDIS_URL={test:REDIS_URL}
 
 # API Configuration
-API_KEY={API_KEY}
+API_KEY={test:API_KEY}
 
 # Static values
 APP_ENV=testing
@@ -394,7 +394,7 @@ EOT;
             expect($output)->toContain('Found 7 placeholder(s) to validate');
             expect($output)->toContain('Template validation failed');
             // Since vault is empty, all secrets are "referenced" (none exist to be unused)
-            expect($output)->toContain('All secrets in test:testing are referenced');
+            expect($output)->toContain('All secrets in test:testing are referenced in the template');
         });
     });
 });
