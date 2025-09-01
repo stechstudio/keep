@@ -9,17 +9,6 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 
 class CommandExecutor
 {
-    private const COMMAND_ALIASES = [
-        'g' => 'get',
-        's' => 'set',
-        'd' => 'delete',
-        'l' => 'show',
-        'ls' => 'show',
-    ];
-    
-    private const NO_STAGE_COMMANDS = ['diff', 'copy', 'info', 'verify'];
-    private const NO_VAULT_COMMANDS = ['export', 'copy', 'info', 'verify'];
-    private const WRITE_COMMANDS = ['set', 'delete', 'copy', 'import', 'rename'];
     
     public function __construct(
         private ShellContext $context,
@@ -39,16 +28,16 @@ class CommandExecutor
             $parsed = $this->parseInput($input);
             $commandName = $parsed['command'];
             
-            // Handle export command specially with interactive flow
-            if ($commandName === 'export') {
-                return $this->runInteractiveExport($parsed['positionals']);
+            // Handle interactive commands (like export) with special flow
+            if (CommandRegistry::isInteractive($commandName)) {
+                return $this->runInteractiveCommand($commandName, $parsed['positionals']);
             }
             
             $this->validateCommand($commandName);
             
             $exitCode = $this->runCommand($commandName, $parsed);
             
-            if ($this->isWriteCommand($parsed['command'])) {
+            if (CommandRegistry::isWriteCommand($parsed['command'])) {
                 $this->context->invalidateCache();
             }
             
@@ -64,22 +53,10 @@ class CommandExecutor
         $parts = str_getcsv($input, ' ', '"', '\\');
         $command = array_shift($parts);
         
-        // In the interactive shell, we treat everything as positional arguments
-        // No -- prefix support for better UX
-        $positionals = $parts;
-        $options = [];
-        
         return [
-            'command' => $this->mapAlias($command),
-            'positionals' => $positionals,
-            'options' => $options,
+            'command' => CommandRegistry::resolveAlias($command),
+            'positionals' => $parts,
         ];
-    }
-    
-    
-    protected function mapAlias(string $command): string
-    {
-        return self::COMMAND_ALIASES[$command] ?? $command;
     }
     
     protected function validateCommand(string $commandName): void
@@ -108,137 +85,34 @@ class CommandExecutor
     {
         $input = ['command' => $commandName];
         
-        // Process positionals and options based on command
-        $this->processPositionalArguments(
-            $parsed['command'],
-            $parsed['positionals'],
-            $input
-        );
+        // Use the new ArgumentProcessor for clean argument handling
+        ArgumentProcessor::process($parsed['command'], $parsed['positionals'], $input);
         
-        $this->addOptions($parsed['options'], $input);
-        
-        $this->addContextIfNeeded($parsed['command'], $parsed['options'], $input);
+        // Add context (vault/stage) if needed
+        $this->addContextIfNeeded($parsed['command'], $input);
         
         return $input;
     }
     
-    protected function processPositionalArguments(string $command, array $positionals, array &$input): void
-    {
-        switch ($command) {
-            case 'set':
-                $this->addIfExists($positionals, 0, 'key', $input);
-                $this->addIfExists($positionals, 1, 'value', $input);
-                break;
-                
-            case 'get':
-            case 'history':
-                // Just take the key, ignore any format options (shell is for humans)
-                $this->addIfExists($positionals, 0, 'key', $input);
-                break;
-                
-            case 'export':
-                // Export is handled by InteractiveExport, this shouldn't be reached
-                break;
-                
-            case 'copy':
-                $this->addIfExists($positionals, 0, 'key', $input);
-                // Handle optional destination argument
-                if (isset($positionals[1])) {
-                    $input['--to'] = $positionals[1];
-                }
-                break;
-                
-            case 'import':
-                $this->addIfExists($positionals, 0, 'file', $input);
-                break;
-                
-            case 'stage:add':
-                $this->addIfExists($positionals, 0, 'name', $input);
-                break;
-                
-            case 'show':
-                // Only support 'unmask' in interactive shell (no format options)
-                if (in_array('unmask', $positionals)) {
-                    $input['--unmask'] = true;
-                }
-                // Don't pass any positionals to show command
-                $positionals = [];
-                break;
-                
-            case 'delete':
-                // Handle "delete KEY force" without -- prefix
-                foreach ($positionals as $index => $arg) {
-                    if ($arg === 'force' && $index > 0) {
-                        $input['--force'] = true;
-                        unset($positionals[$index]);
-                    }
-                }
-                // First positional is the key
-                $this->addIfExists(array_values($positionals), 0, 'key', $input);
-                break;
-                
-            case 'rename':
-                // Handle "rename OLD NEW [force]" without -- prefix
-                $this->addIfExists($positionals, 0, 'old', $input);
-                $this->addIfExists($positionals, 1, 'new', $input);
-                if (in_array('force', $positionals)) {
-                    $input['--force'] = true;
-                }
-                break;
-                
-            case 'search':
-                // Handle "search QUERY [unmask] [case-sensitive]" without -- prefix
-                $this->addIfExists($positionals, 0, 'query', $input);
-                if (in_array('unmask', $positionals)) {
-                    $input['--unmask'] = true;
-                }
-                if (in_array('case-sensitive', $positionals)) {
-                    $input['--case-sensitive'] = true;
-                }
-                break;
-        }
-    }
     
-    protected function addIfExists(array $array, int $index, string $key, array &$target): void
+    protected function addContextIfNeeded(string $command, array &$input): void
     {
-        if (isset($array[$index])) {
-            $target[$key] = $array[$index];
-        }
-    }
-    
-    protected function addOptions(array $options, array &$input): void
-    {
-        foreach ($options as $key => $value) {
-            $input['--' . $key] = $value;
-        }
-    }
-    
-    protected function addContextIfNeeded(string $command, array $options, array &$input): void
-    {
-        $needsStage = !in_array($command, self::NO_STAGE_COMMANDS);
-        $needsVault = !in_array($command, self::NO_VAULT_COMMANDS);
-        
-        if ($needsStage && !isset($options['stage'])) {
+        if (CommandRegistry::requiresStage($command) && !isset($input['--stage'])) {
             $input['--stage'] = $this->context->getStage();
         }
         
-        if ($needsVault && !isset($options['vault'])) {
+        if (CommandRegistry::requiresVault($command) && !isset($input['--vault'])) {
             $input['--vault'] = $this->context->getVault();
         }
         
-        // Special handling for copy command
-        if ($command === 'copy' && !isset($options['from'])) {
+        // Special handling for copy command's 'from' context
+        if ($command === 'copy' && !isset($input['--from'])) {
             $input['--from'] = sprintf(
                 "%s:%s",
                 $this->context->getVault(),
                 $this->context->getStage()
             );
         }
-    }
-    
-    protected function isWriteCommand(string $command): bool
-    {
-        return in_array($command, self::WRITE_COMMANDS);
     }
     
     protected function outputError(string $message): void
@@ -248,11 +122,14 @@ class CommandExecutor
     }
     
     /**
-     * Run the interactive export command
+     * Run an interactive command (like export)
      */
-    protected function runInteractiveExport(array $args): int
+    protected function runInteractiveCommand(string $command, array $args): int
     {
-        $interactiveExport = new InteractiveExport($this->context, $this->application);
-        return $interactiveExport->execute($args);
+        // Currently only export is interactive, but this is extensible
+        return match ($command) {
+            'export' => (new InteractiveExport($this->context, $this->application))->execute($args),
+            default => throw new \Exception("Unknown interactive command: {$command}")
+        };
     }
 }

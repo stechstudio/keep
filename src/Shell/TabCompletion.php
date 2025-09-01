@@ -4,20 +4,6 @@ namespace STS\Keep\Shell;
 
 class TabCompletion
 {
-    private const COMMANDS = [
-        'get', 'g', 'set', 's', 'delete', 'd', 'show', 'ls',
-        'copy', 'export', 'diff', 'verify', 'info', 'history',
-        'stage', 'vault', 'use', 'u', 'context', 'ctx',
-        'help', '?', 'clear', 'cls', 'exit', 'quit', 'q'
-    ];
-    
-    private const COMMAND_ALIASES = [
-        'g' => 'get',
-        's' => 'set',
-        'd' => 'delete',
-        'ls' => 'show',
-        'u' => 'use',
-    ];
     
     public function __construct(private ShellContext $context)
     {
@@ -30,7 +16,7 @@ class TabCompletion
         $parts = explode(' ', $line);
         
         if (count($parts) === 1) {
-            return $this->filterByPrefix(self::COMMANDS, $parts[0]);
+            return $this->filterByPrefix(CommandRegistry::getAllCommands(), $parts[0]);
         }
         
         $command = $this->resolveCommand($parts[0]);
@@ -42,7 +28,7 @@ class TabCompletion
     
     protected function resolveCommand(string $command): string
     {
-        return self::COMMAND_ALIASES[$command] ?? $command;
+        return CommandRegistry::resolveAlias($command);
     }
     
     protected function getCompletionsForCommand(string $command, string $prefix, int $argPosition): array
