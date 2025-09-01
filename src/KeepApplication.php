@@ -56,6 +56,7 @@ class KeepApplication extends Application
             Commands\TemplateValidateCommand::class,
             
             Commands\ShellCommand::class,
+            Commands\ServerCommand::class,
         ]);
         
         // Make shell the default command when running 'keep' without arguments
