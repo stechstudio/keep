@@ -1,0 +1,314 @@
+# Keep Web UI Development Plan
+
+## Overview
+
+Add a local-only web UI to Keep that provides a rich, visual interface for managing secrets. The UI will be served by PHP's built-in server and communicate with Keep's existing backend classes via a lightweight API layer.
+
+## Architecture
+
+### Directory Structure
+```
+src/
+  Server/
+    server.php           # Main router/entry point
+    Api/
+      Controller.php     # Base API controller
+      SecretsController.php
+      VaultsController.php
+      StagesController.php
+      ExportController.php
+    Middleware/
+      AuthMiddleware.php # Token validation
+    public/
+      index.html         # Vue SPA entry
+      assets/
+        app.js          # Bundled Vue app
+        app.css         # Bundled styles
+```
+
+### Request Flow
+1. `keep server` launches `php -S localhost:4000 src/Server/server.php`
+2. server.php routes:
+   - `/` ’ serves index.html
+   - `/assets/*` ’ serves static files
+   - `/api/*` ’ handles API requests
+3. API controllers use existing Keep classes (no business logic duplication)
+
+## Implementation Phases
+
+### Phase 1: Foundation
+- [ ] Create `ServerCommand` class extending `BaseCommand`
+- [ ] Implement server.php router with basic request handling
+- [ ] Set up CSRF token generation and validation
+- [ ] Create AuthMiddleware for token validation
+- [ ] Add port scanning to find available port if 4000 is taken
+- [ ] Implement graceful shutdown handling (Ctrl+C)
+- [ ] Auto-open browser on launch
+- [ ] Add `--port` and `--no-browser` options to command
+
+### Phase 2: API Layer
+- [ ] Create base `ApiController` with JSON response helpers
+- [ ] Implement `SecretsController`:
+  - [ ] GET `/api/secrets` - List all secrets for vault/stage
+  - [ ] GET `/api/secrets/{key}` - Get single secret (with unmask option)
+  - [ ] POST `/api/secrets` - Create/update secret
+  - [ ] DELETE `/api/secrets/{key}` - Delete secret
+  - [ ] POST `/api/secrets/rename` - Rename secret
+  - [ ] GET `/api/secrets/search` - Search in values
+  - [ ] GET `/api/secrets/history/{key}` - Get secret history
+- [ ] Implement `VaultsController`:
+  - [ ] GET `/api/vaults` - List configured vaults
+  - [ ] GET `/api/vaults/{name}` - Get vault details
+  - [ ] POST `/api/vaults/verify` - Run verification
+- [ ] Implement `StagesController`:
+  - [ ] GET `/api/stages` - List all stages
+  - [ ] POST `/api/stages` - Add custom stage
+- [ ] Implement `DiffController`:
+  - [ ] GET `/api/diff` - Get diff matrix across stages/vaults
+- [ ] Implement `ExportController`:
+  - [ ] POST `/api/export` - Export to various formats
+  - [ ] POST `/api/export/template` - Process template
+- [ ] Implement `ImportController`:
+  - [ ] POST `/api/import` - Import from uploaded file
+- [ ] Add error handling and validation to all endpoints
+
+### Phase 3: Frontend Foundation
+- [ ] Set up Vue 3 build pipeline (vite)
+- [ ] Create base Vue app structure
+- [ ] Set up Vue Router for navigation
+- [ ] Implement Pinia store for state management
+- [ ] Add Tailwind CSS for styling
+- [ ] Create API client service with:
+  - [ ] Automatic CSRF token inclusion
+  - [ ] Error handling
+  - [ ] Loading states
+- [ ] Implement authentication flow (token input)
+
+### Phase 4: Core UI Components
+- [ ] Create layout components:
+  - [ ] AppHeader with vault/stage selector
+  - [ ] AppSidebar with navigation
+  - [ ] AppFooter with connection status
+- [ ] Create shared components:
+  - [ ] SecretValue (with mask/unmask toggle)
+  - [ ] LoadingSpinner
+  - [ ] ErrorAlert
+  - [ ] SuccessToast
+  - [ ] ConfirmDialog
+  - [ ] SearchInput with debouncing
+
+### Phase 5: Secret Management Views
+- [ ] Secrets List View:
+  - [ ] Table with sortable columns
+  - [ ] Search/filter functionality
+  - [ ] Bulk selection checkboxes
+  - [ ] Quick actions (copy value, edit, delete)
+  - [ ] Pagination for large lists
+- [ ] Secret Detail View:
+  - [ ] View/edit secret value
+  - [ ] Show metadata (created, modified, revision)
+  - [ ] History timeline
+  - [ ] Copy to clipboard
+- [ ] Add/Edit Secret Modal:
+  - [ ] Key validation
+  - [ ] Value input (with multiline support)
+  - [ ] Encryption toggle
+  - [ ] Save with loading state
+- [ ] Bulk Operations:
+  - [ ] Select all/none
+  - [ ] Bulk delete with confirmation
+  - [ ] Bulk export selected
+  - [ ] Bulk copy to another stage
+
+### Phase 6: Advanced Features
+- [ ] Diff Matrix View:
+  - [ ] Visual grid showing all stages vs vaults
+  - [ ] Color coding (present/missing/different)
+  - [ ] Click cell to see value comparison
+  - [ ] Export diff as CSV
+- [ ] Template Builder:
+  - [ ] Drag secrets to template
+  - [ ] Live preview
+  - [ ] Save/load templates
+  - [ ] Test template processing
+- [ ] Import Wizard:
+  - [ ] File upload or paste
+  - [ ] Preview what will be imported
+  - [ ] Conflict resolution options
+  - [ ] Dry run mode
+- [ ] Search & Replace:
+  - [ ] Search across all secrets
+  - [ ] Replace values with preview
+  - [ ] Regex support
+  - [ ] Undo capability
+
+### Phase 7: UI Polish
+- [ ] Add keyboard shortcuts:
+  - [ ] `/` for search focus
+  - [ ] `n` for new secret
+  - [ ] `e` for edit
+  - [ ] `d` for delete
+  - [ ] `?` for help
+- [ ] Dark mode support
+- [ ] Responsive design for smaller screens
+- [ ] Loading skeletons for better UX
+- [ ] Animations and transitions
+- [ ] Empty states with helpful actions
+- [ ] Tooltips for all actions
+- [ ] Export/import UI settings
+
+### Phase 8: Security Hardening
+- [ ] Implement rate limiting on API endpoints
+- [ ] Add request size limits
+- [ ] Sanitize all user inputs
+- [ ] Add Content Security Policy headers
+- [ ] Implement session timeout (configurable)
+- [ ] Add audit logging for all actions
+- [ ] Clear clipboard after timeout
+- [ ] Mask values by default everywhere
+- [ ] Add "lock screen" feature
+
+### Phase 9: Build & Distribution
+- [ ] Set up Vite build configuration
+- [ ] Minimize and bundle all assets
+- [ ] Generate source maps for debugging
+- [ ] Create build script in composer.json
+- [ ] Ensure built assets are committed
+- [ ] Add cache busting for assets
+- [ ] Document build process
+- [ ] Set up GitHub Action for automated builds
+
+### Phase 10: Testing
+- [ ] Unit tests for API controllers
+- [ ] Integration tests for API endpoints
+- [ ] Vue component tests with Vitest
+- [ ] E2E tests with Playwright:
+  - [ ] Secret CRUD operations
+  - [ ] Diff view functionality
+  - [ ] Import/export flows
+  - [ ] Error handling
+- [ ] Security testing:
+  - [ ] CSRF protection
+  - [ ] Token validation
+  - [ ] Input sanitization
+- [ ] Cross-browser testing
+
+### Phase 11: Documentation
+- [ ] Add "Web UI" section to main docs
+- [ ] Document `keep server` command options
+- [ ] Create UI user guide with screenshots
+- [ ] Document keyboard shortcuts
+- [ ] Add troubleshooting section
+- [ ] Create video demo/tutorial
+- [ ] Update README with UI feature
+
+## Technical Decisions
+
+### Why Vue 3?
+- Lightweight (~100KB)
+- Excellent TypeScript support
+- Composition API for better code organization
+- Built-in reactivity system
+- Large ecosystem
+
+### Why Tailwind CSS?
+- Utility-first approach perfect for admin UIs
+- Small bundle size with PurgeCSS
+- Consistent design system
+- Dark mode support built-in
+
+### Why Vite?
+- Lightning fast HMR for development
+- Optimized production builds
+- Native ES modules
+- Built-in TypeScript support
+
+### Security Approach
+1. **Token-based auth**: Generate random token on server start
+2. **CSRF protection**: Include token in all API requests
+3. **Localhost only**: Bind to 127.0.0.1, not 0.0.0.0
+4. **No persistent storage**: Everything in memory during session
+5. **Masked values**: Show masked by default, unmask on demand
+
+## API Response Format
+
+All API responses follow this structure:
+
+```json
+{
+  "success": true,
+  "data": { ... },
+  "message": "Optional message",
+  "errors": { ... }  // Only on validation errors
+}
+```
+
+Error responses:
+```json
+{
+  "success": false,
+  "message": "Error description",
+  "code": "ERROR_CODE",
+  "details": { ... }  // Optional
+}
+```
+
+## UI Design Principles
+
+1. **Clarity**: Every action should be obvious
+2. **Safety**: Destructive actions require confirmation
+3. **Speed**: Common tasks should be 1-2 clicks
+4. **Feedback**: Every action has immediate visual feedback
+5. **Consistency**: Similar actions work the same way everywhere
+
+## Performance Targets
+
+- Initial page load: < 2 seconds
+- API response time: < 500ms
+- Search results: < 100ms (with debouncing)
+- Build size: < 500KB total
+
+## Browser Support
+
+- Chrome/Edge 90+
+- Firefox 88+
+- Safari 14+
+- No IE11 support
+
+## Success Metrics
+
+- [ ] Can manage secrets without using CLI
+- [ ] Diff view more intuitive than CLI output
+- [ ] Import/export workflows simplified
+- [ ] Zero configuration required
+- [ ] Works on all major platforms
+
+## Open Questions
+
+1. Should we add WebSocket support for real-time updates?
+2. Should we allow configuring which network interface to bind to?
+3. Should we add user preferences persistence (localStorage)?
+4. Should we support multiple tabs/windows?
+5. Should we add CSV export for all data views?
+
+## Future Enhancements (v2)
+
+- WebSocket for real-time collaboration indicators
+- Secret rotation scheduling UI
+- Backup/restore functionality
+- Secret usage analytics
+- Integration with AWS CloudTrail viewer
+- Plugin system for custom vault drivers
+- Mobile-responsive design improvements
+- PWA capabilities for "install" option
+
+---
+
+## Next Steps
+
+1. Start with Phase 1: Get basic server running
+2. Implement minimal API (list secrets)
+3. Create basic Vue app that displays secrets
+4. Iterate from there
+
+This plan is ambitious but achievable. The key is to deliver value incrementally - even a basic read-only UI would be valuable to users.
