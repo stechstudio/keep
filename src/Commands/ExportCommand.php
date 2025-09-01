@@ -25,8 +25,9 @@ class ExportCommand extends BaseCommand
         {--overwrite : Overwrite existing output file} 
         {--append : Append to existing output file} 
         {--stage= : Stage to export secrets from}
-        {--vault= : Vault(s) to use (comma-separated, auto-detected from template if not specified)}'
-        .self::ONLY_EXCLUDE_SIGNATURE;
+        {--vault= : Vault(s) to use (comma-separated, auto-detected from template if not specified)}
+        {--only= : Only include keys matching this pattern (e.g. DB_*)} 
+        {--except= : Exclude keys matching this pattern (e.g. MAIL_*)}';
 
     // Future enhancement: Cache export
     // {--cache : Export to encrypted cache in .keep/cache/}

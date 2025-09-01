@@ -13,15 +13,15 @@ use function Laravel\Prompts\table;
 class HistoryCommand extends BaseCommand
 {
     public $signature = 'history 
+        {key? : The secret key}
         {--limit=10 : Maximum number of history entries to return} 
         {--format=table : table|json}
         {--user= : Filter by user who modified the secret (partial match)}
         {--since= : Filter entries since this date (e.g., "7 days ago", "2024-01-01")}
-        {--before= : Filter entries before this date (e.g., "2024-12-31")} '
-        .self::KEY_SIGNATURE
-        .self::VAULT_SIGNATURE
-        .self::STAGE_SIGNATURE
-        .self::UNMASK_SIGNATURE;
+        {--before= : Filter entries before this date (e.g., "2024-12-31")} 
+        {--vault= : The vault to use}
+        {--stage= : The stage to use}
+        {--unmask : Show full secret values instead of masked values}';
 
     public $description = 'Display change history for a secret';
 

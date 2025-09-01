@@ -7,10 +7,11 @@ use function Laravel\Prompts\table;
 
 class DeleteCommand extends BaseCommand
 {
-    public $signature = 'delete {--force : Skip confirmation prompt} '
-        .self::KEY_SIGNATURE
-        .self::VAULT_SIGNATURE
-        .self::STAGE_SIGNATURE;
+    public $signature = 'delete 
+        {key? : The secret key}
+        {--force : Skip confirmation prompt} 
+        {--vault= : The vault to use}
+        {--stage= : The stage to use}';
 
     public $description = 'Delete a stage secret from a specified vault';
 
