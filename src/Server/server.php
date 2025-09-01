@@ -10,6 +10,8 @@
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 use STS\Keep\KeepManager;
+use STS\Keep\Data\Settings;
+use STS\Keep\Data\Collections\VaultConfigCollection;
 
 // Initialize server - get token from environment or generate one
 $AUTH_TOKEN = $_ENV['KEEP_AUTH_TOKEN'] ?? $_SERVER['KEEP_AUTH_TOKEN'] ?? bin2hex(random_bytes(32));
@@ -58,8 +60,8 @@ if (str_starts_with($path, '/api/')) {
         }
     }
     
-    // Initialize Keep
-    $manager = new KeepManager();
+    // Initialize Keep with proper settings
+    $manager = new KeepManager(Settings::load(), VaultConfigCollection::load());
     
     // Route API requests
     try {

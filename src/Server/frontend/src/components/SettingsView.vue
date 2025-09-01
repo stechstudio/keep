@@ -113,10 +113,6 @@
             <kbd class="px-2 py-1 bg-muted rounded text-xs">n</kbd>
           </div>
           <div class="flex items-center justify-between">
-            <span class="text-muted-foreground">Export</span>
-            <kbd class="px-2 py-1 bg-muted rounded text-xs">e</kbd>
-          </div>
-          <div class="flex items-center justify-between">
             <span class="text-muted-foreground">Settings</span>
             <kbd class="px-2 py-1 bg-muted rounded text-xs">s</kbd>
           </div>
@@ -193,10 +189,6 @@ onMounted(() => {
       case 'n':
         e.preventDefault()
         document.querySelector('button:has(span:contains("Add Secret"))')?.click()
-        break
-      case 'e':
-        e.preventDefault()
-        document.querySelector('button:has(span:contains("Export"))')?.click()
         break
       case 's':
         e.preventDefault()
