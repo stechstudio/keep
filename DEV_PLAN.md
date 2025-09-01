@@ -29,48 +29,49 @@ src/
 ### Request Flow
 1. `keep server` launches `php -S localhost:4000 src/Server/server.php`
 2. server.php routes:
-   - `/` ’ serves index.html
-   - `/assets/*` ’ serves static files
-   - `/api/*` ’ handles API requests
+   - `/` ï¿½ serves index.html
+   - `/assets/*` ï¿½ serves static files
+   - `/api/*` ï¿½ handles API requests
 3. API controllers use existing Keep classes (no business logic duplication)
 
 ## Implementation Phases
 
 ### Phase 1: Foundation
-- [ ] Create `ServerCommand` class extending `BaseCommand`
-- [ ] Implement server.php router with basic request handling
-- [ ] Set up CSRF token generation and validation
-- [ ] Create AuthMiddleware for token validation
-- [ ] Add port scanning to find available port if 4000 is taken
-- [ ] Implement graceful shutdown handling (Ctrl+C)
-- [ ] Auto-open browser on launch
-- [ ] Add `--port` and `--no-browser` options to command
+- [x] Create `ServerCommand` class extending `BaseCommand`
+- [x] Implement server.php router with basic request handling
+- [x] Set up CSRF token generation and validation
+- [x] Create AuthMiddleware for token validation
+- [x] Add port scanning to find available port if 4000 is taken
+- [x] Implement graceful shutdown handling (Ctrl+C)
+- [x] Auto-open browser on launch
+- [x] Add `--port` and `--no-browser` options to command
 
 ### Phase 2: API Layer
-- [ ] Create base `ApiController` with JSON response helpers
-- [ ] Implement `SecretsController`:
-  - [ ] GET `/api/secrets` - List all secrets for vault/stage
-  - [ ] GET `/api/secrets/{key}` - Get single secret (with unmask option)
-  - [ ] POST `/api/secrets` - Create/update secret
-  - [ ] DELETE `/api/secrets/{key}` - Delete secret
+- [x] Create base JSON response helpers (implemented inline)
+- [x] Implement Secrets endpoints:
+  - [x] GET `/api/secrets` - List all secrets for vault/stage
+  - [x] GET `/api/secrets/{key}` - Get single secret (with unmask option)
+  - [x] POST `/api/secrets` - Create/update secret
+  - [x] PUT `/api/secrets/{key}` - Update secret
+  - [x] DELETE `/api/secrets/{key}` - Delete secret
   - [ ] POST `/api/secrets/rename` - Rename secret
-  - [ ] GET `/api/secrets/search` - Search in values
+  - [x] GET `/api/search` - Search in values
   - [ ] GET `/api/secrets/history/{key}` - Get secret history
-- [ ] Implement `VaultsController`:
-  - [ ] GET `/api/vaults` - List configured vaults
+- [x] Implement Vault endpoints:
+  - [x] GET `/api/vaults` - List configured vaults
   - [ ] GET `/api/vaults/{name}` - Get vault details
-  - [ ] POST `/api/vaults/verify` - Run verification
-- [ ] Implement `StagesController`:
-  - [ ] GET `/api/stages` - List all stages
+  - [x] POST `/api/verify` - Run verification
+- [x] Implement Stage endpoints:
+  - [x] GET `/api/stages` - List all stages
   - [ ] POST `/api/stages` - Add custom stage
-- [ ] Implement `DiffController`:
-  - [ ] GET `/api/diff` - Get diff matrix across stages/vaults
-- [ ] Implement `ExportController`:
-  - [ ] POST `/api/export` - Export to various formats
+- [x] Implement Diff endpoint:
+  - [x] GET `/api/diff` - Get diff matrix across stages/vaults
+- [x] Implement Export endpoint:
+  - [x] POST `/api/export` - Export to various formats
   - [ ] POST `/api/export/template` - Process template
-- [ ] Implement `ImportController`:
+- [ ] Implement Import endpoint:
   - [ ] POST `/api/import` - Import from uploaded file
-- [ ] Add error handling and validation to all endpoints
+- [x] Add error handling and validation to all endpoints
 
 ### Phase 3: Frontend Foundation
 - [ ] Set up Vue 3 build pipeline (vite)
