@@ -1,0 +1,117 @@
+<?php
+
+namespace STS\Keep\Commands;
+
+use function Laravel\Prompts\table;
+
+class SearchCommand extends BaseCommand
+{
+    public $signature = 'search 
+        {query : Text to search for in secret values}
+        {--unmask : Show actual secret values in results}
+        {--case-sensitive : Make the search case-sensitive}
+        {--format=table : Output format (table or json)} '
+        .self::ONLY_EXCLUDE_SIGNATURE
+        .self::VAULT_SIGNATURE
+        .self::STAGE_SIGNATURE;
+
+    public $description = 'Search for secrets containing specific text in their values';
+
+    public function process()
+    {
+        $query = $this->argument('query');
+        $unmask = $this->option('unmask');
+        $caseSensitive = $this->option('case-sensitive');
+        $format = $this->option('format');
+        
+        $context = $this->vaultContext();
+        $vault = $context->createVault();
+        
+        // Get all secrets
+        $secrets = $vault->list()->filterByPatterns(
+            only: $this->option('only'),
+            except: $this->option('except')
+        );
+
+        if ($secrets->isEmpty()) {
+            $this->info('No secrets found to search.');
+            return self::SUCCESS;
+        }
+
+        // Search through values
+        $matches = $secrets->filter(function ($secret) use ($query, $caseSensitive) {
+            $value = $secret->value();
+            
+            if (!$caseSensitive) {
+                $value = strtolower($value);
+                $query = strtolower($query);
+            }
+            
+            return str_contains($value, $query);
+        });
+
+        if ($matches->isEmpty()) {
+            $this->info(sprintf('No secrets found containing "%s" in <context>%s:%s</context>',
+                $this->argument('query'),
+                $context->vault,
+                $context->stage
+            ));
+            return self::SUCCESS;
+        }
+
+        // Prepare results
+        $results = $matches->map(function ($secret) use ($unmask, $query, $caseSensitive) {
+            // Optionally highlight the match in unmasked values
+            if ($unmask) {
+                $highlightedValue = $this->highlightMatch($secret->value(), $query, $caseSensitive);
+                return [
+                    'key' => $secret->key(),
+                    'value' => $highlightedValue,
+                    'revision' => $secret->revision()
+                ];
+            }
+            
+            // Return masked value when not using --unmask
+            $maskedSecret = $secret->withMaskedValue();
+            return [
+                'key' => $maskedSecret->key(),
+                'value' => $maskedSecret->value(),
+                'revision' => $maskedSecret->revision()
+            ];
+        });
+
+        // Output results
+        $this->line(sprintf('Found %d secret(s) containing "%s" in <context>%s:%s</context>:',
+            $matches->count(),
+            $this->argument('query'),
+            $context->vault,
+            $context->stage
+        ));
+        $this->newLine();
+
+        match ($format) {
+            'json' => $this->line($results->toJson(JSON_PRETTY_PRINT)),
+            default => table(['Key', 'Value', 'Revision'], $results->toArray())
+        };
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Highlight matching text in the value
+     */
+    private function highlightMatch(string $value, string $query, bool $caseSensitive): string
+    {
+        // For table display, we'll surround matches with brackets
+        // In a real terminal, we could use color codes
+        if (!$caseSensitive) {
+            // Case-insensitive replacement
+            $pattern = '/(' . preg_quote($query, '/') . ')/i';
+        } else {
+            $pattern = '/(' . preg_quote($query, '/') . ')/';
+        }
+        
+        // Surround matches with >>><<< to make them visible
+        return preg_replace($pattern, '>>>$1<<<', $value);
+    }
+}

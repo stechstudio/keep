@@ -43,7 +43,9 @@ class KeepApplication extends Application
             Commands\SetCommand::class,
             Commands\CopyCommand::class,
             Commands\DeleteCommand::class,
+            Commands\RenameCommand::class,
             Commands\HistoryCommand::class,
+            Commands\SearchCommand::class,
 
             Commands\ShowCommand::class,
             Commands\ImportCommand::class,

@@ -18,7 +18,7 @@ class SimpleShell
     
     private const KNOWN_COMMANDS = [
         'get', 'set', 'delete', 'show', 'copy', 'export',
-        'diff', 'verify', 'info', 'history'
+        'diff', 'verify', 'info', 'history', 'rename', 'search'
     ];
     
     private const COMMAND_ALIASES = [

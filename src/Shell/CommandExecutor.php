@@ -18,7 +18,7 @@ class CommandExecutor
     
     private const NO_STAGE_COMMANDS = ['diff', 'copy', 'info', 'verify'];
     private const NO_VAULT_COMMANDS = ['export', 'copy', 'info', 'verify'];
-    private const WRITE_COMMANDS = ['set', 'delete', 'copy', 'import'];
+    private const WRITE_COMMANDS = ['set', 'delete', 'copy', 'import', 'rename'];
     
     public function __construct(
         private ShellContext $context,
@@ -95,6 +95,8 @@ class CommandExecutor
             'verify' => 'verify',
             'info' => 'info',
             'history' => 'history',
+            'rename' => 'rename',
+            'search' => 'search',
             default => $command
         };
     }
@@ -193,6 +195,26 @@ class CommandExecutor
                 }
                 // First positional is the key
                 $this->addIfExists(array_values($positionals), 0, 'key', $input);
+                break;
+                
+            case 'rename':
+                // Handle "rename OLD NEW [force]" without -- prefix
+                $this->addIfExists($positionals, 0, 'old', $input);
+                $this->addIfExists($positionals, 1, 'new', $input);
+                if (in_array('force', $positionals)) {
+                    $input['--force'] = true;
+                }
+                break;
+                
+            case 'search':
+                // Handle "search QUERY [unmask] [case-sensitive]" without -- prefix
+                $this->addIfExists($positionals, 0, 'query', $input);
+                if (in_array('unmask', $positionals)) {
+                    $input['--unmask'] = true;
+                }
+                if (in_array('case-sensitive', $positionals)) {
+                    $input['--case-sensitive'] = true;
+                }
                 break;
         }
         
