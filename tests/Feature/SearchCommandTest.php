@@ -222,6 +222,33 @@ describe('SearchCommand', function () {
         expect($output)->toContain('"revision"');
     });
 
+    it('outputs JSON without ANSI codes when unmasked', function () {
+        runCommand('set', ['key' => 'TEST_KEY', 'value' => 'contains-search-term-here', '--stage' => 'test']);
+        
+        $tester = runCommand('search', [
+            'query' => 'search',
+            '--format' => 'json',
+            '--unmask' => true,
+            '--stage' => 'test',
+        ]);
+        
+        expect($tester->getStatusCode())->toBe(0);
+        
+        $output = $tester->getDisplay();
+        
+        // Should NOT contain ANSI color codes in JSON output
+        expect($output)->not->toContain("\033[30;103m");
+        expect($output)->not->toContain("\033[0m");
+        
+        // Should contain the raw value in JSON (with pretty print spacing)
+        expect($output)->toContain('"value": "contains-search-term-here"');
+        
+        // Verify it's valid JSON
+        $json = json_decode(substr($output, strpos($output, '[')), true);
+        expect($json)->toBeArray();
+        expect($json[0]['value'])->toBe('contains-search-term-here');
+    });
+
     it('searches partial matches', function () {
         runCommand('set', [
             'key' => 'STRIPE_KEY',
