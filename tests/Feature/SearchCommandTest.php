@@ -144,10 +144,15 @@ describe('SearchCommand', function () {
         
         expect($tester->getStatusCode())->toBe(0);
         
-        $output = stripAnsi($tester->getDisplay());
-        // Value should be unmasked with highlight
-        expect($output)->toContain('>>>secret<<<');
-        expect($output)->toContain('sk-very>>>secret<<<key123');
+        $rawOutput = $tester->getDisplay();
+        $output = stripAnsi($rawOutput);
+        
+        // Check that ANSI color codes are present in raw output (bright yellow background)
+        expect($rawOutput)->toContain("\033[30;103m");
+        
+        // Value should be unmasked with the query text visible (after stripping ANSI)
+        expect($output)->toContain('secret');
+        expect($output)->toContain('sk-verysecretkey123');
     });
 
     it('returns success with message when no matches found', function () {

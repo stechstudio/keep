@@ -330,7 +330,7 @@ keep search "secret" --stage=local --format=json
 ```
 
 **Search Results:**
-- Matched text is highlighted with `>>>text<<<` markers when using `--unmask`
+- Matched text is highlighted with a yellow background when using `--unmask`
 - Shows the key name, masked/unmasked value, and revision for each match
 - Returns success even when no matches are found
 

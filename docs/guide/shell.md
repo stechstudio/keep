@@ -128,15 +128,15 @@ Found 2 secret(s) containing "postgres" in ssm:production:
 │ BACKUP_DB_URL  │ post***********   │ 1        │
 └────────────────┴───────────────────┴──────────┘
 
-# Search with actual values shown
+# Search with actual values shown (matched text highlighted in yellow)
 ssm:local> search localhost unmask
 Found 3 secret(s) containing "localhost" in ssm:local:
 ┌──────────────┬───────────────────────────────┬──────────┐
 │ Key          │ Value                         │ Revision │
 ├──────────────┼───────────────────────────────┼──────────┤
-│ DB_HOST      │ >>>localhost<<<:5432          │ 1        │
-│ REDIS_URL    │ redis://>>>localhost<<<:6379  │ 1        │
-│ API_ENDPOINT │ http://>>>localhost<<<:3000   │ 1        │
+│ DB_HOST      │ localhost:5432                │ 1        │
+│ REDIS_URL    │ redis://localhost:6379        │ 1        │
+│ API_ENDPOINT │ http://localhost:3000         │ 1        │
 └──────────────┴───────────────────────────────┴──────────┘
 ```
 

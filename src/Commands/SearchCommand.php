@@ -102,8 +102,6 @@ class SearchCommand extends BaseCommand
      */
     private function highlightMatch(string $value, string $query, bool $caseSensitive): string
     {
-        // For table display, we'll surround matches with brackets
-        // In a real terminal, we could use color codes
         if (!$caseSensitive) {
             // Case-insensitive replacement
             $pattern = '/(' . preg_quote($query, '/') . ')/i';
@@ -111,7 +109,9 @@ class SearchCommand extends BaseCommand
             $pattern = '/(' . preg_quote($query, '/') . ')/';
         }
         
-        // Surround matches with >>><<< to make them visible
-        return preg_replace($pattern, '>>>$1<<<', $value);
+        // Use bright yellow background with black text for visibility
+        // ANSI: \033[30;103m = black text on bright yellow background
+        // Reset: \033[0m
+        return preg_replace($pattern, "\033[30;103m$1\033[0m", $value);
     }
 }
