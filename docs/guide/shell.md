@@ -219,7 +219,7 @@ All standard Keep commands work in the shell:
 
 - **`diff <stage1> <stage2>`** - Compare secrets between stages
 - **`export`** - Export secrets to .env format
-- **`verify`** - Verify template placeholders
+- **`verify`** - Verify vault setup, authentication, and permissions
 
 ### Exiting the Shell
 
