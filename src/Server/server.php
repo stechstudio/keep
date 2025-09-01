@@ -75,6 +75,9 @@ if (str_starts_with($path, '/api/')) {
             // Search
             $method === 'GET' && $path === '/api/search' => searchSecrets($query, $manager),
             
+            // Settings & Config
+            $method === 'GET' && $path === '/api/settings' => getSettings($manager),
+            
             // Vaults & Stages
             $method === 'GET' && $path === '/api/vaults' => listVaults($manager),
             $method === 'GET' && $path === '/api/stages' => listStages($manager),
@@ -229,6 +232,17 @@ function searchSecrets(array $query, KeepManager $manager): array
             'value' => $unmask ? $secret->value : $secret->getMaskedValue(),
             'match' => stripos($secret->value, $q) !== false ? 'value' : 'key'
         ])->values()->toArray()
+    ];
+}
+
+function getSettings(KeepManager $manager): array
+{
+    $settings = $manager->getSettings();
+    
+    return [
+        'app_name' => $settings['app_name'] ?? 'Keep',
+        'stages' => $settings['stages'] ?? ['local', 'staging', 'production'],
+        'default_vault' => $manager->getDefaultVault()
     ];
 }
 

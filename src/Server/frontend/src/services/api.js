@@ -57,6 +57,11 @@ class ApiClient {
     return this.request(`/search?q=${encodeURIComponent(query)}&vault=${vault}&stage=${stage}&unmask=${unmask}`)
   }
 
+  // Settings & Config
+  async getSettings() {
+    return this.request('/settings')
+  }
+
   // Vaults & Stages
   async listVaults() {
     return this.request('/vaults')
