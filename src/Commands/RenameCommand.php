@@ -9,9 +9,9 @@ class RenameCommand extends BaseCommand
     public $signature = 'rename 
         {old : Current secret key name}
         {new : New secret key name}
-        {--force : Skip confirmation prompt} '
-        .self::VAULT_SIGNATURE
-        .self::STAGE_SIGNATURE;
+        {--force : Skip confirmation prompt} 
+        {--vault= : The vault to use}
+        {--stage= : The stage to use}';
 
     public $description = 'Rename a secret while preserving its value and metadata';
 

@@ -17,9 +17,10 @@ class DiffCommand extends BaseCommand
 
     public $signature = 'diff 
         {--stage= : Comma-separated list of stages to compare (defaults to all configured stages)}
-        {--vault= : Comma-separated list of vaults to compare (defaults to all configured vaults)}'
-        .self::UNMASK_SIGNATURE
-        .self::ONLY_EXCLUDE_SIGNATURE;
+        {--vault= : Comma-separated list of vaults to compare (defaults to all configured vaults)}
+        {--unmask : Show full secret values instead of masked values}
+        {--only= : Only include keys matching this pattern (e.g. DB_*)} 
+        {--except= : Exclude keys matching this pattern (e.g. MAIL_*)}';
 
     public $description = 'Compare secrets across multiple stages and vaults in a matrix view';
 

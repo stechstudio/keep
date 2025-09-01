@@ -6,10 +6,13 @@ use function Laravel\Prompts\table;
 
 class ShowCommand extends BaseCommand
 {
-    public $signature = 'show {--format=table : table|json|env} {--unmask : Show full secret values instead of masked values} '
-        .self::ONLY_EXCLUDE_SIGNATURE
-        .self::VAULT_SIGNATURE
-        .self::STAGE_SIGNATURE;
+    public $signature = 'show 
+        {--format=table : table|json|env} 
+        {--unmask : Show full secret values instead of masked values} 
+        {--only= : Only include keys matching this pattern (e.g. DB_*)} 
+        {--except= : Exclude keys matching this pattern (e.g. MAIL_*)}
+        {--vault= : The vault to use}
+        {--stage= : The stage to use}';
 
     public $description = 'Show all secrets from a vault and stage';
 

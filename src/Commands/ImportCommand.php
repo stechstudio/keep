@@ -11,14 +11,16 @@ use function Laravel\Prompts\text;
 
 class ImportCommand extends BaseCommand
 {
-    public $signature = 'import {from? : Env file to import from}
+    public $signature = 'import 
+        {from? : Env file to import from}
         {--overwrite : Overwrite existing secrets} 
         {--skip-existing : Skip existing secrets}  
         {--dry-run : Show what would be imported without actually importing}
-        {--force : Skip confirmation prompts for automation} '
-        .self::ONLY_EXCLUDE_SIGNATURE
-        .self::VAULT_SIGNATURE
-        .self::STAGE_SIGNATURE;
+        {--force : Skip confirmation prompts for automation} 
+        {--only= : Only include keys matching this pattern (e.g. DB_*)} 
+        {--except= : Exclude keys matching this pattern (e.g. MAIL_*)}
+        {--vault= : The vault to use}
+        {--stage= : The stage to use}';
 
     public $description = 'Import a .env file and store as stage secrets in a specified vault';
 

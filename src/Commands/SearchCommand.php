@@ -11,10 +11,11 @@ class SearchCommand extends BaseCommand
         {query? : Text to search for in secret values}
         {--unmask : Show actual secret values in results}
         {--case-sensitive : Make the search case-sensitive}
-        {--format=table : Output format (table or json)} '
-        .self::ONLY_EXCLUDE_SIGNATURE
-        .self::VAULT_SIGNATURE
-        .self::STAGE_SIGNATURE;
+        {--format=table : Output format (table or json)} 
+        {--only= : Only include keys matching this pattern (e.g. DB_*)} 
+        {--except= : Exclude keys matching this pattern (e.g. MAIL_*)}
+        {--vault= : The vault to use}
+        {--stage= : The stage to use}';
 
     public $description = 'Search for secrets containing specific text in their values';
 

@@ -6,10 +6,11 @@ use function Laravel\Prompts\table;
 
 class GetCommand extends BaseCommand
 {
-    public $signature = 'get {--format=table : table|json|raw} '
-        .self::KEY_SIGNATURE
-        .self::VAULT_SIGNATURE
-        .self::STAGE_SIGNATURE;
+    public $signature = 'get 
+        {key? : The secret key}
+        {--format=table : table|json|raw} 
+        {--vault= : The vault to use}
+        {--stage= : The stage to use}';
 
     public $description = 'Get the value of a stage secret in a specified vault';
 

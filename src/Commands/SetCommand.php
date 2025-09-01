@@ -4,12 +4,12 @@ namespace STS\Keep\Commands;
 
 class SetCommand extends BaseCommand
 {
-    public $signature = 'set '
-        .self::KEY_SIGNATURE
-        .self::VALUE_SIGNATURE
-        .self::VAULT_SIGNATURE
-        .self::STAGE_SIGNATURE
-        .self::PLAIN_SIGNATURE;
+    public $signature = 'set 
+        {key? : The secret key}
+        {value? : The secret value}
+        {--vault= : The vault to use}
+        {--stage= : The stage to use}
+        {--plain : Do not encrypt the value}';
 
     public $description = 'Set the value of a stage secret in a specified vault';
 
