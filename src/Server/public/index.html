@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keep - Secret Management UI</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #f5f5f5;
+        }
+        .header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .auth-status {
+            padding: 0.5rem 1rem;
+            background: #10b981;
+            color: white;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        pre {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔐 Keep UI</h1>
+        <div class="auth-status" id="status">Connecting...</div>
+    </div>
+    
+    <div class="content">
+        <h2>Secrets</h2>
+        <button onclick="loadSecrets()">Load Secrets</button>
+        <pre id="output">Click "Load Secrets" to fetch data from the API</pre>
+    </div>
+
+    <script>
+        // Get auth token from server (in production, this would be handled differently)
+        const AUTH_TOKEN = prompt('Enter auth token (check server console):');
+        
+        // Update status
+        document.getElementById('status').textContent = AUTH_TOKEN ? 'Authenticated' : 'Not authenticated';
+        
+        async function loadSecrets() {
+            try {
+                const response = await fetch('/api/secrets?vault=default&stage=local', {
+                    headers: {
+                        'X-Auth-Token': AUTH_TOKEN
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('output').textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        // Test connection on load
+        fetch('/api/vaults', {
+            headers: { 'X-Auth-Token': AUTH_TOKEN }
+        }).then(r => {
+            if (!r.ok) {
+                document.getElementById('status').textContent = 'Authentication failed';
+                document.getElementById('status').style.background = '#ef4444';
+            }
+        });
+    </script>
+</body>
+</html>
