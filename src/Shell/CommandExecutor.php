@@ -3,6 +3,7 @@
 namespace STS\Keep\Shell;
 
 use Illuminate\Console\Application;
+use STS\Keep\Shell\Commands\InteractiveExport;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
@@ -37,6 +38,11 @@ class CommandExecutor
         try {
             $parsed = $this->parseInput($input);
             $commandName = $this->resolveCommand($parsed['command']);
+            
+            // Handle export command specially with interactive flow
+            if ($commandName === 'export') {
+                return $this->runInteractiveExport($parsed['positionals']);
+            }
             
             $this->validateCommand($commandName);
             
@@ -156,8 +162,7 @@ class CommandExecutor
                 break;
                 
             case 'export':
-                // Export in shell always uses default .env format (no format options)
-                // No positional arguments needed
+                // Export is handled by InteractiveExport, this shouldn't be reached
                 break;
                 
             case 'copy':
@@ -267,5 +272,14 @@ class CommandExecutor
     {
         $output = new ConsoleOutput();
         $output->writeln("<error>{$message}</error>");
+    }
+    
+    /**
+     * Run the interactive export command
+     */
+    protected function runInteractiveExport(array $args): int
+    {
+        $interactiveExport = new InteractiveExport($this->context, $this->application);
+        return $interactiveExport->execute($args);
     }
 }

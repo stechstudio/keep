@@ -67,6 +67,7 @@ class SimpleShell
         $formatter->setStyle('context', new OutputFormatterStyle('bright-blue'));
         $formatter->setStyle('suggestion', new OutputFormatterStyle('bright-yellow'));
         $formatter->setStyle('neutral', new OutputFormatterStyle('gray'));
+        $formatter->setStyle('alert', new OutputFormatterStyle('bright-red', null, ['bold']));
     }
     
     protected function setupReadline(): void
@@ -93,12 +94,13 @@ class SimpleShell
         $this->output->writeln('');
         $this->output->writeln('<info>Welcome to Keep Shell v1.0.0</info>');
         $this->output->writeln("<neutral>Type 'help' for available commands or 'exit' to quit.</neutral>");
+        $this->output->writeln('');
         $this->output->writeln(sprintf(
-            'Current context: <context>%s:%s</context>',
+            "Current vault: <alert>%s</alert>\nCurrent stage: <alert>%s</alert>",
             $this->context->getVault(),
             $this->context->getStage()
         ));
-        $this->output->writeln('<comment>Tab completion is available for commands and secret names!</comment>');
+        //$this->output->writeln('<comment>Tab completion is available for commands and secret names!</comment>');
         $this->output->writeln('');
     }
     
@@ -159,7 +161,7 @@ class SimpleShell
             $this->handleUnknownCommand($command);
             return;
         }
-        
+
         try {
             $exitCode = $this->executor->execute($fullInput);
             

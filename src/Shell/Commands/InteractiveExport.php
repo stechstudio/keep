@@ -1,0 +1,191 @@
+<?php
+
+namespace STS\Keep\Shell\Commands;
+
+use Illuminate\Console\Application;
+use STS\Keep\Shell\ShellContext;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use function Laravel\Prompts\select;
+use function Laravel\Prompts\text;
+use function Laravel\Prompts\confirm;
+
+class InteractiveExport
+{
+    public function __construct(
+        private ShellContext $context,
+        private Application $application
+    ) {
+    }
+    
+    /**
+     * Execute the interactive export flow
+     */
+    public function execute(array $args = []): int
+    {
+        // If we're not in a TTY (e.g., piped input), fall back to non-interactive
+        if (!posix_isatty(STDIN)) {
+            return $this->runNonInteractive($args);
+        }
+        
+        // Check if a format shortcut was provided
+        $format = null;
+        if (isset($args[0]) && in_array($args[0], ['json', 'env'])) {
+            $format = $args[0];
+        }
+        
+        // Build options starting with context
+        $options = [
+            '--stage' => $this->context->getStage(),
+            '--vault' => $this->context->getVault(),
+        ];
+        
+        // Ask what they want to export
+        $mode = select(
+            label: 'What would you like to export?',
+            options: [
+                'all' => 'All secrets from current context',
+                'template' => 'Use a template file',
+                'filtered' => 'Filtered secrets (with patterns)',
+            ],
+            default: 'all'
+        );
+        
+        // Handle template mode
+        if ($mode === 'template') {
+            $templateFile = text(
+                label: 'Template file path',
+                placeholder: '.env.template',
+                required: true
+            );
+            $options['--template'] = $templateFile;
+            
+            if (confirm('Include all vault secrets (not just template placeholders)?', false)) {
+                $options['--all'] = true;
+            }
+            
+            $options['--missing'] = select(
+                label: 'How to handle missing secrets?',
+                options: [
+                    'fail' => 'Stop with error (default)',
+                    'remove' => 'Comment out the line',
+                    'blank' => 'Leave value empty',
+                    'skip' => 'Keep placeholder unchanged',
+                ],
+                default: 'fail'
+            );
+        }
+        
+        // Handle filtered mode
+        if ($mode === 'filtered') {
+            $only = text(
+                label: 'Include only keys matching (e.g., DB_*, API_*)',
+                placeholder: 'Leave empty for all',
+                required: false
+            );
+            if ($only) {
+                $options['--only'] = $only;
+            }
+            
+            $except = text(
+                label: 'Exclude keys matching (e.g., *_SECRET)',
+                placeholder: 'Leave empty for none',
+                required: false
+            );
+            if ($except) {
+                $options['--except'] = $except;
+            }
+        }
+        
+        // Ask about format (unless already specified via shortcut)
+        if ($format === null) {
+            $format = select(
+                label: 'Output format',
+                options: [
+                    'env' => '.env format (KEY=value)',
+                    'json' => 'JSON format',
+                ],
+                default: 'env'
+            );
+        }
+        $options['--format'] = $format;
+        
+        // Ask about output destination
+        $destination = select(
+            label: 'Where to export?',
+            options: [
+                'screen' => 'Display on screen',
+                'file' => 'Save to file',
+            ],
+            default: 'screen'
+        );
+        
+        if ($destination === 'file') {
+            $defaultFile = $format === 'json' ? 'secrets.json' : '.env';
+            $file = text(
+                label: 'Output file path',
+                placeholder: $defaultFile,
+                default: $defaultFile,
+                required: true
+            );
+            $options['--file'] = $file;
+            
+            // Check if file exists
+            if (file_exists($file)) {
+                $fileAction = select(
+                    label: "File '{$file}' already exists. What would you like to do?",
+                    options: [
+                        'overwrite' => 'Overwrite the file',
+                        'append' => 'Append to the file',
+                        'cancel' => 'Cancel export',
+                    ],
+                    default: 'cancel'
+                );
+                
+                if ($fileAction === 'cancel') {
+                    $output = new ConsoleOutput();
+                    $output->writeln('<info>Export cancelled.</info>');
+                    return 0;
+                }
+                
+                $options['--' . $fileAction] = true;
+            }
+        }
+        
+        // Now run the actual export command with all gathered options
+        return $this->runExportCommand($options);
+    }
+    
+    /**
+     * Run the actual export command with the gathered options
+     */
+    private function runExportCommand(array $options): int
+    {
+        $input = array_merge(['command' => 'export'], $options);
+        
+        $command = $this->application->find('export');
+        $arrayInput = new ArrayInput($input);
+        $output = new ConsoleOutput();
+        
+        $exitCode = $command->run($arrayInput, $output);
+        return $exitCode === null ? 0 : $exitCode;
+    }
+    
+    /**
+     * Run non-interactive export (for piped input/testing)
+     */
+    private function runNonInteractive(array $args): int
+    {
+        $options = [
+            '--stage' => $this->context->getStage(),
+            '--vault' => $this->context->getVault(),
+        ];
+        
+        // Check if format was specified
+        if (isset($args[0]) && in_array($args[0], ['json', 'env'])) {
+            $options['--format'] = $args[0];
+        }
+        
+        return $this->runExportCommand($options);
+    }
+}
