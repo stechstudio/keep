@@ -16,17 +16,6 @@ class SimpleShell
     private CommandSuggestion $suggestion;
     private string $historyFile;
     
-    private const KNOWN_COMMANDS = [
-        'get', 'set', 'delete', 'show', 'copy', 'export',
-        'diff', 'verify', 'info', 'history', 'rename', 'search'
-    ];
-    
-    private const COMMAND_ALIASES = [
-        'g' => 'get',
-        's' => 'set',
-        'd' => 'delete',
-        'ls' => 'show',
-    ];
     
     public function __construct(
         private ShellContext $context,
@@ -155,9 +144,7 @@ class SimpleShell
     
     protected function executeKeepCommand(string $command, array $args, string $fullInput): void
     {
-        $command = self::COMMAND_ALIASES[$command] ?? $command;
-        
-        if (!in_array($command, self::KNOWN_COMMANDS)) {
+        if (!CommandRegistry::isKeepCommand($command)) {
             $this->handleUnknownCommand($command);
             return;
         }
@@ -205,7 +192,7 @@ class SimpleShell
         $command = $parts[0];
         
         // Resolve aliases
-        $command = self::COMMAND_ALIASES[$command] ?? $command;
+        $command = CommandRegistry::resolveAlias($command);
         
         // Redact secret values from set commands
         if ($command === 'set' && count($parts) >= 3) {
