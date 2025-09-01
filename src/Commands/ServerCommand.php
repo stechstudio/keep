@@ -34,17 +34,15 @@ class ServerCommand extends BaseCommand
             return self::FAILURE;
         }
         
-        // Generate and display auth token
+        // Generate auth token (automatically passed to browser)
         $token = bin2hex(random_bytes(32));
         
         $this->info('');
         $this->info('🚀 Starting Keep Web UI...');
         $this->info('');
-        $this->alert('Server Details');
         $this->info("URL: <comment>http://{$host}:{$port}</comment>");
-        $this->info("Auth Token: <comment>{$token}</comment>");
         $this->info('');
-        $this->warn('Copy the auth token above - you\'ll need it to authenticate in the browser.');
+        $this->info('✨ Authentication is automatic - no token copy/paste needed!');
         $this->info('Press <comment>Ctrl+C</comment> to stop the server.');
         $this->info('');
         
