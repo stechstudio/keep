@@ -65,11 +65,11 @@
     </div>
 
     <script>
-        // Get auth token from server (in production, this would be handled differently)
-        const AUTH_TOKEN = prompt('Enter auth token (check server console):');
+        // Token is injected by server - no need to prompt!
+        const AUTH_TOKEN = window.KEEP_AUTH_TOKEN;
         
         // Update status
-        document.getElementById('status').textContent = AUTH_TOKEN ? 'Authenticated' : 'Not authenticated';
+        document.getElementById('status').textContent = 'Authenticated';
         
         async function loadSecrets() {
             try {

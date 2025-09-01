@@ -13,9 +13,6 @@ use STS\Keep\KeepManager;
 
 // Initialize server - get token from environment or generate one
 $AUTH_TOKEN = $_ENV['KEEP_AUTH_TOKEN'] ?? $_SERVER['KEEP_AUTH_TOKEN'] ?? bin2hex(random_bytes(32));
-if (!isset($_ENV['KEEP_AUTH_TOKEN'])) {
-    error_log("Keep UI Token: " . $AUTH_TOKEN);
-}
 
 // Get request details
 $method = $_SERVER['REQUEST_METHOD'];
@@ -23,9 +20,9 @@ $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $query = [];
 parse_str($_SERVER['QUERY_STRING'] ?? '', $query);
 
-// Serve static files
+// Serve index with embedded auth token
 if ($path === '/' || $path === '/index.html') {
-    serveFile(__DIR__ . '/public/index.html', 'text/html');
+    serveIndexWithToken(__DIR__ . '/public/index.html', $AUTH_TOKEN);
 }
 if (str_starts_with($path, '/assets/')) {
     $file = __DIR__ . '/public' . $path;
@@ -367,6 +364,25 @@ function serveFile(string $path, string $contentType): void
     header('Content-Type: ' . $contentType);
     header('Cache-Control: public, max-age=3600');
     readfile($path);
+    exit;
+}
+
+function serveIndexWithToken(string $path, string $token): void
+{
+    if (!file_exists($path)) {
+        http_response_code(404);
+        echo "Not found";
+        exit;
+    }
+    
+    $html = file_get_contents($path);
+    // Inject the token as a JavaScript variable
+    $injection = "<script>window.KEEP_AUTH_TOKEN = '" . htmlspecialchars($token) . "';</script>";
+    $html = str_replace('</head>', $injection . "\n</head>", $html);
+    
+    header('Content-Type: text/html');
+    header('Cache-Control: no-cache, no-store, must-revalidate');
+    echo $html;
     exit;
 }
 
