@@ -60,13 +60,17 @@ class SearchCommand extends BaseCommand
         }
 
         // Prepare results
-        $results = $matches->map(function ($secret) use ($unmask, $query, $caseSensitive) {
+        $results = $matches->map(function ($secret) use ($unmask, $query, $caseSensitive, $format) {
             // Optionally highlight the match in unmasked values
             if ($unmask) {
-                $highlightedValue = $this->highlightMatch($secret->value(), $query, $caseSensitive);
+                // Only apply color highlighting for table format, not JSON
+                $value = $format === 'table' 
+                    ? $this->highlightMatch($secret->value(), $query, $caseSensitive)
+                    : $secret->value();
+                    
                 return [
                     'key' => $secret->key(),
-                    'value' => $highlightedValue,
+                    'value' => $value,
                     'revision' => $secret->revision()
                 ];
             }
