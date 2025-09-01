@@ -37,7 +37,7 @@ class CommandExecutor
         
         try {
             $parsed = $this->parseInput($input);
-            $commandName = $this->resolveCommand($parsed['command']);
+            $commandName = $parsed['command'];
             
             // Handle export command specially with interactive flow
             if ($commandName === 'export') {
@@ -80,31 +80,6 @@ class CommandExecutor
     protected function mapAlias(string $command): string
     {
         return self::COMMAND_ALIASES[$command] ?? $command;
-    }
-    
-    protected function resolveCommand(string $command): string
-    {
-        if (str_contains($command, ':')) {
-            return $command;
-        }
-        
-        return match($command) {
-            'configure' => 'configure',
-            'set' => 'set',
-            'get' => 'get',
-            'show' => 'show',
-            'delete' => 'delete',
-            'copy' => 'copy',
-            'import' => 'import',
-            'export' => 'export',
-            'diff' => 'diff',
-            'verify' => 'verify',
-            'info' => 'info',
-            'history' => 'history',
-            'rename' => 'rename',
-            'search' => 'search',
-            default => $command
-        };
     }
     
     protected function validateCommand(string $commandName): void
