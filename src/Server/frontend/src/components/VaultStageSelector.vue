@@ -4,29 +4,29 @@
     <div class="relative">
       <button
         @click="vaultOpen = !vaultOpen"
-        class="flex items-center space-x-2 px-3 py-1.5 bg-muted rounded-md hover:bg-accent transition-colors text-sm"
+        class="flex items-center space-x-2 px-3 py-1.5 bg-muted rounded-md hover:bg-accent transition-colors text-sm min-w-[200px]"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
         </svg>
-        <span>{{ vault || 'Select Vault' }}</span>
+        <span>{{ vaultDisplay || 'Select Vault' }}</span>
         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       
-      <div v-if="vaultOpen" class="absolute top-full mt-1 w-48 bg-popover border border-border rounded-md shadow-lg z-10">
+      <div v-if="vaultOpen" class="absolute top-full mt-1 w-80 bg-popover border border-border rounded-md shadow-lg z-10">
         <div class="py-1">
           <button
             v-for="v in vaults"
-            :key="v"
-            @click="selectVault(v)"
+            :key="v.name || v"
+            @click="selectVault(v.name || v)"
             :class="[
               'w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors',
-              vault === v ? 'bg-accent' : ''
+              vault === (v.name || v) ? 'bg-accent' : ''
             ]"
           >
-            {{ v }}
+            {{ v.display || v }}
           </button>
         </div>
       </div>
@@ -67,7 +67,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   vault: String,
@@ -80,6 +80,15 @@ const emit = defineEmits(['update:vault', 'update:stage'])
 
 const vaultOpen = ref(false)
 const stageOpen = ref(false)
+
+// Get display name for selected vault
+const vaultDisplay = computed(() => {
+  if (!props.vault) return ''
+  const vaultObj = props.vaults?.find(v => 
+    (typeof v === 'object' ? v.name : v) === props.vault
+  )
+  return vaultObj?.display || props.vault
+})
 
 function selectVault(v) {
   emit('update:vault', v)

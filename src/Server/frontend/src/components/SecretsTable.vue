@@ -167,7 +167,13 @@ async function loadVaultsAndStages() {
     
     // Set defaults
     if (!vault.value) {
-      vault.value = settings.default_vault || vaults.value[0] || ''
+      // Handle both new object format and old string format
+      const defaultVault = settings.default_vault
+      if (defaultVault) {
+        vault.value = defaultVault
+      } else if (vaults.value.length > 0) {
+        vault.value = vaults.value[0].name || vaults.value[0]
+      }
     }
     if (!stage.value && stages.value.length) {
       stage.value = stages.value[0]

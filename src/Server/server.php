@@ -252,8 +252,31 @@ function listVaults(KeepManager $manager): array
 {
     $vaults = $manager->getConfiguredVaults();
     
+    $vaultList = $vaults->map(function($config) use ($manager) {
+        $slug = $config->slug();
+        $name = $config->name();
+        $driver = $config->driver();
+        
+        // Get the vault class to access its friendly NAME constant if available
+        $vaultClass = null;
+        foreach ($manager->getAvailableVaults() as $class) {
+            if ($class::DRIVER === $driver) {
+                $vaultClass = $class;
+                break;
+            }
+        }
+        
+        // Use the name from config, or fall back to the class NAME constant
+        $friendlyName = $name ?: ($vaultClass ? $vaultClass::NAME : ucfirst($driver));
+        
+        return [
+            'name' => $slug,  // This is what we'll use as the value
+            'display' => $friendlyName . ' (' . $slug . ')'  // This is what we'll show
+        ];
+    });
+    
     return [
-        'vaults' => $vaults->pluck('name')->values()->toArray()
+        'vaults' => $vaultList->values()->toArray()
     ];
 }
 
