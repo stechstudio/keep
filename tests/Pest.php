@@ -30,8 +30,7 @@ function runCommand(string $commandName, array $input = []): CommandTester
     // Register TestVault driver for testing to avoid hitting real AWS services
     Keep::addVaultDriver(TestVault::class);
 
-    // Clear test vault storage before each command
-    TestVault::clearAll();
+    // Note: Tests should manage their own TestVault cleanup in beforeEach
 
     $command = $app->find($commandName);
     $commandTester = new CommandTester($command);
