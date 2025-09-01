@@ -3,11 +3,12 @@
 namespace STS\Keep\Commands;
 
 use function Laravel\Prompts\table;
+use function Laravel\Prompts\text;
 
 class SearchCommand extends BaseCommand
 {
     public $signature = 'search 
-        {query : Text to search for in secret values}
+        {query? : Text to search for in secret values}
         {--unmask : Show actual secret values in results}
         {--case-sensitive : Make the search case-sensitive}
         {--format=table : Output format (table or json)} '
@@ -19,7 +20,7 @@ class SearchCommand extends BaseCommand
 
     public function process()
     {
-        $query = $this->argument('query');
+        $query = $this->argument('query') ?? text('Search query', required: true);
         $unmask = $this->option('unmask');
         $caseSensitive = $this->option('case-sensitive');
         $format = $this->option('format');

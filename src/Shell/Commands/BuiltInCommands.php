@@ -99,8 +99,9 @@ class BuiltInCommands
     
     protected function context(): void
     {
+        $this->output->writeln('');
         $this->output->writeln(sprintf(
-            "Vault: <context>%s</context>\nStage: <context>%s</context>",
+            "Vault: <alert>%s</alert>\nStage: <alert>%s</alert>",
             $this->context->getVault(),
             $this->context->getStage()
         ));
@@ -144,7 +145,7 @@ class BuiltInCommands
         $this->context->setStage($stage);
         
         $this->output->writeln(sprintf(
-            'Switched to: <context>%s:%s</context>',
+            'Switched to: <alert>%s:%s</alert>',
             $vault,
             $stage
         ));
@@ -154,7 +155,7 @@ class BuiltInCommands
     {
         $this->context->setStage($stage);
         $this->output->writeln(sprintf(
-            'Switched to stage: <context>%s</context>',
+            'Switched to stage: <alert>%s</alert>',
             $stage
         ));
     }
@@ -163,7 +164,7 @@ class BuiltInCommands
     {
         $this->context->setVault($vault);
         $this->output->writeln(sprintf(
-            'Switched to vault: <context>%s</context>',
+            'Switched to vault: <alert>%s</alert>',
             $vault
         ));
     }
@@ -206,7 +207,7 @@ class BuiltInCommands
             $this->switchVault($selected);
         } else {
             $this->output->writeln(sprintf(
-                'Already on vault: <context>%s</context>',
+                'Already on vault: <alert>%s</alert>',
                 $current
             ));
         }
@@ -262,6 +263,14 @@ class BuiltInCommands
         if (isset($help[$command]['aliases'])) {
             $this->output->writeln('');
             $this->output->writeln('<comment>Aliases:</comment> ' . implode(', ', $help[$command]['aliases']));
+        }
+        
+        if (isset($help[$command]['notes'])) {
+            $this->output->writeln('');
+            $this->output->writeln('<comment>Notes:</comment>');
+            foreach ($help[$command]['notes'] as $note) {
+                $this->output->writeln($note ? '  ' . $note : '');
+            }
         }
     }
     
@@ -334,6 +343,23 @@ class BuiltInCommands
                     'history API_KEY',
                 ],
             ],
+            'rename' => [
+                'usage' => 'rename <old> <new> [force]',
+                'description' => 'Rename a secret while preserving its value and metadata.',
+                'examples' => [
+                    'rename OLD_KEY NEW_KEY',
+                    'rename API_KEY_V1 API_KEY force      # Skip confirmation',
+                ],
+            ],
+            'search' => [
+                'usage' => 'search <query> [unmask] [case-sensitive]',
+                'description' => 'Search for secrets containing specific text in their values.',
+                'examples' => [
+                    'search "password"',
+                    'search "api-key" unmask      # Show actual values',
+                    'search "Token" case-sensitive      # Case-sensitive search',
+                ],
+            ],
             'stage' => [
                 'usage' => 'stage [name]',
                 'description' => 'Switch to a different stage or interactively select one.',
@@ -370,10 +396,22 @@ class BuiltInCommands
                 'aliases' => ['ctx'],
             ],
             'export' => [
-                'usage' => 'export',
-                'description' => 'Export all secrets in the current context to .env format.',
+                'usage' => 'export [format]',
+                'description' => 'Interactively export secrets with guided prompts for all options.',
                 'examples' => [
-                    'export',
+                    'export           # Interactive mode - prompts for all options',
+                    'export json      # Quick JSON format (still prompts for destination)',
+                    'export env       # Quick env format (still prompts for destination)',
+                ],
+                'notes' => [
+                    'The shell provides an interactive experience with prompts for:',
+                    '  • Export mode (all secrets, template, or filtered)',
+                    '  • Output format (env or JSON)',
+                    '  • Destination (screen or file)',
+                    '  • Template options and missing secret handling',
+                    '',
+                    'For non-interactive exports with all options, use the CLI:',
+                    '  keep export --format=json --file=secrets.json --template=.env.template',
                 ],
             ],
             'verify' => [
@@ -449,6 +487,8 @@ class BuiltInCommands
                 'delete <key> [force]' => 'Delete a secret (alias: d)',
                 'show [unmask]' => 'Show all secrets (alias: ls)',
                 'history <key>' => 'View secret history',
+                'rename <old> <new>' => 'Rename a secret',
+                'search <query>' => 'Search for secrets containing text',
                 'copy <key> [destination]' => 'Copy single secret (e.g., copy DB_PASS staging)',
                 'copy only <pattern>' => 'Copy secrets matching pattern',
                 'diff <stage1> <stage2>' => 'Compare secrets between stages',
@@ -460,7 +500,7 @@ class BuiltInCommands
                 'context' => 'Show current context (alias: ctx)',
             ],
             '<comment>Analysis & Export</comment>' => [
-                'export' => 'Export secrets to .env format',
+                'export' => 'Export secrets interactively',
                 'verify' => 'Verify template placeholders',
                 'info' => 'Show Keep information',
             ],
