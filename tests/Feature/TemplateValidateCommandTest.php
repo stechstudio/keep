@@ -4,6 +4,9 @@ describe('TemplateValidateCommand', function () {
 
     beforeEach(function () {
         createTempKeepDir();
+        
+        // Clear TestVault storage to ensure test isolation
+        \STS\Keep\Tests\Support\TestVault::clearAll();
 
         // Create .keep directory and settings to initialize Keep
         mkdir('.keep');
