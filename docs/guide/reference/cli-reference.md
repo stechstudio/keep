@@ -266,6 +266,74 @@ keep delete TEMP_KEY --stage=staging --force
 keep delete LEGACY_SECRET --stage=production --vault=ssm
 ```
 
+## `keep rename`
+
+Rename a secret while preserving its value and metadata.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--stage` | string | *interactive* | Stage where the secret exists |
+| `--vault` | string | *default vault* | Vault containing the secret |
+| `--force` | boolean | `false` | Skip confirmation prompt |
+
+**Arguments:**
+- `old` - Current secret key name
+- `new` - New secret key name
+
+**Examples:**
+```bash
+# Rename with confirmation
+keep rename DB_PASS DB_PASSWORD --stage=local
+
+# Force rename without prompt
+keep rename OLD_API_KEY NEW_API_KEY --stage=production --force
+
+# Rename in specific vault
+keep rename LEGACY_NAME MODERN_NAME --stage=staging --vault=ssm
+```
+
+**Note:** Neither AWS SSM nor Secrets Manager support native rename operations. This command performs a copy + delete operation, which is the AWS-recommended approach.
+
+## `keep search`
+
+Search for text within secret values.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--stage` | string | *interactive* | Stage to search in |
+| `--vault` | string | *default vault* | Vault to search in |
+| `--unmask` | boolean | `false` | Show actual secret values in results |
+| `--case-sensitive` | boolean | `false` | Make the search case-sensitive |
+| `--format` | string | `table` | Output format: `table` or `json` |
+| `--only` | string | | Comma-separated list of keys to search within |
+| `--except` | string | | Comma-separated list of keys to exclude from search |
+
+**Arguments:**
+- `query` - Text to search for in secret values
+
+**Examples:**
+```bash
+# Basic search (values masked)
+keep search "api.example.com" --stage=production
+
+# Search with actual values shown
+keep search "localhost" --stage=local --unmask
+
+# Case-sensitive search
+keep search "MySpecificValue" --stage=staging --case-sensitive
+
+# Search only in specific keys
+keep search "postgres" --stage=production --only="DB_*,DATABASE_*"
+
+# JSON output
+keep search "secret" --stage=local --format=json
+```
+
+**Search Results:**
+- Matched text is highlighted with `>>>text<<<` markers when using `--unmask`
+- Shows the key name, masked/unmasked value, and revision for each match
+- Returns success even when no matches are found
+
 ## `keep copy`
 
 Copy secrets between stages or vaults. Supports both single secret and bulk operations with pattern matching.

@@ -106,6 +106,40 @@ ssm:production> show
 └─────────────┴─────────────────┴──────────┘
 ```
 
+### Renaming and Searching
+
+```bash
+# Rename a secret
+ssm:local> rename OLD_API_KEY NEW_API_KEY
+Proceed with rename? Yes
+✓ Renamed [OLD_API_KEY] to [NEW_API_KEY] in ssm:local
+
+# Force rename without confirmation
+ssm:local> rename DB_PASS DB_PASSWORD force
+✓ Renamed [DB_PASS] to [DB_PASSWORD] in ssm:local
+
+# Search for text in secret values
+ssm:production> search postgres
+Found 2 secret(s) containing "postgres" in ssm:production:
+┌────────────────┬───────────────────┬──────────┐
+│ Key            │ Value             │ Revision │
+├────────────────┼───────────────────┼──────────┤
+│ DATABASE_URL   │ post***********   │ 1        │
+│ BACKUP_DB_URL  │ post***********   │ 1        │
+└────────────────┴───────────────────┴──────────┘
+
+# Search with actual values shown
+ssm:local> search localhost unmask
+Found 3 secret(s) containing "localhost" in ssm:local:
+┌──────────────┬───────────────────────────────┬──────────┐
+│ Key          │ Value                         │ Revision │
+├──────────────┼───────────────────────────────┼──────────┤
+│ DB_HOST      │ >>>localhost<<<:5432          │ 1        │
+│ REDIS_URL    │ redis://>>>localhost<<<:6379  │ 1        │
+│ API_ENDPOINT │ http://>>>localhost<<<:3000   │ 1        │
+└──────────────┴───────────────────────────────┴──────────┘
+```
+
 ### Comparing Environments
 
 ```bash
@@ -174,6 +208,8 @@ All standard Keep commands work in the shell:
 - **`get <key>`** - Retrieve a secret value
 - **`set <key> <value>`** - Set a secret
 - **`delete <key> [force]`** - Delete a secret (add 'force' to skip confirmation)
+- **`rename <old> <new> [force]`** - Rename a secret (add 'force' to skip confirmation)
+- **`search <query> [unmask] [case-sensitive]`** - Search for text in secret values
 - **`show [unmask]`** - Show all secrets in current context (add 'unmask' to see actual values)
 - **`history <key>`** - View secret history
 - **`copy <key> [destination]`** - Copy a single secret from current context to another stage or vault:stage
