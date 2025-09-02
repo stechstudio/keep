@@ -10,6 +10,7 @@
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 use STS\Keep\KeepManager;
+use STS\Keep\KeepContainer;
 use STS\Keep\Data\Settings;
 use STS\Keep\Data\Collections\VaultConfigCollection;
 
@@ -60,8 +61,10 @@ if (str_starts_with($path, '/api/')) {
         }
     }
     
-    // Initialize Keep with proper settings
+    // Initialize Keep with proper settings and register in container
+    $container = KeepContainer::getInstance();
     $manager = new KeepManager(Settings::load(), VaultConfigCollection::load());
+    $container->instance(KeepManager::class, $manager);
     
     // Route API requests
     try {
@@ -128,10 +131,10 @@ function listSecrets(array $query, KeepManager $manager): array
         
         return [
             'secrets' => $secrets->map(fn($secret) => [
-                'key' => $secret->key,
-                'value' => $unmask ? $secret->value : $secret->getMaskedValue(),
-                'revision' => $secret->revision ?? null,
-                'modified' => $secret->modified ?? null,
+                'key' => $secret->key(),
+                'value' => $unmask ? $secret->value() : $secret->masked(),
+                'revision' => $secret->revision() ?? null,
+                'modified' => null, // Secret doesn't track modification time
             ])->values()->toArray()
         ];
     } catch (Exception $e) {
@@ -158,10 +161,10 @@ function getSecret(string $key, array $query, KeepManager $manager): array
     
     return [
         'secret' => [
-            'key' => $secret->key,
-            'value' => $unmask ? $secret->value : $secret->getMaskedValue(),
-            'revision' => $secret->revision ?? null,
-            'modified' => $secret->modified ?? null,
+            'key' => $secret->key(),
+            'value' => $unmask ? $secret->value() : $secret->masked(),
+            'revision' => $secret->revision() ?? null,
+            'modified' => null, // Secret doesn't track modification time
         ]
     ];
 }
@@ -232,15 +235,15 @@ function searchSecrets(array $query, KeepManager $manager): array
     
     // Simple search implementation
     $results = $secrets->filter(function($secret) use ($q) {
-        return stripos($secret->value, $q) !== false ||
-               stripos($secret->key, $q) !== false;
+        return stripos($secret->value(), $q) !== false ||
+               stripos($secret->key(), $q) !== false;
     });
     
     return [
         'secrets' => $results->map(fn($secret) => [
-            'key' => $secret->key,
-            'value' => $unmask ? $secret->value : $secret->getMaskedValue(),
-            'match' => stripos($secret->value, $q) !== false ? 'value' : 'key'
+            'key' => $secret->key(),
+            'value' => $unmask ? $secret->value() : $secret->masked(),
+            'match' => stripos($secret->value(), $q) !== false ? 'value' : 'key'
         ])->values()->toArray()
     ];
 }
@@ -335,7 +338,7 @@ function getDiff(array $query, KeepManager $manager): array
                 $vault = $manager->vault($vaultName, $stage);
                 $secrets = $vault->list();
                 foreach ($secrets as $secret) {
-                    $matrix[$secret->key][$vaultName][$stage] = $secret->getMaskedValue();
+                    $matrix[$secret->key()][$vaultName][$stage] = $secret->masked();
                 }
             }
         } catch (Exception $e) {
@@ -361,11 +364,11 @@ function exportSecrets(array $data, KeepManager $manager): array
     
     if ($format === 'json') {
         $output = json_encode(
-            $secrets->mapWithKeys(fn($s) => [$s->key => $s->value])->toArray(),
+            $secrets->mapWithKeys(fn($s) => [$s->key() => $s->value()])->toArray(),
             JSON_PRETTY_PRINT
         );
     } else {
-        $output = $secrets->map(fn($s) => "{$s->key}=\"{$s->value}\"")->join("\n");
+        $output = $secrets->map(fn($s) => "{$s->key()}=\"{$s->value()}\"")->join("\n");
     }
     
     return [
