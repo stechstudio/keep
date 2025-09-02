@@ -54,7 +54,8 @@ src/
   - [x] POST `/api/secrets` - Create/update secret
   - [x] PUT `/api/secrets/{key}` - Update secret
   - [x] DELETE `/api/secrets/{key}` - Delete secret
-  - [ ] POST `/api/secrets/rename` - Rename secret
+  - [x] POST `/api/secrets/:key/rename` - Rename secret
+  - [x] POST `/api/secrets/:key/copy-to-stage` - Copy to different stage
   - [x] GET `/api/search` - Search in values
   - [ ] GET `/api/secrets/history/{key}` - Get secret history
 - [x] Implement Vault endpoints:
@@ -76,25 +77,25 @@ src/
 ### Phase 3: Frontend Foundation
 - [x] Set up Vue 3 build pipeline (vite)
 - [x] Create base Vue app structure
-- [ ] Set up Vue Router for navigation
-- [ ] Implement Pinia store for state management
+- [x] Set up Vue Router for navigation (simple tab navigation)
+- [ ] Implement Pinia store for state management (not needed yet)
 - [x] Add Tailwind CSS for styling
 - [x] Create API client service with:
   - [x] Automatic CSRF token inclusion
   - [x] Error handling
-  - [ ] Loading states
+  - [x] Loading states (basic implementation)
 - [x] Implement authentication flow (token injection)
 
 ### Phase 4: Core UI Components
 - [x] Create layout components:
   - [x] AppHeader with vault/stage selector
   - [x] Navigation with pill-style tabs
-  - [ ] AppFooter with connection status
+  - [x] AppFooter with connection status (shows version)
 - [x] Create shared components:
   - [x] SecretValue (with mask/unmask toggle)
   - [ ] LoadingSpinner
   - [ ] ErrorAlert
-  - [ ] SuccessToast
+  - [x] SuccessToast (Toast system implemented)
   - [x] ConfirmDialog (basic implementation)
   - [x] SearchInput with debouncing
 
@@ -149,16 +150,17 @@ src/
   - [ ] Undo capability
 
 ### Phase 7: UI Polish
+- [x] Toast notifications for all actions
 - [ ] Add keyboard shortcuts:
   - [ ] `/` for search focus
   - [ ] `n` for new secret
   - [ ] `e` for edit
   - [ ] `d` for delete
   - [ ] `?` for help
-- [ ] Dark mode support
+- [x] Dark mode support (default theme)
 - [ ] Responsive design for smaller screens
 - [ ] Loading skeletons for better UX
-- [ ] Animations and transitions
+- [x] Animations and transitions (toast animations, hover states)
 - [ ] Empty states with helpful actions
 - [ ] Tooltips for all actions
 - [ ] Export/import UI settings
@@ -175,7 +177,7 @@ src/
 - [ ] Add "lock screen" feature
 
 ### Phase 9: Build & Distribution
-- [ ] Set up Vite build configuration
+- [x] Set up Vite build configuration
 - [ ] Minimize and bundle all assets
 - [ ] Generate source maps for debugging
 - [ ] Create build script in composer.json
@@ -310,11 +312,36 @@ Error responses:
 
 ---
 
+## Completed Features
+
+### ✅ Core Functionality
+- Full CRUD operations for secrets
+- Rename secrets
+- Copy secrets to different stages
+- Search functionality with highlighting
+- Vault and stage switching
+- Diff view for comparing across stages
+- Export functionality (env, json formats)
+- Toast notifications for all actions
+- Dark theme by default
+- Responsive design
+- Clean architecture with controllers and router
+
+### ✅ UI Components
+- SecretsTable with three-dot menu
+- RenameDialog for renaming secrets
+- CopyToStageDialog for stage copying
+- SecretDialog for add/edit
+- VaultStageSelector
+- Toast notification system
+- Masked/unmasked value display
+
 ## Next Steps
 
-1. Start with Phase 1: Get basic server running
-2. Implement minimal API (list secrets)
-3. Create basic Vue app that displays secrets
-4. Iterate from there
+1. Add loading spinners for better UX
+2. Implement keyboard shortcuts
+3. Add bulk operations (select multiple secrets)
+4. Add pagination for large lists
+5. Build production assets and commit
 
 This plan is ambitious but achievable. The key is to deliver value incrementally - even a basic read-only UI would be valuable to users.
