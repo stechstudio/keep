@@ -160,12 +160,12 @@ function toggleMenu(event) {
 }
 
 function handleEdit() {
-  emit('edit', { key: props.secretKey, value: props.secretValue })
+  emit('edit', { key: props.secretKey, value: props.secretValue, vault: props.vault, stage: props.stage })
   isOpen.value = false
 }
 
 function handleRename() {
-  emit('rename', { key: props.secretKey, value: props.secretValue })
+  emit('rename', { key: props.secretKey, value: props.secretValue, vault: props.vault, stage: props.stage })
   isOpen.value = false
 }
 
@@ -183,17 +183,17 @@ function handleCopyValue() {
 }
 
 function handleCopyTo() {
-  emit('copyTo', { key: props.secretKey, value: props.secretValue })
+  emit('copyTo', { key: props.secretKey, value: props.secretValue, vault: props.vault, stage: props.stage })
   isOpen.value = false
 }
 
 function handleHistory() {
-  emit('history', { key: props.secretKey })
+  emit('history', { key: props.secretKey, vault: props.vault, stage: props.stage })
   isOpen.value = false
 }
 
 function handleDelete() {
-  emit('delete', { key: props.secretKey })
+  emit('delete', { key: props.secretKey, vault: props.vault, stage: props.stage })
   isOpen.value = false
 }
 
