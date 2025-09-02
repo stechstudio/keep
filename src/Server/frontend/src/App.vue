@@ -65,7 +65,7 @@ import SettingsView from './components/SettingsView.vue'
 const activeTab = ref('secrets')
 const tabs = [
   { id: 'secrets', label: 'Secrets' },
-  { id: 'diff', label: 'Diff' },
+  { id: 'diff', label: 'Compare' },
   { id: 'settings', label: 'Settings' }
 ]
 

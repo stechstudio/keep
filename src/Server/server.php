@@ -155,7 +155,7 @@ function getSecret(string $key, array $query, KeepManager $manager): array
     $unmask = isset($query['unmask']) && $query['unmask'] === 'true';
     
     $vaultInstance = $manager->vault($vault, $stage);
-    $secret = $vaultInstance->get(urldecode($key), $stage);
+    $secret = $vaultInstance->get(urldecode($key));
     
     if (!$secret) {
         return ['error' => 'Secret not found', '_status' => 404];
@@ -181,7 +181,7 @@ function createSecret(array $data, KeepManager $manager): array
     $stage = $data['stage'] ?? 'local';
     
     $vaultInstance = $manager->vault($vault, $stage);
-    $vaultInstance->put($data['key'], $data['value'], $stage);
+    $vaultInstance->set($data['key'], $data['value']);
     
     return [
         'success' => true,
@@ -199,7 +199,7 @@ function updateSecret(string $key, array $data, KeepManager $manager): array
     $stage = $data['stage'] ?? 'local';
     
     $vaultInstance = $manager->vault($vault, $stage);
-    $vaultInstance->put(urldecode($key), $data['value'], $stage);
+    $vaultInstance->set(urldecode($key), $data['value']);
     
     return [
         'success' => true,
@@ -213,7 +213,7 @@ function deleteSecret(string $key, array $data, KeepManager $manager): array
     $stage = $data['stage'] ?? 'local';
     
     $vaultInstance = $manager->vault($vault, $stage);
-    $vaultInstance->forget(urldecode($key), $stage);
+    $vaultInstance->delete(urldecode($key));
     
     return [
         'success' => true,
