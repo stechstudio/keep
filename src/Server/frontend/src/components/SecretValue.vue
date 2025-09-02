@@ -35,10 +35,22 @@ defineEmits(['toggle'])
 const displayValue = computed(() => {
   if (!props.masked) return props.value
   
-  const len = props.value?.length || 0
-  if (len <= 8) return '••••••••'
+  const value = props.value || ''
+  const length = value.length
   
-  // Show first 3 and last 3 characters
-  return props.value.slice(0, 3) + '•'.repeat(Math.min(len - 6, 20)) + props.value.slice(-3)
+  // Short values always get generic mask (matching PHP)
+  if (length <= 8) {
+    return '****'
+  }
+  
+  // Show first 4 characters plus asterisks (matching PHP)
+  const masked = value.substring(0, 4) + '*'.repeat(length - 4)
+  
+  // Truncate long values (matching PHP)
+  if (length <= 24) {
+    return masked
+  }
+  
+  return masked.substring(0, 24) + ` (${length} chars)`
 })
 </script>
