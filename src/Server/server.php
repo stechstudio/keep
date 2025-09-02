@@ -9,6 +9,7 @@
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 
+use STS\Keep\Data\Secret;
 use STS\Keep\KeepApplication;
 use STS\Keep\KeepManager;
 use STS\Keep\KeepContainer;
@@ -131,11 +132,11 @@ function listSecrets(array $query, KeepManager $manager): array
         $secrets = $vaultInstance->list();
         
         return [
-            'secrets' => $secrets->map(fn($secret) => [
+            'secrets' => $secrets->map(fn(Secret $secret) => [
                 'key' => $secret->key(),
                 'value' => $unmask ? $secret->value() : $secret->masked(),
                 'revision' => $secret->revision() ?? null,
-                'modified' => null, // Secret doesn't track modification time
+                'modified' => null,
             ])->values()->toArray()
         ];
     } catch (Exception $e) {
