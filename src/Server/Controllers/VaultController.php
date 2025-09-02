@@ -226,7 +226,9 @@ class VaultController extends ApiController
                     
                     // Test History permission
                     try {
-                        $vault->history($testKey);
+                        // History requires FilterCollection as second parameter
+                        $filters = new \STS\Keep\Data\Collections\FilterCollection();
+                        $vault->history($testKey, $filters, 10);
                         $permissions['History'] = true;
                     } catch (Exception $e) {
                         // History not supported or failed
