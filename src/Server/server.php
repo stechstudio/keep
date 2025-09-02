@@ -80,6 +80,8 @@ if (str_starts_with($path, '/api/')) {
     $router->post('/api/secrets', [SecretController::class, 'create']);
     $router->put('/api/secrets/:key', [SecretController::class, 'update']);
     $router->delete('/api/secrets/:key', [SecretController::class, 'delete']);
+    $router->post('/api/secrets/:key/rename', [SecretController::class, 'rename']);
+    $router->post('/api/secrets/:key/copy-to-stage', [SecretController::class, 'copyToStage']);
     $router->get('/api/search', [SecretController::class, 'search']);
     
     // Vault & Settings routes

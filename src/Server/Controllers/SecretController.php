@@ -101,4 +101,81 @@ class SecretController extends ApiController
             ))->values()->toArray()
         ]);
     }
+
+    public function rename(string $oldKey): array
+    {
+        if (!isset($this->body['newKey'])) {
+            return $this->error('Missing newKey');
+        }
+        
+        $newKey = $this->body['newKey'];
+        if ($oldKey === $newKey) {
+            return $this->error('New key must be different from old key');
+        }
+        
+        $vault = $this->getVault();
+        
+        // Check if old key exists
+        try {
+            $secret = $vault->get(urldecode($oldKey));
+            if (!$secret) {
+                return $this->error('Secret not found', 404);
+            }
+        } catch (\Exception $e) {
+            return $this->error('Secret not found', 404);
+        }
+        
+        // Check if new key already exists
+        try {
+            $existing = $vault->get($newKey);
+            if ($existing) {
+                return $this->error('A secret with the new key already exists');
+            }
+        } catch (\Exception $e) {
+            // Good, new key doesn't exist
+        }
+        
+        // Create new secret with new key
+        $vault->set($newKey, $secret->value());
+        
+        // Delete old secret
+        $vault->delete(urldecode($oldKey));
+        
+        return $this->success([
+            'success' => true,
+            'message' => "Secret renamed from '{$oldKey}' to '{$newKey}'"
+        ]);
+    }
+
+    public function copyToStage(string $key): array
+    {
+        if (!isset($this->body['targetStage'])) {
+            return $this->error('Missing targetStage');
+        }
+        
+        $targetStage = $this->body['targetStage'];
+        $sourceVault = $this->getVault();
+        
+        // Get the secret from source
+        try {
+            $secret = $sourceVault->get(urldecode($key));
+            if (!$secret) {
+                return $this->error('Secret not found', 404);
+            }
+        } catch (\Exception $e) {
+            return $this->error('Secret not found', 404);
+        }
+        
+        // Get the target vault (same vault name, different stage)
+        $vaultName = $this->body['vault'] ?? $this->query['vault'] ?? $this->manager->getDefaultVault();
+        $targetVault = $this->manager->vault($vaultName, $targetStage);
+        
+        // Copy to target stage
+        $targetVault->set(urldecode($key), $secret->value());
+        
+        return $this->success([
+            'success' => true,
+            'message' => "Secret '{$key}' copied to stage '{$targetStage}'"
+        ]);
+    }
 }
