@@ -2,16 +2,16 @@
   <div class="flex gap-6">
     <!-- Left Sidebar Navigation -->
     <div class="w-48 flex-shrink-0">
-      <div class="bg-muted rounded-full p-1 flex flex-col space-y-1">
+      <div class="space-y-1">
         <button
           v-for="tab in tabs"
           :key="tab.id"
           @click="activeTab = tab.id"
           :class="[
-            'px-4 py-2 rounded-full text-sm font-medium transition-colors',
+            'w-full px-4 py-2 rounded-md text-sm font-medium transition-colors text-left',
             activeTab === tab.id
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
+              ? 'bg-muted text-foreground'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
           ]"
         >
           {{ tab.label }}
@@ -293,6 +293,71 @@
       </div>
     </div>
   </div>
+
+  <!-- Verification Results Modal -->
+  <div v-if="showVerificationModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click.self="showVerificationModal = false">
+    <div class="bg-card border border-border rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold">Vault Verification Results</h2>
+        <button
+          @click="showVerificationModal = false"
+          class="p-1 rounded-md hover:bg-muted transition-colors"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div v-if="verificationResults" class="space-y-4">
+        <div v-for="(result, vaultName) in verificationResults" :key="vaultName" 
+             class="border border-border rounded-lg p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-medium">{{ getVaultDisplayName(vaultName) }}</h3>
+            <span :class="[
+              'px-2 py-1 rounded text-xs font-medium',
+              result.success ? 'bg-green-500/10 text-green-500' : 'bg-destructive/10 text-destructive'
+            ]">
+              {{ result.success ? 'Connected' : 'Failed' }}
+            </span>
+          </div>
+          
+          <div v-if="result.success && result.permissions" class="grid grid-cols-4 gap-2 text-sm">
+            <div v-for="(status, permission) in result.permissions" :key="permission"
+                 class="flex items-center space-x-2">
+              <svg v-if="status" class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <svg v-else class="w-4 h-4 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              <span :class="status ? 'text-muted-foreground' : 'text-destructive'">
+                {{ permission }}
+              </span>
+            </div>
+          </div>
+          
+          <div v-else-if="result.error" class="text-sm text-destructive mt-2">
+            {{ result.error }}
+          </div>
+        </div>
+      </div>
+
+      <div v-else class="text-center py-8 text-muted-foreground">
+        <div class="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+        Verifying vaults...
+      </div>
+
+      <div class="flex justify-end mt-6">
+        <button
+          @click="showVerificationModal = false"
+          class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -328,6 +393,8 @@ const vaultForm = ref({
   isDefault: false
 })
 const verifying = ref(false)
+const showVerificationModal = ref(false)
+const verificationResults = ref(null)
 
 // Stages
 const stages = ref([])
@@ -337,6 +404,12 @@ const defaultStages = ['local', 'staging', 'production']
 // Computed
 const isDefaultStage = (stage) => defaultStages.includes(stage)
 const serverUrl = computed(() => typeof window !== 'undefined' ? window.location.origin : '')
+
+// Helper functions
+function getVaultDisplayName(slug) {
+  const vault = vaults.value.find(v => v.slug === slug)
+  return vault ? `${vault.name} (${vault.slug})` : slug
+}
 
 // Lifecycle
 onMounted(async () => {
@@ -439,11 +512,17 @@ async function saveVault() {
 
 async function verifyAllVaults() {
   verifying.value = true
+  showVerificationModal.value = true
+  verificationResults.value = null
+  
   try {
     const data = await window.$api.verifyVaults()
     const results = data.results || {}
-    const failedVaults = Object.entries(results).filter(([_, result]) => !result.success)
     
+    // Results now come with permissions from backend
+    verificationResults.value = results
+    
+    const failedVaults = Object.entries(results).filter(([_, result]) => !result.success)
     if (failedVaults.length === 0) {
       toast.success('All vaults verified', 'All vaults are properly configured and accessible')
     } else {
@@ -451,6 +530,7 @@ async function verifyAllVaults() {
     }
   } catch (error) {
     toast.error('Failed to verify vaults', error.message)
+    showVerificationModal.value = false
   } finally {
     verifying.value = false
   }

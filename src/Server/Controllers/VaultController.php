@@ -190,15 +190,76 @@ class VaultController extends ApiController
         
         foreach ($this->manager->getConfiguredVaults() as $vaultConfig) {
             $vaultName = $vaultConfig->slug();
+            $permissions = [
+                'Read' => false,
+                'Write' => false,
+                'List' => false,
+                'Delete' => false,
+                'History' => false,
+                'Metadata' => false
+            ];
+            
             try {
                 $vault = $this->manager->vault($vaultName, 'local');
-                // Simple verification - just try to list
-                $vault->list();
-                $results[$vaultName] = ['success' => true];
+                $testKey = '__keep_verify_' . uniqid();
+                
+                // Test List permission
+                try {
+                    $vault->list();
+                    $permissions['List'] = true;
+                } catch (Exception $e) {
+                    // List failed
+                }
+                
+                // Test Write permission
+                try {
+                    $vault->set($testKey, 'test_value');
+                    $permissions['Write'] = true;
+                    
+                    // Test Read permission
+                    try {
+                        $value = $vault->get($testKey);
+                        $permissions['Read'] = $value === 'test_value';
+                    } catch (Exception $e) {
+                        // Read failed
+                    }
+                    
+                    // Test History permission
+                    try {
+                        $vault->history($testKey);
+                        $permissions['History'] = true;
+                    } catch (Exception $e) {
+                        // History not supported or failed
+                    }
+                    
+                    // Test Metadata permission
+                    try {
+                        // Most vaults don't have separate metadata, so we'll consider it same as read
+                        $permissions['Metadata'] = $permissions['Read'];
+                    } catch (Exception $e) {
+                        // Metadata failed
+                    }
+                    
+                    // Test Delete permission
+                    try {
+                        $vault->delete($testKey);
+                        $permissions['Delete'] = true;
+                    } catch (Exception $e) {
+                        // Delete failed
+                    }
+                } catch (Exception $e) {
+                    // Write failed, can't test other permissions
+                }
+                
+                $results[$vaultName] = [
+                    'success' => $permissions['List'] || $permissions['Read'],
+                    'permissions' => $permissions
+                ];
             } catch (Exception $e) {
                 $results[$vaultName] = [
                     'success' => false,
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
+                    'permissions' => $permissions
                 ];
             }
         }
