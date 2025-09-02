@@ -13,8 +13,8 @@
 <!--              <rect x="3" y="11" width="18" height="10" rx="2" ry="2"/>-->
 <!--              <path d="M7 11V7a5 5 0 0110 0v4"/>-->
 <!--            </svg>-->
-            <div class="size-9 rounded bg-muted mr-3">
-
+            <div class="size-9 pl-3 pr-2 rounded bg-muted mr-3 flex items-center justify-center text-primary">
+              <svg fill="none" height="100%" viewBox="0 0 59 70" width="59" xmlns="http://www.w3.org/2000/svg"><path d="m58.4476 69.14c-10.35 0-23.67-12.33-31.41-22.05-5.13-6.39-7.11-8.91-9.45-11.7l-4.32 4.32v25.29h-12.599982v-64.620005h12.599982v32.580005l31.5-32.580005h7.2l-24.21 24.570005z" fill="currentColor"/></svg>
             </div>
             <span class="text-xl font-semibold opacity-75">{{ appName }} Secrets</span>
           </div>
@@ -58,6 +58,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import ToastContainer from './components/ToastContainer.vue'
+import logoUrl from './assets/logo.svg'
 
 const tabs = [
   { id: 'secrets', label: 'Secrets', path: '/secrets' },
