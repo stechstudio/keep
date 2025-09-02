@@ -66,4 +66,14 @@ class SecretCollection extends Collection
     {
         return $this->map->only($keys);
     }
+
+    /**
+     * Convert collection to array format suitable for API responses.
+     */
+    public function toApiArray(bool $unmask = false): array
+    {
+        return $this->map(fn (Secret $secret) => $secret->toApiArray($unmask))
+            ->values()
+            ->toArray();
+    }
 }

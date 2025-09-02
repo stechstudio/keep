@@ -219,4 +219,18 @@ class Secret implements Arrayable
             'vault' => $this->vault?->name(),
         ];
     }
+
+    /**
+     * Convert to array format suitable for API responses.
+     * Handles masking and only includes fields needed by API clients.
+     */
+    public function toApiArray(bool $unmask = false): array
+    {
+        return [
+            'key' => $this->key,
+            'value' => $unmask ? $this->value : $this->masked(),
+            'revision' => $this->revision,
+            'modified' => null, // Secrets don't track modification time currently
+        ];
+    }
 }
