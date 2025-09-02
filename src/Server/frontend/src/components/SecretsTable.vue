@@ -41,7 +41,7 @@
 
     <!-- Table -->
     <div class="border border-border rounded-lg overflow-hidden">
-      <table class="w-full">
+      <table class="w-full" :class="loading && 'opacity-50 pointer-events-none'">
         <thead class="bg-muted">
           <tr>
             <th class="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Key</th>
@@ -68,7 +68,7 @@
           </tr>
         </thead>
         <tbody class="bg-card divide-y divide-border">
-          <tr v-for="secret in secrets" :key="secret.key" class="hover:bg-muted/50 transition-colors">
+          <tr v-for="secret in secrets" :key="secret.key" class="transition-colors">
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
               {{ secret.key }}
             </td>
@@ -123,11 +123,7 @@
           </tr>
         </tbody>
       </table>
-      
-      <div v-if="loading" class="p-8 text-center text-muted-foreground">
-        Loading secrets...
-      </div>
-      
+
       <div v-if="!loading && secrets.length === 0" class="p-8 text-center text-muted-foreground">
         No secrets found
       </div>
@@ -211,8 +207,8 @@ async function loadSecrets() {
   loading.value = true
   try {
     const data = searchQuery.value
-      ? await window.$api.searchSecrets(searchQuery.value, vault.value, stage.value)
-      : await window.$api.listSecrets(vault.value, stage.value)
+      ? await window.$api.searchSecrets(searchQuery.value, vault.value, stage.value, true)  // Always get unmasked
+      : await window.$api.listSecrets(vault.value, stage.value, true)  // Always get unmasked
     secrets.value = data.secrets || []
   } catch (error) {
     console.error('Failed to load secrets:', error)
