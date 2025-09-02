@@ -102,7 +102,7 @@
               class="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-center border-l border-border min-w-[80px]"
           >
             <div class="flex flex-col">
-              <span class="font-semibold">{{ column.vault }}</span>
+              <span class="font-semibold">{{ column.vaultDisplay }}</span>
               <span class="text-[10px] opacity-75">{{ column.stage }}</span>
             </div>
           </th>
@@ -355,7 +355,10 @@ const deletingSecret = ref(null)
 const activeColumns = computed(() => {
   return selectedCombinations.value.map(key => {
     const [vault, stage] = key.split(':')
-    return {vault, stage}
+    // Find the vault display name
+    const vaultObj = availableVaults.value.find(v => (v.slug || v.name || v) === vault)
+    const vaultDisplay = vaultObj?.name || vaultObj?.display || vault
+    return {vault, stage, vaultDisplay}
   })
 })
 
@@ -478,10 +481,11 @@ async function loadInitialData() {
     availableCombinations.value = []
     for (const vault of availableVaults.value) {
       for (const stage of availableStages.value) {
+        const vaultSlug = vault.slug || vault.name || vault
         availableCombinations.value.push({
-          key: `${vault.name}:${stage}`,
-          vault: vault.name,
-          vaultDisplay: vault.display,
+          key: `${vaultSlug}:${stage}`,
+          vault: vaultSlug,
+          vaultDisplay: vault.display || vault,
           stage: stage
         })
       }
@@ -515,7 +519,7 @@ async function loadInitialData() {
 
 async function loadDiff() {
   // Load ALL vaults and stages from the server once
-  const vaults = availableVaults.value.map(v => v.name)
+  const vaults = availableVaults.value.map(v => v.slug || v.name || v)
   const stages = [...availableStages.value]
 
   loading.value = true

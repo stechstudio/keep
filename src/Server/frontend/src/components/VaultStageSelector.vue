@@ -16,11 +16,11 @@
         <div class="py-1">
           <button
             v-for="v in vaults"
-            :key="v.name || v"
-            @click="selectVault(v.name || v)"
+            :key="v.slug || v.name || v"
+            @click="selectVault(v.slug || v.name || v)"
             :class="[
               'w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors whitespace-nowrap',
-              vault === (v.name || v) ? 'bg-white/10' : ''
+              vault === (v.slug || v.name || v) ? 'bg-white/10' : ''
             ]"
           >
             {{ v.display || v }}
@@ -81,7 +81,7 @@ const stageOpen = ref(false)
 const vaultDisplay = computed(() => {
   if (!props.vault) return ''
   const vaultObj = props.vaults?.find(v => 
-    (typeof v === 'object' ? v.name : v) === props.vault
+    (typeof v === 'object' ? (v.slug || v.name) : v) === props.vault
   )
   return vaultObj?.display || props.vault
 })
