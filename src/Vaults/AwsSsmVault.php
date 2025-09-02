@@ -24,7 +24,7 @@ class AwsSsmVault extends AbstractVault
 {
     public const string DRIVER = 'ssm';
 
-    public const string NAME = 'AWS Systems Manager Parameter Store';
+    public const string NAME = 'AWS SSM Parameter Store';
 
     protected SsmClient $client;
 
