@@ -1,5 +1,8 @@
 <template>
   <div class="min-h-screen bg-background text-foreground">
+    <!-- Toast Notifications -->
+    <ToastContainer />
+    
     <!-- Navigation Bar -->
     <nav class="border-b border-border">
       <div class="max-w-full px-4 sm:px-6 lg:px-8">
@@ -61,6 +64,7 @@ import { ref, onMounted } from 'vue'
 import SecretsTable from './components/SecretsTable.vue'
 import DiffView from './components/DiffView.vue'
 import SettingsView from './components/SettingsView.vue'
+import ToastContainer from './components/ToastContainer.vue'
 
 const activeTab = ref('secrets')
 const tabs = [

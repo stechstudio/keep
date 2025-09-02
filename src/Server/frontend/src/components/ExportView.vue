@@ -68,12 +68,14 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useToast } from '../composables/useToast'
 
 const props = defineProps({
   vault: String,
   stage: String
 })
 
+const toast = useToast()
 const format = ref('env')
 const exportResult = ref('')
 const loading = ref(false)
@@ -89,7 +91,7 @@ async function exportSecrets() {
     exportResult.value = data.content || ''
   } catch (error) {
     console.error('Failed to export secrets:', error)
-    alert('Failed to export secrets: ' + error.message)
+    toast.error('Export failed', error.message)
   } finally {
     loading.value = false
   }
@@ -97,6 +99,13 @@ async function exportSecrets() {
 
 function copyToClipboard() {
   navigator.clipboard.writeText(exportResult.value)
+    .then(() => {
+      toast.success('Copied to clipboard', 'Export content has been copied to your clipboard')
+    })
+    .catch(err => {
+      console.error('Failed to copy to clipboard:', err)
+      toast.error('Copy failed', 'Failed to copy to clipboard')
+    })
     .then(() => {
       // Could add a toast notification here
     })
