@@ -154,6 +154,8 @@ class SecretController extends ApiController
         }
         
         $targetStage = $this->body['targetStage'];
+        
+        // Get source vault (from vault/stage query params or body)
         $sourceVault = $this->getVault();
         
         // Get the secret from source
@@ -166,16 +168,51 @@ class SecretController extends ApiController
             return $this->error('Secret not found', 404);
         }
         
-        // Get the target vault (same vault name, different stage)
-        $vaultName = $this->body['vault'] ?? $this->query['vault'] ?? $this->manager->getDefaultVault();
-        $targetVault = $this->manager->vault($vaultName, $targetStage);
+        // Get the target vault (can be different vault)
+        $targetVaultName = $this->body['targetVault'] ?? ($this->body['vault'] ?? $this->query['vault'] ?? $this->manager->getDefaultVault());
+        $targetVault = $this->manager->vault($targetVaultName, $targetStage);
         
-        // Copy to target stage
+        // Copy to target
         $targetVault->set(urldecode($key), $secret->value());
         
         return $this->success([
             'success' => true,
-            'message' => "Secret '{$key}' copied to stage '{$targetStage}'"
+            'message' => "Secret '{$key}' copied to {$targetVaultName}:{$targetStage}"
         ]);
+    }
+
+    public function history(string $key): array
+    {
+        $vault = $this->getVault();
+        $limit = isset($this->query['limit']) ? (int)$this->query['limit'] : 10;
+        
+        try {
+            $historyCollection = $vault->history(urldecode($key), new \STS\Keep\Data\Collections\FilterCollection(), $limit);
+            
+            // Apply masking if not unmasked
+            if (!$this->isUnmasked()) {
+                $historyCollection = $historyCollection->withMaskedValues();
+            }
+            
+            $history = $historyCollection->map(function($entry) {
+                return [
+                    'version' => $entry->version(),
+                    'value' => $entry->value() ?? null,
+                    'dataType' => $entry->dataType(),
+                    'modifiedDate' => $entry->formattedDate(),
+                    'modifiedBy' => $entry->lastModifiedUser() ?? 'unknown',
+                    'timestamp' => $entry->lastModifiedDate()?->toISOString()
+                ];
+            })->toArray();
+            
+            return $this->success([
+                'history' => $history,
+                'key' => urldecode($key),
+                'vault' => $this->query['vault'] ?? $this->manager->getDefaultVault(),
+                'stage' => $this->query['stage'] ?? $this->manager->getDefaultStage()
+            ]);
+        } catch (\Exception $e) {
+            return $this->error('Failed to retrieve history: ' . $e->getMessage());
+        }
     }
 }

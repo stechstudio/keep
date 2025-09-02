@@ -40,11 +40,11 @@ const displayValue = computed(() => {
   
   // Short values always get generic mask (matching PHP)
   if (length <= 8) {
-    return '****'
+    return '••••'
   }
   
-  // Show first 4 characters plus asterisks (matching PHP)
-  const masked = value.substring(0, 4) + '*'.repeat(length - 4)
+  // Show first 4 characters plus dots (matching PHP)
+  const masked = value.substring(0, 4) + '•'.repeat(length - 4)
   
   // Truncate long values (matching PHP)
   if (length <= 24) {

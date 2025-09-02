@@ -103,7 +103,8 @@ class VaultController extends ApiController
                     $vault = $this->manager->vault($vaultName, $stage);
                     $secrets = $vault->list();
                     foreach ($secrets as $secret) {
-                        $matrix[$secret->key()][$vaultName][$stage] = $secret->masked();
+                        // Return unmasked values so client can handle masking
+                        $matrix[$secret->key()][$vaultName][$stage] = $secret->value();
                     }
                 }
             } catch (Exception $e) {

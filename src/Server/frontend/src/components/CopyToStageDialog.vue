@@ -1,7 +1,7 @@
 <template>
   <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-card border border-border rounded-lg p-6 w-96 max-w-full">
-      <h2 class="text-lg font-semibold mb-4">Copy Secret to Stage</h2>
+      <h2 class="text-lg font-semibold mb-4">Copy Secret</h2>
       
       <div class="mb-4">
         <label class="block text-sm font-medium mb-2">Secret Key</label>
@@ -13,23 +13,28 @@
       </div>
       
       <div class="mb-4">
-        <label class="block text-sm font-medium mb-2">Current Stage</label>
+        <label class="block text-sm font-medium mb-2">From</label>
         <input
-          :value="currentStage"
+          :value="`${currentVault} / ${currentStage}`"
           disabled
           class="w-full px-3 py-2 bg-muted border border-border rounded-md text-sm opacity-60"
         />
       </div>
       
       <div class="mb-6">
-        <label class="block text-sm font-medium mb-2">Target Stage</label>
+        <label class="block text-sm font-medium mb-2">Copy To</label>
         <select
-          v-model="targetStage"
+          v-model="targetCombination"
           class="w-full px-3 py-2 bg-input border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         >
-          <option value="">Select a stage</option>
-          <option v-for="stage in availableStages" :key="stage" :value="stage">
-            {{ stage }}
+          <option value="">Select destination...</option>
+          <option
+            v-for="combo in availableCombinations"
+            :key="combo.key"
+            :value="combo.key"
+            :disabled="combo.key === `${currentVault}:${currentStage}`"
+          >
+            {{ combo.display }} / {{ combo.stage }}
           </option>
         </select>
       </div>
@@ -43,10 +48,10 @@
         </button>
         <button
           @click="handleCopy"
-          :disabled="!targetStage"
+          :disabled="!targetCombination"
           class="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Copy to Stage
+          Copy Secret
         </button>
       </div>
     </div>
@@ -54,15 +59,23 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 const props = defineProps({
   secretKey: {
     type: String,
     required: true
   },
+  currentVault: {
+    type: String,
+    required: true
+  },
   currentStage: {
     type: String,
+    required: true
+  },
+  vaults: {
+    type: Array,
     required: true
   },
   stages: {
@@ -73,15 +86,27 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'copy'])
 
-const targetStage = ref('')
+const targetCombination = ref('')
 
-const availableStages = computed(() => {
-  return props.stages.filter(stage => stage !== props.currentStage)
+const availableCombinations = computed(() => {
+  const combinations = []
+  for (const vault of props.vaults) {
+    for (const stage of props.stages) {
+      combinations.push({
+        key: `${vault.name}:${stage}`,
+        vault: vault.name,
+        display: vault.display,
+        stage: stage
+      })
+    }
+  }
+  return combinations
 })
 
 function handleCopy() {
-  if (targetStage.value) {
-    emit('copy', targetStage.value)
+  if (targetCombination.value) {
+    const [targetVault, targetStage] = targetCombination.value.split(':')
+    emit('copy', { targetVault, targetStage })
   }
 }
 </script>

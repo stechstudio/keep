@@ -44,7 +44,7 @@
       <table class="w-full" :class="loading && 'opacity-50 pointer-events-none'">
         <thead class="bg-muted">
           <tr>
-            <th class="w-3/12 text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Key</th>
+            <th class="w-3/12 text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider rounded-tl-lg">Key</th>
             <th class="w-6/12 text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
               <div class="flex items-center space-x-2">
                 <span>Value</span>
@@ -64,7 +64,7 @@
               </div>
             </th>
             <th class="w-2/12 text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Modified</th>
-            <th class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+            <th class="relative px-6 py-3 rounded-tr-lg"><span class="sr-only">Actions</span></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-border">
@@ -83,54 +83,19 @@
               {{ formatDate(secret.modified) }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-              <div class="relative inline-block text-left">
-                <button
-                  @click="toggleMenu(secret.key)"
-                  class="p-1 rounded-md hover:bg-muted transition-colors"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                  </svg>
-                </button>
-                
-                <div
-                  v-if="openMenu === secret.key"
-                  class="absolute right-0 mt-2 w-48 bg-popover border border-border rounded-md shadow-lg z-10"
-                >
-                  <div class="py-1 flex flex-col">
-                    <button
-                      @click="editSecret(secret)"
-                      class="w-full text-left px-4 py-2 text-sm hover:bg-accent transition-colors"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      @click="showRenameDialog(secret)"
-                      class="w-full text-left px-4 py-2 text-sm hover:bg-accent transition-colors"
-                    >
-                      Rename
-                    </button>
-                    <button
-                      @click="copyToClipboard(secret.value)"
-                      class="w-full text-left px-4 py-2 text-sm hover:bg-accent transition-colors"
-                    >
-                      Copy Value
-                    </button>
-                    <button
-                      @click="showCopyToStageDialog(secret)"
-                      class="w-full text-left px-4 py-2 text-sm hover:bg-accent transition-colors"
-                    >
-                      Copy to Stage
-                    </button>
-                    <button
-                      @click="deleteSecret(secret.key)"
-                      class="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-accent transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <SecretActionsMenu
+                :secretKey="secret.key"
+                :secretValue="secret.value"
+                :vault="vault"
+                :stage="stage"
+                @edit="editSecret"
+                @rename="showRenameDialog"
+                @copyValue="handleCopyValue"
+                @copyTo="showCopyToStageDialog"
+                @history="showHistoryDialog"
+                @delete="showDeleteDialog"
+                @refresh="loadSecrets"
+              />
             </td>
           </tr>
         </tbody>
@@ -163,10 +128,32 @@
     <CopyToStageDialog
       v-if="copyingSecret"
       :secretKey="copyingSecret.key"
+      :currentVault="vault"
       :currentStage="stage"
+      :vaults="vaults"
       :stages="stages"
       @copy="handleCopyToStage"
       @close="copyingSecret = null"
+    />
+    
+    <!-- History Dialog -->
+    <HistoryDialog
+      v-if="historySecret"
+      :secretKey="historySecret.key"
+      :vault="vault"
+      :stage="stage"
+      @refresh="loadSecrets"
+      @close="historySecret = null"
+    />
+    
+    <!-- Delete Confirm Dialog -->
+    <DeleteConfirmDialog
+      v-if="deletingSecret"
+      :secretKey="deletingSecret.key"
+      :vault="vault"
+      :stage="stage"
+      @confirm="confirmDelete"
+      @close="deletingSecret = null"
     />
   </div>
 </template>
@@ -178,13 +165,16 @@ import SecretValue from './SecretValue.vue'
 import SecretDialog from './SecretDialog.vue'
 import RenameDialog from './RenameDialog.vue'
 import CopyToStageDialog from './CopyToStageDialog.vue'
+import HistoryDialog from './HistoryDialog.vue'
+import DeleteConfirmDialog from './DeleteConfirmDialog.vue'
+import SecretActionsMenu from './SecretActionsMenu.vue'
 import { useToast } from '../composables/useToast'
 
 const emit = defineEmits(['refresh'])
 const toast = useToast()
 
-const vault = ref('')
-const stage = ref('')
+const vault = ref(localStorage.getItem('keep.secrets.vault') || '')
+const stage = ref(localStorage.getItem('keep.secrets.stage') || '')
 const vaults = ref([])
 const stages = ref([])
 const secrets = ref([])
@@ -192,11 +182,12 @@ const loading = ref(false)
 const searchQuery = ref('')
 const unmaskAll = ref(false)
 const unmaskedKeys = ref(new Set())
-const openMenu = ref(null)
 const showAddDialog = ref(false)
 const editingSecret = ref(null)
 const renamingSecret = ref(null)
 const copyingSecret = ref(null)
+const historySecret = ref(null)
+const deletingSecret = ref(null)
 
 let searchTimeout = null
 
@@ -206,6 +197,10 @@ onMounted(async () => {
 })
 
 watch(() => [vault.value, stage.value], () => {
+  // Save to localStorage
+  if (vault.value) localStorage.setItem('keep.secrets.vault', vault.value)
+  if (stage.value) localStorage.setItem('keep.secrets.stage', stage.value)
+  
   loadSecrets()
 })
 
@@ -219,18 +214,21 @@ async function loadVaultsAndStages() {
     vaults.value = vaultsData.vaults || []
     stages.value = stagesData.stages || []
     
-    // Set defaults
+    // Set defaults only if no saved value
     if (!vault.value) {
       // Handle both new object format and old string format
       const defaultVault = settings.default_vault
       if (defaultVault) {
         vault.value = defaultVault
+        localStorage.setItem('keep.secrets.vault', vault.value)
       } else if (vaults.value.length > 0) {
         vault.value = vaults.value[0].name || vaults.value[0]
+        localStorage.setItem('keep.secrets.vault', vault.value)
       }
     }
     if (!stage.value && stages.value.length) {
       stage.value = stages.value[0]
+      localStorage.setItem('keep.secrets.stage', stage.value)
     }
   } catch (error) {
     console.error('Failed to load vaults and stages:', error)
@@ -269,13 +267,8 @@ function toggleMask(key) {
   }
 }
 
-function toggleMenu(key) {
-  openMenu.value = openMenu.value === key ? null : key
-}
-
 function editSecret(secret) {
   editingSecret.value = secret
-  openMenu.value = null
 }
 
 async function saveSecret(data) {
@@ -295,34 +288,38 @@ async function saveSecret(data) {
   }
 }
 
-async function deleteSecret(key) {
-  if (!confirm(`Delete secret "${key}"?`)) return
-  
-  try {
-    await window.$api.deleteSecret(key, vault.value, stage.value)
-    toast.success('Secret deleted', `Secret '${key}' has been deleted successfully`)
-    await loadSecrets()
-    openMenu.value = null
-  } catch (error) {
-    console.error('Failed to delete secret:', error)
-    toast.error('Failed to delete secret', error.message)
-  }
-}
-
-function copyToClipboard(value) {
-  navigator.clipboard.writeText(value)
-  toast.success('Copied to clipboard', 'Secret value has been copied to your clipboard')
-  openMenu.value = null
-}
-
 function showRenameDialog(secret) {
   renamingSecret.value = secret
-  openMenu.value = null
 }
 
 function showCopyToStageDialog(secret) {
   copyingSecret.value = secret
-  openMenu.value = null
+}
+
+function showHistoryDialog(secret) {
+  historySecret.value = secret
+}
+
+function showDeleteDialog(secret) {
+  deletingSecret.value = secret
+}
+
+function handleCopyValue(secret) {
+  toast.success('Copied to clipboard', 'Secret value has been copied to your clipboard')
+}
+
+async function confirmDelete() {
+  if (!deletingSecret.value) return
+  
+  try {
+    await window.$api.deleteSecret(deletingSecret.value.key, vault.value, stage.value)
+    toast.success('Secret deleted', `Secret '${deletingSecret.value.key}' has been deleted successfully`)
+    await loadSecrets()
+    deletingSecret.value = null
+  } catch (error) {
+    console.error('Failed to delete secret:', error)
+    toast.error('Failed to delete secret', error.message)
+  }
 }
 
 async function handleRename(newKey) {
@@ -337,10 +334,16 @@ async function handleRename(newKey) {
   }
 }
 
-async function handleCopyToStage(targetStage) {
+async function handleCopyToStage({ targetVault, targetStage }) {
   try {
-    await window.$api.copySecretToStage(copyingSecret.value.key, targetStage, vault.value, stage.value)
-    toast.success('Secret copied', `Secret '${copyingSecret.value.key}' copied to ${targetStage} stage successfully`)
+    await window.$api.copySecretToStage(
+      copyingSecret.value.key, 
+      targetStage, 
+      targetVault, 
+      stage.value,
+      vault.value
+    )
+    toast.success('Secret copied', `Secret '${copyingSecret.value.key}' copied to ${targetVault}:${targetStage}`)
     copyingSecret.value = null
   } catch (error) {
     console.error('Failed to copy secret:', error)
@@ -358,11 +361,4 @@ function formatDate(dateString) {
   const date = new Date(dateString)
   return date.toLocaleDateString() + ' ' + date.toLocaleTimeString()
 }
-
-// Close menu when clicking outside
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.relative')) {
-    openMenu.value = null
-  }
-})
 </script>
