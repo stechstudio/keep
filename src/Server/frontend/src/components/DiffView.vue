@@ -1,81 +1,79 @@
 <template>
   <div>
     <!-- Controls -->
-    <div class="mb-6 space-y-4">
+    <div class="mb-6 flex items-center justify-between">
       <div class="flex items-center space-x-4">
-        <div class="flex-1">
-          <label class="block text-xs font-medium text-muted-foreground mb-2">Select Vault</label>
-          <select 
-            v-model="selectedVault" 
-            class="w-full px-3 py-2 bg-input border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        <!-- Combined Vault/Stage Dropdown -->
+        <div class="relative">
+          <button
+              @click="showCombinationsDropdown = !showCombinationsDropdown"
+              class="flex items-center space-x-2 px-3 py-2 bg-input border border-border rounded-md text-sm hover:bg-accent transition-colors"
           >
-            <option value="">Select a vault...</option>
-            <option v-for="vault in availableVaults" :key="vault.name" :value="vault.name">
-              {{ vault.display }}
-            </option>
-          </select>
-        </div>
+            <span>Toggle Vaults / Stages ({{ selectedCombinations.length }}/{{ availableCombinations.length }})</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
 
-        <div class="flex-1">
-          <label class="block text-xs font-medium text-muted-foreground mb-2">Select Stages to Compare</label>
-          <div class="flex flex-wrap gap-2">
-            <label
-              v-for="stage in availableStages"
-              :key="stage"
-              class="inline-flex items-center"
-            >
-              <input
-                type="checkbox"
-                :value="stage"
-                v-model="selectedStages"
-                class="mr-2 rounded border-border bg-input text-primary focus:ring-2 focus:ring-ring"
-              />
-              <span class="text-sm">{{ stage }}</span>
-            </label>
+          <div v-if="showCombinationsDropdown" class="absolute top-full left-0 mt-1 bg-popover border border-border rounded-md shadow-lg z-20">
+            <div class="p-2 space-y-1 max-h-96 overflow-y-auto" style="min-width: max-content;">
+              <label
+                  v-for="combo in availableCombinations"
+                  :key="combo.key"
+                  class="flex items-center px-2 py-1.5 hover:bg-accent rounded cursor-pointer whitespace-nowrap"
+              >
+                <input
+                    type="checkbox"
+                    :value="combo.key"
+                    v-model="selectedCombinations"
+                    class="mr-3 rounded border-border bg-input text-primary focus:ring-2 focus:ring-ring"
+                />
+                <span class="text-sm">
+                  <span>{{ combo.vaultDisplay }} ({{ combo.vault }})</span>
+                  <span class="mx-2 text-muted-foreground">/</span>
+                  <strong>{{ combo.stage }}</strong>
+                </span>
+              </label>
+            </div>
           </div>
         </div>
 
-        <div class="flex items-end">
+        <!-- Quick Actions -->
+        <div class="flex items-center space-x-2 text-sm">
           <button
-            @click="runComparison"
-            :disabled="!canCompare"
-            class="px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="selectAll"
+              class="text-muted-foreground hover:text-foreground transition-colors"
           >
-            Compare
+            Select All
+          </button>
+          <span class="text-muted-foreground">|</span>
+          <button
+              @click="selectNone"
+              class="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Clear All
           </button>
         </div>
       </div>
 
-      <!-- Toggle for mask/unmask all -->
-      <div v-if="diffMatrix && Object.keys(diffMatrix).length > 0" class="flex items-center justify-between">
-        <div class="flex items-center space-x-2">
-          <button
+      <!-- Right side controls -->
+      <div class="flex items-center space-x-2">
+        <button
             @click="unmaskAll = !unmaskAll"
             class="flex items-center space-x-2 px-3 py-1.5 text-sm border border-border rounded-md hover:bg-accent transition-colors"
-          >
-            <svg v-if="!unmaskAll" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-            <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-            </svg>
-            <span>{{ unmaskAll ? 'Hide All Values' : 'Show All Values' }}</span>
-          </button>
-          <span class="text-sm text-muted-foreground">
-            {{ Object.keys(diffMatrix).length }} secrets found
-          </span>
-        </div>
-        
-        <button
-          @click="exportDiff"
-          class="flex items-center space-x-2 px-3 py-1.5 text-sm border border-border rounded-md hover:bg-accent transition-colors"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          <svg v-if="!unmaskAll" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
           </svg>
-          <span>Export CSV</span>
+          <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+          </svg>
+          <span>{{ unmaskAll ? 'Hide Values' : 'Show Values' }}</span>
         </button>
+
       </div>
     </div>
 
@@ -86,196 +84,625 @@
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <span>Comparing secrets across stages...</span>
+        <span>Loading comparison matrix...</span>
       </div>
     </div>
 
     <!-- Diff Matrix -->
-    <div v-else-if="diffMatrix && Object.keys(diffMatrix).length > 0" class="border border-border rounded-lg overflow-x-auto">
+    <div v-else-if="diffMatrix && Object.keys(diffMatrix).length > 0" class="border border-border rounded-lg overflow-y-visible overflow-x-auto">
       <table class="w-full">
-        <thead class="bg-muted sticky top-0">
-          <tr>
-            <th class="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider sticky left-0 bg-muted z-10">
-              Secret Key
-            </th>
-            <th 
-              v-for="stage in selectedStages" 
-              :key="stage"
-              class="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-center min-w-[200px]"
-            >
-              {{ stage }}
-            </th>
-          </tr>
+        <thead class="bg-muted sticky top-0 z-10">
+        <tr>
+          <th class="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider sticky left-0 bg-muted z-20 min-w-[200px]">
+            Secret Key
+          </th>
+          <th
+              v-for="column in activeColumns"
+              :key="column"
+              class="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-center border-l border-border min-w-[80px]"
+          >
+            <div class="flex flex-col">
+              <span class="font-semibold">{{ column.vault }}</span>
+              <span class="text-[10px] opacity-75">{{ column.stage }}</span>
+            </div>
+          </th>
+        </tr>
         </thead>
         <tbody class="divide-y divide-border">
-          <tr v-for="(stageValues, key) in diffMatrix" :key="key" class="hover:bg-muted/50 transition-colors">
-            <td class="px-4 py-3 font-mono text-sm font-medium sticky left-0 bg-background">
-              {{ key }}
-            </td>
-            <td 
-              v-for="stage in selectedStages" 
-              :key="`${key}-${stage}`"
-              class="px-4 py-3 text-center"
-              :class="getCellClass(key, stage)"
-            >
-              <div v-if="getSecretValue(key, stage)" class="flex items-center justify-center space-x-2">
-                <SecretValue
-                  :value="getSecretValue(key, stage)"
-                  :masked="!unmaskAll && !unmaskedCells.has(`${key}-${stage}`)"
-                  @toggle="toggleCellMask(key, stage)"
-                />
-                <span v-if="isDifferent(key)" class="text-yellow-500">
-                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+        <tr v-for="key in sortedKeys" :key="key" :class="getRowClass(key)" class="transition-colors">
+          <td class="sticky left-0 z-10 border-r border-border p-0">
+            <div class="bg-background">
+              <div class="px-4 py-3 flex items-center space-x-2" :class="getRowClass(key, false)">
+                <span class="font-mono text-sm font-medium">{{ key }}</span>
+                <button
+                    @click="toggleRowMask(key)"
+                    class="p-1 rounded hover:bg-muted transition-colors"
+                    :title="unmaskedRows.has(key) ? 'Hide values' : 'Show values'"
+                >
+                  <svg v-if="!unmaskedRows.has(key)" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                   </svg>
-                </span>
+                  <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                  </svg>
+                </button>
               </div>
-              <span v-else class="text-muted-foreground text-sm">—</span>
-            </td>
-          </tr>
+            </div>
+          </td>
+          <td
+              v-for="column in activeColumns"
+              :key="`${key}-${column.vault}-${column.stage}`"
+              class="px-4 py-3 text-left border-l border-border relative group"
+              :class="getCellClass(key, column.vault, column.stage)"
+          >
+            <div v-if="getSecretValue(key, column.vault, column.stage)" class="flex items-center justify-between">
+                <span class="font-mono text-sm">
+                  {{ getMaskedValue(key, column.vault, column.stage) }}
+                </span>
+              <SecretActionsMenu
+                :secretKey="key"
+                :secretValue="getSecretValue(key, column.vault, column.stage)"
+                :vault="column.vault"
+                :stage="column.stage"
+                :showRename="false"
+                :buttonClass="'opacity-0 group-hover:opacity-100'"
+                @edit="(data) => editSecret({...data, vault: column.vault, stage: column.stage})"
+                @copyValue="handleCopyValue"
+                @copyTo="(data) => showCopyToStageDialog({...data, vault: column.vault, stage: column.stage})"
+                @history="(data) => showHistoryDialog({...data, vault: column.vault, stage: column.stage})"
+                @delete="(data) => showDeleteDialog({...data, vault: column.vault, stage: column.stage})"
+                @refresh="loadDiff"
+              />
+            </div>
+            <div v-else class="flex items-center justify-between">
+              <span class="text-muted-foreground text-sm">—</span>
+              <SecretActionsMenu
+                :secretKey="key"
+                :secretValue="null"
+                :vault="column.vault"
+                :stage="column.stage"
+                :showEdit="false"
+                :showRename="false"
+                :showCreate="true"
+                :showCopyValue="false"
+                :showCopyTo="false"
+                :showDelete="false"
+                :showHistory="false"
+                :buttonClass="'opacity-0 group-hover:opacity-100'"
+                @create="(data) => createSecret({...data, vault: column.vault, stage: column.stage})"
+              />
+            </div>
+          </td>
+        </tr>
         </tbody>
       </table>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="!loading && diffMatrix !== null" class="text-center py-12 text-muted-foreground">
+    <div v-else-if="!loading && diffMatrix !== null && Object.keys(diffMatrix).length === 0" class="text-center py-12 text-muted-foreground">
       <svg class="mx-auto h-12 w-12 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
       </svg>
-      <p>No secrets found in the selected vault and stages</p>
+      <p>No secrets found in the selected vaults and stages</p>
     </div>
 
-    <!-- Initial State -->
-    <div v-else class="text-center py-12 text-muted-foreground">
+    <!-- No Selection State -->
+    <div v-else-if="!loading && selectedCombinations.length === 0" class="text-center py-12 text-muted-foreground">
       <svg class="mx-auto h-12 w-12 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
       </svg>
-      <p class="text-lg font-medium mb-2">Compare Secrets Across Stages</p>
-      <p class="text-sm">Select a vault and at least two stages to see differences</p>
+      <p class="text-lg font-medium mb-2">Select Vault/Stage Combinations</p>
+      <p class="text-sm">Use the dropdown above to select at least one vault/stage combination</p>
     </div>
+
+    <!-- Edit Secret Dialog -->
+    <SecretDialog
+      v-if="editingSecret"
+      :secret="editingSecret.isNew ? null : editingSecret"
+      :vault="editingSecret.vault"
+      :stage="editingSecret.stage"
+      :initialKey="editingSecret.isNew ? editingSecret.key : undefined"
+      @save="saveEditedSecret"
+      @close="editingSecret = null"
+    />
+
+    <!-- Copy To Stage Modal -->
+    <div v-if="copyingSecret" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click.self="copyingSecret = null">
+      <div class="bg-card border border-border rounded-lg p-6 w-full max-w-md">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold">Copy Secret</h2>
+          <button
+              @click="copyingSecret = null"
+              class="p-1 rounded-md hover:bg-muted transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Key</label>
+            <input
+                type="text"
+                :value="copyingSecret?.key"
+                disabled
+                class="w-full px-3 py-2 bg-input border border-border rounded-md text-sm opacity-50"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">From</label>
+            <input
+                type="text"
+                :value="`${copyingSecret?.vault} / ${copyingSecret?.stage}`"
+                disabled
+                class="w-full px-3 py-2 bg-input border border-border rounded-md text-sm opacity-50"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Copy To</label>
+            <select v-model="copyTarget" class="w-full px-3 py-2 bg-input border border-border rounded-md text-sm">
+              <option value="">Select destination...</option>
+              <option
+                  v-for="combo in availableCombinations"
+                  :key="combo.key"
+                  :value="combo.key"
+                  :disabled="combo.key === `${copyingSecret?.vault}:${copyingSecret?.stage}`"
+              >
+                {{ combo.vaultDisplay }} / {{ combo.stage }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end space-x-2 mt-6">
+          <button
+              @click="copyingSecret = null; copyTarget = ''"
+              class="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+              @click="executeCopy"
+              :disabled="!copyTarget"
+              class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Copy Secret
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rename Dialog -->
+    <RenameDialog
+      v-if="renamingSecret"
+      :currentKey="renamingSecret.key"
+      @rename="handleRename"
+      @close="renamingSecret = null"
+    />
+    
+    <!-- Copy to Stage Dialog -->
+    <CopyToStageDialog
+      v-if="copyingSecretStage"
+      :secretKey="copyingSecretStage.key"
+      :currentVault="copyingSecretStage.vault"
+      :currentStage="copyingSecretStage.stage"
+      :vaults="availableVaults"
+      :stages="availableStages"
+      @copy="handleCopyToStage"
+      @close="copyingSecretStage = null"
+    />
+    
+    <!-- History Dialog -->
+    <HistoryDialog
+      v-if="historySecret"
+      :secretKey="historySecret.key"
+      :vault="historySecret.vault"
+      :stage="historySecret.stage"
+      @refresh="loadDiff"
+      @close="historySecret = null"
+    />
+    
+    <!-- Delete Confirm Dialog -->
+    <DeleteConfirmDialog
+      v-if="deletingSecret"
+      :secretKey="deletingSecret.key"
+      :vault="deletingSecret.vault"
+      :stage="deletingSecret.stage"
+      @confirm="confirmDelete"
+      @close="deletingSecret = null"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import SecretValue from './SecretValue.vue'
-import { useToast } from '../composables/useToast'
+import {ref, computed, onMounted, watch} from 'vue'
+import {useToast} from '../composables/useToast'
+import SecretActionsMenu from './SecretActionsMenu.vue'
+import SecretDialog from './SecretDialog.vue'
+import RenameDialog from './RenameDialog.vue'
+import CopyToStageDialog from './CopyToStageDialog.vue'
+import HistoryDialog from './HistoryDialog.vue'
+import DeleteConfirmDialog from './DeleteConfirmDialog.vue'
 
 const toast = useToast()
 
-const selectedVault = ref('')
-const selectedStages = ref([])
+// State
+const selectedCombinations = ref([])
+const availableCombinations = ref([])
 const availableVaults = ref([])
 const availableStages = ref([])
-const diffMatrix = ref(null)
+const fullDiffMatrix = ref(null) // Store all data from server
 const loading = ref(false)
 const unmaskAll = ref(false)
-const unmaskedCells = ref(new Set())
+const unmaskedRows = ref(new Set())
+const showCombinationsDropdown = ref(false)
+const activeCellMenu = ref(null)
+const menuPosition = ref(null)
+const activeMenuData = ref(null)
+const editingSecret = ref(null)
+const renamingSecret = ref(null)
+const copyingSecretStage = ref(null)
+const copyingSecret = ref(null)
+const copyTarget = ref('')
+const historySecret = ref(null)
+const deletingSecret = ref(null)
 
-const canCompare = computed(() => {
-  return selectedVault.value && selectedStages.value.length >= 2
+// Computed columns based on selected combinations
+const activeColumns = computed(() => {
+  return selectedCombinations.value.map(key => {
+    const [vault, stage] = key.split(':')
+    return {vault, stage}
+  })
 })
 
-onMounted(async () => {
+// Save selections when they change
+watch(selectedCombinations, (newVal) => {
+  localStorage.setItem('keep.diff.selections', JSON.stringify(newVal))
+}, {deep: true})
+
+// Filter the diff matrix based on selected combinations
+const diffMatrix = computed(() => {
+  if (!fullDiffMatrix.value) return {}
+  if (selectedCombinations.value.length === 0) return {}
+
+  const filteredDiff = {}
+  for (const [key, vaultData] of Object.entries(fullDiffMatrix.value)) {
+    let hasSelectedCombination = false
+    const filteredVaultData = {}
+
+    for (const [vault, stageData] of Object.entries(vaultData)) {
+      const filteredStageData = {}
+      for (const [stage, value] of Object.entries(stageData)) {
+        if (selectedCombinations.value.includes(`${vault}:${stage}`)) {
+          filteredStageData[stage] = value
+          hasSelectedCombination = true
+        }
+      }
+      if (Object.keys(filteredStageData).length > 0) {
+        filteredVaultData[vault] = filteredStageData
+      }
+    }
+
+    if (hasSelectedCombination) {
+      filteredDiff[key] = filteredVaultData
+    }
+  }
+
+  return filteredDiff
+})
+
+// Get sorted keys for display
+const sortedKeys = computed(() => {
+  return Object.keys(diffMatrix.value).sort((a, b) => a.localeCompare(b))
+})
+
+// Get the status of a secret row
+function getRowStatus(key) {
+  if (!diffMatrix.value[key]) return 'incomplete'
+
+  const values = []
+  let totalExpected = activeColumns.value.length
+  let totalFound = 0
+
+  for (const column of activeColumns.value) {
+    const value = getSecretValue(key, column.vault, column.stage)
+    if (value !== null && value !== undefined) {
+      values.push(value)
+      totalFound++
+    }
+  }
+
+  // If not present in all combinations, it's incomplete
+  if (totalFound < totalExpected) {
+    return 'incomplete'
+  }
+
+  // If all values are identical, it's identical
+  if (new Set(values).size === 1) {
+    return 'identical'
+  }
+
+  // Otherwise, it's different
+  return 'different'
+}
+
+// Get the CSS class for a row based on its status
+function getRowClass(key, hover = true) {
+  const status = getRowStatus(key)
+  switch (status) {
+    case 'incomplete':
+      return 'bg-red-500/10 ' + (hover ? 'hover:bg-red-500/15' : '')
+    case 'identical':
+      return 'bg-green-500/10 ' + (hover ? 'hover:bg-green-500/15' : '')
+    case 'different':
+      return 'bg-yellow-500/10 ' + (hover ? 'hover:bg-yellow-500/15' : '')
+    default:
+      return 'hover:bg-muted/50'
+  }
+}
+
+
+// Close dropdowns when clicking outside
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+  loadInitialData()
+})
+
+function handleClickOutside(e) {
+  if (!e.target.closest('.relative')) {
+    showCombinationsDropdown.value = false
+  }
+  // Close menu if clicking outside of it
+  if (activeCellMenu.value && !e.target.closest('[data-menu-key]')) {
+    activeCellMenu.value = null
+    menuPosition.value = null
+    activeMenuData.value = null
+  }
+}
+
+async function loadInitialData() {
   try {
     const [vaultsData, stagesData] = await Promise.all([
       window.$api.listVaults(),
       window.$api.listStages()
     ])
+
     availableVaults.value = vaultsData.vaults || []
     availableStages.value = stagesData.stages || []
-    
-    // Auto-select all stages for convenience
-    selectedStages.value = [...availableStages.value]
+
+    // Build all combinations
+    availableCombinations.value = []
+    for (const vault of availableVaults.value) {
+      for (const stage of availableStages.value) {
+        availableCombinations.value.push({
+          key: `${vault.name}:${stage}`,
+          vault: vault.name,
+          vaultDisplay: vault.display,
+          stage: stage
+        })
+      }
+    }
+
+    // Load saved selections or select all by default
+    const savedSelections = localStorage.getItem('keep.diff.selections')
+    if (savedSelections) {
+      try {
+        const saved = JSON.parse(savedSelections)
+        // Only use saved selections that are still valid
+        selectedCombinations.value = saved.filter(s =>
+            availableCombinations.value.some(c => c.key === s)
+        )
+      } catch (e) {
+        // If parsing fails, select all
+        selectedCombinations.value = availableCombinations.value.map(c => c.key)
+      }
+    } else {
+      // Select all by default
+      selectedCombinations.value = availableCombinations.value.map(c => c.key)
+    }
+
+    // Load diff automatically
+    await loadDiff()
   } catch (error) {
-    console.error('Failed to load vaults and stages:', error)
+    console.error('Failed to load initial data:', error)
     toast.error('Failed to load data', error.message)
   }
-})
+}
 
-async function runComparison() {
-  if (!canCompare.value) return
-  
+async function loadDiff() {
+  // Load ALL vaults and stages from the server once
+  const vaults = availableVaults.value.map(v => v.name)
+  const stages = [...availableStages.value]
+
   loading.value = true
-  diffMatrix.value = null
-  unmaskedCells.value.clear()
-  
+
   try {
-    const data = await window.$api.getDiff(selectedStages.value, [selectedVault.value])
-    diffMatrix.value = data.diff || {}
+    const data = await window.$api.getDiff(stages, vaults)
+    fullDiffMatrix.value = data.diff || {}
   } catch (error) {
-    console.error('Failed to run comparison:', error)
-    toast.error('Comparison failed', error.message)
+    console.error('Failed to load diff:', error)
+    toast.error('Failed to load comparison', error.message)
+    fullDiffMatrix.value = {}
   } finally {
     loading.value = false
   }
 }
 
-function getSecretValue(key, stage) {
+function getSecretValue(key, vault, stage) {
   if (!diffMatrix.value[key]) return null
-  if (!diffMatrix.value[key][selectedVault.value]) return null
-  return diffMatrix.value[key][selectedVault.value][stage] || null
+  if (!diffMatrix.value[key][vault]) return null
+  return diffMatrix.value[key][vault][stage] || null
 }
 
-function isDifferent(key) {
-  if (!diffMatrix.value[key] || !diffMatrix.value[key][selectedVault.value]) return false
-  
-  const values = selectedStages.value
-    .map(stage => diffMatrix.value[key][selectedVault.value][stage])
-    .filter(v => v !== null && v !== undefined)
-  
-  return new Set(values).size > 1
-}
-
-function getCellClass(key, stage) {
-  const value = getSecretValue(key, stage)
+function getCellClass(key, vault, stage) {
+  const value = getSecretValue(key, vault, stage)
   if (!value) return 'bg-muted/30'
-  if (isDifferent(key)) return 'bg-yellow-500/10'
   return ''
 }
 
-function toggleCellMask(key, stage) {
-  const cellKey = `${key}-${stage}`
-  if (unmaskedCells.value.has(cellKey)) {
-    unmaskedCells.value.delete(cellKey)
+function toggleRowMask(key) {
+  if (unmaskedRows.value.has(key)) {
+    unmaskedRows.value.delete(key)
   } else {
-    unmaskedCells.value.add(cellKey)
+    unmaskedRows.value.add(key)
   }
 }
 
-function exportDiff() {
-  if (!diffMatrix.value) return
-  
-  // Build CSV content
-  const rows = []
-  rows.push(['Secret Key', ...selectedStages.value])
-  
-  for (const [key, vaultData] of Object.entries(diffMatrix.value)) {
-    const row = [key]
-    for (const stage of selectedStages.value) {
-      const value = vaultData[selectedVault.value]?.[stage] || ''
-      row.push(value)
-    }
-    rows.push(row)
+function getMaskedValue(key, vault, stage) {
+  const value = getSecretValue(key, vault, stage)
+  if (!value) return ''
+
+  // Check if row is unmasked or global unmask is on
+  if (unmaskAll.value || unmaskedRows.value.has(key)) {
+    return value
   }
-  
-  // Convert to CSV
-  const csv = rows.map(row => 
-    row.map(cell => {
-      // Escape quotes and wrap in quotes if contains comma or newline
-      const escaped = String(cell).replace(/"/g, '""')
-      return /[,\n"]/.test(escaped) ? `"${escaped}"` : escaped
-    }).join(',')
-  ).join('\n')
-  
-  // Copy to clipboard (could also trigger download)
-  navigator.clipboard.writeText(csv)
-    .then(() => {
-      toast.success('Exported to clipboard', 'Diff matrix has been copied as CSV')
-    })
-    .catch(err => {
-      console.error('Failed to copy:', err)
-      toast.error('Export failed', 'Could not copy to clipboard')
-    })
+
+  // Apply masking logic (matching PHP)
+  const length = value.length
+  if (length <= 8) return '••••'
+
+  const masked = value.substring(0, 4) + '•'.repeat(length - 4)
+  if (length <= 24) return masked
+
+  return masked.substring(0, 24) + ` (${length} chars)`
 }
+
+// Cell menu functionality is now handled by SecretActionsMenu component
+
+function createSecret(data) {
+  editingSecret.value = {key: data.key, vault: data.vault, stage: data.stage, value: '', isNew: true}
+}
+
+function editSecret(data) {
+  editingSecret.value = {key: data.key, vault: data.vault, stage: data.stage, value: data.value}
+}
+
+function showCopyToStageDialog(data) {
+  copyingSecretStage.value = {key: data.key, vault: data.vault, stage: data.stage, value: data.value}
+}
+
+function showHistoryDialog(data) {
+  historySecret.value = {key: data.key, vault: data.vault, stage: data.stage}
+}
+
+function showDeleteDialog(data) {
+  deletingSecret.value = {key: data.key, vault: data.vault, stage: data.stage}
+}
+
+function handleCopyValue(data) {
+  toast.success('Copied to clipboard', 'Secret value has been copied to your clipboard')
+}
+
+async function confirmDelete() {
+  if (!deletingSecret.value) return
+  
+  try {
+    await window.$api.deleteSecret(deletingSecret.value.key, deletingSecret.value.vault, deletingSecret.value.stage)
+    toast.success('Secret deleted', `Secret '${deletingSecret.value.key}' has been deleted successfully`)
+    await loadDiff()
+    deletingSecret.value = null
+  } catch (error) {
+    console.error('Failed to delete secret:', error)
+    toast.error('Failed to delete secret', error.message)
+  }
+}
+
+function copyToStage(key, vault, stage) {
+  copyingSecret.value = {key, vault, stage, value: getSecretValue(key, vault, stage)}
+}
+
+// Delete secret is now handled by SecretActionsMenu component
+
+async function saveEditedSecret() {
+  if (!editingSecret.value) return
+
+  try {
+    if (editingSecret.value.isNew) {
+      await window.$api.createSecret(
+          editingSecret.value.key,
+          editingSecret.value.value,
+          editingSecret.value.vault,
+          editingSecret.value.stage
+      )
+      toast.success('Secret created', `Created '${editingSecret.value.key}'`)
+    } else {
+      await window.$api.updateSecret(
+          editingSecret.value.key,
+          editingSecret.value.value,
+          editingSecret.value.vault,
+          editingSecret.value.stage
+      )
+      toast.success('Secret updated', `Updated '${editingSecret.value.key}'`)
+    }
+    editingSecret.value = null
+    await loadDiff()
+  } catch (error) {
+    toast.error(editingSecret.value.isNew ? 'Create failed' : 'Update failed', error.message)
+  }
+}
+
+async function executeCopy() {
+  if (!copyingSecret.value || !copyTarget.value) return
+
+  const [targetVault, targetStage] = copyTarget.value.split(':')
+
+  try {
+    await window.$api.copySecretToStage(
+        copyingSecret.value.key,
+        targetStage,
+        targetVault,
+        copyingSecret.value.stage,
+        copyingSecret.value.vault
+    )
+    toast.success('Secret copied', `Copied '${copyingSecret.value.key}' to ${targetVault}:${targetStage}`)
+    copyingSecret.value = null
+    copyTarget.value = ''
+    await loadDiff()
+  } catch (error) {
+    toast.error('Copy failed', error.message)
+  }
+}
+
+function selectAll() {
+  selectedCombinations.value = availableCombinations.value.map(c => c.key)
+}
+
+function selectNone() {
+  selectedCombinations.value = []
+}
+
+async function handleCopyToStage({ targetVault, targetStage }) {
+  try {
+    await window.$api.copySecretToStage(
+      copyingSecretStage.value.key, 
+      targetStage, 
+      targetVault, 
+      copyingSecretStage.value.stage,
+      copyingSecretStage.value.vault
+    )
+    toast.success('Secret copied', `Secret '${copyingSecretStage.value.key}' copied to ${targetVault}:${targetStage}`)
+    copyingSecretStage.value = null
+    await loadDiff()
+  } catch (error) {
+    console.error('Failed to copy secret:', error)
+    toast.error('Failed to copy secret', error.message)
+  }
+}
+
+async function handleRename(newKey) {
+  try {
+    await window.$api.renameSecret(renamingSecret.value.key, newKey, renamingSecret.value.vault, renamingSecret.value.stage)
+    toast.success('Secret renamed', `Secret renamed from '${renamingSecret.value.key}' to '${newKey}'`)
+    await loadDiff()
+    renamingSecret.value = null
+  } catch (error) {
+    console.error('Failed to rename secret:', error)
+    toast.error('Failed to rename secret', error.message)
+  }
+}
+
 </script>

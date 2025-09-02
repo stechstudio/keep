@@ -62,7 +62,8 @@ import { reactive, watch } from 'vue'
 const props = defineProps({
   secret: Object,
   vault: String,
-  stage: String
+  stage: String,
+  initialKey: String
 })
 
 const emit = defineEmits(['save', 'close'])
@@ -77,8 +78,14 @@ watch(() => props.secret, (newSecret) => {
     form.key = newSecret.key
     form.value = newSecret.value
   } else {
-    form.key = ''
+    form.key = props.initialKey || ''
     form.value = ''
+  }
+}, { immediate: true })
+
+watch(() => props.initialKey, (newKey) => {
+  if (!props.secret && newKey) {
+    form.key = newKey
   }
 }, { immediate: true })
 

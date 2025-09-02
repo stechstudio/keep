@@ -60,15 +60,19 @@ class ApiClient {
     })
   }
 
-  async copySecretToStage(key, targetStage, vault, sourceStage) {
-    return this.request(`/secrets/${encodeURIComponent(key)}/copy-to-stage`, {
+  async copySecretToStage(key, targetStage, targetVault, sourceStage, sourceVault) {
+    return this.request(`/secrets/${encodeURIComponent(key)}/copy-to-stage?vault=${sourceVault}&stage=${sourceStage}`, {
       method: 'POST',
-      body: JSON.stringify({ targetStage, vault, stage: sourceStage })
+      body: JSON.stringify({ targetStage, targetVault })
     })
   }
 
   async searchSecrets(query, vault, stage, unmask = false) {
     return this.request(`/search?q=${encodeURIComponent(query)}&vault=${vault}&stage=${stage}&unmask=${unmask}`)
+  }
+
+  async getSecretHistory(key, vault, stage, limit = 10, unmask = false) {
+    return this.request(`/secrets/${encodeURIComponent(key)}/history?vault=${vault}&stage=${stage}&limit=${limit}&unmask=${unmask}`)
   }
 
   // Settings & Config
