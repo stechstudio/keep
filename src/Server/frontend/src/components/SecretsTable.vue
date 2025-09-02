@@ -105,10 +105,22 @@
                       Edit
                     </button>
                     <button
+                      @click="showRenameDialog(secret)"
+                      class="w-full text-left px-4 py-2 text-sm hover:bg-accent transition-colors"
+                    >
+                      Rename
+                    </button>
+                    <button
                       @click="copyToClipboard(secret.value)"
                       class="w-full text-left px-4 py-2 text-sm hover:bg-accent transition-colors"
                     >
                       Copy Value
+                    </button>
+                    <button
+                      @click="showCopyToStageDialog(secret)"
+                      class="w-full text-left px-4 py-2 text-sm hover:bg-accent transition-colors"
+                    >
+                      Copy to Stage
                     </button>
                     <button
                       @click="deleteSecret(secret.key)"
@@ -138,6 +150,24 @@
       @save="saveSecret"
       @close="closeDialog"
     />
+    
+    <!-- Rename Dialog -->
+    <RenameDialog
+      v-if="renamingSecret"
+      :currentKey="renamingSecret.key"
+      @rename="handleRename"
+      @close="renamingSecret = null"
+    />
+    
+    <!-- Copy to Stage Dialog -->
+    <CopyToStageDialog
+      v-if="copyingSecret"
+      :secretKey="copyingSecret.key"
+      :currentStage="stage"
+      :stages="stages"
+      @copy="handleCopyToStage"
+      @close="copyingSecret = null"
+    />
   </div>
 </template>
 
@@ -146,6 +176,8 @@ import { ref, onMounted, watch } from 'vue'
 import VaultStageSelector from './VaultStageSelector.vue'
 import SecretValue from './SecretValue.vue'
 import SecretDialog from './SecretDialog.vue'
+import RenameDialog from './RenameDialog.vue'
+import CopyToStageDialog from './CopyToStageDialog.vue'
 
 const emit = defineEmits(['refresh'])
 
@@ -161,6 +193,8 @@ const unmaskedKeys = ref(new Set())
 const openMenu = ref(null)
 const showAddDialog = ref(false)
 const editingSecret = ref(null)
+const renamingSecret = ref(null)
+const copyingSecret = ref(null)
 
 let searchTimeout = null
 
@@ -273,6 +307,39 @@ async function deleteSecret(key) {
 function copyToClipboard(value) {
   navigator.clipboard.writeText(value)
   openMenu.value = null
+}
+
+function showRenameDialog(secret) {
+  renamingSecret.value = secret
+  openMenu.value = null
+}
+
+function showCopyToStageDialog(secret) {
+  copyingSecret.value = secret
+  openMenu.value = null
+}
+
+async function handleRename(newKey) {
+  try {
+    await window.$api.renameSecret(renamingSecret.value.key, newKey, vault.value, stage.value)
+    await loadSecrets()
+    renamingSecret.value = null
+  } catch (error) {
+    console.error('Failed to rename secret:', error)
+    alert('Failed to rename secret: ' + error.message)
+  }
+}
+
+async function handleCopyToStage(targetStage) {
+  try {
+    await window.$api.copySecretToStage(copyingSecret.value.key, targetStage, vault.value, stage.value)
+    copyingSecret.value = null
+    // Show success message
+    alert(`Secret copied to ${targetStage} stage successfully`)
+  } catch (error) {
+    console.error('Failed to copy secret:', error)
+    alert('Failed to copy secret: ' + error.message)
+  }
 }
 
 function closeDialog() {

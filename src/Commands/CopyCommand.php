@@ -72,7 +72,7 @@ class CopyCommand extends BaseCommand
 
             // Handle overwrite protection
             if ($destinationExists && ! $this->option('overwrite') && ! $this->option('dry-run')) {
-                $this->error(sprintf('Secret [<secret-name>%s</secret-name>] already exists in destination. Use --overwrite to replace it.', $key));
+                $this->error(sprintf('Secret [%s] already exists in destination. Use --overwrite to replace it.', $key));
 
                 return self::FAILURE;
             }

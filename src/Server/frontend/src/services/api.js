@@ -53,6 +53,20 @@ class ApiClient {
     })
   }
 
+  async renameSecret(oldKey, newKey, vault, stage) {
+    return this.request(`/secrets/${encodeURIComponent(oldKey)}/rename`, {
+      method: 'POST',
+      body: JSON.stringify({ newKey, vault, stage })
+    })
+  }
+
+  async copySecretToStage(key, targetStage, vault, sourceStage) {
+    return this.request(`/secrets/${encodeURIComponent(key)}/copy-to-stage`, {
+      method: 'POST',
+      body: JSON.stringify({ targetStage, vault, stage: sourceStage })
+    })
+  }
+
   async searchSecrets(query, vault, stage, unmask = false) {
     return this.request(`/search?q=${encodeURIComponent(query)}&vault=${vault}&stage=${stage}&unmask=${unmask}`)
   }
