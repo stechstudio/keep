@@ -9,7 +9,7 @@ class SecretController extends ApiController
     public function list(): array
     {
         try {
-            [$vault] = $this->getVault();
+            $vault = $this->getVault();
             $secrets = $vault->list();
             
             return $this->success([
@@ -25,7 +25,7 @@ class SecretController extends ApiController
 
     public function get(string $key): array
     {
-        [$vault] = $this->getVault();
+        $vault = $this->getVault();
         $secret = $vault->get(urldecode($key));
         
         if (!$secret) {
@@ -43,7 +43,7 @@ class SecretController extends ApiController
             return $this->error('Missing key or value');
         }
         
-        [$vault] = $this->getVault();
+        $vault = $this->getVault();
         $vault->set($this->body['key'], $this->body['value']);
         
         return $this->success([
@@ -58,7 +58,7 @@ class SecretController extends ApiController
             return $this->error('Missing value');
         }
         
-        [$vault] = $this->getVault();
+        $vault = $this->getVault();
         $vault->set(urldecode($key), $this->body['value']);
         
         return $this->success([
@@ -69,7 +69,7 @@ class SecretController extends ApiController
 
     public function delete(string $key): array
     {
-        [$vault] = $this->getVault();
+        $vault = $this->getVault();
         $vault->delete(urldecode($key));
         
         return $this->success([
@@ -86,7 +86,7 @@ class SecretController extends ApiController
             return $this->error('Missing search query');
         }
         
-        [$vault] = $this->getVault();
+        $vault = $this->getVault();
         $secrets = $vault->list();
         
         $results = $secrets->filter(function($secret) use ($q) {

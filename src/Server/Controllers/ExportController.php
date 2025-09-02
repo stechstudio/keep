@@ -6,7 +6,7 @@ class ExportController extends ApiController
 {
     public function export(): array
     {
-        [$vault] = $this->getVault();
+        $vault = $this->getVault();
         $format = $this->body['format'] ?? 'env';
         
         $secrets = $vault->list();

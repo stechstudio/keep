@@ -26,6 +26,11 @@ abstract class AbstractVault
         return Str::slug($this->name());
     }
 
+    public function stage(): string
+    {
+        return $this->stage;
+    }
+
     abstract public function list(): SecretCollection;
 
     abstract public function has(string $key): bool;
