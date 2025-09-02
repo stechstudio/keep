@@ -84,7 +84,7 @@
           <div class="border border-border rounded-lg p-4 space-y-2 text-sm">
             <div class="flex items-center justify-between">
               <span class="text-muted-foreground">Server URL</span>
-              <span class="font-mono">{{ window.location.origin }}</span>
+              <span class="font-mono">{{ serverUrl }}</span>
             </div>
             <div class="flex items-center justify-between">
               <span class="text-muted-foreground">Keep Version</span>
@@ -336,6 +336,7 @@ const defaultStages = ['local', 'staging', 'production']
 
 // Computed
 const isDefaultStage = (stage) => defaultStages.includes(stage)
+const serverUrl = computed(() => typeof window !== 'undefined' ? window.location.origin : '')
 
 // Lifecycle
 onMounted(async () => {
