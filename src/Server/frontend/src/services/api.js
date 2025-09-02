@@ -80,13 +80,54 @@ class ApiClient {
     return this.request('/settings')
   }
 
+  async updateSettings(settings) {
+    return this.request('/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settings)
+    })
+  }
+
   // Vaults & Stages
   async listVaults() {
     return this.request('/vaults')
   }
 
+  async addVault(vault) {
+    return this.request('/vaults', {
+      method: 'POST',
+      body: JSON.stringify(vault)
+    })
+  }
+
+  async updateVault(slug, vault) {
+    return this.request(`/vaults/${slug}`, {
+      method: 'PUT',
+      body: JSON.stringify(vault)
+    })
+  }
+
+  async deleteVault(slug) {
+    return this.request(`/vaults/${slug}`, {
+      method: 'DELETE'
+    })
+  }
+
   async listStages() {
     return this.request('/stages')
+  }
+
+  async addStage(stage) {
+    return this.request('/stages', {
+      method: 'POST',
+      body: JSON.stringify({ stage })
+    })
+  }
+
+  async removeStage(stage) {
+    return this.request('/stages', {
+      method: 'DELETE',
+      body: JSON.stringify({ stage })
+    })
   }
 
   async verifyVaults() {
