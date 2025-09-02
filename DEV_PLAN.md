@@ -57,7 +57,7 @@ src/
   - [x] POST `/api/secrets/:key/rename` - Rename secret
   - [x] POST `/api/secrets/:key/copy-to-stage` - Copy to different stage
   - [x] GET `/api/search` - Search in values
-  - [ ] GET `/api/secrets/history/{key}` - Get secret history
+  - [x] GET `/api/secrets/:key/history` - Get secret history
 - [x] Implement Vault endpoints:
   - [x] GET `/api/vaults` - List configured vaults
   - [ ] GET `/api/vaults/{name}` - Get vault details
@@ -96,7 +96,9 @@ src/
   - [ ] LoadingSpinner
   - [ ] ErrorAlert
   - [x] SuccessToast (Toast system implemented)
-  - [x] ConfirmDialog (basic implementation)
+  - [x] ConfirmDialog (DeleteConfirmDialog implemented)
+  - [x] HistoryDialog (shows revision history)
+  - [x] SecretActionsMenu (reusable dropdown menu)
   - [x] SearchInput with debouncing
 
 ### Phase 5: Secret Management Views
@@ -106,10 +108,10 @@ src/
   - [ ] Bulk selection checkboxes
   - [x] Quick actions (copy value, edit, delete)
   - [ ] Pagination for large lists
-- [ ] Secret Detail View:
+- [x] Secret Detail View:
   - [x] View/edit secret value
   - [x] Show metadata (created, modified, revision)
-  - [ ] History timeline
+  - [x] History timeline (HistoryDialog)
   - [x] Copy to clipboard
 - [x] Add/Edit Secret Modal:
   - [x] Key validation
@@ -126,7 +128,9 @@ src/
 - [x] Diff Matrix View:
   - [x] Visual comparison across stages/vaults
   - [x] Color coding (present/missing/different)
-  - [ ] Click cell to see value comparison
+  - [x] Click cell to see value comparison
+  - [x] Edit secrets directly from diff view
+  - [x] Create missing secrets from diff view
   - [ ] Export diff as CSV
 - [ ] Template Builder:
   - [ ] Drag secrets to template
@@ -173,7 +177,7 @@ src/
 - [ ] Implement session timeout (configurable)
 - [ ] Add audit logging for all actions
 - [ ] Clear clipboard after timeout
-- [ ] Mask values by default everywhere
+- [x] Mask values by default everywhere
 - [ ] Add "lock screen" feature
 
 ### Phase 9: Build & Distribution
@@ -321,27 +325,60 @@ Error responses:
 - Search functionality with highlighting
 - Vault and stage switching
 - Diff view for comparing across stages
-- Export functionality (env, json formats)
+- Export functionality (env, json, yaml, shell formats)
 - Toast notifications for all actions
 - Dark theme by default
 - Responsive design
 - Clean architecture with controllers and router
+- Secret history/revision tracking
+- Client-side value masking with toggle
+- Consistent actions menu across all views
 
 ### ✅ UI Components
-- SecretsTable with three-dot menu
+- SecretsTable with integrated actions menu
+- SecretActionsMenu (reusable dropdown component)
 - RenameDialog for renaming secrets
 - CopyToStageDialog for stage copying
 - SecretDialog for add/edit
+- DeleteConfirmDialog with custom styling
+- HistoryDialog showing revision history
 - VaultStageSelector
 - Toast notification system
 - Masked/unmasked value display
+- Logo integration in header
 
-## Next Steps
+## Next Priority Features
 
-1. Add loading spinners for better UX
-2. Implement keyboard shortcuts
-3. Add bulk operations (select multiple secrets)
-4. Add pagination for large lists
-5. Build production assets and commit
+### Quick Wins (1-2 hours each)
+1. **Loading Spinner Component** - Show during API calls for better UX
+2. **Empty States** - Helpful messages when no secrets/vaults exist
+3. **Keyboard Shortcuts** - `/` for search, `n` for new, `e` for edit
+4. **Settings View** - Display/edit Keep configuration
 
-This plan is ambitious but achievable. The key is to deliver value incrementally - even a basic read-only UI would be valuable to users.
+### Medium Features (2-4 hours each)
+5. **Bulk Operations** - Select multiple secrets for delete/export/copy
+6. **Import Wizard** - Upload .env files with preview and conflict resolution
+7. **Template Builder** - Visual template creation with drag-and-drop
+8. **Pagination** - Handle large secret lists efficiently
+
+### Advanced Features (4+ hours)
+9. **Search & Replace** - Find and replace values across all secrets
+10. **Audit Log** - Track all changes with user/timestamp
+11. **WebSocket Support** - Real-time updates when secrets change
+12. **Export Settings** - Save/restore UI preferences
+
+## Recent Accomplishments (Since Last Update)
+
+- ✅ Implemented secret history endpoint and UI dialog
+- ✅ Created reusable SecretActionsMenu component (DRY principle)
+- ✅ Added custom delete confirmation dialog
+- ✅ Fixed edit functionality on Diff page
+- ✅ Improved client-side masking consistency
+- ✅ Added logo to header with proper Vite asset handling
+- ✅ Consolidated duplicate code between Secrets and Diff views
+
+## Current Status
+
+The Web UI is now feature-complete for basic secret management operations. All core CRUD operations work seamlessly, the diff view provides powerful cross-stage comparison, and the export functionality supports multiple formats. The UI is polished with consistent interactions and proper error handling.
+
+**Ready for beta testing and user feedback!**

@@ -87,8 +87,17 @@ if (str_starts_with($path, '/api/')) {
     
     // Vault & Settings routes
     $router->get('/api/vaults', [VaultController::class, 'list']);
+    $router->post('/api/vaults', [VaultController::class, 'addVault']);
+    $router->put('/api/vaults/:slug', [VaultController::class, 'updateVault']);
+    $router->delete('/api/vaults/:slug', [VaultController::class, 'deleteVault']);
+    
     $router->get('/api/stages', [VaultController::class, 'listStages']);
+    $router->post('/api/stages', [VaultController::class, 'addStage']);
+    $router->delete('/api/stages', [VaultController::class, 'removeStage']);
+    
     $router->get('/api/settings', [VaultController::class, 'getSettings']);
+    $router->put('/api/settings', [VaultController::class, 'updateSettings']);
+    
     $router->post('/api/verify', [VaultController::class, 'verify']);
     $router->get('/api/diff', [VaultController::class, 'diff']);
     
