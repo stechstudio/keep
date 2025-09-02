@@ -44,8 +44,8 @@
       <table class="w-full" :class="loading && 'opacity-50 pointer-events-none'">
         <thead class="bg-muted">
           <tr>
-            <th class="w-1/4 text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Key</th>
-            <th class="w-1/2 text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <th class="w-3/12 text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Key</th>
+            <th class="w-6/12 text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
               <div class="flex items-center space-x-2">
                 <span>Value</span>
                 <button
@@ -63,7 +63,7 @@
                 </button>
               </div>
             </th>
-            <th class="w-1/4 text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Modified</th>
+            <th class="w-2/12 text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Modified</th>
             <th class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
           </tr>
         </thead>
