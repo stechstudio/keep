@@ -44,8 +44,8 @@
       <table class="w-full" :class="loading && 'opacity-50 pointer-events-none'">
         <thead class="bg-muted">
           <tr>
-            <th class="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Key</th>
-            <th class="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <th class="w-1/4 text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Key</th>
+            <th class="w-1/2 text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
               <div class="flex items-center space-x-2">
                 <span>Value</span>
                 <button
@@ -63,11 +63,11 @@
                 </button>
               </div>
             </th>
-            <th class="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Modified</th>
+            <th class="w-1/4 text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Modified</th>
             <th class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
           </tr>
         </thead>
-        <tbody class="bg-card divide-y divide-border">
+        <tbody class="divide-y divide-border">
           <tr v-for="secret in secrets" :key="secret.key" class="transition-colors">
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
               {{ secret.key }}
@@ -97,7 +97,7 @@
                   v-if="openMenu === secret.key"
                   class="absolute right-0 mt-2 w-48 bg-popover border border-border rounded-md shadow-lg z-10"
                 >
-                  <div class="py-1">
+                  <div class="py-1 flex flex-col">
                     <button
                       @click="editSecret(secret)"
                       class="w-full text-left px-4 py-2 text-sm hover:bg-accent transition-colors"
