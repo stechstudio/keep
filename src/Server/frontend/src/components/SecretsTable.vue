@@ -40,7 +40,7 @@
     </div>
 
     <!-- Table -->
-    <div class="border border-border rounded-lg overflow-hidden">
+    <div class="border border-border rounded-lg">
       <table class="w-full" :class="loading && 'opacity-50 pointer-events-none'">
         <thead class="bg-muted">
           <tr>
@@ -178,8 +178,10 @@ import SecretValue from './SecretValue.vue'
 import SecretDialog from './SecretDialog.vue'
 import RenameDialog from './RenameDialog.vue'
 import CopyToStageDialog from './CopyToStageDialog.vue'
+import { useToast } from '../composables/useToast'
 
 const emit = defineEmits(['refresh'])
+const toast = useToast()
 
 const vault = ref('')
 const stage = ref('')
@@ -280,14 +282,16 @@ async function saveSecret(data) {
   try {
     if (editingSecret.value) {
       await window.$api.updateSecret(data.key, data.value, vault.value, stage.value)
+      toast.success('Secret updated', `Secret '${data.key}' has been updated successfully`)
     } else {
       await window.$api.createSecret(data.key, data.value, vault.value, stage.value)
+      toast.success('Secret created', `Secret '${data.key}' has been created successfully`)
     }
     await loadSecrets()
     closeDialog()
   } catch (error) {
     console.error('Failed to save secret:', error)
-    alert('Failed to save secret: ' + error.message)
+    toast.error('Failed to save secret', error.message)
   }
 }
 
@@ -296,16 +300,18 @@ async function deleteSecret(key) {
   
   try {
     await window.$api.deleteSecret(key, vault.value, stage.value)
+    toast.success('Secret deleted', `Secret '${key}' has been deleted successfully`)
     await loadSecrets()
     openMenu.value = null
   } catch (error) {
     console.error('Failed to delete secret:', error)
-    alert('Failed to delete secret: ' + error.message)
+    toast.error('Failed to delete secret', error.message)
   }
 }
 
 function copyToClipboard(value) {
   navigator.clipboard.writeText(value)
+  toast.success('Copied to clipboard', 'Secret value has been copied to your clipboard')
   openMenu.value = null
 }
 
@@ -322,23 +328,23 @@ function showCopyToStageDialog(secret) {
 async function handleRename(newKey) {
   try {
     await window.$api.renameSecret(renamingSecret.value.key, newKey, vault.value, stage.value)
+    toast.success('Secret renamed', `Secret renamed from '${renamingSecret.value.key}' to '${newKey}'`)
     await loadSecrets()
     renamingSecret.value = null
   } catch (error) {
     console.error('Failed to rename secret:', error)
-    alert('Failed to rename secret: ' + error.message)
+    toast.error('Failed to rename secret', error.message)
   }
 }
 
 async function handleCopyToStage(targetStage) {
   try {
     await window.$api.copySecretToStage(copyingSecret.value.key, targetStage, vault.value, stage.value)
+    toast.success('Secret copied', `Secret '${copyingSecret.value.key}' copied to ${targetStage} stage successfully`)
     copyingSecret.value = null
-    // Show success message
-    alert(`Secret copied to ${targetStage} stage successfully`)
   } catch (error) {
     console.error('Failed to copy secret:', error)
-    alert('Failed to copy secret: ' + error.message)
+    toast.error('Failed to copy secret', error.message)
   }
 }
 
