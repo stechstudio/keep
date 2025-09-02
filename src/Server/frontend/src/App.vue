@@ -5,12 +5,12 @@
       <div class="max-w-full px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <!-- Logo & Title -->
-          <div class="flex items-center">
-            <svg class="w-8 h-8 mr-3 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="10" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0110 0v4"/>
-            </svg>
-            <span class="text-xl font-semibold">{{ appName }}</span>
+          <div class="flex items-center w-1/3">
+<!--            <svg class="w-8 h-8 mr-3 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">-->
+<!--              <rect x="3" y="11" width="18" height="10" rx="2" ry="2"/>-->
+<!--              <path d="M7 11V7a5 5 0 0110 0v4"/>-->
+<!--            </svg>-->
+            <span class="text-xl font-semibold">{{ appName }} Secrets</span>
           </div>
 
           <!-- Pill Navigation -->
@@ -28,6 +28,9 @@
             >
               {{ tab.label }}
             </button>
+          </div>
+          <div class="w-1/3 text-right">
+            <a href="https://github.com/stechstudio/keep" target="_blank" class="text-white/50 hover:text-white">Keep v{{ keepVersion }}</a>
           </div>
         </div>
       </div>
@@ -67,6 +70,7 @@ const tabs = [
 ]
 
 const appName = ref('Keep')
+const keepVersion = ref('')
 
 onMounted(async () => {
   await loadSettings()
@@ -76,6 +80,7 @@ async function loadSettings() {
   try {
     const settings = await window.$api.getSettings()
     appName.value = settings.app_name || 'Keep'
+    keepVersion.value = settings.keep_version || ''
   } catch (error) {
     console.error('Failed to load settings:', error)
   }

@@ -9,6 +9,7 @@
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 
+use STS\Keep\KeepApplication;
 use STS\Keep\KeepManager;
 use STS\Keep\KeepContainer;
 use STS\Keep\Data\Settings;
@@ -255,7 +256,8 @@ function getSettings(KeepManager $manager): array
     return [
         'app_name' => $settings['app_name'] ?? 'Keep',
         'stages' => $settings['stages'] ?? ['local', 'staging', 'production'],
-        'default_vault' => $manager->getDefaultVault()
+        'default_vault' => $manager->getDefaultVault(),
+        'keep_version' => KeepApplication::VERSION
     ];
 }
 
