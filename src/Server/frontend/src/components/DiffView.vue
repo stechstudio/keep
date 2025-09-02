@@ -149,11 +149,11 @@
                 :stage="column.stage"
                 :showRename="false"
                 :buttonClass="'opacity-0 group-hover:opacity-100'"
-                @edit="(data) => editSecret({...data, vault: column.vault, stage: column.stage})"
+                @edit="editSecret"
                 @copyValue="handleCopyValue"
-                @copyTo="(data) => showCopyToStageDialog({...data, vault: column.vault, stage: column.stage})"
-                @history="(data) => showHistoryDialog({...data, vault: column.vault, stage: column.stage})"
-                @delete="(data) => showDeleteDialog({...data, vault: column.vault, stage: column.stage})"
+                @copyTo="showCopyToStageDialog"
+                @history="showHistoryDialog"
+                @delete="showDeleteDialog"
                 @refresh="loadDiff"
               />
             </div>
@@ -172,7 +172,7 @@
                 :showDelete="false"
                 :showHistory="false"
                 :buttonClass="'opacity-0 group-hover:opacity-100'"
-                @create="(data) => createSecret({...data, vault: column.vault, stage: column.stage})"
+                @create="createSecret"
               />
             </div>
           </td>

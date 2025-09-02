@@ -13,6 +13,9 @@
 <!--              <rect x="3" y="11" width="18" height="10" rx="2" ry="2"/>-->
 <!--              <path d="M7 11V7a5 5 0 0110 0v4"/>-->
 <!--            </svg>-->
+            <div class="size-9 rounded bg-muted mr-3">
+
+            </div>
             <span class="text-xl font-semibold opacity-75">{{ appName }} Secrets</span>
           </div>
 
