@@ -12,8 +12,7 @@ The Keep interactive shell provides shortcuts and enhanced versions of CLI comma
 Switched to vault: secretsmanager
 
 >>> vault
-Current vault: secretsmanager
-Available: ssm, secretsmanager
+# Interactive selection menu appears
 ```
 
 **stage** - Switch stage context  
@@ -68,7 +67,11 @@ Enter value (hidden): ********
 **get** - Retrieve a secret value
 ```bash
 >>> get API_KEY
-API_KEY=sk_live_****3f2a
+┌──────────┬────────────────┬─────┐
+│ Key      │ Value          │ Rev │
+├──────────┼────────────────┼─────┤
+│ API_KEY  │ sk_l****       │ 3   │
+└──────────┴────────────────┴─────┘
 
 >>> g DB_HOST  # Using alias
 ```
@@ -76,12 +79,13 @@ API_KEY=sk_live_****3f2a
 **show** / **ls** - List all secrets
 ```bash
 >>> show
-┌─────────────────┬──────────────┬──────────────┐
-│ Key             │ Value        │ Modified     │
-├─────────────────┼──────────────┼──────────────┤
-│ API_KEY         │ sk_****3f2a  │ 2 hours ago  │
-│ DATABASE_URL    │ post****5432 │ 3 days ago   │
-└─────────────────┴──────────────┴──────────────┘
+┌─────────────────┬────────────────┬──────────┐
+│ Key             │ Value          │ Revision │
+├─────────────────┼────────────────┼──────────┤
+│ API_KEY         │ sk_l****       │ 3        │
+│ DATABASE_URL    │ post****       │ 1        │
+│ DEBUG_MODE      │ ****           │ 2        │
+└─────────────────┴────────────────┴──────────┘
 
 >>> show unmask  # Show actual values
 >>> ls  # Using alias
@@ -101,7 +105,7 @@ Delete OLD_KEY? (y/N): y
 ```bash
 >>> rename OLD_NAME NEW_NAME
 Rename OLD_NAME to NEW_NAME? (y/N): y
-✓ Renamed
+✓ Renamed OLD_NAME to NEW_NAME
 
 >>> rename API_V1 API_KEY force
 ```
@@ -109,15 +113,27 @@ Rename OLD_NAME to NEW_NAME? (y/N): y
 **history** - View secret version history
 ```bash
 >>> history API_KEY
-Version 3: 2024-01-15 10:30:00
-Version 2: 2024-01-10 14:22:00
-Version 1: 2024-01-05 09:15:00
+History for secret: API_KEY
+┌─────────┬────────────┬──────────┬─────────────────────┬──────────────┐
+│ Version │ Value      │ Type     │ Modified Date       │ Modified By  │
+├─────────┼────────────┼──────────┼─────────────────────┼──────────────┤
+│ 3       │ sk_n****   │ String   │ 2024-01-15 10:30:00 │ admin        │
+│ 2       │ sk_o****   │ String   │ 2024-01-10 14:22:00 │ admin        │
+│ 1       │ sk_t****   │ String   │ 2024-01-05 09:15:00 │ admin        │
+└─────────┴────────────┴──────────┴─────────────────────┴──────────────┘
 ```
 
 **search** - Search for secrets by value
 ```bash
 >>> search postgres
-Found 3 secrets containing "postgres"
+Found 3 secrets containing "postgres":
+┌──────────────┬────────────────┬──────────┐
+│ Key          │ Value          │ Revision │
+├──────────────┼────────────────┼──────────┤
+│ DB_URL       │ post****       │ 2        │
+│ BACKUP_DB    │ post****       │ 1        │
+│ TEST_DB_URL  │ post****       │ 1        │
+└──────────────┴────────────────┴──────────┘
 
 >>> search api-key unmask
 # Shows matches with unmasked values
@@ -143,13 +159,22 @@ Found 3 secrets containing "postgres"
 **diff** - Compare environments
 ```bash
 >>> diff local production
-┌──────────┬─────────┬────────────┬─────────┐
-│ Key      │ local   │ production │ Status  │
-├──────────┼─────────┼────────────┼─────────┤
-│ API_KEY  │ dev_key │ prod_key   │ ≠       │
-│ DEBUG    │ true    │ false      │ ≠       │
-│ NEW_VAR  │ value   │ -          │ local   │
-└──────────┴─────────┴────────────┴─────────┘
+Secret Comparison Matrix
+┌──────────┬───────────┬──────────────┬──────────────┐
+│ Key      │ local     │ production   │ Status       │
+├──────────┼───────────┼──────────────┼──────────────┤
+│ API_KEY  │ ✓ sk_d*** │ ✓ sk_l****   │ Different    │
+│ DEBUG    │ ✓ ****    │ ✓ ****       │ Different    │
+│ NEW_VAR  │ ✓ test*** │ —            │ Incomplete   │
+│ DB_HOST  │ ✓ loca*** │ ✓ loca****   │ Identical    │
+└──────────┴───────────┴──────────────┴──────────────┘
+
+Summary:
+• Total secrets: 4
+• Identical across all stages: 1 (25%)
+• Different values: 2 (50%)
+• Missing in some stages: 1 (25%)
+• Stages compared: 2
 ```
 
 ### Import/Export
@@ -176,8 +201,14 @@ Note: The `import` command is only available in the CLI, not the shell.
 **verify** - Test vault permissions
 ```bash
 >>> verify
-✓ ssm:production - Read, Write, List
-✗ secretsmanager:production - No access
+Testing vault permissions...
+✓ ssm:production
+  Read: ✓
+  Write: ✓
+  List: ✓
+  Delete: ✓
+✗ secretsmanager:production
+  Error: No credentials configured
 ```
 
 ## Command Shortcuts & Aliases
@@ -249,7 +280,36 @@ production
 **help** / **?** - Show available commands
 ```bash
 >>> help
-# Shows all available commands
+Keep Shell Commands
+
+Secret Management
+  get <key>                Get a secret value (alias: g)
+  set <key> <value>        Set a secret (alias: s)
+  delete <key> [force]     Delete a secret (alias: d)
+  show [unmask]            Show all secrets (alias: ls)
+  history <key>            View secret history
+  rename <old> <new>       Rename a secret
+  search <query>           Search for secrets containing text
+  copy <key> [destination] Copy single secret
+  copy only <pattern>      Copy secrets matching pattern
+  diff <stage1> <stage2>   Compare secrets between stages
+
+Context Management
+  stage <name>             Switch to a different stage
+  vault <name>             Switch to a different vault
+  use <vault:stage>        Switch both vault and stage (alias: u)
+  context                  Show current context (alias: ctx)
+
+Analysis & Export
+  export                   Export secrets interactively
+  verify                   Verify vault setup and permissions
+  info                     Show Keep information
+
+Other
+  exit                     Exit the shell (or Ctrl+D)
+  help                     Show this help message (alias: ?)
+  clear                    Clear the screen (alias: cls)
+  colors                   Show color scheme
 
 >>> help get
 # Shows detailed help for 'get' command
@@ -261,7 +321,19 @@ production
 **colors** - Display color scheme
 ```bash
 >>> colors
-# Shows all color codes used in the shell
+
+=== Shell Color Scheme ===
+
+✓ Success message - operations completed successfully
+→ Info message - general information
+⚠ Warning message - attention needed
+✗ Error message - something went wrong
+
+ssm:production - Vault and stage context
+DB_PASSWORD - Secret names
+get - Command names
+set - Command suggestions
+This is neutral descriptive text
 ```
 
 **exit** / **quit** / **q** - Leave the shell
@@ -335,6 +407,14 @@ These commands are not available in the shell:
 - `configure` - Use the CLI: `keep configure`
 
 ### Security Notes
-- The shell masks secret values by default
+- The shell masks secret values by default using `****` or showing only first 4 characters
+- Values longer than 24 characters are truncated in masked display
 - Command history redacts sensitive values
 - Use `unmask` option carefully in shared environments
+
+### Masking Format
+Keep uses a consistent masking approach:
+- Values ≤ 8 characters: `****`
+- Values > 8 characters: First 4 chars + `*` for remaining length
+- Values > 24 characters (masked): Truncated to 24 chars with `(N chars)` suffix
+- Example: `sk_live_abcdef123456` → `sk_l****************`
