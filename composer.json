@@ -61,7 +61,15 @@
         "lint": [
             "@php vendor/bin/phpstan analyse --verbose --ansi"
         ],
-        "format": "vendor/bin/pint --preset laravel"
+        "format": "vendor/bin/pint --preset laravel",
+        "ui:install": "cd src/Server/frontend && npm install",
+        "ui:build": "cd src/Server/frontend && npm run build",
+        "ui:dev": "cd src/Server/frontend && npm run dev",
+        "ui:clean": "cd src/Server/frontend && npm run clean",
+        "build": [
+            "@ui:install",
+            "@ui:build"
+        ]
     },
     "bin": ["bin/keep"],
     "config": {

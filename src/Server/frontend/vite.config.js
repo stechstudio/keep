@@ -10,13 +10,35 @@ export default defineConfig({
       allowOutsideOutDir: false,
       exclude: ['assets/logo.svg']
     },
+    // Enable source maps for debugging
+    sourcemap: true,
+    // Minification settings
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
+    },
+    // Chunk size warnings
+    chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
-        entryFileNames: 'assets/app.js',
-        chunkFileNames: 'assets/[name].js',
-        assetFileNames: 'assets/[name].[ext]'
+        // Add hash for cache busting
+        entryFileNames: 'assets/app.[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]',
+        // Manual chunks for better caching
+        manualChunks: {
+          'vendor': ['vue', 'vue-router'],
+          'utils': ['./src/utils/formatters.js', './src/composables/useToast.js']
+        }
       }
-    }
+    },
+    // Report compressed size
+    reportCompressedSize: true,
+    // Asserts inlining threshold in bytes
+    assetsInlineLimit: 4096
   },
   resolve: {
     alias: {
