@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Controls -->
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex justify-between">
       <div class="flex items-center space-x-4">
         <!-- Combined Vault/Stage Dropdown -->
         <div class="relative">
@@ -57,10 +57,10 @@
       </div>
 
       <!-- Right side controls -->
-      <div class="flex items-center space-x-2">
+      <div class="flex space-x-2">
         <button
             @click="unmaskAll = !unmaskAll"
-            class="flex items-center space-x-2 px-3 py-1.5 text-sm border border-border rounded-md hover:bg-accent transition-colors"
+            class="flex items-center space-x-2 px-3 py-2 text-sm border border-border rounded-md hover:bg-accent transition-colors"
         >
           <svg v-if="!unmaskAll" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
