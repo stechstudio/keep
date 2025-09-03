@@ -294,7 +294,7 @@
         <div class="flex justify-between items-center px-6 py-4 border-t border-border">
           <div>
             <button
-              v-if="step > 1"
+              v-if="step === 2"
               @click="step--"
               class="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted transition-colors"
             >
