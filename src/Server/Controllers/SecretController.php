@@ -69,7 +69,24 @@ class SecretController extends ApiController
     public function delete(string $key): array
     {
         $vault = $this->getVault();
-        $vault->delete(urldecode($key));
+        $decodedKey = urldecode($key);
+        
+        try {
+            $vault->delete($decodedKey);
+        } catch (\STS\Keep\Exceptions\SecretNotFoundException $e) {
+            // Log detailed information for debugging orphaned keys
+            error_log("Failed to delete key: {$decodedKey}");
+            error_log("Vault: " . $vault->name() . ", Stage: " . $vault->stage());
+            
+            // For verify test keys, provide a more helpful error message
+            if (str_starts_with($decodedKey, '__keep_verify_') || str_starts_with($decodedKey, 'keep-verify-')) {
+                throw new \STS\Keep\Exceptions\SecretNotFoundException(
+                    "Test key '{$decodedKey}' not found. This may be an orphaned verification key. " .
+                    "It might have been created in a different namespace or stage context."
+                );
+            }
+            throw $e;
+        }
         
         return $this->success([
             'success' => true,
