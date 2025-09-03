@@ -1,18 +1,6 @@
 <template>
-  <div>
-    <!-- Import Button (Icon Only) -->
-    <button
-      @click="showWizard = true"
-      class="p-2 border border-border rounded-md hover:bg-muted transition-colors"
-      title="Import .env file"
-    >
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-      </svg>
-    </button>
-
-    <!-- Import Wizard Modal -->
-    <div v-if="showWizard" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click.self="closeWizard">
+  <!-- Import Wizard Modal -->
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click.self="closeWizard">
       <div class="bg-card border border-border rounded-lg w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
         <!-- Header -->
         <div class="flex items-center justify-between px-6 py-4 border-b border-border">
@@ -322,7 +310,6 @@
         </div>
       </div>
     </div>
-  </div>
 </template>
 
 <script setup>
@@ -334,12 +321,11 @@ const props = defineProps({
   stage: String
 })
 
-const emit = defineEmits(['imported'])
+const emit = defineEmits(['imported', 'close'])
 
 const toast = useToast()
 
 // Wizard state
-const showWizard = ref(false)
 const step = ref(1)
 
 // Step 1: Upload
@@ -476,11 +462,11 @@ async function executeImport() {
 }
 
 function closeWizard() {
-  showWizard.value = false
   step.value = 1
   fileName.value = ''
   envContent.value = ''
   isDragging.value = false
+  emit('close')
   filters.value = { only: '', except: '' }
   analysis.value = { total: 0, new: 0, existing: 0, invalid: 0, empty: 0, secrets: [] }
   conflictStrategy.value = 'skip'
