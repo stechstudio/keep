@@ -457,3 +457,54 @@ The UI provides a powerful alternative to CLI operations with an intuitive inter
 3. Video demo/tutorial
 4. Bulk operations for multiple secrets
 5. Template builder for export templates
+
+## Shell Enhancements
+
+### Proposed Improvements
+Based on user feedback and common usage patterns, these shell enhancements would improve productivity:
+
+#### High Priority (Most Useful)
+1. **Stage Shortcuts** - Allow `local`, `staging`, `production` as shortcuts for `stage local`, etc.
+   - Implementation: Check if input matches known stage name, auto-expand to `stage <name>`
+   - Benefit: Faster context switching, matches user intuition
+
+2. **Temporary Context Override** - Support `get production/API_KEY` syntax
+   - Implementation: Parse key for stage/vault prefix, use temporarily without switching context
+   - Benefit: Quick checks without losing current context
+
+3. **Pattern Support** - Extend pattern matching to more commands
+   - `list DB_*` - Filter list output
+   - `delete TEMP_* --force` - Bulk delete by pattern
+   - `get API_*` - Show all matching secrets
+   - Implementation: Add pattern matching to command arguments
+   - Benefit: Batch operations without leaving shell
+
+4. **Multi-line Secret Input** - Support for certificates and keys
+   - Implementation: When `set KEY` without value, enter multi-line mode until Ctrl+D
+   - Benefit: Essential for SSL certs, private keys, JSON configs
+
+#### Medium Priority (Nice to Have)
+5. **Command Chaining** - Support `&&` operator
+   - Example: `stage production && list`
+   - Implementation: Parse for &&, execute commands sequentially
+   - Benefit: Combine related operations
+
+6. **Output Piping** - Allow piping to system commands
+   - Example: `list | grep -i database`
+   - Implementation: Detect pipe operator, pass output to system
+   - Benefit: Leverage existing Unix tools
+
+7. **Quick Repeat** - Support `!!` for last command
+   - Implementation: Track last command, expand !! before execution
+   - Benefit: Standard shell behavior users expect
+
+#### Low Priority (Consider Later)
+8. **Command History Search** - Ctrl+R for reverse search
+9. **Shell Aliases** - User-defined shortcuts in config
+10. **Output Redirection** - Support `>` and `>>` operators
+
+### Implementation Notes
+- Maintain backward compatibility
+- Add feature flags for experimental features
+- Document clearly what's shell-only vs available in CLI
+- Consider security implications of piping/redirection

@@ -1,301 +1,326 @@
 # Shell Tips & Tricks
 
-Master the Keep interactive shell with these productivity tips and advanced techniques.
+Master the Keep interactive shell with these productivity tips and techniques.
 
-## Productivity Tips
+## Quick Tips
 
-### Quick Context Switching
-
-**Use Shortcuts**
+### Use Command Aliases
+Save keystrokes with built-in aliases:
 ```bash
 # Instead of:
->>> stage local
->>> vault ssm
+>>> get API_KEY
+>>> set DB_HOST localhost
+>>> delete OLD_KEY
 
-# Just type:
->>> local
->>> ssm
+# Use shortcuts:
+>>> g API_KEY
+>>> s DB_HOST localhost  
+>>> d OLD_KEY
 ```
 
-**Chain Commands**
-```bash
-# Switch and list in one line
->>> production && list
+**Available aliases:**
+- `g` → `get`
+- `s` → `set`
+- `d` → `delete`
+- `ls` → `show`
+- `u` → `use`
+- `ctx` → `context`
+- `cls` → `clear`
+- `q` → `exit`
+- `?` → `help`
 
-# Copy and verify
->>> copy API_KEY staging && get staging/API_KEY
+### Interactive Selection
+Omit arguments for interactive prompts:
+```bash
+>>> stage
+Select a stage:
+> local
+  staging
+  production
+
+>>> vault
+Select a vault:
+> ssm
+  secretsmanager
 ```
 
-### Efficient Secret Management
-
-**Bulk Operations with Patterns**
+### Tab Completion
+Tab completion works for commands and secret names:
 ```bash
-# Set multiple related secrets
->>> set DB_HOST=localhost
->>> set DB_PORT=5432
->>> set DB_USER=admin
->>> set DB_NAME=myapp
+>>> g<TAB>
+get
 
-# Or copy them all at once
->>> copy DB_* production
-```
-
-**Use Tab Completion Aggressively**
-```bash
-# Don't type full names
->>> get A<TAB>     # Shows all secrets starting with A
->>> get API_<TAB>  # Shows all API_ secrets
+>>> get DB_<TAB>
+DB_HOST  DB_NAME  DB_PASSWORD  DB_PORT  DB_USER
 ```
 
 ### Command History
+Navigate through previous commands:
+- `↑` / `↓` - Browse command history
+- History is saved between sessions in `~/.keep_history`
 
-**Navigate History**
-- `↑` / `↓` - Browse previous commands
-- `Ctrl+R` - Reverse search history
-- `!!` - Repeat last command
-- `!get` - Repeat last command starting with "get"
+## Working with Secrets
 
-**History Tricks**
+### Quick Context Switching
 ```bash
-# Edit and rerun previous command
+# Switch stage
+>>> stage production
+
+# Switch vault
+>>> vault secretsmanager
+
+# Switch both at once
+>>> use ssm:staging
+```
+
+### Copy Patterns
+Copy multiple secrets matching a pattern:
+```bash
+# Copy all DB_ secrets to staging
+>>> copy only DB_* staging
+
+# Copy all API_ secrets
+>>> copy only API_* production
+```
+
+### Interactive Export
+The shell provides an enhanced export experience:
+```bash
+>>> export
+# Prompts for:
+# - Export mode (all/template/filtered)
+# - Format (env/json)
+# - Destination (screen/file)
+```
+
+### Search for Values
+Find secrets containing specific text:
+```bash
+>>> search "postgres"
+# Shows all secrets with "postgres" in their value
+
+>>> search "api-key" unmask
+# Show actual values in results
+```
+
+## Productivity Workflows
+
+### Environment Comparison
+```bash
+# Compare two stages
+>>> diff local production
+
+# See what's different
+>>> diff staging production
+```
+
+### Quick Value Check
+```bash
+# View a specific secret
 >>> get API_KEY
->>> ^KEY^TOKEN    # Changes API_KEY to API_TOKEN
 
-# Reuse arguments
->>> get DATABASE_URL
->>> set !$        # Uses DATABASE_URL from previous command
+# View all secrets
+>>> show
+
+# View unmasked values
+>>> show unmask
 ```
 
-## Advanced Techniques
-
-### Contextual Operations
-
-**Temporary Context Switch**
+### Rename Operations
 ```bash
-# Check production without switching
->>> get production/API_KEY
->>> list --stage=production
+# Rename a secret
+>>> rename OLD_NAME NEW_NAME
 
-# Your context remains unchanged
+# Skip confirmation
+>>> rename OLD_KEY NEW_KEY force
 ```
 
-**Cross-Vault Operations**
+### Secret History
+View the revision history of any secret:
 ```bash
-# Copy between vaults
->>> copy ssm:local/API_KEY secretsmanager:production/API_KEY
-
-# Compare different vaults
->>> diff ssm:production secretsmanager:production
+>>> history API_KEY
+# Shows all versions with timestamps
 ```
 
-### Scripting in the Shell
+## Shell Management
 
-**Multi-Line Values**
+### Get Help
 ```bash
->>> set SSL_CERT
-Enter value (Ctrl+D when done):
------BEGIN CERTIFICATE-----
-MIIDXTCCAkWgAwIBAgIJAKLdQVPy90WJMA0GCSqGSIb3DQEBCwUAMEUxCzAJBgNV
-...
------END CERTIFICATE-----
-<Ctrl+D>
-✓ Set SSL_CERT
+# See all commands
+>>> help
+
+# Get help for specific command
+>>> help get
+>>> ? set
 ```
 
-**Command Sequences**
+### Check Context
 ```bash
-# Create a set of related secrets
->>> for env in local staging production; do \
-      stage $env && \
-      set DEPLOY_DATE="$(date)" && \
-      set VERSION="1.2.3"; \
-    done
+# See current vault and stage
+>>> context
+# Or use the alias
+>>> ctx
 ```
 
-### Output Processing
-
-**Pipe to External Commands**
+### Clear Screen
 ```bash
-# Search with grep
->>> list | grep -i database
-
-# Count secrets
->>> list | wc -l
-
-# Export and process
->>> export --format=json | jq '.API_KEY'
+>>> clear
+# Or
+>>> cls
 ```
 
-**Save to Files**
+### Exit Shell
 ```bash
-# Redirect output
->>> list > secret-list.txt
->>> export --format=json > config.json
-
-# Append to files
->>> get API_KEY >> keys.txt
+>>> exit
+# Or
+>>> quit
+# Or
+>>> q
+# Or press Ctrl+D
 ```
 
-## Workflow Optimizations
+## Color Coding
 
-### Environment Promotion Workflow
+The shell uses colors to help you quickly identify information:
+- **Green** ✓ - Success messages
+- **Red** ✗ - Errors
+- **Yellow** ⚠ - Warnings
+- **Blue** - Context (vault:stage)
+- **Magenta** - Secret names
+- **White** - Commands
 
+View the color scheme:
 ```bash
-# 1. Start in local
->>> local
->>> list
+>>> colors
+```
 
-# 2. Review what will be promoted
+## Best Practices
+
+### Start with Context
+Always verify your context when starting:
+```bash
+>>> ctx
+Vault: ssm
+Stage: local
+```
+
+### Use Aliases
+Embrace the shortcuts to work faster:
+```bash
+>>> g API_KEY         # get
+>>> s NEW_KEY value   # set
+>>> ls                # show all
+```
+
+### Review Before Actions
+Use diff to review changes before copying:
+```bash
 >>> diff local staging
-
-# 3. Push all to staging
->>> push staging
-
-# 4. Switch and verify
->>> staging
->>> list
-
-# 5. Test specific values
->>> get API_KEY --unmask
-
-# 6. Promote to production
->>> push production
+>>> copy only * staging
 ```
 
-### Quick Backup and Restore
-
-**Backup Current Environment**
+### Leverage Tab Completion
+Don't type full secret names:
 ```bash
->>> export backup-$(date +%Y%m%d).env
-✓ Exported to backup-20240115.env
+>>> g A<TAB>          # Shows all secrets starting with A
+>>> get API_<TAB>     # Shows all API_ secrets
 ```
 
-**Restore from Backup**
+## Common Workflows
+
+### Development Setup
 ```bash
->>> import backup-20240115.env --force
-✓ Imported 42 secrets
-```
-
-### Development to Production
-
-```bash
-# Set up local development
->>> local
->>> import .env.development
-
-# Test in staging
->>> copy * staging
->>> stage staging
->>> verify
-
-# Selective production update
->>> production
->>> pull staging --only=API_*,DB_*
-```
-
-## Troubleshooting in Shell
-
-### Debug Context Issues
-
-```bash
-# Where am I?
->>> info
-
-# What's available?
->>> vault
->>> stage
-
-# Test access
->>> verify
-```
-
-### Fix Common Problems
-
-**Wrong Vault/Stage**
-```bash
-# Quick reset to defaults
->>> vault $(keep info | grep "Default vault" | cut -d: -f2)
+# Start in local
 >>> stage local
+>>> import .env.example
+
+# View what was imported
+>>> show
+
+# Copy to your development stage
+>>> copy only * development
 ```
 
-**Accidental Deletion**
+### Production Deployment
 ```bash
-# Check if it exists elsewhere
->>> diff local staging production | grep DELETED_KEY
+# Compare staging to production
+>>> diff staging production
 
-# Restore from another stage
->>> copy staging/DELETED_KEY local
+# Switch to staging
+>>> stage staging
+
+# Copy verified secrets
+>>> copy only API_* production
+>>> copy only DB_* production
+
+# Verify
+>>> diff staging production
 ```
 
-**Mass Cleanup**
+### Quick Backup
 ```bash
-# Delete all temporary secrets
->>> list TEMP_*
->>> delete TEMP_* --force
-
-# Remove old prefixed secrets
->>> list | grep OLD_ | xargs -I {} delete {} --force
+# Export current stage
+>>> export
+# Choose: all secrets → env format → file
+# Enter filename: backup.env
 ```
 
-## Shell Customization
+## Troubleshooting
 
-### Shell Aliases (in your ~/.bashrc or ~/.zshrc)
-
+### Command Not Found
+If a command isn't recognized:
 ```bash
-# Quick Keep shell access
-alias ks='keep shell'
-alias ksp='keep shell --stage=production'
-alias ksl='keep shell --stage=local'
-
-# Direct commands
-alias kget='keep get'
-alias kset='keep set'
-alias klist='keep list'
+>>> help
+# Shows all available commands
 ```
 
-### Custom Prompts
-
-The shell respects the `KEEP_PROMPT` environment variable:
+### Wrong Context
+To quickly reset context:
 ```bash
-# Custom prompt format
-export KEEP_PROMPT="[%vault%:%stage%] → "
-
-# Minimal prompt
-export KEEP_PROMPT="> "
-
-# With colors (using ANSI codes)
-export KEEP_PROMPT="\033[32m%vault%\033[0m:\033[33m%stage%\033[0m> "
+>>> use ssm:local
+# Sets both vault and stage
 ```
 
-## Performance Tips
-
-### Reduce API Calls
+### Need Unmasked Values
+Most commands support an `unmask` option:
 ```bash
-# Instead of multiple gets:
->>> get API_KEY
->>> get API_SECRET
->>> get API_URL
-
-# Use list with pattern:
->>> list API_*
+>>> show unmask
+>>> search "text" unmask
 ```
 
-### Cache Context
+### Lost in History
+Your command history is saved in:
 ```bash
-# Set your common context at start
->>> production && ssm
+~/.keep_history
+```
 
-# Now all commands use this context
->>> list
->>> get API_KEY
->>> set NEW_SECRET
+## Tips for Power Users
+
+### Quick Environment Switch
+Use `u` for fast context changes:
+```bash
+>>> u ssm:production
+>>> u secretsmanager:staging
 ```
 
 ### Batch Operations
+Use patterns with copy:
 ```bash
-# Import all at once
->>> import large-file.env
-
-# Instead of individual copies
->>> copy * staging  # Copies all secrets in one operation
+>>> copy only DB_*,API_*,AUTH_* production
 ```
+
+### Verify Before Changes
+Always verify permissions:
+```bash
+>>> verify
+✓ ssm:local - Read, Write, List
+```
+
+### Export for Review
+Export to screen for quick review:
+```bash
+>>> export
+# Choose: all → env → screen
+```
+
+Remember: The shell is designed for interactive use. For scripting or automation, use the CLI commands directly.
