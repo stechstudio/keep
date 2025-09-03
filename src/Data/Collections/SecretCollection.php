@@ -27,6 +27,32 @@ class SecretCollection extends Collection
         )->implode(PHP_EOL);
     }
 
+    public function toCsvString(): string
+    {
+        $csv = "Key,Value,Vault,Stage,Modified\n";
+        
+        $this->each(function (Secret $secret) use (&$csv) {
+            $key = $this->escapeCsvField($secret->key());
+            $value = $this->escapeCsvField($secret->value());
+            $vault = $this->escapeCsvField($secret->vault()?->name() ?? '');
+            $stage = $this->escapeCsvField($secret->stage() ?? '');
+            $modified = $this->escapeCsvField($secret->lastModified()?->toIso8601String() ?? '');
+            
+            $csv .= "{$key},{$value},{$vault},{$stage},{$modified}\n";
+        });
+        
+        return $csv;
+    }
+
+    protected function escapeCsvField(string $field): string
+    {
+        // If field contains comma, quotes, or newline, wrap in quotes and escape quotes
+        if (preg_match('/[,"\n\r]/', $field)) {
+            return '"' . str_replace('"', '""', $field) . '"';
+        }
+        return $field;
+    }
+
     public function filterByPatterns(?string $only = null, ?string $except = null): static
     {
         $onlyPatterns = collect(array_filter(array_map('trim', explode(',', $only ?? ''))));

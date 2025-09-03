@@ -36,7 +36,7 @@
           <span>Add Secret</span>
         </button>
         
-        <ImportWizard
+        <TableActionsMenu
           :vault="vault"
           :stage="stage"
           @imported="loadSecrets"
@@ -173,7 +173,7 @@ import CopyToStageDialog from './CopyToStageDialog.vue'
 import HistoryDialog from './HistoryDialog.vue'
 import DeleteConfirmDialog from './DeleteConfirmDialog.vue'
 import SecretActionsMenu from './SecretActionsMenu.vue'
-import ImportWizard from './ImportWizard.vue'
+import TableActionsMenu from './TableActionsMenu.vue'
 import { useToast } from '../composables/useToast'
 import { useVault } from '../composables/useVault'
 import { useSecrets } from '../composables/useSecrets'

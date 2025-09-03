@@ -17,7 +17,7 @@ class ExportCommand extends BaseCommand
     use GathersInput;
 
     public $signature = 'export 
-        {--format=env : Output format (env or json)} 
+        {--format=env : Output format (env, json, or csv)} 
         {--template= : Template file with {vault:key} placeholders to replace}
         {--all : Include all vault secrets, not just template placeholders}
         {--missing=fail : How to handle missing secrets: fail|remove|blank|skip}
@@ -76,8 +76,8 @@ class ExportCommand extends BaseCommand
             return $this->directExport->handle($options, $this->output);
         }
 
-        if ($this->option('format') === 'json') {
-            // Template with JSON output - parse mode
+        if (in_array($this->option('format'), ['json', 'csv'])) {
+            // Template with JSON/CSV output - parse mode
             return $this->templateParse->handle($options, $this->output);
         }
 
