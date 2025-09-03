@@ -29,18 +29,35 @@ export default defineConfig({
                         {text: 'Introduction', link: '/guide/'},
                         {text: 'Installation', link: '/guide/installation'},
                         {text: 'Configuration', link: '/guide/configuration'},
-                        {text: 'Quick Start', link: '/guide/quick-start'},
-                        {text: 'Interactive Shell', link: '/guide/shell'}
+                        {text: 'Quick Start', link: '/guide/quick-start'}
                     ]
                 },
                 {
-                    text: 'Managing Secrets',
+                    text: 'CLI Commands',
                     items: [
-                        {text: 'Overview', link: '/guide/managing-secrets/'},
-                        {text: 'Creating & Viewing', link: '/guide/managing-secrets/creating-viewing'},
-                        {text: 'Cross-Environment', link: '/guide/managing-secrets/cross-environment'},
-                        {text: 'Exporting to .env', link: '/guide/managing-secrets/exporting-to-env'}
-                        // {text: 'Runtime Secrets', link: '/guide/managing-secrets/runtime-secrets'} // Deferred to future release
+                        {text: 'Overview', link: '/guide/cli-commands/'},
+                        {text: 'Creating & Viewing', link: '/guide/cli-commands/creating-viewing'},
+                        {text: 'Cross-Environment', link: '/guide/cli-commands/cross-environment'},
+                        {text: 'Exporting to .env', link: '/guide/cli-commands/exporting-to-env'}
+                        // {text: 'Runtime Secrets', link: '/guide/cli-commands/runtime-secrets'} // Deferred to future release
+                    ]
+                },
+                {
+                    text: 'Interactive Shell',
+                    items: [
+                        {text: 'Getting Started', link: '/guide/shell'},
+                        {text: 'Commands & Shortcuts', link: '/guide/shell-commands'},
+                        {text: 'Tips & Tricks', link: '/guide/shell-tips'}
+                    ]
+                },
+                {
+                    text: 'Web UI',
+                    items: [
+                        {text: 'Getting Started', link: '/guide/web-ui/'},
+                        {text: 'Managing Secrets', link: '/guide/web-ui/managing-secrets'},
+                        {text: 'Diff & Compare', link: '/guide/web-ui/diff-compare'},
+                        {text: 'Import & Export', link: '/guide/web-ui/import-export'},
+                        {text: 'Security', link: '/guide/web-ui/security'}
                     ]
                 },
                 {
