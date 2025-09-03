@@ -16,7 +16,9 @@ class SecretController extends ApiController
                 'secrets' => $secrets->toApiArray($this->isUnmasked())
             ]);
         } catch (Exception $e) {
-            return $this->error('Could not access vault: ' . $e->getMessage(), 500);
+            // Don't leak sensitive information in error messages
+            error_log('Vault access error: ' . $e->getMessage());
+            return $this->error('Could not access vault', 500);
         }
     }
 
