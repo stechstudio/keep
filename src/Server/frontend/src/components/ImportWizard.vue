@@ -160,15 +160,6 @@
                   />
                   <span class="text-sm">Overwrite existing secrets (replace with new values)</span>
                 </label>
-                <label class="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    v-model="conflictStrategy"
-                    value="fail"
-                    class="text-primary focus:ring-primary"
-                  />
-                  <span class="text-sm">Cancel import if any conflicts exist</span>
-                </label>
               </div>
             </div>
 
@@ -322,7 +313,7 @@
             <button
               v-else-if="step === 2"
               @click="executeImport"
-              :disabled="importing || (analysis.existing > 0 && conflictStrategy === 'fail')"
+              :disabled="importing"
               class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50"
             >
               {{ importing ? 'Importing...' : (dryRun ? 'Preview Import' : 'Import') }}
