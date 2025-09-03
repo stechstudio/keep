@@ -333,7 +333,7 @@ import DeleteConfirmDialog from './DeleteConfirmDialog.vue'
 
 const toast = useToast()
 const { vaults: availableVaults, stages: availableStages, loadAll: loadVaultData } = useVault()
-const { createSecret, updateSecret, deleteSecret, renameSecret, copySecretToStage } = useSecrets()
+const { createSecret: createSecretApi, updateSecret: updateSecretApi, deleteSecret, renameSecret, copySecretToStage } = useSecrets()
 
 // State
 const selectedCombinations = ref([])
@@ -616,7 +616,7 @@ async function saveEditedSecret() {
 
   try {
     if (editingSecret.value.isNew) {
-      await createSecret(
+      await createSecretApi(
           editingSecret.value.key,
           editingSecret.value.value,
           editingSecret.value.vault,
@@ -624,7 +624,7 @@ async function saveEditedSecret() {
       )
       toast.success('Secret created', `Created '${editingSecret.value.key}'`)
     } else {
-      await updateSecret(
+      await updateSecretApi(
           editingSecret.value.key,
           editingSecret.value.value,
           editingSecret.value.vault,
