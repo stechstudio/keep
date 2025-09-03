@@ -211,7 +211,8 @@ class VaultController extends ApiController
     private function testVaultPermissions($vault): array
     {
         $permissions = $this->getEmptyPermissions();
-        $testKey = '__keep_verify_' . uniqid();
+        $testKey = 'keep-verify-' . bin2hex(random_bytes(4));
+        $writeSucceeded = false;
         
         // Test List permission
         try {
@@ -225,6 +226,7 @@ class VaultController extends ApiController
         try {
             $vault->set($testKey, 'test_value');
             $permissions['Write'] = true;
+            $writeSucceeded = true;
             
             // Test Read permission
             try {
@@ -242,16 +244,20 @@ class VaultController extends ApiController
             } catch (Exception $e) {
                 // History not supported or failed
             }
-            
-            // Test Delete permission
+        } catch (Exception $e) {
+            // Write failed, can't test read/history
+        }
+        
+        // Always try to clean up the test key if write succeeded
+        if ($writeSucceeded) {
             try {
                 $vault->delete($testKey);
                 $permissions['Delete'] = true;
             } catch (Exception $e) {
-                // Delete failed
+                // Delete failed - log this for debugging
+                error_log("Warning: Failed to clean up verify test key '{$testKey}' in vault '{$vault->name()}': " . $e->getMessage());
+                $permissions['Delete'] = false;
             }
-        } catch (Exception $e) {
-            // Write failed, can't test other permissions
         }
         
         return $permissions;
