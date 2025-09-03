@@ -33,7 +33,7 @@
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search secrets..."
+            placeholder="Search by secret key or value..."
             class="w-64 px-3 py-2 bg-input border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
           <svg class="absolute right-3 top-2.5 w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,7 +76,7 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
               {{ secret.key }}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm">
+            <td class="px-6 py-4 text-sm">
               <SecretValue 
                 :value="secret.value" 
                 :masked="!unmaskAll && !unmaskedKeys.has(secret.key)" 

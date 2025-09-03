@@ -58,6 +58,19 @@
 
       <!-- Right side controls -->
       <div class="flex space-x-2">
+        <!-- Search field -->
+        <div class="relative">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search by key or value..."
+            class="w-64 px-3 py-2 bg-input border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+          <svg class="absolute right-3 top-2.5 w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        
         <button
             @click="unmaskAll = !unmaskAll"
             class="flex items-center space-x-2 px-3 py-2 text-sm border border-border rounded-md hover:bg-accent transition-colors"
@@ -352,6 +365,7 @@ const copyingSecret = ref(null)
 const copyTarget = ref('')
 const historySecret = ref(null)
 const deletingSecret = ref(null)
+const searchQuery = ref('')
 
 // Computed columns based on selected combinations
 const activeColumns = computed(() => {
@@ -369,15 +383,20 @@ watch(selectedCombinations, (newVal) => {
   localStorage.setItem('keep.diff.selections', JSON.stringify(newVal))
 }, {deep: true})
 
-// Filter the diff matrix based on selected combinations
+// Filter the diff matrix based on selected combinations and search query
 const diffMatrix = computed(() => {
   if (!fullDiffMatrix.value) return {}
   if (selectedCombinations.value.length === 0) return {}
 
+  const query = searchQuery.value.toLowerCase().trim()
   const filteredDiff = {}
+  
   for (const [key, vaultData] of Object.entries(fullDiffMatrix.value)) {
     let hasSelectedCombination = false
     const filteredVaultData = {}
+    
+    // Check if key matches search query
+    let matchesSearch = !query || key.toLowerCase().includes(query)
 
     for (const [vault, stageData] of Object.entries(vaultData)) {
       const filteredStageData = {}
@@ -385,6 +404,11 @@ const diffMatrix = computed(() => {
         if (selectedCombinations.value.includes(`${vault}:${stage}`)) {
           filteredStageData[stage] = value
           hasSelectedCombination = true
+          
+          // Check if value matches search query (only for visible columns)
+          if (!matchesSearch && query && value) {
+            matchesSearch = value.toLowerCase().includes(query)
+          }
         }
       }
       if (Object.keys(filteredStageData).length > 0) {
@@ -392,7 +416,8 @@ const diffMatrix = computed(() => {
       }
     }
 
-    if (hasSelectedCombination) {
+    // Only include if it has selected combinations AND matches search
+    if (hasSelectedCombination && matchesSearch) {
       filteredDiff[key] = filteredVaultData
     }
   }
