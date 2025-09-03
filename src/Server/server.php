@@ -60,7 +60,7 @@ if (str_starts_with($path, '/api/')) {
     
     // Get JSON body if present
     $body = [];
-    if (in_array($method, ['POST', 'PUT', 'PATCH'])) {
+    if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
         $input = file_get_contents('php://input');
         if ($input) {
             $body = json_decode($input, true) ?? [];
