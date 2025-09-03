@@ -2,7 +2,7 @@
   <div class="relative">
     <!-- Three-dot menu button -->
     <button
-      @click="toggleMenu"
+      @click="toggleMenu($event)"
       class="p-2 rounded hover:bg-muted transition-colors"
       title="Actions"
     >
@@ -54,19 +54,24 @@
       v-if="showExportModal"
       :vault="vault"
       :stage="stage"
+      :secrets="secrets"
       @close="showExportModal = false"
     />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import ImportWizard from './ImportWizard.vue'
 import ExportModal from './ExportModal.vue'
 
 const props = defineProps({
   vault: String,
-  stage: String
+  stage: String,
+  secrets: {
+    type: Array,
+    default: () => []
+  }
 })
 
 const emit = defineEmits(['imported'])
@@ -75,7 +80,8 @@ const menuOpen = ref(false)
 const showImportWizard = ref(false)
 const showExportModal = ref(false)
 
-function toggleMenu() {
+function toggleMenu(event) {
+  event.stopPropagation()
   menuOpen.value = !menuOpen.value
 }
 
@@ -84,8 +90,35 @@ function handleImported() {
   emit('imported')
 }
 
-// Close menu when clicking outside
-document.addEventListener('click', () => {
+function closeMenu() {
   menuOpen.value = false
+}
+
+// Handle click outside
+function handleClickOutside(event) {
+  // Check if click is outside the component
+  const button = event.target.closest('button')
+  const menu = event.target.closest('.absolute.right-0')
+  
+  if (!button && !menu) {
+    closeMenu()
+  }
+}
+
+// Add/remove document listener when menu opens/closes
+watch(menuOpen, (isOpen) => {
+  if (isOpen) {
+    // Add listener on next tick to avoid immediate close
+    setTimeout(() => {
+      document.addEventListener('click', handleClickOutside)
+    }, 0)
+  } else {
+    document.removeEventListener('click', handleClickOutside)
+  }
+})
+
+// Clean up listener on unmount
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>
