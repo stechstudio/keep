@@ -39,6 +39,7 @@
         <TableActionsMenu
           :vault="vault"
           :stage="stage"
+          :secrets="secrets"
           @imported="loadSecrets"
         />
       </div>

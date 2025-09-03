@@ -67,18 +67,20 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { useSecrets } from '../composables/useSecrets'
 import { useToast } from '../composables/useToast'
 
 const props = defineProps({
   vault: String,
-  stage: String
+  stage: String,
+  secrets: {
+    type: Array,
+    default: () => []
+  }
 })
 
 const emit = defineEmits(['close'])
 
 const toast = useToast()
-const { secrets } = useSecrets()
 
 const loading = ref(false)
 const selectedFormat = ref('env')
@@ -102,7 +104,7 @@ const formats = [
   }
 ]
 
-const secretCount = computed(() => secrets.value.length)
+const secretCount = computed(() => props.secrets.length)
 
 const defaultFilename = computed(() => {
   const timestamp = new Date().toISOString().split('T')[0]
@@ -119,7 +121,7 @@ async function downloadSecrets() {
     switch (selectedFormat.value) {
       case 'json':
         const jsonData = {}
-        secrets.value.forEach(secret => {
+        props.secrets.forEach(secret => {
           jsonData[secret.key] = secret.value
         })
         content = JSON.stringify(jsonData, null, 2)
@@ -127,7 +129,7 @@ async function downloadSecrets() {
         
       case 'csv':
         content = 'Key,Value,Modified\n'
-        secrets.value.forEach(secret => {
+        props.secrets.forEach(secret => {
           const key = escapeCsvField(secret.key)
           const value = escapeCsvField(secret.value)
           const modified = escapeCsvField(secret.modified || '')
@@ -137,7 +139,7 @@ async function downloadSecrets() {
         
       case 'env':
       default:
-        secrets.value.forEach(secret => {
+        props.secrets.forEach(secret => {
           content += `${secret.key}=${formatEnvValue(secret.value)}\n`
         })
         break
