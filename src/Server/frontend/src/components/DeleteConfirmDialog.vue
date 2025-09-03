@@ -25,6 +25,9 @@
           <p class="mt-3 text-sm text-muted-foreground">
             This action cannot be undone.
           </p>
+          <div v-if="error" class="mt-3 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-md">
+            <p class="text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+          </div>
         </div>
       </div>
       
@@ -36,10 +39,11 @@
           Cancel
         </button>
         <button
-          @click="$emit('confirm')"
-          class="px-4 py-2 text-sm font-medium bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
+          @click="handleDelete"
+          :disabled="loading"
+          class="px-4 py-2 text-sm font-medium bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Delete Secret
+          {{ loading ? 'Deleting...' : 'Delete Secret' }}
         </button>
       </div>
     </div>
@@ -47,7 +51,11 @@
 </template>
 
 <script setup>
-defineProps({
+import { ref } from 'vue'
+import { useSecrets } from '../composables/useSecrets'
+import { useToast } from '../composables/useToast'
+
+const props = defineProps({
   secretKey: {
     type: String,
     required: true
@@ -62,5 +70,31 @@ defineProps({
   }
 })
 
-defineEmits(['close', 'confirm'])
+const emit = defineEmits(['close', 'success'])
+
+const toast = useToast()
+const { deleteSecret } = useSecrets()
+
+const error = ref('')
+const loading = ref(false)
+
+async function handleDelete() {
+  if (loading.value) return
+  
+  error.value = ''
+  loading.value = true
+  
+  try {
+    await deleteSecret(props.secretKey, props.vault, props.stage)
+    toast.success('Secret deleted', `Secret '${props.secretKey}' has been deleted successfully`)
+    emit('success')
+    emit('close')
+  } catch (err) {
+    // Display error in the modal
+    error.value = err.message || 'Failed to delete secret'
+    console.error('Failed to delete secret:', err)
+  } finally {
+    loading.value = false
+  }
+}
 </script>

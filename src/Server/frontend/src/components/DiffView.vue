@@ -218,7 +218,7 @@
       :vault="editingSecret.vault"
       :stage="editingSecret.stage"
       :initialKey="editingSecret.isNew ? editingSecret.key : undefined"
-      @save="saveEditedSecret"
+      @success="handleSecretSaveSuccess"
       @close="editingSecret = null"
     />
 
@@ -292,7 +292,9 @@
     <RenameDialog
       v-if="renamingSecret"
       :currentKey="renamingSecret.key"
-      @rename="handleRename"
+      :vault="renamingSecret.vault"
+      :stage="renamingSecret.stage"
+      @success="handleRenameSuccess"
       @close="renamingSecret = null"
     />
     
@@ -324,7 +326,7 @@
       :secretKey="deletingSecret.key"
       :vault="deletingSecret.vault"
       :stage="deletingSecret.stage"
-      @confirm="confirmDelete"
+      @success="handleDeleteSuccess"
       @close="deletingSecret = null"
     />
   </div>
@@ -345,7 +347,7 @@ import DeleteConfirmDialog from './DeleteConfirmDialog.vue'
 
 const toast = useToast()
 const { vaults: availableVaults, stages: availableStages, loadAll: loadVaultData } = useVault()
-const { createSecret: createSecretApi, updateSecret: updateSecretApi, deleteSecret, renameSecret, copySecretToStage } = useSecrets()
+const { copySecretToStage } = useSecrets()
 
 // State
 const selectedCombinations = ref([])
@@ -615,18 +617,9 @@ function handleCopyValue(data) {
   toast.success('Copied to clipboard', 'Secret value has been copied to your clipboard')
 }
 
-async function confirmDelete() {
-  if (!deletingSecret.value) return
-  
-  try {
-    await deleteSecret(deletingSecret.value.key, deletingSecret.value.vault, deletingSecret.value.stage)
-    toast.success('Secret deleted', `Secret '${deletingSecret.value.key}' has been deleted successfully`)
-    await loadDiff()
-    deletingSecret.value = null
-  } catch (error) {
-    console.error('Failed to delete secret:', error)
-    toast.error('Failed to delete secret', error.message)
-  }
+async function handleDeleteSuccess() {
+  await loadDiff()
+  deletingSecret.value = null
 }
 
 function copyToStage(key, vault, stage) {
@@ -635,32 +628,9 @@ function copyToStage(key, vault, stage) {
 
 // Delete secret is now handled by SecretActionsMenu component
 
-async function saveEditedSecret() {
-  if (!editingSecret.value) return
-
-  try {
-    if (editingSecret.value.isNew) {
-      await createSecretApi(
-          editingSecret.value.key,
-          editingSecret.value.value,
-          editingSecret.value.vault,
-          editingSecret.value.stage
-      )
-      toast.success('Secret created', `Created '${editingSecret.value.key}'`)
-    } else {
-      await updateSecretApi(
-          editingSecret.value.key,
-          editingSecret.value.value,
-          editingSecret.value.vault,
-          editingSecret.value.stage
-      )
-      toast.success('Secret updated', `Updated '${editingSecret.value.key}'`)
-    }
-    editingSecret.value = null
-    await loadDiff()
-  } catch (error) {
-    toast.error(editingSecret.value.isNew ? 'Create failed' : 'Update failed', error.message)
-  }
+async function handleSecretSaveSuccess() {
+  editingSecret.value = null
+  await loadDiff()
 }
 
 async function executeCopy() {
@@ -711,16 +681,9 @@ async function handleCopyToStage({ targetVault, targetStage }) {
   }
 }
 
-async function handleRename(newKey) {
-  try {
-    await renameSecret(renamingSecret.value.key, newKey, renamingSecret.value.vault, renamingSecret.value.stage)
-    toast.success('Secret renamed', `Secret renamed from '${renamingSecret.value.key}' to '${newKey}'`)
-    await loadDiff()
-    renamingSecret.value = null
-  } catch (error) {
-    console.error('Failed to rename secret:', error)
-    toast.error('Failed to rename secret', error.message)
-  }
+async function handleRenameSuccess() {
+  await loadDiff()
+  renamingSecret.value = null
 }
 
 </script>
