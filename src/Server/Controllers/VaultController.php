@@ -70,22 +70,32 @@ class VaultController extends ApiController
     
     public function updateSettings(): array
     {
-        $settings = $this->manager->getSettings();
-        
-        // Update settings from request body
-        $fields = ['app_name', 'namespace', 'default_vault', 'default_stage'];
-        foreach ($fields as $field) {
-            if ($this->hasParam($field)) {
-                $settings[$field] = $this->getParam($field);
+        try {
+            $currentSettings = $this->manager->getSettings();
+            
+            // Update settings from request body
+            $fields = ['app_name', 'namespace', 'default_vault', 'default_stage'];
+            foreach ($fields as $field) {
+                if ($this->hasParam($field)) {
+                    $currentSettings[$field] = $this->getParam($field);
+                }
             }
+            
+            // Create a new Settings object with updated values
+            $newSettings = \STS\Keep\Data\Settings::fromArray($currentSettings);
+            
+            // Save settings to disk
+            $newSettings->save();
+            
+            // Note: The manager would need to be reloaded to pick up the new settings
+            // In a real app, you might want to reinitialize the manager or have a method to update its settings
+            
+            return $this->success([
+                'message' => 'Settings updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return $this->error('Failed to save settings: ' . $e->getMessage());
         }
-        
-        // TODO: Save settings to disk - for now just return success
-        // In a real implementation, this would save to settings.json
-        
-        return $this->success([
-            'message' => 'Settings updated successfully'
-        ]);
     }
     
     public function addStage(): array
@@ -94,23 +104,29 @@ class VaultController extends ApiController
             return $error;
         }
         
-        $stageName = $this->getParam('stage');
-        $settings = $this->manager->getSettings();
-        $stages = $settings['stages'] ?? ['local', 'staging', 'production'];
-        
-        if (in_array($stageName, $stages)) {
-            return $this->error('Stage already exists');
+        try {
+            $stageName = $this->getParam('stage');
+            $settings = $this->manager->getSettings();
+            $stages = $settings['stages'] ?? ['local', 'staging', 'production'];
+            
+            if (in_array($stageName, $stages)) {
+                return $this->error('Stage already exists');
+            }
+            
+            $stages[] = $stageName;
+            $settings['stages'] = $stages;
+            
+            // Save updated settings to disk
+            $newSettings = \STS\Keep\Data\Settings::fromArray($settings);
+            $newSettings->save();
+            
+            return $this->success([
+                'message' => 'Stage added successfully',
+                'stages' => $stages
+            ]);
+        } catch (\Exception $e) {
+            return $this->error('Failed to add stage: ' . $e->getMessage());
         }
-        
-        $stages[] = $stageName;
-        $settings['stages'] = $stages;
-        
-        // TODO: Save settings to disk
-        
-        return $this->success([
-            'message' => 'Stage added successfully',
-            'stages' => $stages
-        ]);
     }
     
     public function removeStage(): array
@@ -119,25 +135,31 @@ class VaultController extends ApiController
             return $error;
         }
         
-        $stageName = $this->getParam('stage');
-        $settings = $this->manager->getSettings();
-        $stages = $settings['stages'] ?? ['local', 'staging', 'production'];
-        
-        // Prevent removing default stages
-        $defaultStages = ['local', 'staging', 'production'];
-        if (in_array($stageName, $defaultStages)) {
-            return $this->error('Cannot remove system stage');
+        try {
+            $stageName = $this->getParam('stage');
+            $settings = $this->manager->getSettings();
+            $stages = $settings['stages'] ?? ['local', 'staging', 'production'];
+            
+            // Prevent removing default stages
+            $defaultStages = ['local', 'staging', 'production'];
+            if (in_array($stageName, $defaultStages)) {
+                return $this->error('Cannot remove system stage');
+            }
+            
+            $stages = array_values(array_filter($stages, fn($s) => $s !== $stageName));
+            $settings['stages'] = $stages;
+            
+            // Save updated settings to disk
+            $newSettings = \STS\Keep\Data\Settings::fromArray($settings);
+            $newSettings->save();
+            
+            return $this->success([
+                'message' => 'Stage removed successfully',
+                'stages' => $stages
+            ]);
+        } catch (\Exception $e) {
+            return $this->error('Failed to remove stage: ' . $e->getMessage());
         }
-        
-        $stages = array_values(array_filter($stages, fn($s) => $s !== $stageName));
-        $settings['stages'] = $stages;
-        
-        // TODO: Save settings to disk
-        
-        return $this->success([
-            'message' => 'Stage removed successfully',
-            'stages' => $stages
-        ]);
     }
     
     public function addVault(): array
