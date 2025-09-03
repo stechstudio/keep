@@ -15,6 +15,9 @@ keep export --stage=production --output=.env
 # Export as JSON
 keep export --stage=local --format=json
 
+# Export as CSV
+keep export --stage=production --format=csv
+
 # Export to stdout (default)
 keep export --stage=staging
 ```
@@ -25,7 +28,7 @@ keep export --stage=staging
 |---------------|---------|---------|-------------|
 | `--stage`     | string  | *interactive* | Stage to export secrets from |
 | `--vault`     | string  | *default vault* | Vault to export secrets from |
-| `--format`    | string  | `env` | Output format: `env`, `json` |
+| `--format`    | string  | `env` | Output format: `env`, `json`, `csv` |
 | `--file`      | string  | *stdout* | Output file path |
 | `--append`    | boolean | `false` | Append to output file instead of overwriting |
 | `--overwrite` | boolean | `false` | Overwrite output file without confirmation |
@@ -39,6 +42,9 @@ keep export --stage=production --file=.env
 
 # JSON export for configuration management
 keep export --stage=production --format=json --file=config.json
+
+# CSV export for spreadsheets
+keep export --stage=production --format=csv --file=secrets.csv
 
 # Export only API-related secrets
 keep export --stage=production --only="API_*" --file=api.env
