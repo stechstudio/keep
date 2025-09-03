@@ -27,6 +27,12 @@
           </svg>
         </div>
         
+        <ImportWizard
+          :vault="vault"
+          :stage="stage"
+          @imported="loadSecrets"
+        />
+        
         <button
           @click="showAddDialog = true"
           class="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
@@ -168,6 +174,7 @@ import CopyToStageDialog from './CopyToStageDialog.vue'
 import HistoryDialog from './HistoryDialog.vue'
 import DeleteConfirmDialog from './DeleteConfirmDialog.vue'
 import SecretActionsMenu from './SecretActionsMenu.vue'
+import ImportWizard from './ImportWizard.vue'
 import { useToast } from '../composables/useToast'
 
 const emit = defineEmits(['refresh'])
