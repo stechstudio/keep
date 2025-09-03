@@ -21,10 +21,11 @@
           placeholder="Enter new key name"
           :class="[
             'w-full px-3 py-2 bg-input border rounded-md text-sm focus:outline-none focus:ring-2',
-            error ? 'border-red-500 focus:ring-red-500' : 'border-border focus:ring-ring'
+            (keyError || error) ? 'border-red-500 focus:ring-red-500' : 'border-border focus:ring-ring'
           ]"
         />
-        <p v-if="error" class="mt-2 text-sm text-red-500">{{ error }}</p>
+        <p v-if="keyError" class="mt-1 text-xs text-red-500">{{ keyError }}</p>
+        <p v-if="error && !keyError" class="mt-2 text-sm text-red-500">{{ error }}</p>
       </div>
       
       <div class="flex justify-end space-x-3">
@@ -47,7 +48,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useSecrets } from '../composables/useSecrets'
 import { useToast } from '../composables/useToast'
 
@@ -72,11 +73,48 @@ const toast = useToast()
 const { renameSecret } = useSecrets()
 
 const newKey = ref(props.currentKey)
+const keyError = ref('')
 const error = ref('')
 const loading = ref(false)
 
+// Validate key on input
+const validateKey = computed(() => {
+  const key = newKey.value.trim()
+  
+  if (!key) {
+    keyError.value = ''
+    return false
+  }
+  
+  // Check if unchanged
+  if (key === props.currentKey) {
+    keyError.value = ''
+    return false
+  }
+  
+  // Check for spaces
+  if (key.includes(' ')) {
+    keyError.value = 'No spaces allowed'
+    return false
+  }
+  
+  // Check for other invalid characters (same validation as SecretDialog)
+  if (!/^[A-Za-z0-9_\-/.]+$/.test(key)) {
+    keyError.value = 'Only letters, numbers, _, -, /, . allowed'
+    return false
+  }
+  
+  keyError.value = ''
+  return true
+})
+
 const isValid = computed(() => {
-  return newKey.value.trim() && newKey.value !== props.currentKey
+  return validateKey.value
+})
+
+// Trigger validation as user types
+watch(() => newKey.value, () => {
+  validateKey.value
 })
 
 async function handleRename() {
