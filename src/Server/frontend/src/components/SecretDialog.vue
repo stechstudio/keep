@@ -38,6 +38,10 @@
             Vault: <span class="font-medium">{{ vault }}</span> • 
             Stage: <span class="font-medium">{{ stage }}</span>
           </div>
+          
+          <div v-if="saveError" class="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-md">
+            <p class="text-sm text-red-600 dark:text-red-400">{{ saveError }}</p>
+          </div>
         </div>
         
         <div class="flex justify-end space-x-3 mt-6">
@@ -50,10 +54,10 @@
           </button>
           <button
             type="submit"
-            :disabled="!validateKey"
+            :disabled="!validateKey || loading"
             class="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {{ secret ? 'Save' : 'Add' }}
+            {{ loading ? 'Saving...' : (secret ? 'Save' : 'Add') }}
           </button>
         </div>
       </form>
@@ -63,6 +67,8 @@
 
 <script setup>
 import { reactive, watch, ref, computed } from 'vue'
+import { useSecrets } from '../composables/useSecrets'
+import { useToast } from '../composables/useToast'
 
 const props = defineProps({
   secret: Object,
@@ -71,7 +77,10 @@ const props = defineProps({
   initialKey: String
 })
 
-const emit = defineEmits(['save', 'close'])
+const emit = defineEmits(['success', 'close'])
+
+const toast = useToast()
+const { createSecret, updateSecret } = useSecrets()
 
 const form = reactive({
   key: '',
@@ -79,6 +88,8 @@ const form = reactive({
 })
 
 const keyError = ref('')
+const saveError = ref('')
+const loading = ref(false)
 
 // Validate key on input
 const validateKey = computed(() => {
@@ -124,14 +135,30 @@ watch(() => form.key, () => {
   validateKey.value
 })
 
-function save() {
-  if (!validateKey.value) {
+async function save() {
+  if (!validateKey.value || loading.value) {
     return
   }
   
-  emit('save', {
-    key: form.key,
-    value: form.value
-  })
+  saveError.value = ''
+  loading.value = true
+  
+  try {
+    if (props.secret) {
+      await updateSecret(form.key, form.value, props.vault, props.stage)
+      toast.success('Secret updated', `Secret '${form.key}' has been updated successfully`)
+    } else {
+      await createSecret(form.key, form.value, props.vault, props.stage)
+      toast.success('Secret created', `Secret '${form.key}' has been created successfully`)
+    }
+    emit('success')
+    emit('close')
+  } catch (error) {
+    // Display error in the modal
+    saveError.value = error.message || 'Failed to save secret'
+    console.error('Failed to save secret:', error)
+  } finally {
+    loading.value = false
+  }
 }
 </script>

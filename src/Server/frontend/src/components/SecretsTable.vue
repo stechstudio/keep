@@ -116,7 +116,7 @@
       :secret="editingSecret"
       :vault="vault"
       :stage="stage"
-      @save="saveSecret"
+      @success="handleSecretSaveSuccess"
       @close="closeDialog"
     />
     
@@ -124,7 +124,9 @@
     <RenameDialog
       v-if="renamingSecret"
       :currentKey="renamingSecret.key"
-      @rename="handleRename"
+      :vault="vault"
+      :stage="stage"
+      @success="handleRenameSuccess"
       @close="renamingSecret = null"
     />
     
@@ -156,7 +158,7 @@
       :secretKey="deletingSecret.key"
       :vault="vault"
       :stage="stage"
-      @confirm="confirmDelete"
+      @success="handleDeleteSuccess"
       @close="deletingSecret = null"
     />
   </div>
@@ -181,7 +183,7 @@ import { formatDate } from '../utils/formatters'
 const emit = defineEmits(['refresh'])
 const toast = useToast()
 const { vaults, stages, settings, loadAll: loadVaultData } = useVault()
-const { secrets: allSecrets, loading, loadSecrets: fetchSecrets, createSecret, updateSecret, deleteSecret, renameSecret, copySecretToStage } = useSecrets()
+const { secrets: allSecrets, loading, loadSecrets: fetchSecrets, copySecretToStage } = useSecrets()
 
 const vault = ref(localStorage.getItem('keep.secrets.vault') || '')
 const stage = ref(localStorage.getItem('keep.secrets.stage') || '')
@@ -270,20 +272,9 @@ function editSecret(secret) {
   editingSecret.value = secret
 }
 
-async function saveSecret(data) {
-  try {
-    if (editingSecret.value) {
-      await updateSecret(data.key, data.value, vault.value, stage.value)
-      toast.success('Secret updated', `Secret '${data.key}' has been updated successfully`)
-    } else {
-      await createSecret(data.key, data.value, vault.value, stage.value)
-      toast.success('Secret created', `Secret '${data.key}' has been created successfully`)
-    }
-    closeDialog()
-  } catch (error) {
-    console.error('Failed to save secret:', error)
-    toast.error('Failed to save secret', error.message)
-  }
+function handleSecretSaveSuccess() {
+  closeDialog()
+  // Reload is handled by the composable
 }
 
 function showRenameDialog(secret) {
@@ -306,28 +297,14 @@ function handleCopyValue(secret) {
   toast.success('Copied to clipboard', 'Secret value has been copied to your clipboard')
 }
 
-async function confirmDelete() {
-  if (!deletingSecret.value) return
-  
-  try {
-    await deleteSecret(deletingSecret.value.key, vault.value, stage.value)
-    toast.success('Secret deleted', `Secret '${deletingSecret.value.key}' has been deleted successfully`)
-    deletingSecret.value = null
-  } catch (error) {
-    console.error('Failed to delete secret:', error)
-    toast.error('Failed to delete secret', error.message)
-  }
+function handleDeleteSuccess() {
+  deletingSecret.value = null
+  // Reload is handled by the composable
 }
 
-async function handleRename(newKey) {
-  try {
-    await renameSecret(renamingSecret.value.key, newKey, vault.value, stage.value)
-    toast.success('Secret renamed', `Secret renamed from '${renamingSecret.value.key}' to '${newKey}'`)
-    renamingSecret.value = null
-  } catch (error) {
-    console.error('Failed to rename secret:', error)
-    toast.error('Failed to rename secret', error.message)
-  }
+function handleRenameSuccess() {
+  renamingSecret.value = null
+  // Reload secrets is already triggered by the composable
 }
 
 async function handleCopyToStage({ targetVault, targetStage }) {
