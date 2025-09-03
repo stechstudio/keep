@@ -20,7 +20,7 @@ class GetCommand extends BaseCommand
         $secret = $context->createVault()->get($this->key());
 
         match ($this->option('format')) {
-            'table' => table(['Key', 'Value', 'Rev'], [$secret->only(['key', 'value', 'revision'])]),
+            'table' => table(['Key', 'Value', 'Rev'], [$secret->forTable()]),
             'json' => $this->line(json_encode($secret->only(['key', 'value', 'revision']), JSON_PRETTY_PRINT)),
             'raw' => $this->line($secret->value()),
             default => $this->error('Invalid format option. Supported formats are: table, json, raw.'),
