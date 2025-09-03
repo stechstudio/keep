@@ -201,14 +201,31 @@ Note: The `import` command is only available in the CLI, not the shell.
 **verify** - Test vault permissions
 ```bash
 >>> verify
-Testing vault permissions...
-✓ ssm:production
-  Read: ✓
-  Write: ✓
-  List: ✓
-  Delete: ✓
-✗ secretsmanager:production
-  Error: No credentials configured
+Checking vault access permissions...
+Keep Vault Verification Results
+┌────────────────┬────────────┬──────┬───────┬──────┬─────────┬────────┐
+│ Vault          │ Stage      │ List │ Write │ Read │ History │ Delete │
+├────────────────┼────────────┼──────┼───────┼──────┼─────────┼────────┤
+│ ssm            │ local      │ ✓    │ ✓     │ ✓    │ ✓       │ ✓      │
+│ ssm            │ staging    │ ✓    │ ✓     │ ✓    │ ✓       │ ✓      │
+│ ssm            │ production │ ✓    │ ✗     │ ✓    │ ✓       │ -      │
+│ secretsmanager │ local      │ ✗    │ ✗     │ ?    │ ?       │ -      │
+└────────────────┴────────────┴──────┴───────┴──────┴─────────┴────────┘
+
+Summary:
+• Total vault/stage combinations tested: 4
+• Full access (list + write + read + history): 2
+• Read + History access (list + read + history): 1
+• Read-only access (list + read): 0
+• List-only access (list only): 0
+• No access (none): 1
+
+Legend:
+✓ = Success
+✗ = Failed/No Permission
+? = Unknown (unable to test)
+⚠ = Cleanup failed (test secret may remain)
+- = Not applicable
 ```
 
 ## Command Shortcuts & Aliases
