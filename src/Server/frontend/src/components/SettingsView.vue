@@ -161,7 +161,7 @@
         <!-- Add Vault Button -->
         <div class="flex justify-between items-center pt-4">
           <button
-            @click="showVaultModal = true"
+            @click="openAddVaultModal()"
             class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
           >
             Add New Vault
@@ -244,40 +244,45 @@
       
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium mb-1">Name</label>
-          <input
-            v-model="vaultForm.name"
-            type="text"
-            class="w-full px-3 py-2 bg-input border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            placeholder="AWS Secrets Manager"
-          />
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium mb-1">Slug</label>
-          <input
-            v-model="vaultForm.slug"
-            type="text"
-            class="w-full px-3 py-2 bg-input border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            placeholder="aws-secrets"
-            :disabled="!!editingVault"
-          />
-        </div>
-
-        <div>
           <label class="block text-sm font-medium mb-1">Driver</label>
           <select 
             v-model="vaultForm.driver"
+            @change="onDriverChange"
             class="w-full px-3 py-2 bg-input border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            :disabled="!!editingVault"
           >
             <option value="">Select driver...</option>
             <option value="secretsmanager">AWS Secrets Manager</option>
             <option value="ssm">AWS SSM Parameter Store</option>
             <option value="test">Test Vault</option>
           </select>
+          <p class="text-xs text-muted-foreground mt-1">{{ editingVault ? 'Driver cannot be changed after creation' : 'Select the backend vault type' }}</p>
         </div>
 
-        <div class="flex items-center space-x-2">
+        <div v-if="vaultForm.driver || editingVault">
+          <label class="block text-sm font-medium mb-1">Name</label>
+          <input
+            v-model="vaultForm.name"
+            type="text"
+            class="w-full px-3 py-2 bg-input border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            :placeholder="getDriverDefaults(vaultForm.driver).name"
+          />
+          <p class="text-xs text-muted-foreground mt-1">Friendly display name for this vault</p>
+        </div>
+
+        <div v-if="vaultForm.driver || editingVault">
+          <label class="block text-sm font-medium mb-1">Slug</label>
+          <input
+            v-model="vaultForm.slug"
+            type="text"
+            class="w-full px-3 py-2 bg-input border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            :placeholder="getDriverDefaults(vaultForm.driver).slug"
+            :disabled="!!editingVault"
+          />
+          <p class="text-xs text-muted-foreground mt-1">{{ editingVault ? 'Slug cannot be changed after creation' : 'Unique identifier for this vault' }}</p>
+        </div>
+
+        <div v-if="vaultForm.driver || editingVault" class="flex items-center space-x-2">
           <input
             v-model="vaultForm.isDefault"
             type="checkbox"
@@ -333,7 +338,7 @@
             </span>
           </div>
           
-          <div v-if="result.success && result.permissions" class="grid grid-cols-4 gap-2 text-sm">
+          <div v-if="result.success && result.permissions" class="grid grid-cols-5 gap-2 text-sm">
             <div v-for="(status, permission) in result.permissions" :key="permission"
                  class="flex items-center space-x-2">
               <svg v-if="status" class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -423,6 +428,27 @@ function getVaultDisplayName(slug) {
   return vault ? `${vault.name} (${vault.slug})` : slug
 }
 
+function getDriverDefaults(driver) {
+  const defaults = {
+    secretsmanager: { name: 'AWS Secrets Manager', slug: 'aws-secrets' },
+    ssm: { name: 'AWS SSM Parameter Store', slug: 'aws-ssm' },
+    test: { name: 'Test Vault', slug: 'test' }
+  }
+  return defaults[driver] || { name: '', slug: '' }
+}
+
+function onDriverChange() {
+  if (!editingVault.value && vaultForm.value.driver) {
+    const defaults = getDriverDefaults(vaultForm.value.driver)
+    if (!vaultForm.value.name) {
+      vaultForm.value.name = defaults.name
+    }
+    if (!vaultForm.value.slug) {
+      vaultForm.value.slug = defaults.slug
+    }
+  }
+}
+
 // Lifecycle
 onMounted(async () => {
   await loadSettings()
@@ -491,6 +517,17 @@ async function deleteVault(vault) {
       toast.error('Failed to delete vault', error.message)
     }
   }
+}
+
+function openAddVaultModal() {
+  editingVault.value = null
+  vaultForm.value = {
+    name: '',
+    slug: '',
+    driver: '',
+    isDefault: false
+  }
+  showVaultModal.value = true
 }
 
 function closeVaultModal() {
