@@ -17,6 +17,7 @@ use STS\Keep\Server\Router;
 use STS\Keep\Server\Controllers\SecretController;
 use STS\Keep\Server\Controllers\VaultController;
 use STS\Keep\Server\Controllers\ExportController;
+use STS\Keep\Server\Controllers\ImportController;
 
 // Initialize server - get token from environment or generate one
 $AUTH_TOKEN = $_ENV['KEEP_AUTH_TOKEN'] ?? $_SERVER['KEEP_AUTH_TOKEN'] ?? bin2hex(random_bytes(32));
@@ -103,6 +104,10 @@ if (str_starts_with($path, '/api/')) {
     
     // Export routes
     $router->post('/api/export', [ExportController::class, 'export']);
+    
+    // Import routes
+    $router->post('/api/import/analyze', [ImportController::class, 'analyze']);
+    $router->post('/api/import/execute', [ImportController::class, 'execute']);
     
     // Dispatch the request
     $response = $router->dispatch($method, $path, $query, $body);

@@ -148,6 +148,21 @@ class ApiClient {
       body: JSON.stringify({ vault, stage, format })
     })
   }
+
+  // Import
+  async analyzeImport({ content, vault, stage, only = null, except = null }) {
+    return this.request('/import/analyze', {
+      method: 'POST',
+      body: JSON.stringify({ content, vault, stage, only, except })
+    })
+  }
+
+  async executeImport({ content, vault, stage, strategy, only = null, except = null, dry_run = false }) {
+    return this.request('/import/execute', {
+      method: 'POST',
+      body: JSON.stringify({ content, vault, stage, strategy, only, except, dry_run })
+    })
+  }
 }
 
 export const api = new ApiClient()
