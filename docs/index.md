@@ -29,8 +29,8 @@ features:
   - title: CLI First
     details: Powerful command-line interface built for CI/CD automation.
     
-  - title: Security Focused
-    details: Encrypted storage, secure AWS integration, and masked output by default.
+  - title: Modern Web UI
+    details: Visual secret management with diff matrix, import wizard, and real-time search.
 ---
 
 ## Quick Example
@@ -74,4 +74,20 @@ keep shell
 >>> exit                    # Exit when done
 ```
 
-Get started with our [installation guide](/guide/installation), explore the [interactive shell](/guide/shell), or see all [CLI commands](/guide/reference/cli-reference).
+## Web UI
+
+Launch a modern browser-based interface for visual secret management:
+
+```bash
+# Start the web server
+keep server
+
+# The UI provides:
+# - Visual diff matrix comparing environments
+# - Drag-and-drop import with conflict resolution
+# - Real-time search and filtering
+# - Export in multiple formats with preview
+# - Settings management for vaults and stages
+```
+
+Get started with our [installation guide](/guide/installation), explore the [interactive shell](/guide/shell), try the [Web UI](/WEB_UI), or see all [CLI commands](/guide/reference/cli-reference).
