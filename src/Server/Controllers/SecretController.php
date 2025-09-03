@@ -71,12 +71,33 @@ class SecretController extends ApiController
         $vault = $this->getVault();
         $decodedKey = urldecode($key);
         
+        // Debug logging
+        error_log("Delete request - Raw key: {$key}");
+        error_log("Delete request - Decoded key: {$decodedKey}");
+        error_log("Delete request - Vault: " . $vault->name() . ", Stage: " . $vault->stage());
+        
+        // First try to get the secret to ensure we can access it
+        // This matches the CLI delete behavior
+        try {
+            $secret = $vault->get($decodedKey);
+            error_log("Successfully found secret to delete: " . $secret->key());
+            // If we can get it, we should be able to delete it
+        } catch (\STS\Keep\Exceptions\SecretNotFoundException $e) {
+            // If we can't even get it, the key doesn't exist
+            error_log("Cannot find key to delete: {$decodedKey}");
+            throw $e;
+        } catch (\Exception $e) {
+            // Some other error occurred
+            error_log("Error getting key for deletion: " . $e->getMessage());
+            throw $e;
+        }
+        
         try {
             $vault->delete($decodedKey);
+            error_log("Successfully deleted key: {$decodedKey}");
         } catch (\STS\Keep\Exceptions\SecretNotFoundException $e) {
-            // Log detailed information for debugging orphaned keys
-            error_log("Failed to delete key: {$decodedKey}");
-            error_log("Vault: " . $vault->name() . ", Stage: " . $vault->stage());
+            // This shouldn't happen if get() succeeded, but log it
+            error_log("Unexpected: Could GET but not DELETE key: {$decodedKey}");
             
             // For verify test keys, provide a more helpful error message
             if (str_starts_with($decodedKey, '__keep_verify_') || str_starts_with($decodedKey, 'keep-verify-')) {
@@ -85,6 +106,9 @@ class SecretController extends ApiController
                     "It might have been created in a different namespace or stage context."
                 );
             }
+            throw $e;
+        } catch (\Exception $e) {
+            error_log("Error deleting key: " . $e->getMessage());
             throw $e;
         }
         
