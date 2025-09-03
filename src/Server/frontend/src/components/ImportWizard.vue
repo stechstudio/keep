@@ -35,8 +35,18 @@
               </p>
             </div>
 
-            <!-- File Upload -->
-            <div class="border-2 border-dashed border-border rounded-lg p-6 text-center">
+            <!-- File Upload with Drag & Drop -->
+            <div 
+              @drop="handleDrop"
+              @dragover.prevent
+              @dragenter.prevent
+              @dragleave="isDragging = false"
+              @dragenter="isDragging = true"
+              :class="[
+                'border-2 border-dashed rounded-lg p-6 text-center transition-colors',
+                isDragging ? 'border-primary bg-primary/5' : 'border-border'
+              ]"
+            >
               <input
                 type="file"
                 ref="fileInput"
@@ -44,14 +54,26 @@
                 accept=".env,.env.*"
                 class="hidden"
               />
+              
+              <svg class="w-12 h-12 mx-auto mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              
+              <p class="text-sm font-medium mb-2">
+                {{ isDragging ? 'Drop file here...' : 'Drag & drop your .env file here' }}
+              </p>
+              
+              <p class="text-xs text-muted-foreground mb-4">or</p>
+              
               <button
                 @click="$refs.fileInput.click()"
                 class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
               >
-                Choose File
+                Browse Files
               </button>
-              <p class="text-sm text-muted-foreground mt-2">
-                {{ fileName || 'No file selected' }}
+              
+              <p class="text-sm text-muted-foreground mt-3">
+                {{ fileName || 'Supports .env and .env.* files' }}
               </p>
             </div>
 
@@ -329,6 +351,7 @@ const step = ref(1)
 // Step 1: Upload
 const fileName = ref('')
 const envContent = ref('')
+const isDragging = ref(false)
 const filters = ref({
   only: '',
   except: ''
@@ -365,11 +388,36 @@ function handleFileUpload(event) {
   const file = event.target.files[0]
   if (!file) return
   
+  processFile(file)
+}
+
+function handleDrop(event) {
+  event.preventDefault()
+  isDragging.value = false
+  
+  const files = event.dataTransfer.files
+  if (files.length === 0) return
+  
+  const file = files[0]
+  
+  // Check if it's an env file
+  if (!file.name.match(/\.env(\.|$)/)) {
+    toast.error('Invalid file', 'Please upload a .env file')
+    return
+  }
+  
+  processFile(file)
+}
+
+function processFile(file) {
   fileName.value = file.name
   
   const reader = new FileReader()
   reader.onload = (e) => {
     envContent.value = e.target.result
+  }
+  reader.onerror = () => {
+    toast.error('Failed to read file', 'Could not read the selected file')
   }
   reader.readAsText(file)
 }
@@ -438,6 +486,7 @@ function closeWizard() {
   step.value = 1
   fileName.value = ''
   envContent.value = ''
+  isDragging.value = false
   filters.value = { only: '', except: '' }
   analysis.value = { total: 0, new: 0, existing: 0, invalid: 0, empty: 0, secrets: [] }
   conflictStrategy.value = 'skip'
