@@ -86,6 +86,11 @@ class AwsSsmVault extends AbstractVault
                         ->trim('/')
                         ->toString();
 
+                    $lastModified = null;
+                    if (isset($parameter['LastModifiedDate'])) {
+                        $lastModified = Carbon::parse($parameter['LastModifiedDate']);
+                    }
+
                     $secrets->push(Secret::fromVault(
                         key: $key,
                         value: $parameter['Value'] ?? null,
@@ -95,6 +100,7 @@ class AwsSsmVault extends AbstractVault
                         revision: $parameter['Version'] ?? 0,
                         path: $parameter['Name'],
                         vault: $this,
+                        lastModified: $lastModified,
                     ));
                 }
             } while ($nextToken = $result->get('NextToken'));
@@ -133,6 +139,11 @@ class AwsSsmVault extends AbstractVault
                 throw ExceptionFactory::secretNotFound($key, $this->name());
             }
 
+            $lastModified = null;
+            if (isset($parameter['LastModifiedDate'])) {
+                $lastModified = Carbon::parse($parameter['LastModifiedDate']);
+            }
+
             return Secret::fromVault(
                 key: $key,
                 value: $parameter['Value'] ?? null,
@@ -142,6 +153,7 @@ class AwsSsmVault extends AbstractVault
                 revision: $parameter['Version'] ?? 0,
                 path: $parameter['Name'],
                 vault: $this,
+                lastModified: $lastModified,
             );
         } catch (SsmException $e) {
             if ($e->getAwsErrorCode() === 'ParameterNotFound') {

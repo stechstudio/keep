@@ -2,6 +2,7 @@
 
 namespace STS\Keep\Data;
 
+use Carbon\Carbon;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Arr;
 use STS\Keep\Data\Concerns\MasksValues;
@@ -22,6 +23,7 @@ class Secret implements Arrayable
         protected null|int|string $revision = 0,
         protected ?string $path = null,
         protected ?AbstractVault $vault = null,
+        protected ?Carbon $lastModified = null,
         protected bool $skipValidation = false,
     ) {
         $this->key = $skipValidation ? trim($key) : $this->validateKey($key);
@@ -79,6 +81,7 @@ class Secret implements Arrayable
         null|int|string $revision = 0,
         ?string $path = null,
         ?AbstractVault $vault = null,
+        ?Carbon $lastModified = null,
     ): static {
         return new static(
             key: $key,
@@ -89,6 +92,7 @@ class Secret implements Arrayable
             revision: $revision,
             path: $path,
             vault: $vault,
+            lastModified: $lastModified,
             skipValidation: true,
         );
     }
@@ -106,6 +110,7 @@ class Secret implements Arrayable
         null|int|string $revision = 0,
         ?string $path = null,
         ?AbstractVault $vault = null,
+        ?Carbon $lastModified = null,
     ): static {
         return new static(
             key: $key,
@@ -116,6 +121,7 @@ class Secret implements Arrayable
             revision: $revision,
             path: $path,
             vault: $vault,
+            lastModified: $lastModified,
             skipValidation: false,
         );
     }
@@ -188,6 +194,11 @@ class Secret implements Arrayable
         return $this->vault;
     }
 
+    public function lastModified(): ?Carbon
+    {
+        return $this->lastModified;
+    }
+
     public function withMaskedValue(): static
     {
         $masked = clone $this;
@@ -217,6 +228,7 @@ class Secret implements Arrayable
             'revision' => $this->revision,
             'path' => $this->path,
             'vault' => $this->vault?->name(),
+            'lastModified' => $this->lastModified?->toISOString(),
         ];
     }
 
@@ -230,7 +242,7 @@ class Secret implements Arrayable
             'key' => $this->key,
             'value' => $unmask ? $this->value : $this->masked(),
             'revision' => $this->revision,
-            'modified' => null, // Secrets don't track modification time currently
+            'modified' => $this->lastModified?->toISOString(),
         ];
     }
 }
