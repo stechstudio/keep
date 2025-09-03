@@ -41,6 +41,17 @@
           </div>
 
           <div>
+            <label class="block text-sm font-medium mb-2">Namespace</label>
+            <input
+              v-model="settings.namespace"
+              type="text"
+              class="w-full px-3 py-2 bg-input border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              placeholder="my-app"
+            />
+            <p class="text-xs text-muted-foreground mt-1">All secrets will be prefixed with this namespace</p>
+          </div>
+
+          <div>
             <label class="block text-sm font-medium mb-2">Default Vault</label>
             <select 
               v-model="settings.defaultVault"
@@ -377,6 +388,7 @@ const activeTab = ref('general')
 // General settings
 const settings = ref({
   appName: '',
+  namespace: '',
   defaultVault: '',
   defaultStage: ''
 })
@@ -423,6 +435,7 @@ async function loadSettings() {
   try {
     const data = await window.$api.getSettings()
     settings.value.appName = data.app_name || 'MyApp'
+    settings.value.namespace = data.namespace || ''
     settings.value.defaultVault = data.default_vault || ''
     settings.value.defaultStage = data.default_stage || 'prod'
     keepVersion.value = data.keep_version || '1.0.0-beta'
@@ -436,6 +449,7 @@ async function saveGeneralSettings() {
   try {
     await window.$api.updateSettings({
       app_name: settings.value.appName,
+      namespace: settings.value.namespace,
       default_vault: settings.value.defaultVault,
       default_stage: settings.value.defaultStage
     })

@@ -60,6 +60,7 @@ class VaultController extends ApiController
         
         return $this->success([
             'app_name' => $settings['app_name'] ?? 'Keep',
+            'namespace' => $settings['namespace'] ?? '',
             'stages' => $settings['stages'] ?? ['local', 'staging', 'production'],
             'default_vault' => $this->manager->getDefaultVault(),
             'default_stage' => $settings['default_stage'] ?? 'prod',
@@ -74,6 +75,9 @@ class VaultController extends ApiController
         // Update settings from request body
         if (isset($this->body['app_name'])) {
             $settings['app_name'] = $this->body['app_name'];
+        }
+        if (isset($this->body['namespace'])) {
+            $settings['namespace'] = $this->body['namespace'];
         }
         if (isset($this->body['default_vault'])) {
             $settings['default_vault'] = $this->body['default_vault'];
@@ -195,8 +199,7 @@ class VaultController extends ApiController
                 'Write' => false,
                 'List' => false,
                 'Delete' => false,
-                'History' => false,
-                'Metadata' => false
+                'History' => false
             ];
             
             try {
@@ -218,8 +221,8 @@ class VaultController extends ApiController
                     
                     // Test Read permission
                     try {
-                        $value = $vault->get($testKey);
-                        $permissions['Read'] = $value === 'test_value';
+                        $secret = $vault->get($testKey);
+                        $permissions['Read'] = ($secret->value() === 'test_value');
                     } catch (Exception $e) {
                         // Read failed
                     }
@@ -232,14 +235,6 @@ class VaultController extends ApiController
                         $permissions['History'] = true;
                     } catch (Exception $e) {
                         // History not supported or failed
-                    }
-                    
-                    // Test Metadata permission
-                    try {
-                        // Most vaults don't have separate metadata, so we'll consider it same as read
-                        $permissions['Metadata'] = $permissions['Read'];
-                    } catch (Exception $e) {
-                        // Metadata failed
                     }
                     
                     // Test Delete permission
