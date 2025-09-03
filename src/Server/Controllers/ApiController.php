@@ -39,4 +39,30 @@ abstract class ApiController
     {
         return isset($this->query['unmask']) && $this->query['unmask'] === 'true';
     }
+
+    protected function requireFields(array $fields): ?array
+    {
+        $missing = [];
+        foreach ($fields as $field) {
+            if (!isset($this->body[$field]) || $this->body[$field] === '') {
+                $missing[] = $field;
+            }
+        }
+        
+        if (!empty($missing)) {
+            return $this->error('Missing required fields: ' . implode(', ', $missing));
+        }
+        
+        return null;
+    }
+
+    protected function getParam(string $key, $default = null)
+    {
+        return $this->body[$key] ?? $this->query[$key] ?? $default;
+    }
+
+    protected function hasParam(string $key): bool
+    {
+        return isset($this->body[$key]) || isset($this->query[$key]);
+    }
 }
