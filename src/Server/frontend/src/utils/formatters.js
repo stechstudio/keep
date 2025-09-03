@@ -28,15 +28,26 @@ export function formatDate(dateString) {
   return date.toLocaleString(undefined, options)
 }
 
-export function maskValue(value, maskPattern = '•••••') {
+export function maskValue(value, maskChar = '•') {
   if (!value) return ''
   
   const str = String(value)
-  if (str.length <= 8) return maskPattern
+  const length = str.length
   
-  const firstTwo = str.substring(0, 2)
-  const lastTwo = str.substring(str.length - 2)
-  return `${firstTwo}${maskPattern}${lastTwo}`
+  // Short values always get generic mask (matching PHP MasksValues trait)
+  if (length <= 8) {
+    return maskChar.repeat(4)
+  }
+  
+  // Show first 4 characters plus mask chars for remaining length
+  const masked = str.substring(0, 4) + maskChar.repeat(length - 4)
+  
+  // Truncate long values (matching PHP MasksValues trait)
+  if (length <= 24) {
+    return masked
+  }
+  
+  return masked.substring(0, 24) + ` (${length} chars)`
 }
 
 export function formatBytes(bytes) {

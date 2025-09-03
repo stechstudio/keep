@@ -562,7 +562,7 @@ function getMaskedValue(key, vault, stage) {
     return value
   }
 
-  return maskValue(value, '••••')
+  return maskValue(value, '•')
 }
 
 // Cell menu functionality is now handled by SecretActionsMenu component
