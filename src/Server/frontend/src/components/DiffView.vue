@@ -102,7 +102,7 @@
               class="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-center border-l border-border min-w-[80px]"
           >
             <div class="flex flex-col">
-              <span class="font-semibold">{{ column.vaultDisplay }}</span>
+              <span class="font-semibold">{{ column.vault }}</span>
               <span class="text-[10px] opacity-75">{{ column.stage }}</span>
             </div>
           </th>
