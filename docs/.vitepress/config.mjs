@@ -28,8 +28,7 @@ export default defineConfig({
         // Navigation
         nav: [
             {text: 'Home', link: '/'},
-            {text: 'Guide', link: '/guide/'},
-            {text: 'Examples', link: '/examples/'}
+            {text: 'Guide', link: '/guide/'}
         ],
 
         // Sidebar
@@ -86,18 +85,6 @@ export default defineConfig({
                         {text: 'CLI Reference', link: '/guide/reference/cli-reference'},
                         {text: 'AWS Authentication', link: '/guide/reference/aws-authentication'}
                         // {text: 'Security Architecture', link: '/guide/reference/security-architecture'} // Deferred - encrypted cache feature
-                    ]
-                }
-            ],
-            '/examples/': [
-                {
-                    text: 'Examples',
-                    items: [
-                        {text: 'Overview', link: '/examples/'},
-                        // {text: 'Laravel Integration', link: '/examples/laravel'}, // Deferred to future release
-                        {text: 'CI/CD Workflows', link: '/examples/ci-cd'},
-                        {text: 'Multi-Environment Setup', link: '/examples/multi-environment'},
-                        {text: 'AWS Setup', link: '/examples/aws-setup'}
                     ]
                 }
             ]
