@@ -543,7 +543,7 @@ Export secrets from vaults with optional template processing.
 |--------|------|---------|-------------|
 | `--stage` | string | *interactive* | Stage to export secrets from |
 | `--vault` | string | *auto-discover* | Vault(s) to export from (comma-separated) |
-| `--format` | string | `env` | Output format: `env`, `json` |
+| `--format` | string | `env` | Output format: `env`, `json`, `csv` |
 | `--template` | string | | Optional template file with placeholders |
 | `--all` | boolean | `false` | With template: also append non-placeholder secrets |
 | `--missing` | string | `fail` | Strategy for missing secrets: `fail`, `remove`, `blank`, `skip` |
@@ -563,6 +563,9 @@ keep export --stage=production --file=.env
 
 # JSON export
 keep export --stage=production --format=json --file=config.json
+
+# CSV export for spreadsheets
+keep export --stage=production --format=csv --file=secrets.csv
 
 # Export from specific vaults
 keep export --stage=production --vault=ssm,secretsmanager --file=.env

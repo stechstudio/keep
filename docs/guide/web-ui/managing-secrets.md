@@ -68,16 +68,20 @@ Click **Edit** from the actions menu:
 ## Bulk Operations
 
 ### Import from File
-Click the **Import** button to:
+Click the three-dot menu (⋮) and select **Import .env File** to:
 1. Upload or drag-drop a `.env` file
 2. Preview what will be imported
 3. Choose conflict resolution strategy
 4. Apply changes in bulk
 
-### Export Selected
-- Select multiple secrets with checkboxes
-- Export in various formats (ENV, JSON, YAML)
-- Download or copy to clipboard
+### Download Secrets
+Click the three-dot menu (⋮) and select **Download Secrets** to:
+1. Choose export format:
+   - **ENV** - Standard .env format (KEY=value)
+   - **JSON** - Structured JSON object
+   - **CSV** - Spreadsheet-compatible format with Key, Value, and Modified columns
+2. Specify custom filename (optional)
+3. Download all secrets from current vault/stage
 
 ## Tips
 
