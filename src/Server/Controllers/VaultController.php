@@ -73,17 +73,11 @@ class VaultController extends ApiController
         $settings = $this->manager->getSettings();
         
         // Update settings from request body
-        if (isset($this->body['app_name'])) {
-            $settings['app_name'] = $this->body['app_name'];
-        }
-        if (isset($this->body['namespace'])) {
-            $settings['namespace'] = $this->body['namespace'];
-        }
-        if (isset($this->body['default_vault'])) {
-            $settings['default_vault'] = $this->body['default_vault'];
-        }
-        if (isset($this->body['default_stage'])) {
-            $settings['default_stage'] = $this->body['default_stage'];
+        $fields = ['app_name', 'namespace', 'default_vault', 'default_stage'];
+        foreach ($fields as $field) {
+            if ($this->hasParam($field)) {
+                $settings[$field] = $this->getParam($field);
+            }
         }
         
         // TODO: Save settings to disk - for now just return success
@@ -96,11 +90,11 @@ class VaultController extends ApiController
     
     public function addStage(): array
     {
-        if (!isset($this->body['stage'])) {
-            return $this->error('Stage name is required');
+        if ($error = $this->requireFields(['stage'])) {
+            return $error;
         }
         
-        $stageName = $this->body['stage'];
+        $stageName = $this->getParam('stage');
         $settings = $this->manager->getSettings();
         $stages = $settings['stages'] ?? ['local', 'staging', 'production'];
         
@@ -121,11 +115,11 @@ class VaultController extends ApiController
     
     public function removeStage(): array
     {
-        if (!isset($this->body['stage'])) {
-            return $this->error('Stage name is required');
+        if ($error = $this->requireFields(['stage'])) {
+            return $error;
         }
         
-        $stageName = $this->body['stage'];
+        $stageName = $this->getParam('stage');
         $settings = $this->manager->getSettings();
         $stages = $settings['stages'] ?? ['local', 'staging', 'production'];
         
@@ -148,11 +142,8 @@ class VaultController extends ApiController
     
     public function addVault(): array
     {
-        $required = ['name', 'slug', 'driver'];
-        foreach ($required as $field) {
-            if (!isset($this->body[$field])) {
-                return $this->error("Field '$field' is required");
-            }
+        if ($error = $this->requireFields(['name', 'slug', 'driver'])) {
+            return $error;
         }
         
         // TODO: Add vault to configuration
@@ -194,59 +185,10 @@ class VaultController extends ApiController
         
         foreach ($this->manager->getConfiguredVaults() as $vaultConfig) {
             $vaultName = $vaultConfig->slug();
-            $permissions = [
-                'Read' => false,
-                'Write' => false,
-                'List' => false,
-                'Delete' => false,
-                'History' => false
-            ];
             
             try {
                 $vault = $this->manager->vault($vaultName, 'local');
-                $testKey = '__keep_verify_' . uniqid();
-                
-                // Test List permission
-                try {
-                    $vault->list();
-                    $permissions['List'] = true;
-                } catch (Exception $e) {
-                    // List failed
-                }
-                
-                // Test Write permission
-                try {
-                    $vault->set($testKey, 'test_value');
-                    $permissions['Write'] = true;
-                    
-                    // Test Read permission
-                    try {
-                        $secret = $vault->get($testKey);
-                        $permissions['Read'] = ($secret->value() === 'test_value');
-                    } catch (Exception $e) {
-                        // Read failed
-                    }
-                    
-                    // Test History permission
-                    try {
-                        // History requires FilterCollection as second parameter
-                        $filters = new \STS\Keep\Data\Collections\FilterCollection();
-                        $vault->history($testKey, $filters, 10);
-                        $permissions['History'] = true;
-                    } catch (Exception $e) {
-                        // History not supported or failed
-                    }
-                    
-                    // Test Delete permission
-                    try {
-                        $vault->delete($testKey);
-                        $permissions['Delete'] = true;
-                    } catch (Exception $e) {
-                        // Delete failed
-                    }
-                } catch (Exception $e) {
-                    // Write failed, can't test other permissions
-                }
+                $permissions = $this->testVaultPermissions($vault);
                 
                 $results[$vaultName] = [
                     'success' => $permissions['List'] || $permissions['Read'],
@@ -256,7 +198,7 @@ class VaultController extends ApiController
                 $results[$vaultName] = [
                     'success' => false,
                     'error' => $e->getMessage(),
-                    'permissions' => $permissions
+                    'permissions' => $this->getEmptyPermissions()
                 ];
             }
         }
@@ -266,14 +208,74 @@ class VaultController extends ApiController
         ]);
     }
 
+    private function testVaultPermissions($vault): array
+    {
+        $permissions = $this->getEmptyPermissions();
+        $testKey = '__keep_verify_' . uniqid();
+        
+        // Test List permission
+        try {
+            $vault->list();
+            $permissions['List'] = true;
+        } catch (Exception $e) {
+            // List failed
+        }
+        
+        // Test Write permission
+        try {
+            $vault->set($testKey, 'test_value');
+            $permissions['Write'] = true;
+            
+            // Test Read permission
+            try {
+                $secret = $vault->get($testKey);
+                $permissions['Read'] = ($secret->value() === 'test_value');
+            } catch (Exception $e) {
+                // Read failed
+            }
+            
+            // Test History permission
+            try {
+                $filters = new \STS\Keep\Data\Collections\FilterCollection();
+                $vault->history($testKey, $filters, 10);
+                $permissions['History'] = true;
+            } catch (Exception $e) {
+                // History not supported or failed
+            }
+            
+            // Test Delete permission
+            try {
+                $vault->delete($testKey);
+                $permissions['Delete'] = true;
+            } catch (Exception $e) {
+                // Delete failed
+            }
+        } catch (Exception $e) {
+            // Write failed, can't test other permissions
+        }
+        
+        return $permissions;
+    }
+
+    private function getEmptyPermissions(): array
+    {
+        return [
+            'Read' => false,
+            'Write' => false,
+            'List' => false,
+            'Delete' => false,
+            'History' => false
+        ];
+    }
+
     public function diff(): array
     {
-        $stages = isset($this->query['stages']) 
-            ? explode(',', $this->query['stages']) 
+        $stages = $this->hasParam('stages')
+            ? explode(',', $this->getParam('stages'))
             : ['local', 'staging', 'production'];
             
-        $vaults = isset($this->query['vaults']) 
-            ? explode(',', $this->query['vaults']) 
+        $vaults = $this->hasParam('vaults')
+            ? explode(',', $this->getParam('vaults'))
             : array_map(fn($v) => $v->slug(), $this->manager->getConfiguredVaults()->toArray());
         
         $matrix = [];

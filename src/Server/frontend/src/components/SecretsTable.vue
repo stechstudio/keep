@@ -176,16 +176,17 @@ import DeleteConfirmDialog from './DeleteConfirmDialog.vue'
 import SecretActionsMenu from './SecretActionsMenu.vue'
 import ImportWizard from './ImportWizard.vue'
 import { useToast } from '../composables/useToast'
+import { useVault } from '../composables/useVault'
+import { useSecrets } from '../composables/useSecrets'
+import { formatDate } from '../utils/formatters'
 
 const emit = defineEmits(['refresh'])
 const toast = useToast()
+const { vaults, stages, settings, loadAll: loadVaultData } = useVault()
+const { secrets, loading, loadSecrets: fetchSecrets, searchSecrets, createSecret, updateSecret, deleteSecret, renameSecret, copySecretToStage } = useSecrets()
 
 const vault = ref(localStorage.getItem('keep.secrets.vault') || '')
 const stage = ref(localStorage.getItem('keep.secrets.stage') || '')
-const vaults = ref([])
-const stages = ref([])
-const secrets = ref([])
-const loading = ref(false)
 const searchQuery = ref('')
 const unmaskAll = ref(false)
 const unmaskedKeys = ref(new Set())
@@ -213,23 +214,16 @@ watch(() => [vault.value, stage.value], () => {
 
 async function loadVaultsAndStages() {
   try {
-    const [vaultsData, stagesData, settings] = await Promise.all([
-      window.$api.listVaults(),
-      window.$api.listStages(),
-      window.$api.getSettings()
-    ])
-    vaults.value = vaultsData.vaults || []
-    stages.value = stagesData.stages || []
+    await loadVaultData()
     
     // Set defaults only if no saved value
     if (!vault.value) {
-      // Handle both new object format and old string format
-      const defaultVault = settings.default_vault
+      const defaultVault = settings.value.default_vault
       if (defaultVault) {
         vault.value = defaultVault
         localStorage.setItem('keep.secrets.vault', vault.value)
       } else if (vaults.value.length > 0) {
-        vault.value = vaults.value[0].name || vaults.value[0]
+        vault.value = vaults.value[0].slug || vaults.value[0]
         localStorage.setItem('keep.secrets.vault', vault.value)
       }
     }
@@ -245,17 +239,14 @@ async function loadVaultsAndStages() {
 async function loadSecrets() {
   if (!vault.value || !stage.value) return
   
-  loading.value = true
   try {
-    const data = searchQuery.value
-      ? await window.$api.searchSecrets(searchQuery.value, vault.value, stage.value, true)  // Always get unmasked
-      : await window.$api.listSecrets(vault.value, stage.value, true)  // Always get unmasked
-    secrets.value = data.secrets || []
+    if (searchQuery.value) {
+      await searchSecrets(searchQuery.value, vault.value, stage.value, true)
+    } else {
+      await fetchSecrets(vault.value, stage.value, true)
+    }
   } catch (error) {
     console.error('Failed to load secrets:', error)
-    secrets.value = []
-  } finally {
-    loading.value = false
   }
 }
 
@@ -281,13 +272,12 @@ function editSecret(secret) {
 async function saveSecret(data) {
   try {
     if (editingSecret.value) {
-      await window.$api.updateSecret(data.key, data.value, vault.value, stage.value)
+      await updateSecret(data.key, data.value, vault.value, stage.value)
       toast.success('Secret updated', `Secret '${data.key}' has been updated successfully`)
     } else {
-      await window.$api.createSecret(data.key, data.value, vault.value, stage.value)
+      await createSecret(data.key, data.value, vault.value, stage.value)
       toast.success('Secret created', `Secret '${data.key}' has been created successfully`)
     }
-    await loadSecrets()
     closeDialog()
   } catch (error) {
     console.error('Failed to save secret:', error)
@@ -319,9 +309,8 @@ async function confirmDelete() {
   if (!deletingSecret.value) return
   
   try {
-    await window.$api.deleteSecret(deletingSecret.value.key, vault.value, stage.value)
+    await deleteSecret(deletingSecret.value.key, vault.value, stage.value)
     toast.success('Secret deleted', `Secret '${deletingSecret.value.key}' has been deleted successfully`)
-    await loadSecrets()
     deletingSecret.value = null
   } catch (error) {
     console.error('Failed to delete secret:', error)
@@ -331,9 +320,8 @@ async function confirmDelete() {
 
 async function handleRename(newKey) {
   try {
-    await window.$api.renameSecret(renamingSecret.value.key, newKey, vault.value, stage.value)
+    await renameSecret(renamingSecret.value.key, newKey, vault.value, stage.value)
     toast.success('Secret renamed', `Secret renamed from '${renamingSecret.value.key}' to '${newKey}'`)
-    await loadSecrets()
     renamingSecret.value = null
   } catch (error) {
     console.error('Failed to rename secret:', error)
@@ -343,7 +331,7 @@ async function handleRename(newKey) {
 
 async function handleCopyToStage({ targetVault, targetStage }) {
   try {
-    await window.$api.copySecretToStage(
+    await copySecretToStage(
       copyingSecret.value.key, 
       targetStage, 
       targetVault, 
@@ -361,35 +349,5 @@ async function handleCopyToStage({ targetVault, targetStage }) {
 function closeDialog() {
   showAddDialog.value = false
   editingSecret.value = null
-}
-
-function formatDate(dateString) {
-  if (!dateString) return 'Never'
-  
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffMs = now - date
-  const diffSecs = Math.floor(diffMs / 1000)
-  const diffMins = Math.floor(diffSecs / 60)
-  const diffHours = Math.floor(diffMins / 60)
-  const diffDays = Math.floor(diffHours / 24)
-  
-  // Show relative time for recent changes
-  if (diffSecs < 60) return 'Just now'
-  if (diffMins < 60) return `${diffMins} minute${diffMins === 1 ? '' : 's'} ago`
-  if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`
-  if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`
-  
-  // For older dates, show the actual date with local timezone indicator
-  const options = {
-    month: 'short',
-    day: 'numeric',
-    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  }
-  
-  return date.toLocaleString(undefined, options)
 }
 </script>

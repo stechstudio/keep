@@ -99,6 +99,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useSecrets } from '../composables/useSecrets'
+import { maskValue } from '../utils/formatters'
 
 const props = defineProps({
   secretKey: {
@@ -117,6 +119,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'refresh'])
 
+const { getSecretHistory } = useSecrets()
 const history = ref([])
 const loading = ref(true)
 const error = ref(null)
@@ -131,7 +134,7 @@ async function loadHistory() {
   error.value = null
   
   try {
-    const data = await window.$api.getSecretHistory(
+    const data = await getSecretHistory(
       props.secretKey, 
       props.vault, 
       props.stage, 
@@ -154,18 +157,6 @@ function toggleUnmask() {
 function getMaskedValue(value) {
   if (!value) return '(null)'
   if (unmasked.value) return value
-  
-  // Mask the value with dots
-  const length = value.length
-  if (length <= 8) return '••••'
-  
-  const visibleStart = value.substring(0, 4)
-  const masked = visibleStart + '•'.repeat(Math.min(length - 4, 20))
-  
-  if (length > 24) {
-    return masked + ` (${length} chars)`
-  }
-  
-  return masked
+  return maskValue(value, '••••')
 }
 </script>

@@ -12,9 +12,8 @@ class ImportController extends ApiController
      */
     public function analyze(): array
     {
-        // Validate request
-        if (!isset($this->body['content'])) {
-            return $this->error('Missing content field');
+        if ($error = $this->requireFields(['content'])) {
+            return $error;
         }
         
         $vault = $this->getVault();
@@ -31,8 +30,8 @@ class ImportController extends ApiController
             $analysis = $importService->analyzeImport(
                 $importSecrets,
                 $existingSecrets,
-                $this->body['only'] ?? null,
-                $this->body['except'] ?? null
+                $this->getParam('only'),
+                $this->getParam('except')
             );
             
             return $this->success([
@@ -49,13 +48,8 @@ class ImportController extends ApiController
      */
     public function execute(): array
     {
-        // Validate request
-        if (!isset($this->body['content'])) {
-            return $this->error('Missing content field');
-        }
-        
-        if (!isset($this->body['strategy'])) {
-            return $this->error('Missing strategy field');
+        if ($error = $this->requireFields(['content', 'strategy'])) {
+            return $error;
         }
         
         // Validate strategy
@@ -65,7 +59,8 @@ class ImportController extends ApiController
             ImportService::STRATEGY_FAIL
         ];
         
-        if (!in_array($this->body['strategy'], $validStrategies)) {
+        $strategy = $this->getParam('strategy');
+        if (!in_array($strategy, $validStrategies)) {
             return $this->error('Invalid strategy. Must be one of: ' . implode(', ', $validStrategies));
         }
         
@@ -80,10 +75,10 @@ class ImportController extends ApiController
             $result = $importService->executeImport(
                 $importSecrets,
                 $vault,
-                $this->body['strategy'],
-                $this->body['only'] ?? null,
-                $this->body['except'] ?? null,
-                $this->body['dry_run'] ?? false
+                $strategy,
+                $this->getParam('only'),
+                $this->getParam('except'),
+                (bool)$this->getParam('dry_run', false)
             );
             
             // Format response

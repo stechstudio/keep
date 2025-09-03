@@ -16,10 +16,7 @@ class SecretController extends ApiController
                 'secrets' => $secrets->toApiArray($this->isUnmasked())
             ]);
         } catch (Exception $e) {
-            return [
-                'secrets' => [],
-                'error' => 'Could not access vault: ' . $e->getMessage()
-            ];
+            return $this->error('Could not access vault: ' . $e->getMessage(), 500);
         }
     }
 
@@ -39,8 +36,8 @@ class SecretController extends ApiController
 
     public function create(): array
     {
-        if (!isset($this->body['key']) || !isset($this->body['value'])) {
-            return $this->error('Missing key or value');
+        if ($error = $this->requireFields(['key', 'value'])) {
+            return $error;
         }
         
         $vault = $this->getVault();
@@ -54,8 +51,8 @@ class SecretController extends ApiController
 
     public function update(string $key): array
     {
-        if (!isset($this->body['value'])) {
-            return $this->error('Missing value');
+        if ($error = $this->requireFields(['value'])) {
+            return $error;
         }
         
         $vault = $this->getVault();
@@ -80,7 +77,7 @@ class SecretController extends ApiController
 
     public function search(): array
     {
-        $q = $this->query['q'] ?? '';
+        $q = $this->getParam('q', '');
         
         if (empty($q)) {
             return $this->error('Missing search query');
@@ -104,8 +101,8 @@ class SecretController extends ApiController
 
     public function rename(string $oldKey): array
     {
-        if (!isset($this->body['newKey'])) {
-            return $this->error('Missing newKey');
+        if ($error = $this->requireFields(['newKey'])) {
+            return $error;
         }
         
         $newKey = $this->body['newKey'];
@@ -149,8 +146,8 @@ class SecretController extends ApiController
 
     public function copyToStage(string $key): array
     {
-        if (!isset($this->body['targetStage'])) {
-            return $this->error('Missing targetStage');
+        if ($error = $this->requireFields(['targetStage'])) {
+            return $error;
         }
         
         $targetStage = $this->body['targetStage'];
@@ -169,7 +166,7 @@ class SecretController extends ApiController
         }
         
         // Get the target vault (can be different vault)
-        $targetVaultName = $this->body['targetVault'] ?? ($this->body['vault'] ?? $this->query['vault'] ?? $this->manager->getDefaultVault());
+        $targetVaultName = $this->getParam('targetVault', $this->getParam('vault', $this->manager->getDefaultVault()));
         $targetVault = $this->manager->vault($targetVaultName, $targetStage);
         
         // Copy to target
@@ -184,7 +181,7 @@ class SecretController extends ApiController
     public function history(string $key): array
     {
         $vault = $this->getVault();
-        $limit = isset($this->query['limit']) ? (int)$this->query['limit'] : 10;
+        $limit = (int)$this->getParam('limit', 10);
         
         try {
             $historyCollection = $vault->history(urldecode($key), new \STS\Keep\Data\Collections\FilterCollection(), $limit);

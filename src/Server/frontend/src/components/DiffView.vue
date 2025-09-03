@@ -321,6 +321,9 @@
 <script setup>
 import {ref, computed, onMounted, watch} from 'vue'
 import {useToast} from '../composables/useToast'
+import {useVault} from '../composables/useVault'
+import {useSecrets} from '../composables/useSecrets'
+import {maskValue} from '../utils/formatters'
 import SecretActionsMenu from './SecretActionsMenu.vue'
 import SecretDialog from './SecretDialog.vue'
 import RenameDialog from './RenameDialog.vue'
@@ -329,12 +332,12 @@ import HistoryDialog from './HistoryDialog.vue'
 import DeleteConfirmDialog from './DeleteConfirmDialog.vue'
 
 const toast = useToast()
+const { vaults: availableVaults, stages: availableStages, loadAll: loadVaultData } = useVault()
+const { createSecret, updateSecret, deleteSecret, renameSecret, copySecretToStage } = useSecrets()
 
 // State
 const selectedCombinations = ref([])
 const availableCombinations = ref([])
-const availableVaults = ref([])
-const availableStages = ref([])
 const fullDiffMatrix = ref(null) // Store all data from server
 const loading = ref(false)
 const unmaskAll = ref(false)
@@ -469,13 +472,7 @@ function handleClickOutside(e) {
 
 async function loadInitialData() {
   try {
-    const [vaultsData, stagesData] = await Promise.all([
-      window.$api.listVaults(),
-      window.$api.listStages()
-    ])
-
-    availableVaults.value = vaultsData.vaults || []
-    availableStages.value = stagesData.stages || []
+    await loadVaultData()
 
     // Build all combinations
     availableCombinations.value = []
@@ -565,14 +562,7 @@ function getMaskedValue(key, vault, stage) {
     return value
   }
 
-  // Apply masking logic (matching PHP)
-  const length = value.length
-  if (length <= 8) return '••••'
-
-  const masked = value.substring(0, 4) + '•'.repeat(length - 4)
-  if (length <= 24) return masked
-
-  return masked.substring(0, 24) + ` (${length} chars)`
+  return maskValue(value, '••••')
 }
 
 // Cell menu functionality is now handled by SecretActionsMenu component
@@ -605,7 +595,7 @@ async function confirmDelete() {
   if (!deletingSecret.value) return
   
   try {
-    await window.$api.deleteSecret(deletingSecret.value.key, deletingSecret.value.vault, deletingSecret.value.stage)
+    await deleteSecret(deletingSecret.value.key, deletingSecret.value.vault, deletingSecret.value.stage)
     toast.success('Secret deleted', `Secret '${deletingSecret.value.key}' has been deleted successfully`)
     await loadDiff()
     deletingSecret.value = null
@@ -626,7 +616,7 @@ async function saveEditedSecret() {
 
   try {
     if (editingSecret.value.isNew) {
-      await window.$api.createSecret(
+      await createSecret(
           editingSecret.value.key,
           editingSecret.value.value,
           editingSecret.value.vault,
@@ -634,7 +624,7 @@ async function saveEditedSecret() {
       )
       toast.success('Secret created', `Created '${editingSecret.value.key}'`)
     } else {
-      await window.$api.updateSecret(
+      await updateSecret(
           editingSecret.value.key,
           editingSecret.value.value,
           editingSecret.value.vault,
@@ -655,7 +645,7 @@ async function executeCopy() {
   const [targetVault, targetStage] = copyTarget.value.split(':')
 
   try {
-    await window.$api.copySecretToStage(
+    await copySecretToStage(
         copyingSecret.value.key,
         targetStage,
         targetVault,
@@ -681,7 +671,7 @@ function selectNone() {
 
 async function handleCopyToStage({ targetVault, targetStage }) {
   try {
-    await window.$api.copySecretToStage(
+    await copySecretToStage(
       copyingSecretStage.value.key, 
       targetStage, 
       targetVault, 
@@ -699,7 +689,7 @@ async function handleCopyToStage({ targetVault, targetStage }) {
 
 async function handleRename(newKey) {
   try {
-    await window.$api.renameSecret(renamingSecret.value.key, newKey, renamingSecret.value.vault, renamingSecret.value.stage)
+    await renameSecret(renamingSecret.value.key, newKey, renamingSecret.value.vault, renamingSecret.value.stage)
     toast.success('Secret renamed', `Secret renamed from '${renamingSecret.value.key}' to '${newKey}'`)
     await loadDiff()
     renamingSecret.value = null
