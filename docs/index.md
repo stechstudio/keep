@@ -14,22 +14,22 @@ hero:
       link: https://github.com/stechstudio/keep
 
 features:
-  - title: Interactive Shell
-    details: Full REPL with tab completion, context persistence, and instant secret access.
-    
   - title: Multi-Vault Support
     details: AWS SSM and Secrets Manager, with more providers coming soon.
     
   - title: Stage Management  
     details: Organize secrets by environment with seamless promotion workflows.
-    
+
   - title: Template System
     details: Generate configuration files from templates with smart placeholder replacement.
     
   - title: CLI First
     details: Powerful command-line interface built for CI/CD automation.
     
-  - title: Modern Web UI
+  - title: Interactive Shell
+    details: Full REPL with tab completion, context persistence, and instant secret access.
+
+  - title: User-Friendly Web UI
     details: Visual secret management with diff matrix, import wizard, and real-time search.
 ---
 

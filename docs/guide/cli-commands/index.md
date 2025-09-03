@@ -1,6 +1,8 @@
-# Managing Secrets
+# CLI Commands
 
-## Guides
+Keep provides a comprehensive set of command-line tools for managing secrets. Each command is designed for both direct use and CI/CD automation.
+
+## Command Guides
 
 ### [Creating & Viewing Secrets](./creating-viewing)
 Set, get, list, and delete secrets across environments.
