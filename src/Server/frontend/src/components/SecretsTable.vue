@@ -69,7 +69,7 @@
                 </button>
               </div>
             </th>
-            <th class="w-2/12 text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Modified</th>
+            <th class="w-2/12 text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider" title="Times shown in your local timezone">Modified</th>
             <th class="relative px-6 py-3 rounded-tr-lg"><span class="sr-only">Actions</span></th>
           </tr>
         </thead>
@@ -365,7 +365,31 @@ function closeDialog() {
 
 function formatDate(dateString) {
   if (!dateString) return 'Never'
+  
   const date = new Date(dateString)
-  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString()
+  const now = new Date()
+  const diffMs = now - date
+  const diffSecs = Math.floor(diffMs / 1000)
+  const diffMins = Math.floor(diffSecs / 60)
+  const diffHours = Math.floor(diffMins / 60)
+  const diffDays = Math.floor(diffHours / 24)
+  
+  // Show relative time for recent changes
+  if (diffSecs < 60) return 'Just now'
+  if (diffMins < 60) return `${diffMins} minute${diffMins === 1 ? '' : 's'} ago`
+  if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`
+  if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`
+  
+  // For older dates, show the actual date with local timezone indicator
+  const options = {
+    month: 'short',
+    day: 'numeric',
+    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }
+  
+  return date.toLocaleString(undefined, options)
 }
 </script>
