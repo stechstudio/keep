@@ -17,7 +17,6 @@
         <div class="relative">
           <input
             v-model="searchQuery"
-            @input="debounceSearch"
             type="text"
             placeholder="Search secrets..."
             class="w-64 px-3 py-2 bg-input border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -165,7 +164,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import VaultStageSelector from './VaultStageSelector.vue'
 import SecretValue from './SecretValue.vue'
 import SecretDialog from './SecretDialog.vue'
@@ -183,7 +182,7 @@ import { formatDate } from '../utils/formatters'
 const emit = defineEmits(['refresh'])
 const toast = useToast()
 const { vaults, stages, settings, loadAll: loadVaultData } = useVault()
-const { secrets, loading, loadSecrets: fetchSecrets, searchSecrets, createSecret, updateSecret, deleteSecret, renameSecret, copySecretToStage } = useSecrets()
+const { secrets: allSecrets, loading, loadSecrets: fetchSecrets, createSecret, updateSecret, deleteSecret, renameSecret, copySecretToStage } = useSecrets()
 
 const vault = ref(localStorage.getItem('keep.secrets.vault') || '')
 const stage = ref(localStorage.getItem('keep.secrets.stage') || '')
@@ -197,7 +196,20 @@ const copyingSecret = ref(null)
 const historySecret = ref(null)
 const deletingSecret = ref(null)
 
-let searchTimeout = null
+// Filter secrets client-side based on search query
+const secrets = computed(() => {
+  if (!searchQuery.value) {
+    return allSecrets.value
+  }
+  
+  const query = searchQuery.value.toLowerCase()
+  return allSecrets.value.filter(secret => {
+    // Search in both key name and value
+    const keyMatches = secret.key.toLowerCase().includes(query)
+    const valueMatches = secret.value && secret.value.toLowerCase().includes(query)
+    return keyMatches || valueMatches
+  })
+})
 
 onMounted(async () => {
   await loadVaultsAndStages()
@@ -240,21 +252,11 @@ async function loadSecrets() {
   if (!vault.value || !stage.value) return
   
   try {
-    if (searchQuery.value) {
-      await searchSecrets(searchQuery.value, vault.value, stage.value, true)
-    } else {
-      await fetchSecrets(vault.value, stage.value, true)
-    }
+    // Always load all secrets - filtering is done client-side
+    await fetchSecrets(vault.value, stage.value, true)
   } catch (error) {
     console.error('Failed to load secrets:', error)
   }
-}
-
-function debounceSearch() {
-  clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => {
-    loadSecrets()
-  }, 300)
 }
 
 function toggleMask(key) {
