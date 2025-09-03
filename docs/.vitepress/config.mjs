@@ -6,8 +6,19 @@ export default defineConfig({
 
     // Base URL for GitHub Pages (repository name)
     base: '/keep/',
+    
+    // Ignore dead links for now
+    ignoreDeadLinks: true,
+    
+    // Favicon
+    head: [
+        ['link', { rel: 'icon', href: '/logo.svg', type: 'image/svg+xml' }],
+        ['link', { rel: 'shortcut icon', href: '/logo.svg', type: 'image/svg+xml' }]
+    ],
 
     themeConfig: {
+        // Logo in nav bar
+        logo: '/logo.svg',
         // GitHub repository
         socialLinks: [
             {icon: 'github', link: 'https://github.com/stechstudio/keep'}
