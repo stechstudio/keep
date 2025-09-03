@@ -27,12 +27,6 @@
           </svg>
         </div>
         
-        <ImportWizard
-          :vault="vault"
-          :stage="stage"
-          @imported="loadSecrets"
-        />
-        
         <button
           @click="showAddDialog = true"
           class="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
@@ -42,6 +36,12 @@
           </svg>
           <span>Add Secret</span>
         </button>
+        
+        <ImportWizard
+          :vault="vault"
+          :stage="stage"
+          @imported="loadSecrets"
+        />
       </div>
     </div>
 
