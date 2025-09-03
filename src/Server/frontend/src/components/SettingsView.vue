@@ -365,11 +365,30 @@
       </div>
     </div>
   </div>
+
+  <!-- Delete Stage Confirmation Modal -->
+  <DeleteConfirmationModal
+    ref="deleteStageModal"
+    title="Delete Stage"
+    :message="`Are you sure you want to remove the stage '${stageToDelete}'?`"
+    confirmText="Remove Stage"
+    @confirm="confirmDeleteStage"
+  />
+
+  <!-- Delete Vault Confirmation Modal -->
+  <DeleteConfirmationModal
+    ref="deleteVaultModal"
+    title="Delete Vault"
+    :message="`Are you sure you want to delete the vault '${vaultToDelete?.name}'?`"
+    confirmText="Delete Vault"
+    @confirm="confirmDeleteVault"
+  />
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useToast } from '../composables/useToast'
+import DeleteConfirmationModal from './DeleteConfirmationModal.vue'
 
 const toast = useToast()
 
@@ -403,10 +422,14 @@ const vaultForm = ref({
 const verifying = ref(false)
 const showVerificationModal = ref(false)
 const verificationResults = ref(null)
+const vaultToDelete = ref(null)
+const deleteVaultModal = ref(null)
 
 // Stages
 const stages = ref([])
 const newStage = ref('')
+const stageToDelete = ref('')
+const deleteStageModal = ref(null)
 const serverUrl = computed(() => typeof window !== 'undefined' ? window.location.origin : '')
 
 // Helper functions
@@ -494,15 +517,22 @@ function editVault(vault) {
   showVaultModal.value = true
 }
 
-async function deleteVault(vault) {
-  if (confirm(`Are you sure you want to delete the vault "${vault.name}"?`)) {
-    try {
-      await window.$api.deleteVault(vault.slug)
-      vaults.value = vaults.value.filter(v => v.slug !== vault.slug)
-      toast.success('Vault deleted', `Vault "${vault.name}" has been deleted`)
-    } catch (error) {
-      toast.error('Failed to delete vault', error.message)
-    }
+function deleteVault(vault) {
+  vaultToDelete.value = vault
+  deleteVaultModal.value.open()
+}
+
+async function confirmDeleteVault() {
+  if (!vaultToDelete.value) return
+  
+  try {
+    await window.$api.deleteVault(vaultToDelete.value.slug)
+    vaults.value = vaults.value.filter(v => v.slug !== vaultToDelete.value.slug)
+    toast.success('Vault deleted', `Vault "${vaultToDelete.value.name}" has been deleted`)
+  } catch (error) {
+    toast.error('Failed to delete vault', error.message)
+  } finally {
+    vaultToDelete.value = null
   }
 }
 
@@ -603,18 +633,25 @@ async function addStage() {
   }
 }
 
-async function removeStage(stage) {
-  if (confirm(`Are you sure you want to remove the stage "${stage}"?`)) {
-    try {
-      await window.$api.removeStage(stage)
-      const index = stages.value.indexOf(stage)
-      if (index > -1) {
-        stages.value.splice(index, 1)
-        toast.success('Stage removed', `Stage "${stage}" has been removed`)
-      }
-    } catch (error) {
-      toast.error('Failed to remove stage', error.message)
+function removeStage(stage) {
+  stageToDelete.value = stage
+  deleteStageModal.value.open()
+}
+
+async function confirmDeleteStage() {
+  if (!stageToDelete.value) return
+  
+  try {
+    await window.$api.removeStage(stageToDelete.value)
+    const index = stages.value.indexOf(stageToDelete.value)
+    if (index > -1) {
+      stages.value.splice(index, 1)
+      toast.success('Stage removed', `Stage "${stageToDelete.value}" has been removed`)
     }
+  } catch (error) {
+    toast.error('Failed to remove stage', error.message)
+  } finally {
+    stageToDelete.value = ''
   }
 }
 </script>

@@ -137,6 +137,11 @@ class AwsSecretsManagerVault extends AbstractVault
                         continue;
                     }
 
+                    $lastModified = null;
+                    if (isset($secret['CreatedDate'])) {
+                        $lastModified = Carbon::parse($secret['CreatedDate']);
+                    }
+
                     $secrets->push(Secret::fromVault(
                         key: $key,
                         value: $secret['SecretString'] ?? null,
@@ -146,6 +151,7 @@ class AwsSecretsManagerVault extends AbstractVault
                         revision: $secret['VersionId'] ?? 1,
                         path: $secretName,
                         vault: $this,
+                        lastModified: $lastModified,
                     ));
                 }
 
@@ -186,6 +192,11 @@ class AwsSecretsManagerVault extends AbstractVault
                 throw new SecretNotFoundException("Secret not found [{$this->format($key)}]");
             }
 
+            $lastModified = null;
+            if ($createdDate = $result->get('CreatedDate')) {
+                $lastModified = Carbon::parse($createdDate);
+            }
+
             return Secret::fromVault(
                 key: $key,
                 value: $value,
@@ -195,6 +206,7 @@ class AwsSecretsManagerVault extends AbstractVault
                 revision: $versionId ?? 1,
                 path: $this->format($key),
                 vault: $this,
+                lastModified: $lastModified,
             );
         } catch (SecretsManagerException $e) {
             if ($e->getAwsErrorCode() === 'ResourceNotFoundException') {
