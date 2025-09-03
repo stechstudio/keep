@@ -9,6 +9,7 @@
 ## Key Features
 
 - **🔐 Multi-Vault Support** - AWS SSM Parameter Store and AWS Secrets Manager
+- **🖥️ Web UI** - Modern browser-based interface for visual secret management
 - **🚀 Interactive Shell** - Context-aware shell with tab completion for rapid secret management
 - **🌍 Environment Isolation** - Separate secrets by stage (local, staging, production)
 - **📝 Template System** - Merge secrets into templates while preserving structure
@@ -60,6 +61,29 @@ ssm:production> diff staging production
 ├─────────┼─────────┼────────────┼────────┤
 │ API_KEY │ abc...  │ abc...     │ ✓      │
 ```
+
+## Web UI
+
+Keep includes a modern web interface for visual secret management:
+
+```bash
+# Start the web server
+./vendor/bin/keep server
+
+# Custom port (default: 4000)
+./vendor/bin/keep server --port=8080
+
+# Don't auto-open browser
+./vendor/bin/keep server --no-browser
+```
+
+The Web UI provides:
+- **Visual secret management** with search and filtering
+- **Diff matrix view** comparing secrets across stages/vaults
+- **Export functionality** with live preview
+- **Import wizard** for .env files with conflict resolution
+- **Settings management** for vaults and stages
+- **Real-time validation** and error handling
 
 ## Documentation
 
