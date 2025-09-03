@@ -183,7 +183,7 @@
                   >
                     <td class="px-4 py-2 font-mono">{{ secret.key }}</td>
                     <td class="px-4 py-2 font-mono text-xs">
-                      {{ secret.value ? maskValue(secret.value) : '(empty)' }}
+                      {{ secret.value || '(empty)' }}
                     </td>
                     <td class="px-4 py-2">
                       <span
@@ -486,12 +486,6 @@ function closeWizard() {
   conflictStrategy.value = 'skip'
   dryRun.value = false
   importResults.value = { imported: 0, skipped: 0, failed: 0, results: {}, errors: [] }
-}
-
-function maskValue(value) {
-  if (!value) return ''
-  if (value.length <= 8) return '••••••••'
-  return value.substring(0, 4) + '••••' + value.substring(value.length - 4)
 }
 
 function getStatusClass(status) {
