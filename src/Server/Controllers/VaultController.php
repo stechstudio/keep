@@ -168,37 +168,197 @@ class VaultController extends ApiController
             return $error;
         }
         
-        // TODO: Add vault to configuration
-        // This would need to update the vaults.json configuration
-        
-        return $this->success([
-            'message' => 'Vault added successfully'
-        ]);
+        try {
+            $slug = $this->getParam('slug');
+            $driver = $this->getParam('driver');
+            $name = $this->getParam('name');
+            $isDefault = $this->getParam('isDefault', false);
+            
+            // Check if vault already exists
+            $vaultsDir = getcwd().'/.keep/vaults';
+            $vaultFile = $vaultsDir.'/'.$slug.'.json';
+            
+            if (file_exists($vaultFile)) {
+                return $this->error('Vault with this slug already exists');
+            }
+            
+            // Ensure vaults directory exists
+            if (!is_dir($vaultsDir)) {
+                if (!mkdir($vaultsDir, 0755, true)) {
+                    return $this->error('Failed to create vaults directory');
+                }
+            }
+            
+            // Create vault config
+            $vaultConfig = new \STS\Keep\Data\VaultConfig(
+                slug: $slug,
+                driver: $driver,
+                name: $name,
+                config: []  // Additional config can be added later
+            );
+            
+            // Save vault to file
+            if (!file_put_contents($vaultFile, json_encode($vaultConfig->toArray(), JSON_PRETTY_PRINT))) {
+                return $this->error('Failed to save vault configuration');
+            }
+            
+            // Update default vault in settings if requested
+            if ($isDefault) {
+                $settings = $this->manager->getSettings();
+                $settings['default_vault'] = $slug;
+                $newSettings = \STS\Keep\Data\Settings::fromArray($settings);
+                $newSettings->save();
+            }
+            
+            return $this->success([
+                'message' => 'Vault added successfully',
+                'vault' => [
+                    'slug' => $slug,
+                    'name' => $name,
+                    'driver' => $driver,
+                    'isDefault' => $isDefault
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return $this->error('Failed to add vault: ' . $e->getMessage());
+        }
     }
     
     public function updateVault(string $slug): array
     {
-        // TODO: Update vault configuration
-        // This would need to update the vaults.json configuration
-        
-        return $this->success([
-            'message' => 'Vault updated successfully'
-        ]);
+        try {
+            // Check if vault exists
+            $vaultsDir = getcwd().'/.keep/vaults';
+            $vaultFile = $vaultsDir.'/'.$slug.'.json';
+            
+            if (!file_exists($vaultFile)) {
+                return $this->error('Vault not found');
+            }
+            
+            // Load existing vault config
+            $existingConfig = json_decode(file_get_contents($vaultFile), true);
+            if ($existingConfig === null) {
+                return $this->error('Failed to read vault configuration');
+            }
+            
+            // Update fields that were provided
+            if ($this->hasParam('name')) {
+                $existingConfig['name'] = $this->getParam('name');
+            }
+            
+            if ($this->hasParam('driver')) {
+                $existingConfig['driver'] = $this->getParam('driver');
+            }
+            
+            // Handle slug change (rename file)
+            $newSlug = $this->getParam('slug', $slug);
+            if ($newSlug !== $slug) {
+                // Check if new slug already exists
+                $newVaultFile = $vaultsDir.'/'.$newSlug.'.json';
+                if (file_exists($newVaultFile)) {
+                    return $this->error('A vault with the new slug already exists');
+                }
+                
+                $existingConfig['slug'] = $newSlug;
+            }
+            
+            // Validate the updated config
+            try {
+                $vaultConfig = \STS\Keep\Data\VaultConfig::fromArray($existingConfig);
+            } catch (\Exception $e) {
+                return $this->error('Invalid vault configuration: ' . $e->getMessage());
+            }
+            
+            // Save updated config
+            $targetFile = ($newSlug !== $slug) ? $vaultsDir.'/'.$newSlug.'.json' : $vaultFile;
+            if (!file_put_contents($targetFile, json_encode($vaultConfig->toArray(), JSON_PRETTY_PRINT))) {
+                return $this->error('Failed to save vault configuration');
+            }
+            
+            // If slug changed, delete old file
+            if ($newSlug !== $slug && file_exists($vaultFile)) {
+                unlink($vaultFile);
+                
+                // Update default vault in settings if this was the default
+                $settings = $this->manager->getSettings();
+                if ($settings['default_vault'] === $slug) {
+                    $settings['default_vault'] = $newSlug;
+                    $newSettings = \STS\Keep\Data\Settings::fromArray($settings);
+                    $newSettings->save();
+                }
+            }
+            
+            // Handle isDefault flag
+            if ($this->hasParam('isDefault') && $this->getParam('isDefault')) {
+                $settings = $this->manager->getSettings();
+                $settings['default_vault'] = $newSlug;
+                $newSettings = \STS\Keep\Data\Settings::fromArray($settings);
+                $newSettings->save();
+            }
+            
+            return $this->success([
+                'message' => 'Vault updated successfully',
+                'vault' => [
+                    'slug' => $newSlug,
+                    'name' => $vaultConfig->name(),
+                    'driver' => $vaultConfig->driver(),
+                    'isDefault' => $this->manager->getDefaultVault() === $newSlug
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return $this->error('Failed to update vault: ' . $e->getMessage());
+        }
     }
     
     public function deleteVault(string $slug): array
     {
-        // Prevent deleting the default vault
-        if ($slug === $this->manager->getDefaultVault()) {
-            return $this->error('Cannot delete the default vault');
+        try {
+            // Prevent deleting the default vault
+            if ($slug === $this->manager->getDefaultVault()) {
+                return $this->error('Cannot delete the default vault');
+            }
+            
+            // Check if vault exists
+            $vaultsDir = getcwd().'/.keep/vaults';
+            $vaultFile = $vaultsDir.'/'.$slug.'.json';
+            
+            if (!file_exists($vaultFile)) {
+                return $this->error('Vault not found');
+            }
+            
+            // Check if there are any secrets in this vault across all stages
+            $hasSecrets = false;
+            $settings = $this->manager->getSettings();
+            $stages = $settings['stages'] ?? ['local', 'staging', 'production'];
+            
+            foreach ($stages as $stage) {
+                try {
+                    $vault = $this->manager->vault($slug, $stage);
+                    $secrets = $vault->list();
+                    if (count($secrets) > 0) {
+                        $hasSecrets = true;
+                        break;
+                    }
+                } catch (\Exception $e) {
+                    // Vault might not be accessible in this stage, continue checking
+                }
+            }
+            
+            if ($hasSecrets) {
+                return $this->error('Cannot delete vault with existing secrets. Please delete all secrets first.');
+            }
+            
+            // Delete the vault configuration file
+            if (!unlink($vaultFile)) {
+                return $this->error('Failed to delete vault configuration file');
+            }
+            
+            return $this->success([
+                'message' => 'Vault deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return $this->error('Failed to delete vault: ' . $e->getMessage());
         }
-        
-        // TODO: Remove vault from configuration
-        // This would need to update the vaults.json configuration
-        
-        return $this->success([
-            'message' => 'Vault deleted successfully'
-        ]);
     }
 
     public function verify(): array
