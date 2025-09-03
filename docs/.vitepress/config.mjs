@@ -10,10 +10,11 @@ export default defineConfig({
     // Ignore dead links for now
     ignoreDeadLinks: true,
     
-    // Favicon
+    // Favicon - must include base path explicitly for head elements
     head: [
-        ['link', { rel: 'icon', href: '/logo.svg', type: 'image/svg+xml' }],
-        ['link', { rel: 'shortcut icon', href: '/logo.svg', type: 'image/svg+xml' }]
+        ['link', { rel: 'icon', type: 'image/svg+xml', href: '/keep/logo.svg' }],
+        ['link', { rel: 'alternate icon', type: 'image/svg+xml', href: '/keep/logo.svg' }],
+        ['link', { rel: 'mask-icon', href: '/keep/logo.svg', color: '#000000' }]
     ],
 
     themeConfig: {
