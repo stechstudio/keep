@@ -63,21 +63,35 @@ class SearchCommand extends BaseCommand
 
         // Prepare results
         $results = $matches->map(function ($secret) use ($unmask, $query, $caseSensitive, $format) {
-            // Optionally highlight the match in unmasked values
+            // For table format, use formatted values with word wrapping
+            if ($format === 'table') {
+                if ($unmask) {
+                    // Apply highlighting then wrap
+                    $highlightedValue = $this->highlightMatch($secret->value(), $query, $caseSensitive);
+                    // Create a temporary secret with highlighted value to use formatting
+                    $tempSecret = new \STS\Keep\Data\Secret(
+                        $secret->key(), 
+                        $highlightedValue,
+                        skipValidation: true
+                    );
+                    return $tempSecret->forTable();
+                }
+                
+                // Return masked value with formatting
+                $maskedSecret = $secret->withMaskedValue();
+                return $maskedSecret->forTable();
+            }
+            
+            // For JSON format, return raw values
             if ($unmask) {
-                // Only apply color highlighting for table format, not JSON
-                $value = $format === 'table' 
-                    ? $this->highlightMatch($secret->value(), $query, $caseSensitive)
-                    : $secret->value();
-                    
                 return [
                     'key' => $secret->key(),
-                    'value' => $value,
+                    'value' => $secret->value(),
                     'revision' => $secret->revision()
                 ];
             }
             
-            // Return masked value when not using --unmask
+            // Return masked value for JSON
             $maskedSecret = $secret->withMaskedValue();
             return [
                 'key' => $maskedSecret->key(),

@@ -13,6 +13,11 @@ class Secret implements Arrayable
     use MasksValues;
 
     protected string $key;
+    
+    /**
+     * Maximum width for table display values
+     */
+    const TABLE_VALUE_WIDTH = 80;
 
     public function __construct(
         string $key,
@@ -210,6 +215,87 @@ class Secret implements Arrayable
     public function masked(): ?string
     {
         return $this->maskValue($this->value);
+    }
+    
+    /**
+     * Format value for table display by wrapping long lines
+     */
+    public function formattedValue(): ?string
+    {
+        if ($this->value === null) {
+            return null;
+        }
+        
+        // For masked values, don't wrap (they're already short)
+        if (str_contains($this->value, '•') || str_contains($this->value, '*')) {
+            return $this->value;
+        }
+        
+        // If value already contains line breaks, respect them but still wrap long lines
+        $lines = explode("\n", $this->value);
+        $wrappedLines = [];
+        
+        foreach ($lines as $line) {
+            if (strlen($line) <= self::TABLE_VALUE_WIDTH) {
+                $wrappedLines[] = $line;
+            } else {
+                // Wrap long lines at word boundaries if possible
+                $wrappedLines = array_merge($wrappedLines, $this->wrapLine($line));
+            }
+        }
+        
+        return implode("\n", $wrappedLines);
+    }
+    
+    /**
+     * Wrap a single line of text
+     */
+    private function wrapLine(string $line): array
+    {
+        $wrapped = [];
+        $words = explode(' ', $line);
+        $currentLine = '';
+        
+        foreach ($words as $word) {
+            // If word itself is longer than width, chunk it
+            if (strlen($word) > self::TABLE_VALUE_WIDTH) {
+                if ($currentLine) {
+                    $wrapped[] = $currentLine;
+                    $currentLine = '';
+                }
+                $wrapped = array_merge($wrapped, str_split($word, self::TABLE_VALUE_WIDTH));
+                continue;
+            }
+            
+            $testLine = $currentLine ? $currentLine . ' ' . $word : $word;
+            
+            if (strlen($testLine) <= self::TABLE_VALUE_WIDTH) {
+                $currentLine = $testLine;
+            } else {
+                if ($currentLine) {
+                    $wrapped[] = $currentLine;
+                }
+                $currentLine = $word;
+            }
+        }
+        
+        if ($currentLine) {
+            $wrapped[] = $currentLine;
+        }
+        
+        return $wrapped ?: [''];
+    }
+    
+    /**
+     * Get data formatted for table display
+     */
+    public function forTable(): array
+    {
+        return [
+            'key' => $this->key,
+            'value' => $this->formattedValue(),
+            'revision' => $this->revision,
+        ];
     }
 
     public function only(array $keys): array
