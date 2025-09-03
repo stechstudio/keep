@@ -6,7 +6,10 @@ export default defineConfig({
   plugins: [vue()],
   build: {
     outDir: '../public',
-    emptyOutDir: true,
+    emptyOutDir: {
+      allowOutsideOutDir: false,
+      exclude: ['assets/logo.svg']
+    },
     rollupOptions: {
       output: {
         entryFileNames: 'assets/app.js',

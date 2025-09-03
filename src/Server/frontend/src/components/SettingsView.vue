@@ -1,5 +1,5 @@
 <template>
-  <div class="flex gap-6">
+  <div class="flex gap-6 mx-auto max-w-5xl">
     <!-- Left Sidebar Navigation -->
     <div class="w-48 flex-shrink-0">
       <div class="space-y-1">
@@ -20,7 +20,7 @@
     </div>
 
     <!-- Main Content Area -->
-    <div class="flex-1 max-w-3xl">
+    <div class="flex-1">
       <!-- General Settings -->
       <div v-if="activeTab === 'general'" class="space-y-6">
         <div>
@@ -190,17 +190,8 @@
               :key="stage"
               class="flex items-center justify-between py-3 border-b border-border last:border-0"
             >
-              <div class="flex items-center space-x-3">
-                <span class="font-medium">{{ stage }}</span>
-                <span 
-                  v-if="isDefaultStage(stage)" 
-                  class="px-2 py-0.5 bg-muted text-xs rounded-full text-muted-foreground"
-                >
-                  System
-                </span>
-              </div>
+              <span class="font-medium">{{ stage }}</span>
               <button
-                v-if="!isDefaultStage(stage)"
                 @click="removeStage(stage)"
                 class="p-2 rounded-md hover:bg-muted transition-colors text-destructive"
               >
@@ -416,10 +407,6 @@ const verificationResults = ref(null)
 // Stages
 const stages = ref([])
 const newStage = ref('')
-const defaultStages = ['local', 'staging', 'production']
-
-// Computed
-const isDefaultStage = (stage) => defaultStages.includes(stage)
 const serverUrl = computed(() => typeof window !== 'undefined' ? window.location.origin : '')
 
 // Helper functions
