@@ -28,19 +28,30 @@ export function formatDate(dateString) {
   return date.toLocaleString(undefined, options)
 }
 
+/**
+ * Mask a sensitive value for display
+ * Matches PHP MasksValues trait behavior
+ * 
+ * @param {string|null} value - The value to mask
+ * @param {string} maskChar - Single character to use for masking (defaults to bullet)
+ * @returns {string} The masked value
+ */
 export function maskValue(value, maskChar = '•') {
   if (!value) return ''
   
   const str = String(value)
   const length = str.length
   
+  // Ensure maskChar is a single character
+  const char = (maskChar && maskChar.length === 1) ? maskChar : '•'
+  
   // Short values always get generic mask (matching PHP MasksValues trait)
   if (length <= 8) {
-    return maskChar.repeat(4)
+    return char.repeat(4)
   }
   
   // Show first 4 characters plus mask chars for remaining length
-  const masked = str.substring(0, 4) + maskChar.repeat(length - 4)
+  const masked = str.substring(0, 4) + char.repeat(length - 4)
   
   // Truncate long values (matching PHP MasksValues trait)
   if (length <= 24) {

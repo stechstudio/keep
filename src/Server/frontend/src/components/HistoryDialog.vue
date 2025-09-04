@@ -157,6 +157,6 @@ function toggleUnmask() {
 function getMaskedValue(value) {
   if (!value) return '(null)'
   if (unmasked.value) return value
-  return maskValue(value, '••••')
+  return maskValue(value)
 }
 </script>
