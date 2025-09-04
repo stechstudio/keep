@@ -149,7 +149,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useToast } from '../composables/useToast'
 import CreateTemplateModal from './CreateTemplateModal.vue'
 import TemplateEditorModal from './TemplateEditorModal.vue'
@@ -195,15 +195,28 @@ async function loadTemplates() {
 }
 
 function editTemplate(template) {
-  editingTemplate.value = template
+  // Reset first to ensure Vue detects the change
+  editingTemplate.value = null
+  // Use nextTick to ensure the modal closes before reopening
+  nextTick(() => {
+    editingTemplate.value = template
+  })
 }
 
 function testTemplate(template) {
-  testingTemplate.value = template
+  // Reset first to ensure Vue detects the change
+  testingTemplate.value = null
+  nextTick(() => {
+    testingTemplate.value = template
+  })
 }
 
 function processTemplate(template) {
-  processingTemplate.value = template
+  // Reset first to ensure Vue detects the change
+  processingTemplate.value = null
+  nextTick(() => {
+    processingTemplate.value = template
+  })
 }
 
 async function deleteTemplate(template) {
