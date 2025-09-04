@@ -114,8 +114,8 @@
     <SecretDialog
       v-if="showAddDialog || editingSecret"
       :secret="editingSecret"
-      :vault="vault"
-      :stage="stage"
+      :vault="editingSecret ? editingSecret.vault : vault"
+      :stage="editingSecret ? editingSecret.stage : stage"
       @success="handleSecretSaveSuccess"
       @close="closeDialog"
     />
@@ -268,8 +268,8 @@ function toggleMask(key) {
   }
 }
 
-function editSecret(secret) {
-  editingSecret.value = secret
+function editSecret(data) {
+  editingSecret.value = data
 }
 
 async function handleSecretSaveSuccess() {
@@ -277,23 +277,23 @@ async function handleSecretSaveSuccess() {
   await loadSecrets()
 }
 
-function showRenameDialog(secret) {
-  renamingSecret.value = secret
+function showRenameDialog(data) {
+  renamingSecret.value = data
 }
 
-function showCopyToStageDialog(secret) {
-  copyingSecret.value = secret
+function showCopyToStageDialog(data) {
+  copyingSecret.value = data
 }
 
-function showHistoryDialog(secret) {
-  historySecret.value = secret
+function showHistoryDialog(data) {
+  historySecret.value = data
 }
 
-function showDeleteDialog(secret) {
-  deletingSecret.value = secret
+function showDeleteDialog(data) {
+  deletingSecret.value = data
 }
 
-function handleCopyValue(secret) {
+function handleCopyValue(data) {
   toast.success('Copied to clipboard', 'Secret value has been copied to your clipboard')
 }
 
@@ -313,8 +313,8 @@ async function handleCopyToStage({ targetVault, targetStage }) {
       copyingSecret.value.key, 
       targetStage, 
       targetVault, 
-      stage.value,
-      vault.value
+      copyingSecret.value.stage,
+      copyingSecret.value.vault
     )
     toast.success('Secret copied', `Secret '${copyingSecret.value.key}' copied to ${targetVault}:${targetStage}`)
     copyingSecret.value = null
