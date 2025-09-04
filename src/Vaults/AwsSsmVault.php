@@ -36,10 +36,10 @@ class AwsSsmVault extends AbstractVault
                 default: $existingSettings['region'] ?? 'us-east-1',
                 hint: 'The AWS region where your parameters will be stored'
             ),
-            'prefix' => new TextPrompt(
-                label: 'Path Prefix (optional)',
-                default: $existingSettings['prefix'] ?? '',
-                hint: 'Optional prefix to add after namespace (e.g., "app2" for /namespace/app2/stage/key)'
+            'scope' => new TextPrompt(
+                label: 'Scope (optional)',
+                default: $existingSettings['scope'] ?? '',
+                hint: 'Optional scope to isolate secrets within namespace (e.g., "app2" for /namespace/app2/stage/key)'
             ),
             'key' => new TextPrompt(
                 label: 'KMS Key ID (optional)',
@@ -53,7 +53,7 @@ class AwsSsmVault extends AbstractVault
     {
         return Str::of('/')
             ->when(Keep::getNamespace(), fn($str) => $str->append(Keep::getNamespace().'/'))
-            ->when(trim($this->config['prefix'] ?? '', '/'), fn($str, $prefix) => $str->append($prefix.'/'))
+            ->when(trim($this->config['scope'] ?? '', '/'), fn($str, $scope) => $str->append($scope.'/'))
             ->append($this->stage.'/')
             ->append($key)
             ->rtrim('/')

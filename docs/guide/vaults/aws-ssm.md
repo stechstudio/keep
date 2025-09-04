@@ -34,7 +34,7 @@ You'll be prompted for:
 
 **AWS Region**: The AWS region where your parameters will be stored (e.g., `us-east-1`)
 
-**Parameter Prefix**: Optional base path for all parameters. If you specify `myapp`, your parameters will be stored as `/myapp/[namespace]/[stage]/[key]`
+**Scope**: Optional scope to isolate secrets within your namespace. If you specify `app2`, your parameters will be stored as `/[namespace]/app2/[stage]/[key]`
 
 **KMS Key ID**: Optional. Leave empty to use AWS managed key (`alias/aws/ssm`), or specify a custom KMS key for additional security
 
@@ -222,7 +222,7 @@ keep export --template=env.template --stage=production --vault=ssm --output=.env
 
 **Access Denied Errors**: Verify your IAM permissions include both SSM and KMS actions for the correct resource paths.
 
-**Parameter Not Found**: Check your parameter prefix and namespace configuration match your expected path structure.
+**Parameter Not Found**: Check your scope and namespace configuration match your expected path structure.
 
 **Encryption Issues**: Ensure your IAM role has access to the KMS key being used (either AWS managed or custom).
 

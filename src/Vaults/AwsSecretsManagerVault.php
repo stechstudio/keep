@@ -39,10 +39,10 @@ class AwsSecretsManagerVault extends AbstractVault
                 default: $existingSettings['key'] ?? '',
                 hint: 'Leave empty to use the default AWS managed key'
             ),
-            'prefix' => new TextPrompt(
-                label: 'Path Prefix (optional)',
-                default: $existingSettings['prefix'] ?? '',
-                hint: 'Optional prefix to add after namespace (e.g., "app2" for namespace/app2/stage/key)'
+            'scope' => new TextPrompt(
+                label: 'Scope (optional)',
+                default: $existingSettings['scope'] ?? '',
+                hint: 'Optional scope to isolate secrets within namespace (e.g., "app2" for namespace/app2/stage/key)'
             ),
         ];
     }
@@ -54,7 +54,7 @@ class AwsSecretsManagerVault extends AbstractVault
     {
         return Str::of('')
             ->when(Keep::getNamespace(), fn($str) => $str->append(Keep::getNamespace().'/'))
-            ->when(trim($this->config['prefix'] ?? '', '/'), fn($str, $prefix) => $str->append($prefix.'/'))
+            ->when(trim($this->config['scope'] ?? '', '/'), fn($str, $scope) => $str->append($scope.'/'))
             ->append($this->stage)
             ->when($key, fn($str) => $str->append('/'.$key))
             ->trim('/')
@@ -73,12 +73,12 @@ class AwsSecretsManagerVault extends AbstractVault
             'VaultSlug' => $this->slug(),
         ];
         
-        // Add prefix tag if configured
-        $prefix = $this->config['prefix'] ?? '';
-        if ($prefix) {
-            $prefix = trim($prefix, '/');
-            if ($prefix) {
-                $tags['Prefix'] = $prefix;
+        // Add scope tag if configured
+        $scope = $this->config['scope'] ?? '';
+        if ($scope) {
+            $scope = trim($scope, '/');
+            if ($scope) {
+                $tags['Scope'] = $scope;
             }
         }
         
@@ -122,18 +122,18 @@ class AwsSecretsManagerVault extends AbstractVault
                     ],
                 ];
                 
-                // Add prefix filter if configured
-                $prefix = $this->config['prefix'] ?? '';
-                if ($prefix) {
-                    $prefix = trim($prefix, '/');
-                    if ($prefix) {
+                // Add scope filter if configured
+                $scope = $this->config['scope'] ?? '';
+                if ($scope) {
+                    $scope = trim($scope, '/');
+                    if ($scope) {
                         $filters[] = [
                             'Key' => 'tag-key',
-                            'Values' => ['Prefix'],
+                            'Values' => ['Scope'],
                         ];
                         $filters[] = [
                             'Key' => 'tag-value',
-                            'Values' => [$prefix],
+                            'Values' => [$scope],
                         ];
                     }
                 }
@@ -172,7 +172,7 @@ class AwsSecretsManagerVault extends AbstractVault
                     $secretName = $secret['Name'];
 
                     // Extract the key from the full secret name using the expected format
-                    // Format: namespace/[prefix/]stage/key
+                    // Format: namespace/[scope/]stage/key
                     $basePath = $this->format(); // Gets the base path without the key
                     
                     // Skip if this doesn't match our expected naming pattern

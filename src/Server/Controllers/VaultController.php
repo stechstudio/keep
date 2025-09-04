@@ -18,7 +18,7 @@ class VaultController extends ApiController
             $name = $config->name();
             $driver = $config->driver();
             $configArray = $config->config();
-            $prefix = $configArray['prefix'] ?? '';
+            $scope = $configArray['scope'] ?? '';
             
             // Get the vault class to access its friendly NAME constant if available
             $vaultClass = null;
@@ -36,7 +36,7 @@ class VaultController extends ApiController
                 'slug' => $slug,
                 'name' => $friendlyName,
                 'driver' => $driver,
-                'prefix' => $prefix,
+                'scope' => $scope,
                 'isDefault' => $slug === $defaultVault,
                 // Legacy fields for compatibility
                 'display' => $friendlyName . ' (' . $slug . ')'
@@ -168,7 +168,7 @@ class VaultController extends ApiController
             $driver = $this->getParam('driver');
             $name = $this->getParam('name');
             $isDefault = $this->getParam('isDefault', false);
-            $prefix = $this->getParam('prefix', '');
+            $scope = $this->getParam('scope', '');
             
             // Check if vault already exists
             $existingVaults = $this->manager->getConfiguredVaults();
@@ -176,10 +176,10 @@ class VaultController extends ApiController
                 return $this->error('Vault with this slug already exists');
             }
             
-            // Create vault config with optional prefix
+            // Create vault config with optional scope
             $config = [];
-            if (!empty($prefix)) {
-                $config['prefix'] = $prefix;
+            if (!empty($scope)) {
+                $config['scope'] = $scope;
             }
             
             $vaultConfig = new \STS\Keep\Data\VaultConfig(
@@ -206,7 +206,7 @@ class VaultController extends ApiController
                     'slug' => $slug,
                     'name' => $name,
                     'driver' => $driver,
-                    'prefix' => $prefix,
+                    'scope' => $scope,
                     'isDefault' => $isDefault
                 ]
             ]);
@@ -237,17 +237,17 @@ class VaultController extends ApiController
                 $existingConfig['driver'] = $this->getParam('driver');
             }
             
-            // Handle prefix configuration
-            if ($this->hasParam('prefix')) {
-                $prefix = $this->getParam('prefix');
+            // Handle scope configuration
+            if ($this->hasParam('scope')) {
+                $scope = $this->getParam('scope');
                 if (!isset($existingConfig['config'])) {
                     $existingConfig['config'] = [];
                 }
-                if (!empty($prefix)) {
-                    $existingConfig['config']['prefix'] = $prefix;
+                if (!empty($scope)) {
+                    $existingConfig['config']['scope'] = $scope;
                 } else {
-                    // Remove prefix if empty string provided
-                    unset($existingConfig['config']['prefix']);
+                    // Remove scope if empty string provided
+                    unset($existingConfig['config']['scope']);
                 }
             }
             
@@ -297,7 +297,7 @@ class VaultController extends ApiController
             }
             
             $vaultConfigArray = $vaultConfig->config();
-            $prefix = $vaultConfigArray['prefix'] ?? '';
+            $scope = $vaultConfigArray['scope'] ?? '';
             
             return $this->success([
                 'message' => 'Vault updated successfully',
@@ -305,7 +305,7 @@ class VaultController extends ApiController
                     'slug' => $newSlug,
                     'name' => $vaultConfig->name(),
                     'driver' => $vaultConfig->driver(),
-                    'prefix' => $prefix,
+                    'scope' => $scope,
                     'isDefault' => $this->manager->getDefaultVault() === $newSlug
                 ]
             ]);
