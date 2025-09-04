@@ -13,7 +13,7 @@
     <Teleport to="body" v-if="isOpen">
       <div
         :style="menuStyle"
-        class="fixed w-48 bg-popover border border-border rounded-md shadow-lg z-50"
+        class="absolute w-48 bg-popover border border-border rounded-md shadow-lg z-50"
       >
         <div class="py-1 flex flex-col">
           <button
@@ -143,9 +143,31 @@ function toggleMenu(event) {
     const button = event.currentTarget
     const rect = button.getBoundingClientRect()
     
-    // Always position menu below and to the left of the button
-    const left = rect.right - 192 // 192px = 48rem (w-48)
-    const top = rect.bottom + 4
+    // Menu dimensions
+    const menuWidth = 192 // 192px = 48rem (w-48)
+    // Calculate approximate menu height based on visible items (40px per item + 8px padding)
+    const visibleItems = [
+      props.showEdit, props.showRename, props.showCreate,
+      props.showCopyValue, props.showCopyTo, props.showHistory, props.showDelete
+    ].filter(Boolean).length
+    const menuHeight = (visibleItems * 40) + 8
+    
+    // Calculate position with scroll offset (for absolute positioning)
+    let left = rect.right - menuWidth
+    let top = rect.bottom + 4 + window.scrollY
+    
+    // Check if menu would go below viewport
+    const wouldGoBelow = rect.bottom + menuHeight > window.innerHeight
+    
+    // If near bottom of viewport, position above the button
+    if (wouldGoBelow && rect.top > menuHeight) {
+      top = rect.top - menuHeight - 4 + window.scrollY
+    }
+    
+    // Ensure menu doesn't go off left edge
+    if (left < 0) {
+      left = rect.left
+    }
     
     menuStyle.value = {
       left: `${left}px`,
@@ -209,13 +231,22 @@ function handleCloseAllMenus() {
   isOpen.value = false
 }
 
+// Close menu when scrolling (since position becomes stale)
+function handleScroll() {
+  if (isOpen.value) {
+    isOpen.value = false
+  }
+}
+
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
   document.addEventListener('close-all-menus', handleCloseAllMenus)
+  window.addEventListener('scroll', handleScroll, true) // Use capture to catch all scroll events
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
   document.removeEventListener('close-all-menus', handleCloseAllMenus)
+  window.removeEventListener('scroll', handleScroll, true)
 })
 </script>
