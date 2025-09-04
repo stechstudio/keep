@@ -13,7 +13,7 @@ class PlaceholderCollection extends Collection
      *
      * @return Collection<PlaceholderValidationResult>
      */
-    public function validate(string $defaultVault, string $stage): Collection
+    public function validate(?string $defaultVault, string $stage): Collection
     {
         return $this->map->validate($defaultVault, $stage);
     }
@@ -33,7 +33,7 @@ class PlaceholderCollection extends Collection
     /**
      * Get all unique vault names referenced by these placeholders
      */
-    public function getReferencedVaults(string $defaultVault): array
+    public function getReferencedVaults(?string $defaultVault = null): array
     {
         return $this->map->getEffectiveVault($defaultVault)
             ->unique()
@@ -55,9 +55,12 @@ class PlaceholderCollection extends Collection
     /**
      * Get keys referenced in a specific vault
      */
-    public function getReferencedKeysForVault(string $vaultName, string $defaultVault): array
+    public function getReferencedKeysForVault(string $vaultName, ?string $defaultVault = null): array
     {
-        return $this->filter(fn (Placeholder $placeholder) => $placeholder->getEffectiveVault($defaultVault) === $vaultName)
+        return $this->filter(function (Placeholder $placeholder) use ($vaultName, $defaultVault) {
+                $effectiveVault = $placeholder->vault ?? $defaultVault;
+                return $effectiveVault === $vaultName;
+            })
             ->map->key
             ->unique()
             ->values()

@@ -25,7 +25,7 @@
         </div>
 
         <!-- Configuration -->
-        <div class="space-y-4 mb-6">
+        <div v-if="!hasProcessed" class="space-y-4 mb-6">
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium mb-2">Stage</label>
@@ -62,19 +62,8 @@
           </div>
         </div>
 
-        <!-- Process Button -->
-        <div v-if="!hasProcessed" class="flex justify-center py-8">
-          <button
-            @click="processTemplate"
-            :disabled="processing"
-            class="px-6 py-3 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
-          >
-            {{ processing ? 'Processing...' : 'Process Template' }}
-          </button>
-        </div>
-
         <!-- Results -->
-        <div v-else class="space-y-4">
+        <div v-if="hasProcessed" class="space-y-4">
           <!-- Validation Status -->
           <div v-if="!result.validation.valid" class="bg-destructive/10 border border-destructive/20 rounded-md p-3">
             <div class="flex items-center gap-2">
@@ -140,20 +129,30 @@
         </div>
 
         <!-- Footer -->
-        <div class="flex justify-end gap-3 mt-6">
-          <button
-            v-if="hasProcessed"
-            @click="resetProcess"
-            class="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted transition-colors"
-          >
-            Process Again
-          </button>
+        <div class="flex justify-end mt-6 gap-3">
           <button
             @click="$emit('close')"
-            class="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+            class="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted transition-colors"
           >
-            Close
+            Cancel
           </button>
+          <div class="flex gap-3">
+            <button
+              v-if="hasProcessed"
+              @click="resetProcess"
+              class="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted transition-colors"
+            >
+              Process Again
+            </button>
+            <button
+              v-if="!hasProcessed"
+              @click="processTemplate"
+              :disabled="processing || !selectedStage"
+              class="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              {{ processing ? 'Processing...' : 'Process Template' }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
