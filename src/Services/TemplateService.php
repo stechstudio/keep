@@ -15,6 +15,14 @@ class TemplateService
     
     public function __construct(?string $templatePath = null)
     {
+        $this->templatePath = $this->resolveTemplatePath($templatePath);
+    }
+    
+    /**
+     * Resolve template path from settings or provided override
+     */
+    protected function resolveTemplatePath(?string $templatePath = null): string
+    {
         // Load template path from settings or use default
         $settings = Settings::load();
         $configuredPath = $templatePath 
@@ -26,10 +34,10 @@ class TemplateService
             if (!str_starts_with($configuredPath, './')) {
                 $configuredPath = './' . $configuredPath;
             }
-            $this->templatePath = getcwd() . '/' . $configuredPath;
-        } else {
-            $this->templatePath = $configuredPath;
+            return getcwd() . '/' . $configuredPath;
         }
+        
+        return $configuredPath;
     }
     
     /**
@@ -80,7 +88,7 @@ class TemplateService
                 
                 $templates[] = $this->generateVaultSection($vaultName, $secrets);
             } catch (\Exception $e) {
-                // If vault doesn't exist or isn't accessible for this stage, skip it
+                // Skip vault if not accessible - this is expected for external vaults
                 continue;
             }
         }
@@ -195,13 +203,11 @@ class TemplateService
      */
     protected function getVaultsForStage(string $stage, array $vaultFilter = []): array
     {
-        // Get all configured vaults
-        $vaultFiles = glob(getcwd() . '/.keep/vaults/*.json');
+        // Get all configured vaults using Keep facade
+        $configuredVaults = Keep::getConfiguredVaults();
         $vaults = [];
         
-        foreach ($vaultFiles as $file) {
-            $vaultName = basename($file, '.json');
-            
+        foreach ($configuredVaults as $vaultName => $config) {
             // Apply filter if provided
             if (!empty($vaultFilter) && !in_array($vaultName, $vaultFilter)) {
                 continue;

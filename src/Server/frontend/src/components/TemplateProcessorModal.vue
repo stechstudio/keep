@@ -214,7 +214,7 @@ async function loadStages() {
     const settings = await window.$api.getSettings()
     stages.value = settings.stages || []
   } catch (err) {
-    console.error('Failed to load stages:', err)
+    // Failed to load stages
   }
 }
 

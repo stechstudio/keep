@@ -224,7 +224,6 @@ import RenameDialog from './RenameDialog.vue'
 import CopyToStageDialog from './CopyToStageDialog.vue'
 import HistoryDialog from './HistoryDialog.vue'
 import DeleteConfirmDialog from './DeleteConfirmDialog.vue'
-import SecretActionsMenu from './SecretActionsMenu.vue'
 import TableActionsMenu from './TableActionsMenu.vue'
 import Tooltip from './ui/Tooltip.vue'
 import { useToast } from '../composables/useToast'
@@ -332,7 +331,7 @@ async function loadVaultsAndStages() {
       localStorage.setItem('keep.secrets.stage', stage.value)
     }
   } catch (error) {
-    console.error('Failed to load vaults and stages:', error)
+    // Failed to load vaults and stages
   }
 }
 
@@ -343,7 +342,7 @@ async function loadSecrets() {
     // Always load all secrets - filtering is done client-side
     await fetchSecrets(vault.value, stage.value, true)
   } catch (error) {
-    console.error('Failed to load secrets:', error)
+    // Failed to load secrets
   }
 }
 

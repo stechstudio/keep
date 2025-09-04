@@ -83,13 +83,13 @@ describe('Settings', function () {
         });
 
         it('validates version format', function () {
-            expect(fn () => new Settings('app', 'namespace', ['stage'], null, null, null, 'invalid'))
-                ->toThrow(InvalidArgumentException::class, 'Version must be in format "major.minor"');
+            expect(fn () => new Settings('app', 'namespace', ['stage'], null, null, null, null, 'invalid'))
+                ->toThrow(InvalidArgumentException::class, 'Version must be in format "major.minor" (e.g., "1.0")');
 
-            expect(fn () => new Settings('app', 'namespace', ['stage'], null, null, null, '1.0.0'))
-                ->toThrow(InvalidArgumentException::class, 'Version must be in format "major.minor"');
+            expect(fn () => new Settings('app', 'namespace', ['stage'], null, null, null, null, '1.0.0'))
+                ->toThrow(InvalidArgumentException::class, 'Version must be in format "major.minor" (e.g., "1.0")');
 
-            $settings = new Settings('app', 'namespace', ['stage'], null, null, null, '2.1');
+            $settings = new Settings('app', 'namespace', ['stage'], null, null, null, null, '2.1');
             expect($settings->version())->toBe('2.1');
         });
     });

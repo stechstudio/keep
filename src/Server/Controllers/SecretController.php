@@ -9,18 +9,12 @@ class SecretController extends ApiController
 {
     public function list(): array
     {
-        try {
-            $vault = $this->getVault();
-            $secrets = $vault->list();
-            
-            return $this->success([
-                'secrets' => $secrets->toApiArray($this->isUnmasked())
-            ]);
-        } catch (Exception $e) {
-            // Don't leak sensitive information in error messages
-            error_log('Vault access error: ' . $e->getMessage());
-            return $this->error('Could not access vault', 500);
-        }
+        $vault = $this->getVault();
+        $secrets = $vault->list();
+        
+        return $this->success([
+            'secrets' => $secrets->toApiArray($this->isUnmasked())
+        ]);
     }
 
     public function get(string $key): array

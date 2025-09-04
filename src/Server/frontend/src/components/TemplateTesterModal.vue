@@ -224,7 +224,7 @@ async function loadStages() {
     const settings = await window.$api.getSettings()
     stages.value = settings.stages || []
   } catch (error) {
-    console.error('Failed to load stages:', error)
+    // Failed to load stages
   }
 }
 
@@ -255,7 +255,6 @@ async function runValidation() {
     }
   } catch (error) {
     showToast('Failed to validate template', 'error')
-    console.error('Failed to validate template:', error)
   } finally {
     validating.value = false
   }

@@ -32,6 +32,14 @@ beforeEach(function() {
     // Clear any existing vaults
     TestVault::clearAll();
     
+    // Set up KeepManager to bind to container
+    setupKeepManager([
+        'app_name' => 'test-app',
+        'namespace' => 'test-app',
+        'default_vault' => 'test-vault',
+        'stages' => ['local', 'development', 'production'],
+    ]);
+    
     // Register test vault driver
     Keep::addVaultDriver(TestVault::class);
     
