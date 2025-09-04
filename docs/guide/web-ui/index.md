@@ -41,6 +41,12 @@ When the server starts:
 - Conflict resolution options
 - Detailed import results
 
+### Template Management
+- Create templates from existing secrets
+- Edit templates with syntax highlighting
+- Test and validate placeholders
+- Process templates for any stage
+
 ### Settings Management
 - Configure vaults visually
 - Add/remove stages
@@ -49,9 +55,10 @@ When the server starts:
 
 ## Navigation
 
-The Web UI is organized into four main sections:
+The Web UI is organized into five main sections:
 
 - **Secrets** - Main table view for managing individual secrets
+- **Templates** - Create and manage template files with placeholders
 - **Diff** - Matrix view for comparing across environments
 - **Export** - Generate configuration files in various formats
 - **Settings** - Configure vaults, stages, and application preferences

@@ -240,6 +240,49 @@ keep show --stage=staging --format=json
 keep show --stage=production --vault=secretsmanager --format=env
 ```
 
+## `keep template:add`
+
+Generate a template file from existing secrets in a stage.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `filename` | string | *required* | Template filename to create |
+| `--stage` | string | *required* | Stage to generate template from |
+| `--vault` | string | *all vaults* | Specific vault to use |
+| `--overwrite` | boolean | `false` | Overwrite existing template file |
+
+### Examples
+
+```bash
+# Create template from production secrets
+keep template:add .env.template --stage=production
+
+# Create from specific vault
+keep template:add api.template --stage=production --vault=ssm
+
+# Overwrite existing template
+keep template:add config.env --stage=staging --overwrite
+```
+
+## `keep template:validate`
+
+Validate template files for syntax and placeholder resolution.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `filename` | string | *required* | Template file to validate |
+| `--stage` | string | *optional* | Stage to validate against |
+
+### Examples
+
+```bash
+# Validate template syntax and placeholders
+keep template:validate .env.template
+
+# Validate against specific stage
+keep template:validate .env.template --stage=production
+```
+
 ## `keep shell`
 
 Start an interactive shell for Keep commands with persistent context.

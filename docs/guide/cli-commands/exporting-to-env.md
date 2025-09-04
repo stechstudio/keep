@@ -115,13 +115,31 @@ keep export --template=.env.template --stage=production --format=json --file=con
 keep export --template=.env.template --stage=production --all --file=.env
 ```
 
-### Template Validation
+### Creating Templates
 
-It's a good practice to validate your templates before deployment to ensure all placeholders can be resolved.
+The `template:add` command generates template files from your existing secrets:
 
 ```bash
-# Validate templates before deployment
+# Create template from all secrets in a stage
+keep template:add production.env --stage=production
+
+# Create template from specific vault
+keep template:add api.env --stage=production --vault=ssm
+
+# Overwrite existing template
+keep template:add config.env --stage=staging --overwrite
+```
+
+### Template Validation
+
+Validate templates to ensure all placeholders can be resolved:
+
+```bash
+# Validate template for a specific stage
 keep template:validate app.template --stage=production
+
+# Validate without specifying stage (checks all placeholders)
+keep template:validate app.template
 ```
 
 <!-- Future enhancement: Cache Export
