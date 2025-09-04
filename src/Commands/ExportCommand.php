@@ -18,7 +18,7 @@ class ExportCommand extends BaseCommand
 
     public $signature = 'export 
         {--format=env : Output format (env, json, or csv)} 
-        {--template= : Template file with {vault:key} placeholders to replace}
+        {--template= : Template file path, or auto-discover {stage}.env if no path given}
         {--all : Include all vault secrets, not just template placeholders}
         {--missing=fail : How to handle missing secrets: fail|remove|blank|skip}
         {--file= : Output file path (default: stdout)} 
@@ -63,6 +63,20 @@ class ExportCommand extends BaseCommand
             'stage' => $this->stage(),
         ]);
 
+        // Resolve template path if needed
+        if ($this->hasOption('template')) {
+            $templateOption = $this->option('template');
+            
+            if ($templateOption === null) {
+                // Template flag provided without value, auto-discover based on stage
+                $templatePath = $this->resolveTemplateForStage($options['stage']);
+                $options['template'] = $templatePath;
+            } elseif ($templateOption !== false) {
+                // Value provided, use as-is
+                $options['template'] = $templateOption;
+            }
+        }
+
         // Route to appropriate service based on options
 
         // Future enhancement: Cache export
@@ -71,7 +85,7 @@ class ExportCommand extends BaseCommand
         //     return $this->cacheExport->handle($options, $this->output);
         // }
 
-        if (! $this->option('template')) {
+        if (! isset($options['template'])) {
             // Direct export mode
             return $this->directExport->handle($options, $this->output);
         }
@@ -83,6 +97,52 @@ class ExportCommand extends BaseCommand
 
         // Template with env output - preserve mode
         return $this->templatePreserve->handle($options, $this->output);
+    }
+
+    /**
+     * Resolve template file path based on stage name.
+     */
+    protected function resolveTemplateForStage(string $stage): string
+    {
+        $settings = \STS\Keep\Facades\Keep::getSettings();
+        $templateDir = $settings['template_path'] ?? 'env';
+        $templateFile = getcwd() . '/' . $templateDir . '/' . $stage . '.env';
+        
+        if (! file_exists($templateFile)) {
+            throw new \InvalidArgumentException(
+                "No template found for stage '{$stage}' at {$templateFile}.\n" .
+                "Create one with: keep template:add {$stage}.env --stage={$stage}"
+            );
+        }
+        
+        return $templateFile;
+    }
+    
+    /**
+     * Override to avoid trying to get 'key' argument which doesn't exist
+     */
+    protected function key()
+    {
+        return null;
+    }
+    
+    /**
+     * Override to avoid prompting in non-interactive mode during error handling
+     */
+    protected function vaultName($prompt = 'Vault', $cacheName = 'vaultName'): string
+    {
+        // If we have the vault option, use it
+        if ($this->hasOption('vault') && $this->option('vault')) {
+            return $this->option('vault');
+        }
+        
+        // In non-interactive mode, return empty string to avoid prompting
+        if ($this->option('no-interaction')) {
+            return '';
+        }
+        
+        // Otherwise use parent implementation
+        return parent::vaultName($prompt, $cacheName);
     }
 
     /**
@@ -100,6 +160,7 @@ class ExportCommand extends BaseCommand
 
         2. <info>Template Mode</info> - Use a template file with placeholders
            <comment>keep export --stage=production --template=.env.template</comment>
+           <comment>keep export --stage=production --template</comment>  # Auto-uses env/production.env
 
         <comment>Template Placeholders:</comment>
         Templates use the syntax <info>{vault:key}</info> which will be replaced with actual values:
