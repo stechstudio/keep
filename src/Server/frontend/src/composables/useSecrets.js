@@ -27,7 +27,7 @@ export function useSecrets() {
     error.value = null
     try {
       const response = await api.createSecret(key, value, vault, stage)
-      await loadSecrets(vault, stage, true)
+      // Don't call loadSecrets here - let the component handle refresh
       return response
     } catch (err) {
       error.value = err.message
@@ -42,7 +42,7 @@ export function useSecrets() {
     error.value = null
     try {
       const response = await api.updateSecret(key, value, vault, stage)
-      await loadSecrets(vault, stage, true)
+      // Don't call loadSecrets here - let the component handle refresh
       return response
     } catch (err) {
       error.value = err.message
@@ -57,7 +57,7 @@ export function useSecrets() {
     error.value = null
     try {
       const response = await api.deleteSecret(key, vault, stage)
-      await loadSecrets(vault, stage, true)
+      // Don't call loadSecrets here - let the component handle refresh
       return response
     } catch (err) {
       error.value = err.message
@@ -72,7 +72,7 @@ export function useSecrets() {
     error.value = null
     try {
       const response = await api.renameSecret(oldKey, newKey, vault, stage)
-      await loadSecrets(vault, stage, true)
+      // Don't call loadSecrets here - let the component handle refresh
       return response
     } catch (err) {
       error.value = err.message
