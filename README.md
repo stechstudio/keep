@@ -12,7 +12,7 @@
 - **🖥️ Web UI** - Modern browser-based interface for visual secret management
 - **🚀 Interactive Shell** - Context-aware shell with tab completion for rapid secret management
 - **🌍 Environment Isolation** - Separate secrets by stage (local, staging, production)
-- **📝 Template System** - Merge secrets into templates while preserving structure
+- **📝 Template Management** - Create, validate, and process templates with placeholders
 - **🔄 Bulk Operations** - Import, export, copy, and diff secrets across environments
 - **🤝 Team Collaboration** - Share secret management with proper access controls
 - **⚙️ CI/CD Ready** - Export secrets for deployment pipelines
@@ -34,6 +34,9 @@ composer require stechstudio/keep
 
 # Export to .env
 ./vendor/bin/keep export --stage=production --file=.env
+
+# Create template from existing secrets
+./vendor/bin/keep template:add .env.template --stage=production
 
 # Use template with placeholders
 ./vendor/bin/keep export --stage=production --template=.env.template --file=.env
