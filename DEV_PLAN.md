@@ -353,6 +353,14 @@ Error responses:
 
 The Web UI provides a powerful, intuitive alternative to CLI operations for managing secrets across environments.
 
+## Template Management Feature
+
+### Navigation Update
+- [ ] Add "Templates" tab to main navigation in App.vue
+  - [ ] Position after "Compare" tab
+  - [ ] Route: `/templates`
+  - [ ] Component: `TemplatesView.vue`
+
 ## Latest Session Accomplishments (Phase 8-10)
 
 ### ✅ Phase 8: Build & Distribution
@@ -379,7 +387,256 @@ The Web UI provides a powerful, intuitive alternative to CLI operations for mana
 - Added security best practices throughout
 
 🎯 **Remaining Tasks:**
-1. Essential keyboard shortcuts (/, ESC, m for mask toggle)
+1. ✅ Essential keyboard shortcuts (/, ESC, m for mask toggle) - COMPLETED
+2. Template Management UI (see detailed plan below)
+
+## Template Management Feature
+
+### Overview
+Add a Templates page to the Web UI that scans for .env template files, provides editing capabilities, and allows testing templates against different stages. Templates use the `{vault:key}` placeholder syntax and are merged with actual secret values.
+
+### Phase 1: Backend Infrastructure
+
+#### Settings Enhancement
+- [ ] Add `template_path` field to Settings/General page
+  - [ ] Default value: `./env` if not specified
+  - [ ] Text input with folder browser/validator
+  - [ ] Save to `settings.json` configuration
+
+#### Template Service Refactoring
+- [ ] Create `src/Services/TemplateService.php` to centralize template logic
+  - [ ] Move template processing logic from CLI commands
+  - [ ] Methods needed:
+    - [ ] `scanTemplates(string $path): array` - Find all .env files
+    - [ ] `loadTemplate(string $path): Template` - Load template content
+    - [ ] `validateTemplate(Template $template, string $stage): ValidationResult`
+    - [ ] `processTemplate(Template $template, string $stage): ProcessedTemplate`
+    - [ ] `extractPlaceholders(Template $template): array` - Get all {vault:key} patterns
+    - [ ] `saveTemplate(string $path, string $content): void` - Save edited template
+    - [ ] `generateTemplate(string $stage, array $vaultFilter = []): string` - Create template from secrets
+    - [ ] `normalizeKeyToEnv(string $key): string` - Convert key to ENV format (UPPERCASE_WITH_UNDERSCORES)
+- [ ] Create `ValidationResult` data class with:
+  - [ ] Valid/invalid placeholders
+  - [ ] Missing secrets
+  - [ ] Unused secrets  
+  - [ ] Line-by-line validation info
+- [ ] Create `ProcessedTemplate` data class with:
+  - [ ] Original template content
+  - [ ] Processed output
+  - [ ] Placeholder mappings
+  - [ ] Validation results
+
+### Phase 2: API Endpoints
+
+#### Template Controller (`src/Server/Controllers/TemplateController.php`)
+- [ ] GET `/api/templates` - List all templates in configured path
+  - [ ] Return array of: `{filename, path, stage, size, lastModified}`
+  - [ ] Extract stage from filename pattern: `{stage}.env`
+  - [ ] Smart stage matching: `prod.env` → `production`, `dev.env` → `development`
+- [ ] GET `/api/templates/{filename}` - Get template content
+  - [ ] Return: `{content, placeholders, stage}`
+  - [ ] Include extracted placeholders with line numbers
+- [ ] PUT `/api/templates/{filename}` - Save edited template
+  - [ ] Accept: `{content}`
+  - [ ] Validate file exists and is writable
+  - [ ] Return success/error status
+- [ ] POST `/api/templates/generate` - Generate template from existing secrets
+  - [ ] Accept: `{stage, vaults?, filename}`
+  - [ ] Return: `{content, filename, secretCount}`
+  - [ ] Groups secrets by vault with comment headers
+  - [ ] Converts keys to ENV format (uppercase with underscores)
+  - [ ] Includes sample non-secret variables as comments
+- [ ] POST `/api/templates/validate` - Validate template against stage
+  - [ ] Accept: `{content, stage, filename?}`
+  - [ ] Return: `{valid, errors, warnings, unusedSecrets}`
+- [ ] POST `/api/templates/process` - Process template with actual values
+  - [ ] Accept: `{content, stage, filename?, strategy}`
+  - [ ] Strategy options: `fail`, `blank`, `skip`, `remove`
+  - [ ] Return: `{output, validation, placeholders}`
+- [ ] GET `/api/templates/placeholders` - Get all available placeholders
+  - [ ] Accept: `{stage}`
+  - [ ] Return all possible `{vault:key}` combinations for autocomplete
+
+### Phase 3: Frontend Components
+
+#### Templates View (`src/Server/frontend/src/components/TemplatesView.vue`)
+- [ ] Main templates list view
+  - [ ] Table with columns: File, Stage, Size, Last Modified, Actions
+  - [ ] File icons for .env files
+  - [ ] Stage badge (auto-detected from filename)
+  - [ ] Action buttons: Edit, Test
+  - [ ] Header buttons:
+    - [ ] "Create Template" - Create from existing secrets
+    - [ ] "Upload/Paste Template" - Test arbitrary template
+- [ ] Empty state when no templates found
+  - [ ] Show configured template path
+  - [ ] Instructions for adding templates
+  - [ ] "Create First Template" button
+  - [ ] Link to settings to change path
+
+#### Template Editor Modal (`src/Server/frontend/src/components/TemplateEditorModal.vue`)
+- [ ] Full-screen modal with code editor
+- [ ] Features:
+  - [ ] Syntax highlighting for .env format
+  - [ ] Line numbers
+  - [ ] Find/Replace (Ctrl+F, Ctrl+H)
+  - [ ] Placeholder highlighting (different color for `{vault:key}` patterns)
+  - [ ] Save button with Ctrl+S shortcut
+  - [ ] Cancel with confirmation if unsaved changes
+- [ ] Editor library options:
+  - [ ] CodeMirror 6 (lightweight, good .env support)
+  - [ ] Monaco Editor (VSCode editor, more features but larger)
+  - [ ] Decision: Start with CodeMirror for simplicity
+
+#### Template Tester Modal (`src/Server/frontend/src/components/TemplateTesterModal.vue`)
+- [ ] Split-pane view: Template | Output
+- [ ] Left pane (Template):
+  - [ ] Read-only code view with line numbers
+  - [ ] Placeholder highlighting:
+    - [ ] ✅ Green: Valid placeholder with value
+    - [ ] ❌ Red: Missing secret
+    - [ ] ⚠️ Yellow: Empty value
+  - [ ] Hover tooltip showing actual value (masked by default)
+- [ ] Right pane (Output):
+  - [ ] Processed template with actual values
+  - [ ] Copy button for output
+  - [ ] Download as file button
+  - [ ] Toggle mask/unmask for values
+- [ ] Bottom panel:
+  - [ ] Validation summary (X valid, Y missing, Z warnings)
+  - [ ] List of issues with line numbers
+  - [ ] "Create Missing Secrets" button for quick fixes
+  - [ ] Missing strategy selector (fail/blank/skip/remove)
+
+#### Create Template Modal (`src/Server/frontend/src/components/CreateTemplateModal.vue`)
+- [ ] For creating new template from existing secrets
+- [ ] Step 1: Configuration
+  - [ ] Stage selector (required)
+  - [ ] Filename input (auto-suggest: `{stage}.env`)
+  - [ ] "Include all secrets" checkbox (default: true)
+  - [ ] Vault filter checkboxes (if multiple vaults)
+- [ ] Step 2: Preview & Edit
+  - [ ] Generated template preview with:
+    - [ ] All secrets converted to ENV format (uppercase, underscores)
+    - [ ] Proper placeholders: `DB_PASSWORD={vault-name:db_password}`
+    - [ ] Grouped by vault with comment headers
+    - [ ] Example non-secret entries as comments
+  - [ ] Editable code area for customization
+  - [ ] "Add Common Variables" helper:
+    - [ ] Quick-add buttons for: APP_ENV, APP_DEBUG, APP_URL, etc.
+    - [ ] Insert at cursor position
+- [ ] Step 3: Save
+  - [ ] Save to configured template path
+  - [ ] Option to "Save and Test" immediately
+
+#### Custom Template Modal (`src/Server/frontend/src/components/CustomTemplateModal.vue`)
+- [ ] For "Upload/Paste Template" functionality
+- [ ] Two tabs: Paste | Upload
+- [ ] Paste tab:
+  - [ ] Large textarea for template content
+  - [ ] Stage selector dropdown
+  - [ ] "Test Template" button
+- [ ] Upload tab:
+  - [ ] Drag-and-drop zone
+  - [ ] File input for .env files
+  - [ ] Auto-detect stage from filename
+  - [ ] Stage selector (override auto-detection)
+- [ ] Both lead to Template Tester Modal
+
+### Phase 4: Autocomplete Feature (Stretch Goal)
+
+#### Placeholder Autocomplete
+- [ ] Integrate with CodeMirror/Monaco editor
+- [ ] Trigger on typing `{` character
+- [ ] Show dropdown with available vault:key combinations
+- [ ] Filter as user types
+- [ ] Group by vault for easier navigation
+- [ ] Show current value preview (masked)
+- [ ] Cache placeholder list for performance
+- [ ] Update cache when switching stages
+
+### Phase 5: Testing
+
+#### Backend Tests
+- [ ] TemplateService unit tests
+  - [ ] Template scanning with various file patterns
+  - [ ] Stage extraction from filenames
+  - [ ] Placeholder extraction and validation
+  - [ ] Template processing with different strategies
+- [ ] TemplateController integration tests
+  - [ ] All endpoints with valid/invalid inputs
+  - [ ] File permissions handling
+  - [ ] Large template handling
+
+#### Frontend Tests
+- [ ] Component tests for new Vue components
+- [ ] API client tests for template endpoints
+- [ ] Mock template data for testing
+
+### Phase 6: Documentation
+
+- [ ] Update WEB_UI.md with Templates section
+- [ ] Document template filename conventions
+- [ ] Add examples of template usage
+- [ ] Document placeholder syntax
+- [ ] Add troubleshooting for common template issues
+
+### Technical Decisions
+
+#### Why .env format only?
+- Keep already uses .env as primary template format
+- Simplifies implementation and testing
+- Consistent with existing CLI functionality
+- Most common use case for secrets management
+
+#### Why filesystem-based?
+- No database required
+- Templates often in version control
+- Direct file editing maintains compatibility with CLI
+- Simpler deployment and backup
+
+#### Stage detection from filename
+- Convention: `{stage}.env` or `{stage}.template.env`
+- Fallback mappings: `prod` → `production`, `dev` → `development`
+- No stage in filename: Allow manual selection in UI
+
+#### Template Generation Algorithm
+- Load all secrets for selected stage across all vaults
+- Convert keys to ENV format:
+  - Replace hyphens with underscores
+  - Convert to uppercase
+  - Preserve existing underscores
+  - Examples: `db-password` → `DB_PASSWORD`, `apiKey` → `APIKEY`, `API_KEY` → `API_KEY`
+- Group by vault with comment headers:
+  ```env
+  # ===== Vault: aws-ssm =====
+  DB_HOST={aws-ssm:db-host}
+  DB_PASSWORD={aws-ssm:db-password}
+  
+  # ===== Vault: secrets-manager =====
+  API_KEY={secrets-manager:api-key}
+  ```
+- Add common non-secret variables as commented examples:
+  ```env
+  # ===== Application Settings (non-secret) =====
+  # APP_NAME=MyApp
+  # APP_ENV=production
+  # APP_DEBUG=false
+  # APP_URL=https://example.com
+  ```
+
+### Success Criteria
+
+- [ ] Can view all templates in configured directory
+- [ ] Can create new template from existing stage secrets
+- [ ] Can edit templates with syntax highlighting
+- [ ] Can test templates showing validation errors
+- [ ] Can see processed output with actual values
+- [ ] Template generation properly converts keys to ENV format
+- [ ] Generated templates are organized by vault with headers
+- [ ] Autocomplete helps discover available secrets (stretch)
+- [ ] No code duplication with CLI template commands
+- [ ] Performance: Template processing < 500ms
 
 ## Shell Enhancements
 
