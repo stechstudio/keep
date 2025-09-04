@@ -3,6 +3,7 @@
 namespace STS\Keep\Server\Controllers;
 
 use Exception;
+use STS\Keep\Services\SecretKeyValidator;
 
 class SecretController extends ApiController
 {
@@ -40,6 +41,14 @@ class SecretController extends ApiController
     {
         if ($error = $this->requireFields(['key', 'value', 'vault', 'stage'])) {
             return $error;
+        }
+        
+        // Validate the secret key
+        $validator = new SecretKeyValidator();
+        try {
+            $validator->validate($this->body['key']);
+        } catch (\InvalidArgumentException $e) {
+            return $this->error($e->getMessage());
         }
         
         $vault = $this->getVault();
@@ -127,6 +136,14 @@ class SecretController extends ApiController
         $newKey = $this->body['newKey'];
         if ($oldKey === $newKey) {
             return $this->error('New key must be different from old key');
+        }
+        
+        // Validate the new secret key
+        $validator = new SecretKeyValidator();
+        try {
+            $validator->validate($newKey);
+        } catch (\InvalidArgumentException $e) {
+            return $this->error($e->getMessage());
         }
         
         $vault = $this->getVault();
@@ -230,5 +247,17 @@ class SecretController extends ApiController
         } catch (\Exception $e) {
             return $this->error('Failed to retrieve history: ' . $e->getMessage());
         }
+    }
+    
+    /**
+     * Get validation rules for secret keys.
+     * This endpoint provides the rules to the frontend for client-side validation.
+     */
+    public function validationRules(): array
+    {
+        $validator = new SecretKeyValidator();
+        return $this->success([
+            'rules' => $validator->getValidationRules()
+        ]);
     }
 }

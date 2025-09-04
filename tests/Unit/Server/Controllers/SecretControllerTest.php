@@ -8,10 +8,10 @@ use STS\Keep\Server\Controllers\SecretController;
 use STS\Keep\KeepManager;
 use STS\Keep\Data\Settings;
 use STS\Keep\Data\Collections\VaultConfigCollection;
-use STS\Keep\Vaults\TestVault;
+use STS\Keep\Tests\Support\TestVault;
 
 test('list returns all secrets for vault and stage', function () {
-    $vault = new TestVault('test', 'local');
+    $vault = new TestVault('test', [], 'local');
     $vault->set('API_KEY', 'secret123');
     $vault->set('DB_PASSWORD', 'pass456');
     
@@ -29,7 +29,7 @@ test('list returns all secrets for vault and stage', function () {
 });
 
 test('get returns single secret with unmask option', function () {
-    $vault = new TestVault('test', 'local');
+    $vault = new TestVault('test', [], 'local');
     $vault->set('API_KEY', 'secret123');
     
     $mockManager = $this->createPartialMock(KeepManager::class, ['vault']);
@@ -52,7 +52,7 @@ test('get returns single secret with unmask option', function () {
 });
 
 test('create adds new secret to vault', function () {
-    $vault = new TestVault('test', 'local');
+    $vault = new TestVault('test', [], 'local');
     
     $mockManager = $this->createPartialMock(KeepManager::class, ['vault']);
     $mockManager->method('vault')->willReturn($vault);
@@ -60,7 +60,7 @@ test('create adds new secret to vault', function () {
     $controller = new SecretController(
         $mockManager, 
         ['vault' => 'test', 'stage' => 'local'],
-        ['key' => 'NEW_SECRET', 'value' => 'new_value']
+        ['key' => 'NEW_SECRET', 'value' => 'new_value', 'vault' => 'test', 'stage' => 'local']
     );
     $response = $controller->create();
     
@@ -70,7 +70,7 @@ test('create adds new secret to vault', function () {
 });
 
 test('delete removes secret from vault', function () {
-    $vault = new TestVault('test', 'local');
+    $vault = new TestVault('test', [], 'local');
     $vault->set('TO_DELETE', 'value');
     
     $mockManager = $this->createPartialMock(KeepManager::class, ['vault']);
@@ -88,7 +88,7 @@ test('delete removes secret from vault', function () {
 });
 
 test('search filters secrets by query', function () {
-    $vault = new TestVault('test', 'local');
+    $vault = new TestVault('test', [], 'local');
     $vault->set('API_KEY', 'contains_api');
     $vault->set('DB_PASSWORD', 'database123');
     $vault->set('SECRET_TOKEN', 'token_api_456');

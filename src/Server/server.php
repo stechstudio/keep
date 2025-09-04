@@ -77,6 +77,7 @@ if (str_starts_with($path, '/api/')) {
     
     // Secret routes
     $router->get('/api/secrets', [SecretController::class, 'list']);
+    $router->get('/api/secrets/validation-rules', [SecretController::class, 'validationRules']);
     $router->get('/api/secrets/:key', [SecretController::class, 'get']);
     $router->post('/api/secrets', [SecretController::class, 'create']);
     $router->put('/api/secrets/:key', [SecretController::class, 'update']);
