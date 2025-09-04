@@ -21,6 +21,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { maskValue } from '../utils/formatters'
 
 const props = defineProps({
   value: String,
@@ -34,23 +35,6 @@ defineEmits(['toggle'])
 
 const displayValue = computed(() => {
   if (!props.masked) return props.value
-  
-  const value = props.value || ''
-  const length = value.length
-  
-  // Short values always get generic mask (matching PHP)
-  if (length <= 8) {
-    return '••••'
-  }
-  
-  // Show first 4 characters plus dots (matching PHP)
-  const masked = value.substring(0, 4) + '•'.repeat(length - 4)
-  
-  // Truncate long values (matching PHP)
-  if (length <= 24) {
-    return masked
-  }
-  
-  return masked.substring(0, 24) + ` (${length} chars)`
+  return maskValue(props.value)
 })
 </script>
