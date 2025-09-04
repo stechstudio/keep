@@ -24,11 +24,10 @@
         <!-- Stage Selection -->
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium mb-2">Stage</label>
             <select
               v-model="selectedStage"
               @change="checkExistingTemplate"
-              class="w-full px-3 py-2 border border-border rounded-md bg-background focus:ring-2 focus:ring-primary focus:border-transparent"
+              class="w-full px-3 py-2 border border-border rounded-md bg-background focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
             >
               <option value="">Select a stage</option>
               <option v-for="stage in stages" :key="stage" :value="stage">
