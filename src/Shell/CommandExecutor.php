@@ -61,17 +61,23 @@ class CommandExecutor
     
     protected function validateCommand(string $commandName): void
     {
-        if (!$this->application->has($commandName)) {
+        // Get the CLI command name (may be different from shell command)
+        $cliCommandName = CommandRegistry::getCliCommand($commandName);
+        
+        if (!$this->application->has($cliCommandName)) {
             throw new \Exception("Unknown command: {$commandName}");
         }
     }
     
     protected function runCommand(string $commandName, array $parsed): int
     {
-        $input = $this->buildCommandInput($commandName, $parsed);
+        // Get the CLI command name (may be different from shell command)
+        $cliCommandName = CommandRegistry::getCliCommand($commandName);
+        
+        $input = $this->buildCommandInput($cliCommandName, $parsed);
         $output = new ConsoleOutput();
         
-        $command = $this->application->find($commandName);
+        $command = $this->application->find($cliCommandName);
         
         if (method_exists($command, 'resetInput')) {
             $command->resetInput();

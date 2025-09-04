@@ -22,6 +22,7 @@ class CommandRegistry
         'cls' => 'clear',
         'q' => 'quit',
         '?' => 'help',
+        't' => 'template',
     ];
     
     /**
@@ -32,12 +33,12 @@ class CommandRegistry
     /**
      * Commands that don't require vault context
      */
-    private const NO_VAULT_COMMANDS = ['export', 'copy', 'info', 'verify'];
+    private const NO_VAULT_COMMANDS = ['export', 'copy', 'info', 'verify', 'template', 'validate'];
     
     /**
      * Commands that modify data
      */
-    private const WRITE_COMMANDS = ['set', 'delete', 'copy', 'import', 'rename'];
+    private const WRITE_COMMANDS = ['set', 'delete', 'copy', 'import', 'rename', 'template'];
     
     /**
      * Built-in shell commands (not Keep commands)
@@ -52,13 +53,23 @@ class CommandRegistry
      */
     private const KEEP_COMMANDS = [
         'get', 'set', 'delete', 'show', 'copy', 'export',
-        'diff', 'verify', 'info', 'history', 'rename', 'search', 'import'
+        'diff', 'verify', 'info', 'history', 'rename', 'search', 'import',
+        'template', 'validate'
     ];
     
     /**
      * Commands that use interactive flow in the shell
      */
     private const INTERACTIVE_COMMANDS = ['export'];
+    
+    /**
+     * Shell command to CLI command mapping
+     * Maps simplified shell commands to their full CLI counterparts
+     */
+    private const SHELL_TO_CLI_MAPPING = [
+        'template' => 'template:add',
+        'validate' => 'template:validate',
+    ];
     
     /**
      * Resolve an alias to its full command name
@@ -159,5 +170,14 @@ class CommandRegistry
     public static function isInteractive(string $command): bool
     {
         return in_array($command, self::INTERACTIVE_COMMANDS);
+    }
+    
+    /**
+     * Get the CLI command name for a shell command
+     * Returns the mapped CLI command if a mapping exists, otherwise returns the original command
+     */
+    public static function getCliCommand(string $shellCommand): string
+    {
+        return self::SHELL_TO_CLI_MAPPING[$shellCommand] ?? $shellCommand;
     }
 }
