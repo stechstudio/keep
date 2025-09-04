@@ -63,7 +63,7 @@ class Settings
             'namespace' => $this->namespace,
             'stages' => $this->stages,
             'default_vault' => $this->defaultVault,
-            'template_path' => $this->templatePath,
+            'template_path' => $this->templatePath(), // Use getter for default
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
             'version' => $this->version,
@@ -236,7 +236,7 @@ class Settings
             'namespace' => $this->namespace,
             'stages' => $this->stages,
             'default_vault' => $this->defaultVault,
-            'template_path' => $this->templatePath,
+            'template_path' => $this->templatePath(), // Use getter for default
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
             'version' => $this->version,

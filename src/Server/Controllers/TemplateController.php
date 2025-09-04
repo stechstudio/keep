@@ -20,7 +20,7 @@ class TemplateController extends ApiController
         parent::__construct($manager, $query, $body);
         
         $settings = Settings::load();
-        $templatePath = $settings ? $settings->templatePath() : './env';
+        $templatePath = $settings ? $settings->templatePath() : 'env';
         
         $this->templateService = new TemplateService($templatePath);
         $this->secretLoader = new SecretLoader();
