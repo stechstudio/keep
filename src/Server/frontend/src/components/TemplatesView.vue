@@ -128,14 +128,14 @@
     <CreateTemplateModal 
       v-if="showCreateModal"
       @close="showCreateModal = false"
-      @created="onTemplateCreated"
+      @created="handleTemplateCreated"
     />
 
     <TemplateEditorModal
       v-if="showEditModal"
       :template="selectedTemplate"
       @close="showEditModal = false"
-      @saved="onTemplateSaved"
+      @saved="handleTemplateSaved"
     />
 
     <TemplateTesterModal
@@ -194,7 +194,6 @@ async function loadSettings() {
     const settings = await window.$api.getSettings()
     templatePath.value = settings.template_path || 'env'
   } catch (error) {
-    console.error('Failed to load settings:', error)
     templatePath.value = 'env' // fallback
   }
 }
@@ -206,7 +205,6 @@ async function loadTemplates() {
     templates.value = response.templates || []
   } catch (error) {
     showToast('Failed to load templates', 'error')
-    console.error('Failed to load templates:', error)
   } finally {
     loading.value = false
   }
@@ -242,18 +240,17 @@ async function confirmDeleteTemplate() {
     await loadTemplates()
   } catch (error) {
     showToast('Failed to delete template', 'error')
-    console.error('Failed to delete template:', error)
   } finally {
     templateToDelete.value = null
   }
 }
 
-function onTemplateCreated() {
+function handleTemplateCreated() {
   showCreateModal.value = false
   loadTemplates()
 }
 
-function onTemplateSaved() {
+function handleTemplateSaved() {
   showEditModal.value = false
   loadTemplates()
 }

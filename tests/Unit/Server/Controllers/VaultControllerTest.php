@@ -55,7 +55,7 @@ test('getSettings returns app configuration', function () {
     $controller = new VaultController($mockManager);
     $response = $controller->getSettings();
     
-    expect($response)->toHaveKeys(['app_name', 'namespace', 'stages', 'default_vault', 'default_stage', 'keep_version']);
+    expect($response)->toHaveKeys(['app_name', 'namespace', 'stages', 'default_vault', 'template_path', 'keep_version']);
     expect($response['app_name'])->toBe('My App');
     expect($response['namespace'])->toBe('MYAPP');
     expect($response['default_vault'])->toBe('aws');
@@ -64,7 +64,10 @@ test('getSettings returns app configuration', function () {
 test('addStage validates and adds new stage', function () {
     $mockManager = $this->createPartialMock(KeepManager::class, ['getSettings']);
     $mockManager->method('getSettings')->willReturn([
-        'stages' => ['local', 'staging', 'production']
+        'app_name' => 'test-app',
+        'namespace' => 'TEST',
+        'stages' => ['local', 'staging', 'production'],
+        'version' => '1.0'
     ]);
     
     // Test adding new stage
@@ -86,7 +89,10 @@ test('addStage validates and adds new stage', function () {
 test('removeStage prevents removing system stages', function () {
     $mockManager = $this->createPartialMock(KeepManager::class, ['getSettings']);
     $mockManager->method('getSettings')->willReturn([
-        'stages' => ['local', 'staging', 'production', 'custom']
+        'app_name' => 'test-app',
+        'namespace' => 'TEST',
+        'stages' => ['local', 'staging', 'production', 'custom'],
+        'version' => '1.0'
     ]);
     
     // Test removing custom stage

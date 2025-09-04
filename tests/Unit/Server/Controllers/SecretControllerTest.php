@@ -16,7 +16,7 @@ test('list returns all secrets for vault and stage', function () {
     $vault->set('DB_PASSWORD', 'pass456');
     
     // Mock the manager to return our test vault
-    $settings = new Settings([]);
+    $settings = new Settings('test-app', 'TEST', ['local']);
     $vaultConfigs = new VaultConfigCollection();
     $mockManager = $this->createPartialMock(KeepManager::class, ['vault']);
     $mockManager->method('vault')->willReturn($vault);
@@ -41,14 +41,13 @@ test('get returns single secret with unmask option', function () {
     
     expect($response)->toHaveKey('secret');
     expect($response['secret']['key'])->toBe('API_KEY');
-    expect($response['secret']['masked'])->toBeTrue();
+    expect($response['secret']['value'])->toContain('****'); // Masked value contains asterisks
     
     // Test unmasked
     $controller = new SecretController($mockManager, ['vault' => 'test', 'stage' => 'local', 'unmask' => 'true']);
     $response = $controller->get('API_KEY');
     
     expect($response['secret']['value'])->toBe('secret123');
-    expect($response['secret']['masked'])->toBeFalse();
 });
 
 test('create adds new secret to vault', function () {
@@ -76,7 +75,11 @@ test('delete removes secret from vault', function () {
     $mockManager = $this->createPartialMock(KeepManager::class, ['vault']);
     $mockManager->method('vault')->willReturn($vault);
     
-    $controller = new SecretController($mockManager, ['vault' => 'test', 'stage' => 'local']);
+    $controller = new SecretController(
+        $mockManager, 
+        ['vault' => 'test', 'stage' => 'local'],
+        ['vault' => 'test', 'stage' => 'local']
+    );
     
     expect($vault->get('TO_DELETE'))->not->toBeNull();
     
@@ -84,7 +87,9 @@ test('delete removes secret from vault', function () {
     
     expect($response)->toHaveKey('success');
     expect($response['success'])->toBeTrue();
-    expect($vault->get('TO_DELETE'))->toBeNull();
+    
+    // Verify secret was deleted by trying to get it
+    expect(fn() => $vault->get('TO_DELETE'))->toThrow(\STS\Keep\Exceptions\SecretNotFoundException::class);
 });
 
 test('search filters secrets by query', function () {

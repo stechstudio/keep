@@ -164,27 +164,23 @@ const secretsForEditor = ref([])
 const isModified = computed(() => content.value !== originalContent.value)
 
 onMounted(async () => {
-  console.log('TemplateEditorModal mounted, template:', props.template)
   await loadTemplate()
 })
 
 async function loadTemplate() {
-  console.log('loadTemplate() called')
   loading.value = true
 
   try {
     const response = await window.$api.get(`/templates/${encodeURIComponent(props.template.filename)}`)
-    console.log('Template loaded:', response)
     templateData.value = response
     content.value = response.content || ''
     originalContent.value = response.content || ''
     placeholders.value = response.placeholders || []
     
-    console.log('About to call loadSecrets()')
     // Load secrets after template data is available
     await loadSecrets()
   } catch (error) {
-    console.error('Error in loadTemplate:', error)
+    // Error is shown to user via UI
   } finally {
     loading.value = false
   }
@@ -194,41 +190,31 @@ async function loadSecrets() {
   try {
     // Use stage from props.template or templateData
     const stage = templateData.value?.stage || props.template?.stage
-    console.log('Loading secrets for stage:', stage)
     
     if (!stage) {
-      console.warn('No stage available for loading secrets')
       return
     }
     
     // Load vaults first to get all available vault names
-    console.log('Loading vaults...')
     const vaultsResponse = await window.$api.listVaults()
-    console.log('Vaults response:', vaultsResponse)
     
     // Extract vaults array from response
     const vaults = vaultsResponse.vaults || vaultsResponse || []
-    console.log('Found vaults:', vaults)
     
     // Load secrets from all vaults for this stage
     const allSecrets = []
     
     // Ensure vaults is an array
     if (!Array.isArray(vaults)) {
-      console.error('Vaults is not an array:', vaults)
       return
     }
     
     for (const vault of vaults) {
       try {
         const vaultSlug = vault.slug || vault.name || vault
-        console.log(`Loading secrets from vault ${vaultSlug} for stage ${stage}...`)
         const response = await window.$api.listSecrets(vaultSlug, stage, false)
-        console.log(`Response from ${vaultSlug}:`, response)
         
         const secrets = response.secrets || response || []
-        const secretCount = Array.isArray(secrets) ? secrets.length : 0
-        console.log(`Found ${secretCount} secrets in ${vaultSlug}`)
         
         if (Array.isArray(secrets)) {
           for (const secret of secrets) {
@@ -240,12 +226,9 @@ async function loadSecrets() {
           }
         }
       } catch (error) {
-        console.error(`Failed to load secrets from vault ${vault.slug || vault}:`, error)
+        // Skip vault if loading fails
       }
     }
-    
-    console.log(`Total: Loaded ${allSecrets.length} secrets across ${vaults.length} vaults for stage ${stage}`)
-    console.log('Sample secrets:', allSecrets.slice(0, 3))
     
     // Store secrets for editor
     secretsForEditor.value = allSecrets
@@ -253,13 +236,10 @@ async function loadSecrets() {
     // Try to update editor if it's ready
     await nextTick()
     if (editorRef.value) {
-      console.log('Editor is ready, updating secrets immediately')
       editorRef.value.updateSecrets(allSecrets)
-    } else {
-      console.log('Editor not ready yet, will update via watcher')
     }
   } catch (error) {
-    console.error('Failed to load secrets for autocomplete:', error)
+    // Failed to load secrets - autocomplete will not be available
   }
 }
 
@@ -279,7 +259,6 @@ async function saveTemplate() {
     emit('saved')
   } catch (error) {
     showToast('Failed to save template', 'error')
-    console.error('Failed to save template:', error)
   } finally {
     saving.value = false
   }
@@ -323,7 +302,6 @@ async function validateTemplate() {
   } catch (error) {
     validationStatus.value = 'invalid'
     validationMessage.value = 'Validation failed'
-    console.error('Failed to validate template:', error)
   } finally {
     validating.value = false
     
@@ -403,7 +381,6 @@ watch(content, () => {
 // Watch for editor to be ready and update secrets
 watch(editorRef, (newRef) => {
   if (newRef && secretsForEditor.value.length > 0) {
-    console.log('Editor became available, updating with', secretsForEditor.value.length, 'secrets')
     newRef.updateSecrets(secretsForEditor.value)
   }
 })

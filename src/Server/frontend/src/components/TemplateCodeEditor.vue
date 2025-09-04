@@ -79,7 +79,6 @@ function placeholderCompletions(context) {
   }
   
   const text = word.text.slice(1) // Remove the leading {
-  console.log('Autocomplete for:', text, 'Secrets available:', vaultSecrets.value.length)
   
   // Build options from all available secrets
   const options = []
@@ -136,8 +135,6 @@ function placeholderCompletions(context) {
     )
   }
   
-  console.log('Returning', options.length, 'completion options')
-  
   return {
     from: word.from,
     options,
@@ -148,10 +145,6 @@ function placeholderCompletions(context) {
 // Method to update available secrets (called by parent)
 function updateSecrets(secrets) {
   vaultSecrets.value = secrets || []
-  console.log('Editor: Updated secrets list with', vaultSecrets.value.length, 'secrets')
-  if (vaultSecrets.value.length > 0) {
-    console.log('Sample secret:', vaultSecrets.value[0])
-  }
 }
 
 // Custom theme matching the app's dark mode
@@ -232,7 +225,6 @@ const highlightStyle = EditorView.theme({
 })
 
 onMounted(() => {
-  console.log('TemplateCodeEditor mounted')
   const startState = EditorState.create({
     doc: props.modelValue,
     extensions: [

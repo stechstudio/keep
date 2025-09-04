@@ -174,6 +174,7 @@ describe('Secret', function () {
             'revision' => 2,
             'path' => '/app/staging/DB_HOST',
             'vault' => 'test-vault',
+            'lastModified' => null,
         ]);
     });
 
