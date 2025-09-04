@@ -43,6 +43,24 @@ export function useToast() {
     return toast({ title, description, variant: 'default' })
   }
   
+  // Generic showToast function that accepts variant as second parameter
+  function showToast(title, variant = 'default', description = '') {
+    const variantMap = {
+      success: 'success',
+      error: 'destructive',
+      warning: 'warning',
+      info: 'default',
+      destructive: 'destructive',
+      default: 'default'
+    }
+    
+    return toast({ 
+      title, 
+      description, 
+      variant: variantMap[variant] || 'default' 
+    })
+  }
+  
   return {
     toasts,
     toast,
@@ -50,5 +68,6 @@ export function useToast() {
     success,
     error,
     info,
+    showToast,
   }
 }
