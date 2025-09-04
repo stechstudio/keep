@@ -120,7 +120,7 @@ onMounted(async () => {
 async function loadPlaceholders() {
   loading.value = true
   try {
-    const response = await window.$api.get(`/api/templates/placeholders?stage=${props.stage}`)
+    const response = await window.$api.get(`/templates/placeholders?stage=${props.stage}`)
     placeholders.value = response.placeholders || []
   } catch (error) {
     console.error('Failed to load placeholders:', error)

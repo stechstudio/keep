@@ -237,7 +237,7 @@ async function runValidation() {
 
   validating.value = true
   try {
-    const response = await window.$api.post('/api/templates/validate', {
+    const response = await window.$api.post('/templates/validate', {
       filename: props.template.filename,
       stage: selectedStage.value
     })

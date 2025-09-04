@@ -200,7 +200,7 @@ onMounted(async () => {
 async function loadTemplate() {
   loading.value = true
   try {
-    const response = await window.$api.get(`/api/templates/${encodeURIComponent(props.template.filename)}`)
+    const response = await window.$api.get(`/templates/${encodeURIComponent(props.template.filename)}`)
     templateData.value = response
     content.value = response.content || ''
     originalContent.value = response.content || ''
@@ -221,7 +221,7 @@ async function saveTemplate() {
   validationErrors.value = []
 
   try {
-    await window.$api.put(`/api/templates/${encodeURIComponent(props.template.filename)}`, {
+    await window.$api.put(`/templates/${encodeURIComponent(props.template.filename)}`, {
       content: content.value
     })
     
@@ -241,7 +241,7 @@ async function validateTemplate() {
   validationErrors.value = []
 
   try {
-    const response = await window.$api.post('/api/templates/validate', {
+    const response = await window.$api.post('/templates/validate', {
       content: content.value,
       stage: templateData.value.stage
     })

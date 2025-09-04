@@ -23,6 +23,31 @@ class ApiClient {
     return response.json()
   }
 
+  // Generic HTTP methods for flexibility
+  async get(path) {
+    return this.request(path)
+  }
+
+  async post(path, body = {}) {
+    return this.request(path, {
+      method: 'POST',
+      body: JSON.stringify(body)
+    })
+  }
+
+  async put(path, body = {}) {
+    return this.request(path, {
+      method: 'PUT', 
+      body: JSON.stringify(body)
+    })
+  }
+
+  async delete(path) {
+    return this.request(path, {
+      method: 'DELETE'
+    })
+  }
+
   // Secrets
   async listSecrets(vault, stage, unmask = false) {
     return this.request(`/secrets?vault=${vault}&stage=${stage}&unmask=${unmask}`)
