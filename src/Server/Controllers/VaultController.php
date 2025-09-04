@@ -17,8 +17,7 @@ class VaultController extends ApiController
             $slug = $config->slug();
             $name = $config->name();
             $driver = $config->driver();
-            $configArray = $config->config();
-            $scope = $configArray['scope'] ?? '';
+            $scope = $config->scope();
             
             // Get the vault class to access its friendly NAME constant if available
             $vaultClass = null;
@@ -176,17 +175,13 @@ class VaultController extends ApiController
                 return $this->error('Vault with this slug already exists');
             }
             
-            // Create vault config with optional scope
-            $config = [];
-            if (!empty($scope)) {
-                $config['scope'] = $scope;
-            }
-            
+            // Create vault config with scope as top-level property
             $vaultConfig = new \STS\Keep\Data\VaultConfig(
                 slug: $slug,
                 driver: $driver,
                 name: $name,
-                config: $config
+                scope: $scope,
+                config: []  // vendor-specific settings would go here
             );
             
             // Save vault using its own save method
@@ -240,14 +235,11 @@ class VaultController extends ApiController
             // Handle scope configuration
             if ($this->hasParam('scope')) {
                 $scope = $this->getParam('scope');
-                if (!isset($existingConfig['config'])) {
-                    $existingConfig['config'] = [];
-                }
                 if (!empty($scope)) {
-                    $existingConfig['config']['scope'] = $scope;
+                    $existingConfig['scope'] = $scope;
                 } else {
                     // Remove scope if empty string provided
-                    unset($existingConfig['config']['scope']);
+                    unset($existingConfig['scope']);
                 }
             }
             
@@ -296,16 +288,13 @@ class VaultController extends ApiController
                 $newSettings->save();
             }
             
-            $vaultConfigArray = $vaultConfig->config();
-            $scope = $vaultConfigArray['scope'] ?? '';
-            
             return $this->success([
                 'message' => 'Vault updated successfully',
                 'vault' => [
                     'slug' => $newSlug,
                     'name' => $vaultConfig->name(),
                     'driver' => $vaultConfig->driver(),
-                    'scope' => $scope,
+                    'scope' => $vaultConfig->scope(),
                     'isDefault' => $this->manager->getDefaultVault() === $newSlug
                 ]
             ]);

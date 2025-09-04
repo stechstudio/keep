@@ -13,6 +13,7 @@ class VaultConfig
         protected string $slug,
         protected string $driver,
         protected string $name,
+        protected string $scope = '',
         protected array $config = []
     ) {
         $this->validate();
@@ -28,16 +29,25 @@ class VaultConfig
             }
         }
 
-        // Extract slug, driver and name, rest goes into config
+        // Extract top-level properties
         $slug = $data['slug'];
         $driver = $data['driver'];
         $name = $data['name'];
-        $config = array_diff_key($data, ['slug' => null, 'driver' => null, 'name' => null]);
+        $scope = $data['scope'] ?? '';
+        
+        // Everything else goes into config (vendor-specific settings)
+        $config = array_diff_key($data, [
+            'slug' => null, 
+            'driver' => null, 
+            'name' => null,
+            'scope' => null
+        ]);
 
         return new static(
             slug: $slug,
             driver: $driver,
             name: $name,
+            scope: $scope,
             config: $config
         );
     }
@@ -48,6 +58,7 @@ class VaultConfig
             'slug' => $this->slug,
             'driver' => $this->driver,
             'name' => $this->name,
+            'scope' => $this->scope,
         ], $this->config);
     }
 
@@ -141,6 +152,11 @@ class VaultConfig
         return $this->name;
     }
 
+    public function scope(): string
+    {
+        return $this->scope;
+    }
+
     public function config(): array
     {
         return $this->config;
@@ -166,12 +182,24 @@ class VaultConfig
     }
 
     // Mutation methods (return new instance for immutability)
+    public function withScope(string $scope): static
+    {
+        return new static(
+            slug: $this->slug,
+            driver: $this->driver,
+            name: $this->name,
+            scope: $scope,
+            config: $this->config
+        );
+    }
+
     public function withConfig(array $config): static
     {
         return new static(
             slug: $this->slug,
             driver: $this->driver,
             name: $this->name,
+            scope: $this->scope,
             config: $config
         );
     }
@@ -185,6 +213,7 @@ class VaultConfig
             slug: $this->slug,
             driver: $this->driver,
             name: $this->name,
+            scope: $this->scope,
             config: $newConfig
         );
     }
@@ -198,6 +227,7 @@ class VaultConfig
             slug: $this->slug,
             driver: $this->driver,
             name: $this->name,
+            scope: $this->scope,
             config: $newConfig
         );
     }
