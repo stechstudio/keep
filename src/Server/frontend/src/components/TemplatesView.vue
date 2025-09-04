@@ -145,6 +145,15 @@
       :template="selectedTemplate"
       @close="showProcessModal = false"
     />
+
+    <!-- Delete Template Confirmation Modal -->
+    <DeleteConfirmationModal
+      ref="deleteTemplateModal"
+      title="Delete Template"
+      :message="`Are you sure you want to delete '${templateToDelete?.filename}'? This action cannot be undone.`"
+      confirmText="Delete Template"
+      @confirm="confirmDeleteTemplate"
+    />
   </div>
 </template>
 
@@ -155,6 +164,7 @@ import CreateTemplateModal from './CreateTemplateModal.vue'
 import TemplateEditorModal from './TemplateEditorModal.vue'
 import TemplateTesterModal from './TemplateTesterModal.vue'
 import TemplateProcessorModal from './TemplateProcessorModal.vue'
+import DeleteConfirmationModal from './DeleteConfirmationModal.vue'
 
 const { showToast } = useToast()
 
@@ -166,6 +176,8 @@ const showEditModal = ref(false)
 const showTestModal = ref(false)
 const showProcessModal = ref(false)
 const selectedTemplate = ref(null)
+const templateToDelete = ref(null)
+const deleteTemplateModal = ref(null)
 
 onMounted(async () => {
   await loadSettings()
@@ -211,18 +223,23 @@ function processTemplate(template) {
   showProcessModal.value = true
 }
 
-async function deleteTemplate(template) {
-  if (!confirm(`Are you sure you want to delete ${template.filename}?`)) {
-    return
-  }
+function deleteTemplate(template) {
+  templateToDelete.value = template
+  deleteTemplateModal.value.open()
+}
 
+async function confirmDeleteTemplate() {
+  if (!templateToDelete.value) return
+  
   try {
-    await window.$api.delete(`/templates/${encodeURIComponent(template.filename)}`)
+    await window.$api.delete(`/templates/${encodeURIComponent(templateToDelete.value.filename)}`)
     showToast('Template deleted successfully', 'success')
     await loadTemplates()
   } catch (error) {
     showToast('Failed to delete template', 'error')
     console.error('Failed to delete template:', error)
+  } finally {
+    templateToDelete.value = null
   }
 }
 

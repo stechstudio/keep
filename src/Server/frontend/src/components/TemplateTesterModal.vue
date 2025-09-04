@@ -25,7 +25,7 @@
         </div>
 
         <!-- Test Configuration -->
-        <div class="space-y-4 mb-6">
+        <div v-if="!hasRun" class="space-y-4 mb-6">
           <div>
             <label class="block text-sm font-medium mb-2">Test Against Stage</label>
             <select
@@ -40,19 +40,8 @@
           </div>
         </div>
 
-        <!-- Run Test Button -->
-        <div v-if="!hasRun" class="flex justify-center py-8">
-          <button
-            @click="runValidation"
-            :disabled="validating"
-            class="px-6 py-3 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
-          >
-            {{ validating ? 'Testing...' : 'Run Validation Test' }}
-          </button>
-        </div>
-
         <!-- Results -->
-        <div v-else class="space-y-6">
+        <div v-if="hasRun" class="space-y-6">
           <!-- Overall Status -->
           <div :class="[
             'rounded-lg p-4 border',
@@ -165,20 +154,30 @@
         </div>
 
         <!-- Footer -->
-        <div class="flex justify-end gap-3 mt-6">
-          <button
-            v-if="hasRun"
-            @click="resetTest"
-            class="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted transition-colors"
-          >
-            Test Again
-          </button>
+        <div class="flex justify-end mt-6 gap-3">
           <button
             @click="$emit('close')"
-            class="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+            class="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted transition-colors"
           >
-            Close
+            Cancel
           </button>
+          <div class="flex gap-3">
+            <button
+              v-if="hasRun"
+              @click="resetTest"
+              class="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted transition-colors"
+            >
+              Test Again
+            </button>
+            <button
+              v-if="!hasRun"
+              @click="runValidation"
+              :disabled="validating || !selectedStage"
+              class="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              {{ validating ? 'Validating...' : 'Run Validation' }}
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -82,7 +82,7 @@
 
         <!-- Footer -->
         <div class="flex justify-between items-center mt-6">
-          <div class="flex gap-2">
+          <div class="flex items-center gap-3">
             <button
                 @click="validateTemplate"
                 :disabled="validating"
@@ -90,12 +90,26 @@
             >
               {{ validating ? 'Validating...' : 'Validate' }}
             </button>
-            <button
-                @click="testTemplate"
-                class="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted transition-colors"
-            >
-              Test
-            </button>
+            <!-- Inline validation status -->
+            <div v-if="validationStatus" class="flex items-center gap-2">
+              <svg v-if="validationStatus === 'valid'" class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <svg v-else-if="validationStatus === 'invalid'" class="w-4 h-4 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <svg v-else-if="validationStatus === 'warning'" class="w-4 h-4 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+              </svg>
+              <span :class="[
+                'text-sm',
+                validationStatus === 'valid' ? 'text-green-600' : 
+                validationStatus === 'invalid' ? 'text-destructive' : 
+                'text-warning'
+              ]">
+                {{ validationMessage }}
+              </span>
+            </div>
           </div>
           <div class="flex gap-3">
             <button
@@ -143,6 +157,8 @@ const originalContent = ref('')
 const templateData = ref({})
 const placeholders = ref([])
 const validationErrors = ref([])
+const validationStatus = ref('')
+const validationMessage = ref('')
 const secretsForEditor = ref([])
 
 const isModified = computed(() => content.value !== originalContent.value)
@@ -272,6 +288,8 @@ async function saveTemplate() {
 async function validateTemplate() {
   validating.value = true
   validationErrors.value = []
+  validationStatus.value = ''
+  validationMessage.value = ''
 
   try {
     const response = await window.$api.post('/templates/validate', {
@@ -283,35 +301,42 @@ async function validateTemplate() {
       validationErrors.value = response.errors.map(e =>
           `Line ${e.line}: ${e.key} - ${e.error}`
       )
-      showToast('Template has validation errors', 'warning')
+      validationStatus.value = 'invalid'
+      validationMessage.value = `${response.errors.length} error${response.errors.length !== 1 ? 's' : ''} found`
     } else {
-      showToast('Template is valid', 'success')
-
+      validationErrors.value = []
+      
       if (response.warnings && response.warnings.length > 0) {
         const unusedCount = response.warnings.filter(w => w.type === 'unused').length
         if (unusedCount > 0) {
-          showToast(`${unusedCount} unused secret${unusedCount !== 1 ? 's' : ''} found`, 'info')
+          validationStatus.value = 'warning'
+          validationMessage.value = `Valid with ${unusedCount} unused secret${unusedCount !== 1 ? 's' : ''}`
+        } else {
+          validationStatus.value = 'valid'
+          validationMessage.value = 'Template is valid'
         }
+      } else {
+        validationStatus.value = 'valid'
+        validationMessage.value = 'Template is valid'
       }
     }
   } catch (error) {
-    showToast('Failed to validate template', 'error')
+    validationStatus.value = 'invalid'
+    validationMessage.value = 'Validation failed'
     console.error('Failed to validate template:', error)
   } finally {
     validating.value = false
+    
+    // Clear success status after 5 seconds, keep errors visible
+    if (validationStatus.value === 'valid') {
+      setTimeout(() => {
+        validationStatus.value = ''
+        validationMessage.value = ''
+      }, 5000)
+    }
   }
 }
 
-function testTemplate() {
-  // This would open a test modal or navigate to test view
-  // For now, just save and emit an event
-  if (isModified.value) {
-    showToast('Please save changes before testing', 'warning')
-    return
-  }
-  emit('close')
-  // Could emit a 'test' event to parent to open test modal
-}
 
 function formatContent() {
   // Basic formatting: ensure consistent spacing and organization
@@ -364,8 +389,16 @@ function updatePlaceholders() {
   placeholders.value = Array.from(found).sort()
 }
 
-// Watch for content changes to update placeholders
-watch(content, updatePlaceholders)
+// Watch for content changes to update placeholders and clear validation
+watch(content, () => {
+  updatePlaceholders()
+  // Clear validation status when content changes
+  if (validationStatus.value) {
+    validationStatus.value = ''
+    validationMessage.value = ''
+    validationErrors.value = []
+  }
+})
 
 // Watch for editor to be ready and update secrets
 watch(editorRef, (newRef) => {
