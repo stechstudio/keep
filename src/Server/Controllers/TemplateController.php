@@ -72,7 +72,7 @@ class TemplateController extends ApiController
             
             return $this->success([
                 'filename' => $filename,
-                'content' => $template,
+                'content' => $template->contents(),
                 'stage' => $stage,
                 'placeholders' => $placeholders->toArray(),
             ]);
