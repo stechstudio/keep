@@ -34,7 +34,7 @@
 
         <!-- Loading -->
         <div v-if="loading" class="flex justify-center py-8">
-          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          <div class="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent"></div>
         </div>
 
         <!-- Placeholder List -->

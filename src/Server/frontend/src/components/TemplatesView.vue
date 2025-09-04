@@ -32,7 +32,7 @@
 
     <!-- Templates Table -->
     <div v-if="loading" class="flex justify-center py-12">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div class="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
     </div>
 
     <div v-else-if="templates.length === 0" class="text-center py-12 bg-muted/30 rounded-lg">
@@ -51,11 +51,11 @@
             <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Stage</th>
             <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Size</th>
             <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Last Modified</th>
-            <th class="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Actions</th>
+            <th class="px-4 py-3 text-right text-sm font-medium text-muted-foreground"></th>
           </tr>
         </thead>
         <tbody class="divide-y divide-border">
-          <tr v-for="template in templates" :key="template.filename" class="hover:bg-muted/30 transition-colors">
+          <tr v-for="template in templates" :key="template.filename" class="group hover:bg-muted/30 transition-colors">
             <td class="px-4 py-3">
               <div class="flex items-center gap-2">
                 <svg class="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,43 +76,47 @@
               {{ formatDate(template.lastModified) }}
             </td>
             <td class="px-4 py-3">
-              <div class="flex items-center justify-end gap-2">
-                <button
-                  @click="editTemplate(template)"
-                  class="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
-                  title="Edit Template"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                  </svg>
-                </button>
-                <button
-                  @click="testTemplate(template)"
-                  class="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
-                  title="Test Template"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                </button>
-                <button
-                  @click="processTemplate(template)"
-                  class="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
-                  title="Process Template"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                  </svg>
-                </button>
-                <button
-                  @click="deleteTemplate(template)"
-                  class="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
-                  title="Delete Template"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                  </svg>
-                </button>
+              <div class="flex items-center justify-end opacity-30 group-hover:opacity-100 transition-opacity">
+                <Tooltip content="Edit Template" :delay-duration="200">
+                  <button
+                    @click="editTemplate(template)"
+                    class="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                  </button>
+                </Tooltip>
+                <Tooltip content="Validate Template" :delay-duration="200">
+                  <button
+                    @click="testTemplate(template)"
+                    class="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </button>
+                </Tooltip>
+                <Tooltip content="Process Template" :delay-duration="200">
+                  <button
+                    @click="processTemplate(template)"
+                    class="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                  </button>
+                </Tooltip>
+                <Tooltip content="Delete Template" :delay-duration="200">
+                  <button
+                    @click="deleteTemplate(template)"
+                    class="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                  </button>
+                </Tooltip>
               </div>
             </td>
           </tr>
@@ -165,10 +169,11 @@ import TemplateEditorModal from './TemplateEditorModal.vue'
 import TemplateTesterModal from './TemplateTesterModal.vue'
 import TemplateProcessorModal from './TemplateProcessorModal.vue'
 import DeleteConfirmationModal from './DeleteConfirmationModal.vue'
+import Tooltip from './ui/Tooltip.vue'
 
 const { showToast } = useToast()
 
-const loading = ref(false)
+const loading = ref(true)
 const templates = ref([])
 const templatePath = ref('')
 const showCreateModal = ref(false)
