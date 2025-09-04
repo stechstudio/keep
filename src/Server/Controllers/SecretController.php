@@ -38,7 +38,7 @@ class SecretController extends ApiController
 
     public function create(): array
     {
-        if ($error = $this->requireFields(['key', 'value'])) {
+        if ($error = $this->requireFields(['key', 'value', 'vault', 'stage'])) {
             return $error;
         }
         
@@ -47,13 +47,13 @@ class SecretController extends ApiController
         
         return $this->success([
             'success' => true,
-            'message' => "Secret '{$this->body['key']}' created"
+            'message' => "Secret '{$this->body['key']}' created in vault '{$this->body['vault']}' stage '{$this->body['stage']}'"
         ]);
     }
 
     public function update(string $key): array
     {
-        if ($error = $this->requireFields(['value'])) {
+        if ($error = $this->requireFields(['value', 'vault', 'stage'])) {
             return $error;
         }
         
@@ -62,12 +62,16 @@ class SecretController extends ApiController
         
         return $this->success([
             'success' => true,
-            'message' => "Secret '{$key}' updated"
+            'message' => "Secret '{$key}' updated in vault '{$this->body['vault']}' stage '{$this->body['stage']}'"
         ]);
     }
 
     public function delete(string $key): array
     {
+        if ($error = $this->requireFields(['vault', 'stage'])) {
+            return $error;
+        }
+        
         $vault = $this->getVault();
         $decodedKey = urldecode($key);
         
@@ -116,7 +120,7 @@ class SecretController extends ApiController
 
     public function rename(string $oldKey): array
     {
-        if ($error = $this->requireFields(['newKey'])) {
+        if ($error = $this->requireFields(['newKey', 'vault', 'stage'])) {
             return $error;
         }
         

@@ -272,9 +272,9 @@ function editSecret(secret) {
   editingSecret.value = secret
 }
 
-function handleSecretSaveSuccess() {
+async function handleSecretSaveSuccess() {
   closeDialog()
-  // Reload is handled by the composable
+  await loadSecrets()
 }
 
 function showRenameDialog(secret) {
@@ -297,14 +297,14 @@ function handleCopyValue(secret) {
   toast.success('Copied to clipboard', 'Secret value has been copied to your clipboard')
 }
 
-function handleDeleteSuccess() {
+async function handleDeleteSuccess() {
   deletingSecret.value = null
-  // Reload is handled by the composable
+  await loadSecrets()
 }
 
-function handleRenameSuccess() {
+async function handleRenameSuccess() {
   renamingSecret.value = null
-  // Reload secrets is already triggered by the composable
+  await loadSecrets()
 }
 
 async function handleCopyToStage({ targetVault, targetStage }) {
