@@ -17,12 +17,18 @@ class TemplateService
     {
         // Load template path from settings or use default
         $settings = Settings::load();
-        $this->templatePath = $templatePath 
-            ?? ($settings ? $settings->get('template_path', './env') : './env');
+        $configuredPath = $templatePath 
+            ?? ($settings ? $settings->get('template_path', 'env') : 'env');
         
-        // Convert relative path to absolute
-        if (!str_starts_with($this->templatePath, '/')) {
-            $this->templatePath = getcwd() . '/' . $this->templatePath;
+        // Convert to absolute path, handling both "env" and "./env" formats
+        if (!str_starts_with($configuredPath, '/')) {
+            // Add "./" prefix if not present for relative paths
+            if (!str_starts_with($configuredPath, './')) {
+                $configuredPath = './' . $configuredPath;
+            }
+            $this->templatePath = getcwd() . '/' . $configuredPath;
+        } else {
+            $this->templatePath = $configuredPath;
         }
     }
     

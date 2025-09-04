@@ -18,6 +18,7 @@ use STS\Keep\Server\Controllers\SecretController;
 use STS\Keep\Server\Controllers\VaultController;
 use STS\Keep\Server\Controllers\ExportController;
 use STS\Keep\Server\Controllers\ImportController;
+use STS\Keep\Server\Controllers\TemplateController;
 
 // Initialize server - get token from environment or generate one
 $AUTH_TOKEN = $_ENV['KEEP_AUTH_TOKEN'] ?? $_SERVER['KEEP_AUTH_TOKEN'] ?? bin2hex(random_bytes(32));
@@ -109,6 +110,17 @@ if (str_starts_with($path, '/api/')) {
     // Import routes
     $router->post('/api/import/analyze', [ImportController::class, 'analyze']);
     $router->post('/api/import/execute', [ImportController::class, 'execute']);
+    
+    // Template routes
+    $router->get('/api/templates', [TemplateController::class, 'index']);
+    $router->get('/api/templates/placeholders', [TemplateController::class, 'placeholders']);
+    $router->get('/api/templates/:filename', [TemplateController::class, 'show']);
+    $router->put('/api/templates/:filename', [TemplateController::class, 'update']);
+    $router->delete('/api/templates/:filename', [TemplateController::class, 'delete']);
+    $router->post('/api/templates/generate', [TemplateController::class, 'generate']);
+    $router->post('/api/templates/validate', [TemplateController::class, 'validate']);
+    $router->post('/api/templates/process', [TemplateController::class, 'process']);
+    $router->post('/api/templates/create', [TemplateController::class, 'create']);
     
     // Dispatch the request
     $response = $router->dispatch($method, $path, $query, $body);
