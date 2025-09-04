@@ -170,7 +170,7 @@ function handleRename() {
 }
 
 function handleCreate() {
-  emit('create', { key: props.secretKey })
+  emit('create', { key: props.secretKey, vault: props.vault, stage: props.stage })
   isOpen.value = false
 }
 
@@ -178,7 +178,7 @@ function handleCopyValue() {
   if (props.secretValue) {
     navigator.clipboard.writeText(props.secretValue)
   }
-  emit('copyValue', { key: props.secretKey })
+  emit('copyValue', { key: props.secretKey, vault: props.vault, stage: props.stage })
   isOpen.value = false
 }
 
