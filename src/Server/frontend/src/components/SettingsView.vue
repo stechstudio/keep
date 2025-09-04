@@ -65,6 +65,17 @@
             <p class="text-xs text-muted-foreground mt-1">The default vault to use when none is specified</p>
           </div>
 
+          <div>
+            <label class="block text-sm font-medium mb-2">Template Directory</label>
+            <input
+              v-model="settings.templatePath"
+              type="text"
+              class="w-full px-3 py-2 bg-input border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              placeholder="env"
+            />
+            <p class="text-xs text-muted-foreground mt-1">Directory where .env template files are stored</p>
+          </div>
+
           <div class="pt-4 flex justify-end">
             <button
               @click="saveGeneralSettings"
@@ -402,7 +413,8 @@ const activeTab = ref('general')
 const settings = ref({
   appName: '',
   namespace: '',
-  defaultVault: ''
+  defaultVault: '',
+  templatePath: ''
 })
 const keepVersion = ref('1.0.0-beta')
 
@@ -471,6 +483,7 @@ async function loadSettings() {
     settings.value.appName = data.app_name || 'MyApp'
     settings.value.namespace = data.namespace || ''
     settings.value.defaultVault = data.default_vault || ''
+    settings.value.templatePath = data.template_path || 'env'
     keepVersion.value = data.keep_version || '1.0.0-beta'
   } catch (error) {
     console.error('Failed to load settings:', error)
@@ -483,7 +496,8 @@ async function saveGeneralSettings() {
     await window.$api.updateSettings({
       app_name: settings.value.appName,
       namespace: settings.value.namespace,
-      default_vault: settings.value.defaultVault
+      default_vault: settings.value.defaultVault,
+      template_path: settings.value.templatePath
     })
     toast.success('Settings saved', 'Your changes have been saved successfully')
   } catch (error) {
