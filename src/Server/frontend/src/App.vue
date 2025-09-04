@@ -56,9 +56,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import ToastContainer from './components/ToastContainer.vue'
 import logoUrl from './assets/logo.svg'
+import { useKeyboardShortcuts } from './composables/useKeyboardShortcuts'
 
 const tabs = [
   { id: 'secrets', label: 'Secrets', path: '/secrets' },
@@ -69,8 +70,16 @@ const tabs = [
 const appName = ref('Keep')
 const keepVersion = ref('')
 
+// Set up global keyboard shortcuts
+const { setupGlobalListener, teardownGlobalListener } = useKeyboardShortcuts()
+
 onMounted(async () => {
+  setupGlobalListener()
   await loadSettings()
+})
+
+onUnmounted(() => {
+  teardownGlobalListener()
 })
 
 async function loadSettings() {

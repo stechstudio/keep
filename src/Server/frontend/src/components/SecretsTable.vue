@@ -31,6 +31,7 @@
 
         <div class="relative">
           <input
+            ref="searchInput"
             v-model="searchQuery"
             type="text"
             placeholder="Search by secret key or value..."
@@ -165,7 +166,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import VaultStageSelector from './VaultStageSelector.vue'
 import SecretValue from './SecretValue.vue'
 import SecretDialog from './SecretDialog.vue'
@@ -178,16 +179,19 @@ import TableActionsMenu from './TableActionsMenu.vue'
 import { useToast } from '../composables/useToast'
 import { useVault } from '../composables/useVault'
 import { useSecrets } from '../composables/useSecrets'
+import { useKeyboardShortcuts } from '../composables/useKeyboardShortcuts'
 import { formatDate } from '../utils/formatters'
 
 const emit = defineEmits(['refresh'])
 const toast = useToast()
 const { vaults, stages, settings, loadAll: loadVaultData } = useVault()
 const { secrets: allSecrets, loading, loadSecrets: fetchSecrets, copySecretToStage } = useSecrets()
+const { registerSearchHandler, registerModalCloseHandler, registerMaskToggleHandler } = useKeyboardShortcuts()
 
 const vault = ref(localStorage.getItem('keep.secrets.vault') || '')
 const stage = ref(localStorage.getItem('keep.secrets.stage') || '')
 const searchQuery = ref('')
+const searchInput = ref(null)
 const unmaskAll = ref(false)
 const unmaskedKeys = ref(new Set())
 const showAddDialog = ref(false)
@@ -212,9 +216,41 @@ const secrets = computed(() => {
   })
 })
 
+// Keyboard shortcut cleanup functions
+let cleanupModalHandler = null
+
 onMounted(async () => {
   await loadVaultsAndStages()
   await loadSecrets()
+  
+  // Register keyboard shortcut handlers
+  registerSearchHandler(() => {
+    if (searchInput.value) {
+      searchInput.value.focus()
+    }
+  })
+  
+  // Register modal close handlers for all dialogs
+  cleanupModalHandler = registerModalCloseHandler(() => {
+    showAddDialog.value = false
+    editingSecret.value = null
+    renamingSecret.value = null
+    copyingSecret.value = null
+    historySecret.value = null
+    deletingSecret.value = null
+  })
+  
+  // Register mask toggle handler
+  registerMaskToggleHandler(() => {
+    unmaskAll.value = !unmaskAll.value
+  })
+})
+
+onUnmounted(() => {
+  // Clean up modal handler
+  if (cleanupModalHandler) {
+    cleanupModalHandler()
+  }
 })
 
 watch(() => [vault.value, stage.value], () => {

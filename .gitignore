@@ -3,6 +3,7 @@ workbench/
 vendor/
 .env*
 CLAUDE.md
+*_PLAN.md
 .claude
 .keep
 node_modules
