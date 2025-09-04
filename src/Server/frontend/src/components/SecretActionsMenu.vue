@@ -161,7 +161,7 @@ function toggleMenu(event) {
     
     // If near bottom of viewport, position above the button
     if (wouldGoBelow && rect.top > menuHeight) {
-      top = rect.top - menuHeight - 4 + window.scrollY
+      top = rect.top - menuHeight + 16 + window.scrollY  // +16 instead of -4 to reduce gap
     }
     
     // Ensure menu doesn't go off left edge
