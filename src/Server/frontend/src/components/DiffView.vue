@@ -76,6 +76,7 @@
         <!-- Search field -->
         <div class="relative">
           <input
+            ref="searchInput"
             v-model="searchQuery"
             type="text"
             placeholder="Search by key or value..."
@@ -333,10 +334,11 @@
 </template>
 
 <script setup>
-import {ref, computed, onMounted, watch} from 'vue'
+import {ref, computed, onMounted, onUnmounted, watch} from 'vue'
 import {useToast} from '../composables/useToast'
 import {useVault} from '../composables/useVault'
 import {useSecrets} from '../composables/useSecrets'
+import {useKeyboardShortcuts} from '../composables/useKeyboardShortcuts'
 import {maskValue} from '../utils/formatters'
 import SecretActionsMenu from './SecretActionsMenu.vue'
 import SecretDialog from './SecretDialog.vue'
@@ -348,6 +350,7 @@ import DeleteConfirmDialog from './DeleteConfirmDialog.vue'
 const toast = useToast()
 const { vaults: availableVaults, stages: availableStages, loadAll: loadVaultData } = useVault()
 const { copySecretToStage } = useSecrets()
+const { registerSearchHandler, registerModalCloseHandler, registerMaskToggleHandler } = useKeyboardShortcuts()
 
 // State
 const selectedCombinations = ref([])
@@ -368,6 +371,7 @@ const copyTarget = ref('')
 const historySecret = ref(null)
 const deletingSecret = ref(null)
 const searchQuery = ref('')
+const searchInput = ref(null)
 
 // Computed columns based on selected combinations
 const activeColumns = computed(() => {
@@ -479,9 +483,41 @@ function getRowClass(key, hover = true) {
 
 
 // Close dropdowns when clicking outside
+// Keyboard shortcut cleanup functions
+let cleanupModalHandler = null
+
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
   loadInitialData()
+  
+  // Register keyboard shortcut handlers
+  registerSearchHandler(() => {
+    if (searchInput.value) {
+      searchInput.value.focus()
+    }
+  })
+  
+  // Register modal close handlers for all dialogs
+  cleanupModalHandler = registerModalCloseHandler(() => {
+    editingSecret.value = null
+    renamingSecret.value = null
+    copyingSecret.value = null
+    historySecret.value = null
+    deletingSecret.value = null
+  })
+  
+  // Register mask toggle handler
+  registerMaskToggleHandler(() => {
+    unmaskAll.value = !unmaskAll.value
+  })
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+  // Clean up modal handler
+  if (cleanupModalHandler) {
+    cleanupModalHandler()
+  }
 })
 
 function handleClickOutside(e) {
