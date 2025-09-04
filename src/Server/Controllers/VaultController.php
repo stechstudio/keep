@@ -63,7 +63,6 @@ class VaultController extends ApiController
             'namespace' => $settings['namespace'] ?? '',
             'stages' => $settings['stages'] ?? ['local', 'staging', 'production'],
             'default_vault' => $this->manager->getDefaultVault(),
-            'default_stage' => $settings['default_stage'] ?? 'prod',
             'keep_version' => KeepApplication::VERSION
         ]);
     }
@@ -74,7 +73,7 @@ class VaultController extends ApiController
             $currentSettings = $this->manager->getSettings();
             
             // Update settings from request body
-            $fields = ['app_name', 'namespace', 'default_vault', 'default_stage'];
+            $fields = ['app_name', 'namespace', 'default_vault'];
             foreach ($fields as $field) {
                 if ($this->hasParam($field)) {
                     $currentSettings[$field] = $this->getParam($field);
