@@ -1,3 +1,10 @@
+/**
+ * Format a date string for display in the user's local timezone
+ * Shows relative time for recent dates, absolute time with timezone for older dates
+ * 
+ * @param {string|null} dateString - ISO date string or any parseable date format
+ * @returns {string} Formatted date string
+ */
 export function formatDate(dateString) {
   if (!dateString) return 'Never'
   
@@ -15,14 +22,15 @@ export function formatDate(dateString) {
   if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`
   if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`
   
-  // For older dates, show the actual date with local timezone indicator
+  // For older dates, show the actual date with timezone abbreviation
   const options = {
     month: 'short',
     day: 'numeric',
     year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true
+    hour12: true,
+    timeZoneName: 'short'  // This adds the timezone abbreviation (e.g., "EST", "PDT")
   }
   
   return date.toLocaleString(undefined, options)

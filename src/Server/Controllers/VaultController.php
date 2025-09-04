@@ -17,6 +17,8 @@ class VaultController extends ApiController
             $slug = $config->slug();
             $name = $config->name();
             $driver = $config->driver();
+            $configArray = $config->config();
+            $prefix = $configArray['prefix'] ?? '';
             
             // Get the vault class to access its friendly NAME constant if available
             $vaultClass = null;
@@ -34,6 +36,7 @@ class VaultController extends ApiController
                 'slug' => $slug,
                 'name' => $friendlyName,
                 'driver' => $driver,
+                'prefix' => $prefix,
                 'isDefault' => $slug === $defaultVault,
                 // Legacy fields for compatibility
                 'display' => $friendlyName . ' (' . $slug . ')'
@@ -165,6 +168,7 @@ class VaultController extends ApiController
             $driver = $this->getParam('driver');
             $name = $this->getParam('name');
             $isDefault = $this->getParam('isDefault', false);
+            $prefix = $this->getParam('prefix', '');
             
             // Check if vault already exists
             $existingVaults = $this->manager->getConfiguredVaults();
@@ -172,12 +176,17 @@ class VaultController extends ApiController
                 return $this->error('Vault with this slug already exists');
             }
             
-            // Create vault config
+            // Create vault config with optional prefix
+            $config = [];
+            if (!empty($prefix)) {
+                $config['prefix'] = $prefix;
+            }
+            
             $vaultConfig = new \STS\Keep\Data\VaultConfig(
                 slug: $slug,
                 driver: $driver,
                 name: $name,
-                config: []  // Additional config can be added later
+                config: $config
             );
             
             // Save vault using its own save method
@@ -197,6 +206,7 @@ class VaultController extends ApiController
                     'slug' => $slug,
                     'name' => $name,
                     'driver' => $driver,
+                    'prefix' => $prefix,
                     'isDefault' => $isDefault
                 ]
             ]);
@@ -225,6 +235,20 @@ class VaultController extends ApiController
             
             if ($this->hasParam('driver')) {
                 $existingConfig['driver'] = $this->getParam('driver');
+            }
+            
+            // Handle prefix configuration
+            if ($this->hasParam('prefix')) {
+                $prefix = $this->getParam('prefix');
+                if (!isset($existingConfig['config'])) {
+                    $existingConfig['config'] = [];
+                }
+                if (!empty($prefix)) {
+                    $existingConfig['config']['prefix'] = $prefix;
+                } else {
+                    // Remove prefix if empty string provided
+                    unset($existingConfig['config']['prefix']);
+                }
             }
             
             // Handle slug change
@@ -272,12 +296,16 @@ class VaultController extends ApiController
                 $newSettings->save();
             }
             
+            $vaultConfigArray = $vaultConfig->config();
+            $prefix = $vaultConfigArray['prefix'] ?? '';
+            
             return $this->success([
                 'message' => 'Vault updated successfully',
                 'vault' => [
                     'slug' => $newSlug,
                     'name' => $vaultConfig->name(),
                     'driver' => $vaultConfig->driver(),
+                    'prefix' => $prefix,
                     'isDefault' => $this->manager->getDefaultVault() === $newSlug
                 ]
             ]);
@@ -301,28 +329,6 @@ class VaultController extends ApiController
             }
             
             $vaultFile = getcwd().'/.keep/vaults/'.$slug.'.json';
-            
-            // Check if there are any secrets in this vault across all stages
-            $hasSecrets = false;
-            $settings = $this->manager->getSettings();
-            $stages = $settings['stages'] ?? ['local', 'staging', 'production'];
-            
-            foreach ($stages as $stage) {
-                try {
-                    $vault = $this->manager->vault($slug, $stage);
-                    $secrets = $vault->list();
-                    if (count($secrets) > 0) {
-                        $hasSecrets = true;
-                        break;
-                    }
-                } catch (\Exception $e) {
-                    // Vault might not be accessible in this stage, continue checking
-                }
-            }
-            
-            if ($hasSecrets) {
-                return $this->error('Cannot delete vault with existing secrets. Please delete all secrets first.');
-            }
             
             // Delete the vault configuration file
             if (!unlink($vaultFile)) {

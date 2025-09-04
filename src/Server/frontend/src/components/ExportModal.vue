@@ -68,6 +68,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useToast } from '../composables/useToast'
+import { formatDate } from '../utils/formatters'
 
 const props = defineProps({
   vault: String,
@@ -132,7 +133,7 @@ async function downloadSecrets() {
         props.secrets.forEach(secret => {
           const key = escapeCsvField(secret.key)
           const value = escapeCsvField(secret.value)
-          const modified = escapeCsvField(secret.modified || '')
+          const modified = escapeCsvField(formatDate(secret.modified))
           content += `${key},${value},${modified}\n`
         })
         break

@@ -39,6 +39,11 @@ class AwsSecretsManagerVault extends AbstractVault
                 default: $existingSettings['key'] ?? '',
                 hint: 'Leave empty to use the default AWS managed key'
             ),
+            'prefix' => new TextPrompt(
+                label: 'Path Prefix (optional)',
+                default: $existingSettings['prefix'] ?? '',
+                hint: 'Optional prefix to add after namespace (e.g., "app2" for namespace/app2/stage/key)'
+            ),
         ];
     }
 
@@ -47,12 +52,11 @@ class AwsSecretsManagerVault extends AbstractVault
      */
     public function format(?string $key = null): string
     {
-        return Str::of(Keep::getNamespace())
-            ->append('/')
+        return Str::of('')
+            ->when(Keep::getNamespace(), fn($str) => $str->append(Keep::getNamespace().'/'))
+            ->when(trim($this->config['prefix'] ?? '', '/'), fn($str, $prefix) => $str->append($prefix.'/'))
             ->append($this->stage)
-            ->append('/')
-            ->append($key)
-            ->replace('//', '/')
+            ->when($key, fn($str) => $str->append('/'.$key))
             ->trim('/')
             ->toString();
     }
@@ -62,12 +66,23 @@ class AwsSecretsManagerVault extends AbstractVault
      */
     protected function getSecretTags(): array
     {
-        return [
+        $tags = [
             'ManagedBy' => 'Keep',
             'Namespace' => Keep::getNamespace(),
             'Stage' => $this->stage,
             'VaultSlug' => $this->slug(),
         ];
+        
+        // Add prefix tag if configured
+        $prefix = $this->config['prefix'] ?? '';
+        if ($prefix) {
+            $prefix = trim($prefix, '/');
+            if ($prefix) {
+                $tags['Prefix'] = $prefix;
+            }
+        }
+        
+        return $tags;
     }
 
     /**
@@ -80,34 +95,52 @@ class AwsSecretsManagerVault extends AbstractVault
             $nextToken = null;
 
             do {
+                $filters = [
+                    [
+                        'Key' => 'tag-key',
+                        'Values' => ['ManagedBy'],
+                    ],
+                    [
+                        'Key' => 'tag-value',
+                        'Values' => ['Keep'],
+                    ],
+                    [
+                        'Key' => 'tag-key',
+                        'Values' => ['Namespace'],
+                    ],
+                    [
+                        'Key' => 'tag-value',
+                        'Values' => [Keep::getNamespace()],
+                    ],
+                    [
+                        'Key' => 'tag-key',
+                        'Values' => ['Stage'],
+                    ],
+                    [
+                        'Key' => 'tag-value',
+                        'Values' => [$this->stage],
+                    ],
+                ];
+                
+                // Add prefix filter if configured
+                $prefix = $this->config['prefix'] ?? '';
+                if ($prefix) {
+                    $prefix = trim($prefix, '/');
+                    if ($prefix) {
+                        $filters[] = [
+                            'Key' => 'tag-key',
+                            'Values' => ['Prefix'],
+                        ];
+                        $filters[] = [
+                            'Key' => 'tag-value',
+                            'Values' => [$prefix],
+                        ];
+                    }
+                }
+                
                 $params = [
                     'MaxResults' => 20,
-                    'Filters' => [
-                        [
-                            'Key' => 'tag-key',
-                            'Values' => ['ManagedBy'],
-                        ],
-                        [
-                            'Key' => 'tag-value',
-                            'Values' => ['Keep'],
-                        ],
-                        [
-                            'Key' => 'tag-key',
-                            'Values' => ['Namespace'],
-                        ],
-                        [
-                            'Key' => 'tag-value',
-                            'Values' => [Keep::getNamespace()],
-                        ],
-                        [
-                            'Key' => 'tag-key',
-                            'Values' => ['Stage'],
-                        ],
-                        [
-                            'Key' => 'tag-value',
-                            'Values' => [$this->stage],
-                        ],
-                    ],
+                    'Filters' => $filters,
                     'IncludePlannedDeletion' => false,
                 ];
 
@@ -115,21 +148,40 @@ class AwsSecretsManagerVault extends AbstractVault
                     $params['NextToken'] = $nextToken;
                 }
 
-                $result = $this->client()->batchGetSecretValue($params);
+                // First list secrets matching our filters
+                $listResult = $this->client()->listSecrets($params);
+                
+                // Get the actual secret values for the listed secrets
+                $secretList = $listResult->get('SecretList');
+                if (empty($secretList)) {
+                    break;
+                }
+                
+                // Collect secret ARNs for batch retrieval
+                $secretIds = [];
+                foreach ($secretList as $secretMeta) {
+                    $secretIds[] = $secretMeta['ARN'];
+                }
+                
+                // Batch get the secret values
+                $valueResult = $this->client()->batchGetSecretValue([
+                    'SecretIdList' => $secretIds
+                ]);
 
-                foreach ($result->get('SecretValues') as $secret) {
+                foreach ($valueResult->get('SecretValues') as $secret) {
                     $secretName = $secret['Name'];
 
                     // Extract the key from the full secret name using the expected format
-                    $expectedPrefix = Keep::getNamespace().'/'.$this->stage.'/';
-
+                    // Format: namespace/[prefix/]stage/key
+                    $basePath = $this->format(); // Gets the base path without the key
+                    
                     // Skip if this doesn't match our expected naming pattern
-                    if (! Str::startsWith($secretName, $expectedPrefix)) {
+                    if (! Str::startsWith($secretName, $basePath . '/')) {
                         continue;
                     }
 
                     $key = Str::of($secretName)
-                        ->after($expectedPrefix)
+                        ->after($basePath . '/')
                         ->toString();
 
                     // Skip if we couldn't extract a valid key
@@ -155,7 +207,7 @@ class AwsSecretsManagerVault extends AbstractVault
                     ));
                 }
 
-                $nextToken = $result->get('NextToken');
+                $nextToken = $listResult->get('NextToken');
             } while ($nextToken);
 
         } catch (SecretsManagerException $e) {

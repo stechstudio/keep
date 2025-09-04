@@ -71,7 +71,7 @@
                 {{ entry.dataType }}
               </td>
               <td class="px-4 py-3">
-                <div class="text-sm">{{ entry.modifiedDate }}</div>
+                <div class="text-sm">{{ formatDate(entry.timestamp || entry.modifiedDate) }}</div>
                 <div class="text-xs text-muted-foreground/70">{{ entry.modifiedBy }}</div>
               </td>
             </tr>
@@ -97,7 +97,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useSecrets } from '../composables/useSecrets'
-import { maskValue } from '../utils/formatters'
+import { maskValue, formatDate } from '../utils/formatters'
 
 const props = defineProps({
   secretKey: {

@@ -37,9 +37,9 @@ class AwsSsmVault extends AbstractVault
                 hint: 'The AWS region where your parameters will be stored'
             ),
             'prefix' => new TextPrompt(
-                label: 'Parameter prefix (optional)',
+                label: 'Path Prefix (optional)',
                 default: $existingSettings['prefix'] ?? '',
-                hint: 'Base path for all your parameters (e.g., /[prefix]/myapp/production/DB_PASSWORD)'
+                hint: 'Optional prefix to add after namespace (e.g., "app2" for /namespace/app2/stage/key)'
             ),
             'key' => new TextPrompt(
                 label: 'KMS Key ID (optional)',
@@ -51,9 +51,9 @@ class AwsSsmVault extends AbstractVault
 
     public function format(?string $key = null): string
     {
-        return Str::of($this->config['prefix'] ?? '')
-            ->start('/')->finish('/')
-            ->append(Keep::getNamespace().'/')
+        return Str::of('/')
+            ->when(Keep::getNamespace(), fn($str) => $str->append(Keep::getNamespace().'/'))
+            ->when(trim($this->config['prefix'] ?? '', '/'), fn($str, $prefix) => $str->append($prefix.'/'))
             ->append($this->stage.'/')
             ->append($key)
             ->rtrim('/')

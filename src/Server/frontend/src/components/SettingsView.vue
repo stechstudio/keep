@@ -120,6 +120,7 @@
                 <div class="space-y-1 text-sm text-muted-foreground">
                   <p>Driver: <span class="font-mono">{{ vault.driver }}</span></p>
                   <p>Slug: <span class="font-mono">{{ vault.slug }}</span></p>
+                  <p v-if="vault.prefix">Prefix: <span class="font-mono">{{ vault.prefix }}</span></p>
                 </div>
               </div>
               <div class="flex items-center space-x-2">
@@ -257,6 +258,17 @@
             :disabled="!!editingVault"
           />
           <p class="text-xs text-muted-foreground mt-1">{{ editingVault ? 'Slug cannot be changed after creation' : 'Unique identifier for this vault' }}</p>
+        </div>
+
+        <div v-if="(vaultForm.driver === 'ssm' || vaultForm.driver === 'secretsmanager') || (editingVault && ['ssm', 'secretsmanager'].includes(editingVault.driver))">
+          <label class="block text-sm font-medium mb-1">Path Prefix (optional)</label>
+          <input
+            v-model="vaultForm.prefix"
+            type="text"
+            class="w-full px-3 py-2 bg-input border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            placeholder="/myapp"
+          />
+          <p class="text-xs text-muted-foreground mt-1">Optional prefix to prepend to all secret paths. Use for namespace isolation.</p>
         </div>
 
         <div v-if="vaultForm.driver || editingVault" class="flex items-center space-x-2">
@@ -402,6 +414,7 @@ const vaultForm = ref({
   name: '',
   slug: '',
   driver: '',
+  prefix: '',
   isDefault: false
 })
 const verifying = ref(false)
@@ -495,6 +508,7 @@ function editVault(vault) {
     name: vault.name,
     slug: vault.slug,
     driver: vault.driver,
+    prefix: vault.prefix || '',
     isDefault: vault.isDefault || false
   }
   showVaultModal.value = true
@@ -525,6 +539,7 @@ function openAddVaultModal() {
     name: '',
     slug: '',
     driver: '',
+    prefix: '',
     isDefault: false
   }
   showVaultModal.value = true
@@ -537,6 +552,7 @@ function closeVaultModal() {
     name: '',
     slug: '',
     driver: '',
+    prefix: '',
     isDefault: false
   }
 }
