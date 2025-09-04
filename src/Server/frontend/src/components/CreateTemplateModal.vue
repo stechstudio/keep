@@ -10,7 +10,7 @@
       <div class="relative inline-block w-full max-w-2xl px-6 py-5 overflow-hidden text-left align-middle transition-all transform bg-background rounded-lg shadow-xl">
         <!-- Header -->
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold">Create Template</h2>
+          <h2 class="text-xl font-semibold">Add Template</h2>
           <button
             @click="$emit('close')"
             class="p-1 rounded hover:bg-muted transition-colors"
@@ -48,31 +48,6 @@
                 <p class="text-sm text-muted-foreground">{{ selectedStage }}.env already exists. You can edit it from the templates list.</p>
               </div>
             </div>
-          </div>
-
-          <!-- Vault Selection -->
-          <div v-if="!templateExists">
-            <label class="block text-sm font-medium mb-2">Include Vaults</label>
-            <div class="space-y-2 max-h-48 overflow-y-auto border border-border rounded-md p-3">
-              <div v-if="loadingVaults" class="text-center py-4">
-                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-              </div>
-              <div v-else-if="vaults.length === 0" class="text-center py-4 text-muted-foreground">
-                No vaults configured
-              </div>
-              <label v-else v-for="vault in vaults" :key="vault" class="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  :value="vault"
-                  v-model="selectedVaults"
-                  class="rounded border-border text-primary focus:ring-primary"
-                />
-                <span class="text-sm">{{ vault }}</span>
-              </label>
-            </div>
-            <p class="text-xs text-muted-foreground mt-1">
-              Select which vaults to include in the template. Leave empty to include all vaults.
-            </p>
           </div>
 
           <!-- Preview Section -->
@@ -136,7 +111,7 @@
             :disabled="creating"
             class="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
-            {{ creating ? 'Creating...' : 'Create Template' }}
+            {{ creating ? 'Adding...' : 'Add Template' }}
           </button>
         </div>
       </div>
@@ -152,12 +127,9 @@ const emit = defineEmits(['close', 'created'])
 const { showToast } = useToast()
 
 const stages = ref([])
-const vaults = ref([])
 const selectedStage = ref('')
-const selectedVaults = ref([])
 const preview = ref('')
 const error = ref('')
-const loadingVaults = ref(false)
 const generatingPreview = ref(false)
 const creating = ref(false)
 const templateExists = ref(false)
@@ -165,7 +137,6 @@ const copied = ref(false)
 
 onMounted(async () => {
   await loadStages()
-  await loadVaults()
 })
 
 async function loadStages() {
@@ -175,19 +146,6 @@ async function loadStages() {
   } catch (err) {
     error.value = 'Failed to load stages'
     console.error('Failed to load stages:', err)
-  }
-}
-
-async function loadVaults() {
-  loadingVaults.value = true
-  try {
-    const response = await window.$api.listVaults()
-    vaults.value = response.vaults?.map(v => v.slug) || []
-  } catch (err) {
-    error.value = 'Failed to load vaults'
-    console.error('Failed to load vaults:', err)
-  } finally {
-    loadingVaults.value = false
   }
 }
 
@@ -223,7 +181,7 @@ async function generatePreview() {
   try {
     const response = await window.$api.post('/templates/generate', {
       stage: selectedStage.value,
-      vaults: selectedVaults.value.length > 0 ? selectedVaults.value : []
+      vaults: [] // Empty array means use all vaults
     })
     
     preview.value = response.content || ''
@@ -246,7 +204,7 @@ async function createTemplate() {
   try {
     const response = await window.$api.post('/templates/create', {
       stage: selectedStage.value,
-      vaults: selectedVaults.value.length > 0 ? selectedVaults.value : []
+      vaults: [] // Empty array means use all vaults
     })
     
     showToast(`Template created: ${response.filename}`, 'success')
