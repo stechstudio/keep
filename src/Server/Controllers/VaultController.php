@@ -3,6 +3,7 @@
 namespace STS\Keep\Server\Controllers;
 
 use Exception;
+use STS\Keep\Data\Settings;
 use STS\Keep\KeepApplication;
 
 class VaultController extends ApiController
@@ -81,7 +82,7 @@ class VaultController extends ApiController
             }
             
             // Create a new Settings object with updated values
-            $newSettings = \STS\Keep\Data\Settings::fromArray($currentSettings);
+            $newSettings = Settings::fromArray($currentSettings);
             
             // Save settings to disk
             $newSettings->save();
@@ -116,8 +117,7 @@ class VaultController extends ApiController
             $settings['stages'] = $stages;
             
             // Save updated settings to disk
-            $newSettings = \STS\Keep\Data\Settings::fromArray($settings);
-            $newSettings->save();
+            Settings::fromArray($settings)->save();
             
             return $this->success([
                 'message' => 'Stage added successfully',
@@ -138,19 +138,12 @@ class VaultController extends ApiController
             $stageName = $this->getParam('stage');
             $settings = $this->manager->getSettings();
             $stages = $settings['stages'] ?? ['local', 'staging', 'production'];
-            
-            // Prevent removing default stages
-            $defaultStages = ['local', 'staging', 'production'];
-            if (in_array($stageName, $defaultStages)) {
-                return $this->error('Cannot remove system stage');
-            }
-            
-            $stages = array_values(array_filter($stages, fn($s) => $s !== $stageName));
-            $settings['stages'] = $stages;
-            
-            // Save updated settings to disk
-            $newSettings = \STS\Keep\Data\Settings::fromArray($settings);
-            $newSettings->save();
+
+            $settings['stages'] = array_values(
+                array_filter($stages, fn($s) => $s !== $stageName)
+            );
+
+            Settings::fromArray($settings)->save();
             
             return $this->success([
                 'message' => 'Stage removed successfully',
@@ -174,18 +167,9 @@ class VaultController extends ApiController
             $isDefault = $this->getParam('isDefault', false);
             
             // Check if vault already exists
-            $vaultsDir = getcwd().'/.keep/vaults';
-            $vaultFile = $vaultsDir.'/'.$slug.'.json';
-            
-            if (file_exists($vaultFile)) {
+            $existingVaults = $this->manager->getConfiguredVaults();
+            if ($existingVaults->has($slug)) {
                 return $this->error('Vault with this slug already exists');
-            }
-            
-            // Ensure vaults directory exists
-            if (!is_dir($vaultsDir)) {
-                if (!mkdir($vaultsDir, 0755, true)) {
-                    return $this->error('Failed to create vaults directory');
-                }
             }
             
             // Create vault config
@@ -196,16 +180,14 @@ class VaultController extends ApiController
                 config: []  // Additional config can be added later
             );
             
-            // Save vault to file
-            if (!file_put_contents($vaultFile, json_encode($vaultConfig->toArray(), JSON_PRETTY_PRINT))) {
-                return $this->error('Failed to save vault configuration');
-            }
+            // Save vault using its own save method
+            $vaultConfig->save();
             
             // Update default vault in settings if requested
             if ($isDefault) {
                 $settings = $this->manager->getSettings();
                 $settings['default_vault'] = $slug;
-                $newSettings = \STS\Keep\Data\Settings::fromArray($settings);
+                $newSettings = Settings::fromArray($settings);
                 $newSettings->save();
             }
             
@@ -227,18 +209,14 @@ class VaultController extends ApiController
     {
         try {
             // Check if vault exists
-            $vaultsDir = getcwd().'/.keep/vaults';
-            $vaultFile = $vaultsDir.'/'.$slug.'.json';
-            
-            if (!file_exists($vaultFile)) {
+            $existingVaults = $this->manager->getConfiguredVaults();
+            if (!$existingVaults->has($slug)) {
                 return $this->error('Vault not found');
             }
             
-            // Load existing vault config
-            $existingConfig = json_decode(file_get_contents($vaultFile), true);
-            if ($existingConfig === null) {
-                return $this->error('Failed to read vault configuration');
-            }
+            // Get existing vault config
+            $existingVaultConfig = $existingVaults->get($slug);
+            $existingConfig = $existingVaultConfig->toArray();
             
             // Update fields that were provided
             if ($this->hasParam('name')) {
@@ -249,19 +227,18 @@ class VaultController extends ApiController
                 $existingConfig['driver'] = $this->getParam('driver');
             }
             
-            // Handle slug change (rename file)
+            // Handle slug change
             $newSlug = $this->getParam('slug', $slug);
             if ($newSlug !== $slug) {
                 // Check if new slug already exists
-                $newVaultFile = $vaultsDir.'/'.$newSlug.'.json';
-                if (file_exists($newVaultFile)) {
+                if ($existingVaults->has($newSlug)) {
                     return $this->error('A vault with the new slug already exists');
                 }
                 
                 $existingConfig['slug'] = $newSlug;
             }
             
-            // Validate the updated config
+            // Validate and create the updated config
             try {
                 $vaultConfig = \STS\Keep\Data\VaultConfig::fromArray($existingConfig);
             } catch (\Exception $e) {
@@ -269,20 +246,20 @@ class VaultController extends ApiController
             }
             
             // Save updated config
-            $targetFile = ($newSlug !== $slug) ? $vaultsDir.'/'.$newSlug.'.json' : $vaultFile;
-            if (!file_put_contents($targetFile, json_encode($vaultConfig->toArray(), JSON_PRETTY_PRINT))) {
-                return $this->error('Failed to save vault configuration');
-            }
+            $vaultConfig->save();
             
             // If slug changed, delete old file
-            if ($newSlug !== $slug && file_exists($vaultFile)) {
-                unlink($vaultFile);
+            if ($newSlug !== $slug) {
+                $oldVaultFile = getcwd().'/.keep/vaults/'.$slug.'.json';
+                if (file_exists($oldVaultFile)) {
+                    unlink($oldVaultFile);
+                }
                 
                 // Update default vault in settings if this was the default
                 $settings = $this->manager->getSettings();
                 if ($settings['default_vault'] === $slug) {
                     $settings['default_vault'] = $newSlug;
-                    $newSettings = \STS\Keep\Data\Settings::fromArray($settings);
+                    $newSettings = Settings::fromArray($settings);
                     $newSettings->save();
                 }
             }
@@ -291,7 +268,7 @@ class VaultController extends ApiController
             if ($this->hasParam('isDefault') && $this->getParam('isDefault')) {
                 $settings = $this->manager->getSettings();
                 $settings['default_vault'] = $newSlug;
-                $newSettings = \STS\Keep\Data\Settings::fromArray($settings);
+                $newSettings = Settings::fromArray($settings);
                 $newSettings->save();
             }
             
@@ -318,12 +295,12 @@ class VaultController extends ApiController
             }
             
             // Check if vault exists
-            $vaultsDir = getcwd().'/.keep/vaults';
-            $vaultFile = $vaultsDir.'/'.$slug.'.json';
-            
-            if (!file_exists($vaultFile)) {
+            $existingVaults = $this->manager->getConfiguredVaults();
+            if (!$existingVaults->has($slug)) {
                 return $this->error('Vault not found');
             }
+            
+            $vaultFile = getcwd().'/.keep/vaults/'.$slug.'.json';
             
             // Check if there are any secrets in this vault across all stages
             $hasSecrets = false;
