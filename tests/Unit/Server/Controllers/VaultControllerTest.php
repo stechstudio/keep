@@ -11,8 +11,8 @@ test('list returns configured vaults', function () {
     $mockManager = $this->createPartialMock(KeepManager::class, ['getConfiguredVaults', 'getDefaultVault']);
     
     $vaultConfigs = new VaultConfigCollection([
-        new VaultConfig('aws', 'aws-ssm', 'AWS Vault', []),
-        new VaultConfig('local', 'local', 'Local Vault', [])
+        new VaultConfig('aws', 'aws-ssm', 'AWS Vault', '', []),
+        new VaultConfig('local', 'local', 'Local Vault', '', [])
     ]);
     
     $mockManager->method('getConfiguredVaults')->willReturn($vaultConfigs);
@@ -121,7 +121,7 @@ test('diff returns comparison matrix', function () {
         ]);
     
     $vaultConfigs = new VaultConfigCollection([
-        new VaultConfig('vault1', 'test', 'Vault 1', [])
+        new VaultConfig('vault1', 'test', 'Vault 1', '', [])
     ]);
     $mockManager->method('getConfiguredVaults')->willReturn($vaultConfigs);
     

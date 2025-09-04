@@ -5,6 +5,7 @@ namespace STS\Keep\Server\Controllers;
 use Exception;
 use STS\Keep\Data\Settings;
 use STS\Keep\KeepApplication;
+use STS\Keep\Services\VaultPermissionTester;
 
 class VaultController extends ApiController
 {
@@ -335,13 +336,14 @@ class VaultController extends ApiController
     public function verify(): array
     {
         $results = [];
+        $tester = new VaultPermissionTester();
         
         foreach ($this->manager->getConfiguredVaults() as $vaultConfig) {
             $vaultName = $vaultConfig->slug();
             
             try {
                 $vault = $this->manager->vault($vaultName, 'local');
-                $permissions = $this->testVaultPermissions($vault);
+                $permissions = $tester->testPermissions($vault);
                 
                 $results[$vaultName] = [
                     'success' => $permissions['List'] || $permissions['Read'],
@@ -351,7 +353,7 @@ class VaultController extends ApiController
                 $results[$vaultName] = [
                     'success' => false,
                     'error' => $e->getMessage(),
-                    'permissions' => $this->getEmptyPermissions()
+                    'permissions' => $tester->getEmptyPermissions()
                 ];
             }
         }
@@ -361,71 +363,6 @@ class VaultController extends ApiController
         ]);
     }
 
-    private function testVaultPermissions($vault): array
-    {
-        $permissions = $this->getEmptyPermissions();
-        $testKey = 'keep-verify-' . bin2hex(random_bytes(4));
-        $writeSucceeded = false;
-        
-        // Test List permission
-        try {
-            $vault->list();
-            $permissions['List'] = true;
-        } catch (Exception $e) {
-            // List failed
-        }
-        
-        // Test Write permission
-        try {
-            $vault->set($testKey, 'test_value');
-            $permissions['Write'] = true;
-            $writeSucceeded = true;
-            
-            // Test Read permission
-            try {
-                $secret = $vault->get($testKey);
-                $permissions['Read'] = ($secret->value() === 'test_value');
-            } catch (Exception $e) {
-                // Read failed
-            }
-            
-            // Test History permission
-            try {
-                $filters = new \STS\Keep\Data\Collections\FilterCollection();
-                $vault->history($testKey, $filters, 10);
-                $permissions['History'] = true;
-            } catch (Exception $e) {
-                // History not supported or failed
-            }
-        } catch (Exception $e) {
-            // Write failed, can't test read/history
-        }
-        
-        // Always try to clean up the test key if write succeeded
-        if ($writeSucceeded) {
-            try {
-                $vault->delete($testKey);
-                $permissions['Delete'] = true;
-            } catch (Exception $e) {
-                // Delete failed - log this for debugging
-                error_log("Warning: Failed to clean up verify test key '{$testKey}' in vault '{$vault->name()}': " . $e->getMessage());
-                $permissions['Delete'] = false;
-            }
-        }
-        
-        return $permissions;
-    }
-
-    private function getEmptyPermissions(): array
-    {
-        return [
-            'Read' => false,
-            'Write' => false,
-            'List' => false,
-            'Delete' => false,
-            'History' => false
-        ];
-    }
 
     public function diff(): array
     {

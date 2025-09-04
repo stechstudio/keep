@@ -11,14 +11,12 @@ class ExportController extends ApiController
         
         $secrets = $vault->list();
         
-        if ($format === 'json') {
-            $output = json_encode(
-                $secrets->mapWithKeys(fn($s) => [$s->key() => $s->value()])->toArray(),
-                JSON_PRETTY_PRINT
-            );
-        } else {
-            $output = $secrets->map(fn($s) => "{$s->key()}=\"{$s->value()}\"")->join("\n");
-        }
+        // Use the existing SecretCollection formatting methods
+        $output = match ($format) {
+            'json' => $secrets->toKeyValuePair()->toJson(JSON_PRETTY_PRINT),
+            'csv' => $secrets->toCsvString(),
+            default => $secrets->toEnvString(),
+        };
         
         return $this->success([
             'content' => $output,

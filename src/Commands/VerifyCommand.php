@@ -5,6 +5,7 @@ namespace STS\Keep\Commands;
 use Illuminate\Support\Str;
 use STS\Keep\Data\Context;
 use STS\Keep\Facades\Keep;
+use STS\Keep\Services\VaultPermissionTester;
 
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\table;
@@ -53,96 +54,19 @@ class VerifyCommand extends BaseCommand
     protected function verifyVaultStage(string $vaultName, string $stage): array
     {
         $vault = Keep::vault($vaultName, $stage);
-        $testKey = 'keep-verify-'.Str::random(8);
-
-        $result = [
+        $tester = new VaultPermissionTester();
+        $permissions = $tester->testPermissions($vault);
+        
+        // Transform to match our existing format (for compatibility with display methods)
+        return [
             'vault' => $vaultName,
             'stage' => $stage,
-            'list' => false,
-            'write' => false,
-            'read' => null, // null = unknown/untestable, false = tested and failed, true = success
-            'history' => null, // null = unknown/untestable, false = tested and failed, true = success
-            'cleanup' => false,
+            'list' => $permissions['List'],
+            'write' => $permissions['Write'],
+            'read' => $permissions['Read'],
+            'history' => $permissions['History'],
+            'cleanup' => $permissions['Delete'], // Delete permission indicates cleanup success
         ];
-
-        $existingSecrets = null;
-
-        // Test LIST operation
-        try {
-            $existingSecrets = $vault->list();
-            $result['list'] = true;
-        } catch (\Exception $e) {
-            // List failed - this is fine, just mark as false
-        }
-
-        // Test WRITE operation
-        try {
-            $vault->set($testKey, 'test-verification-value', false);
-            $result['write'] = true;
-        } catch (\Exception $e) {
-            // Write failed - this is fine, just mark as false
-        }
-
-        // Test READ operation
-        if ($result['write']) {
-            // If write succeeded, try to read our test secret
-            try {
-                $secret = $vault->get($testKey);
-                if ($secret->value() === 'test-verification-value') {
-                    $result['read'] = true;
-                } else {
-                    $result['read'] = false; // Could read but value was wrong
-                }
-            } catch (\Exception $e) {
-                $result['read'] = false; // Tested and failed
-            }
-        } elseif ($result['list'] && $existingSecrets && $existingSecrets->count() > 0) {
-            // If write failed but list succeeded and there are existing secrets,
-            // try to read the first existing secret to test read permissions
-            try {
-                $firstSecret = $existingSecrets->first();
-                $vault->get($firstSecret->key());
-                $result['read'] = true;
-            } catch (\Exception $e) {
-                $result['read'] = false; // Tested and failed
-            }
-        }
-        // If we reach here and read is still null, it means we couldn't test read
-        // (write failed and no existing secrets to test against)
-
-        // Test HISTORY operation
-        if ($result['write']) {
-            // If write succeeded, try to get history for our test secret
-            try {
-                $vault->history($testKey, new \STS\Keep\Data\Collections\FilterCollection([]), 1);
-                $result['history'] = true;
-            } catch (\Exception $e) {
-                $result['history'] = false; // Tested and failed
-            }
-        } elseif ($result['list'] && $existingSecrets && $existingSecrets->count() > 0) {
-            // If write failed but list succeeded and there are existing secrets,
-            // try to get history for the first existing secret
-            try {
-                $firstSecret = $existingSecrets->first();
-                $vault->history($firstSecret->key(), new \STS\Keep\Data\Collections\FilterCollection([]), 1);
-                $result['history'] = true;
-            } catch (\Exception $e) {
-                $result['history'] = false; // Tested and failed
-            }
-        }
-        // If we reach here and history is still null, it means we couldn't test history
-
-        // CLEANUP - try to delete the test key (only if write succeeded)
-        if ($result['write']) {
-            try {
-                $vault->delete($testKey);
-                $result['cleanup'] = true;
-            } catch (\Exception $e) {
-                // Cleanup failed - this could be a problem but not critical
-            }
-        }
-
-        return $result;
     }
 
     protected function displayResults(array $results): void
@@ -175,7 +99,7 @@ class VerifyCommand extends BaseCommand
         return match ($result) {
             true => '<fg=green>✓</>',
             false => '<fg=red>✗</>',
-            null => '<fg=blue>?</>',
+            default => '<fg=red>✗</>',
         };
     }
 
@@ -191,13 +115,11 @@ class VerifyCommand extends BaseCommand
     protected function displaySummary(array $results): void
     {
         $totalCombinations = count($results);
-        $fullAccess = collect($results)->filter(fn ($r) => $r['list'] && $r['write'] && $r['read'] === true && $r['history'] === true)->count();
-        $readHistoryOnly = collect($results)->filter(fn ($r) => $r['list'] && ! $r['write'] && $r['read'] === true && $r['history'] === true)->count();
-        $readOnly = collect($results)->filter(fn ($r) => $r['list'] && ! $r['write'] && $r['read'] === true && $r['history'] !== true)->count();
-        $listOnly = collect($results)->filter(fn ($r) => $r['list'] && ! $r['write'] && $r['read'] === false)->count();
-        $noAccess = collect($results)->filter(fn ($r) => ! $r['list'] && ! $r['write'] && in_array($r['read'], [false, null]))->count();
-        $unknownRead = collect($results)->filter(fn ($r) => $r['read'] === null)->count();
-        $unknownHistory = collect($results)->filter(fn ($r) => $r['history'] === null)->count();
+        $fullAccess = collect($results)->filter(fn ($r) => $r['list'] && $r['write'] && $r['read'] && $r['history'])->count();
+        $readHistoryOnly = collect($results)->filter(fn ($r) => $r['list'] && ! $r['write'] && $r['read'] && $r['history'])->count();
+        $readOnly = collect($results)->filter(fn ($r) => $r['list'] && ! $r['write'] && $r['read'] && ! $r['history'])->count();
+        $listOnly = collect($results)->filter(fn ($r) => $r['list'] && ! $r['write'] && ! $r['read'])->count();
+        $noAccess = collect($results)->filter(fn ($r) => ! $r['list'] && ! $r['write'] && ! $r['read'])->count();
         $cleanupIssues = collect($results)->filter(fn ($r) => $r['write'] && ! $r['cleanup'])->count();
 
         $this->info('Summary:');
@@ -207,12 +129,6 @@ class VerifyCommand extends BaseCommand
         $this->line("• <fg=blue>Read-only access</> (list + read): {$readOnly}");
         $this->line("• <fg=yellow>List-only access</> (list only): {$listOnly}");
         $this->line("• <fg=red>No access</> (none): {$noAccess}");
-        if ($unknownRead > 0) {
-            $this->line("• <fg=blue>Unknown read access</> (unable to test): {$unknownRead}");
-        }
-        if ($unknownHistory > 0) {
-            $this->line("• <fg=blue>Unknown history access</> (unable to test): {$unknownHistory}");
-        }
 
         if ($cleanupIssues > 0) {
             $this->newLine();
@@ -224,7 +140,6 @@ class VerifyCommand extends BaseCommand
         $this->info('Legend:');
         $this->line('<fg=green>✓</> = Success');
         $this->line('<fg=red>✗</> = Failed/No Permission');
-        $this->line('<fg=blue>?</> = Unknown (unable to test)');
         $this->line('<fg=yellow>⚠</> = Cleanup failed (test secret may remain)');
         $this->line('<fg=gray>-</> = Not applicable');
     }
