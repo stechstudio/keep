@@ -93,9 +93,9 @@ const availableCombinations = computed(() => {
   for (const vault of props.vaults) {
     for (const stage of props.stages) {
       combinations.push({
-        key: `${vault.name}:${stage}`,
-        vault: vault.name,
-        display: vault.display,
+        key: `${vault.slug || vault}:${stage}`,
+        vaultSlug: vault.slug || vault,
+        display: vault.display || vault.name || vault,
         stage: stage
       })
     }
