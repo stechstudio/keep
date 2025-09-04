@@ -1,13 +1,13 @@
 <template>
   <div class="fixed inset-0 z-50 overflow-y-auto">
-    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-40 text-center sm:p-0">
       <!-- Background overlay -->
-      <div class="fixed inset-0 transition-opacity" @click="$emit('close')">
+      <div class="fixed inset-0 transition-opacity">
         <div class="absolute inset-0 bg-black opacity-75"></div>
       </div>
 
       <!-- Modal content -->
-      <div class="relative inline-block w-full max-w-4xl px-6 py-5 overflow-hidden text-left align-middle transition-all transform bg-background rounded-lg shadow-xl">
+      <div class="relative inline-block w-full max-w-4xl px-6 py-5 overflow-visible text-left align-middle transition-all transform bg-background rounded-lg shadow-xl">
         <!-- Header -->
         <div class="flex items-center justify-between mb-4">
           <div>
@@ -15,8 +15,8 @@
             <p class="text-sm text-muted-foreground">{{ template.filename }}</p>
           </div>
           <button
-            @click="$emit('close')"
-            class="p-1 rounded hover:bg-muted transition-colors"
+              @click="$emit('close')"
+              class="p-1 rounded hover:bg-muted transition-colors"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -37,20 +37,11 @@
               <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
                 Stage: {{ templateData.stage }}
               </span>
-              <span class="text-xs text-muted-foreground">
-                {{ placeholders.length }} placeholder{{ placeholders.length !== 1 ? 's' : '' }}
-              </span>
             </div>
             <div class="flex items-center gap-2">
               <button
-                @click="insertPlaceholder"
-                class="px-3 py-1 text-xs bg-background border border-border rounded hover:bg-muted transition-colors"
-              >
-                Insert Placeholder
-              </button>
-              <button
-                @click="formatContent"
-                class="px-3 py-1 text-xs bg-background border border-border rounded hover:bg-muted transition-colors"
+                  @click="formatContent"
+                  class="px-3 py-1 text-xs bg-background border border-border rounded hover:bg-muted transition-colors"
               >
                 Format
               </button>
@@ -58,39 +49,13 @@
           </div>
 
           <!-- Editor -->
-          <div class="relative">
-            <textarea
-              ref="editorRef"
-              v-model="content"
-              @input="updatePlaceholders"
-              class="w-full h-96 px-4 py-3 font-mono text-sm bg-muted/30 border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-              spellcheck="false"
-              placeholder="# Enter your template content here...
-# Use {vault:key} syntax for placeholders"
-            ></textarea>
-
-            <!-- Line Numbers (optional enhancement) -->
-            <div class="absolute top-0 left-0 w-12 h-full bg-muted/50 border-r border-border rounded-l-md pointer-events-none">
-              <div class="py-3 text-right pr-2">
-                <div v-for="line in lineNumbers" :key="line" class="text-xs text-muted-foreground h-5">
-                  {{ line }}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Placeholder List -->
-          <div v-if="placeholders.length > 0" class="bg-muted/30 rounded-md p-3">
-            <h3 class="text-sm font-medium mb-2">Detected Placeholders</h3>
-            <div class="flex flex-wrap gap-2">
-              <span
-                v-for="placeholder in placeholders"
-                :key="placeholder"
-                class="inline-flex items-center px-2 py-1 text-xs font-mono bg-background border border-border rounded"
-              >
-                {{ placeholder }}
-              </span>
-            </div>
+          <div class="relative mb-8" style="overflow: visible;">
+            <TemplateCodeEditor
+                ref="editorRef"
+                v-model="content"
+                :stage="templateData.stage"
+                placeholder="# Enter your template content here...&#10;# Use {vault:key} syntax for placeholders"
+            />
           </div>
 
           <!-- Validation Messages -->
@@ -119,52 +84,45 @@
         <div class="flex justify-between items-center mt-6">
           <div class="flex gap-2">
             <button
-              @click="validateTemplate"
-              :disabled="validating"
-              class="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted transition-colors disabled:opacity-50"
+                @click="validateTemplate"
+                :disabled="validating"
+                class="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted transition-colors disabled:opacity-50"
             >
               {{ validating ? 'Validating...' : 'Validate' }}
             </button>
             <button
-              @click="testTemplate"
-              class="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted transition-colors"
+                @click="testTemplate"
+                class="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted transition-colors"
             >
               Test
             </button>
           </div>
           <div class="flex gap-3">
             <button
-              @click="$emit('close')"
-              class="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted transition-colors"
+                @click="$emit('close')"
+                class="px-4 py-2 text-sm border border-border rounded-md hover:bg-muted transition-colors"
             >
               Cancel
             </button>
             <button
-              @click="saveTemplate"
-              :disabled="saving || !isModified"
-              class="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
+                @click="saveTemplate"
+                :disabled="saving || !isModified"
+                class="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
               {{ saving ? 'Saving...' : 'Save Template' }}
             </button>
           </div>
         </div>
 
-        <!-- Placeholder Selector Modal -->
-        <PlaceholderSelector
-          v-if="showPlaceholderSelector"
-          :stage="templateData.stage"
-          @close="showPlaceholderSelector = false"
-          @select="onPlaceholderSelect"
-        />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useToast } from '../composables/useToast'
-import PlaceholderSelector from './PlaceholderSelector.vue'
+import {ref, computed, onMounted, watch, nextTick} from 'vue'
+import {useToast} from '../composables/useToast'
+import TemplateCodeEditor from './TemplateCodeEditor.vue'
 
 const props = defineProps({
   template: {
@@ -174,7 +132,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'saved'])
-const { showToast } = useToast()
+const {showToast} = useToast()
 
 const editorRef = ref(null)
 const loading = ref(true)
@@ -185,32 +143,107 @@ const originalContent = ref('')
 const templateData = ref({})
 const placeholders = ref([])
 const validationErrors = ref([])
-const showPlaceholderSelector = ref(false)
+const secretsForEditor = ref([])
 
 const isModified = computed(() => content.value !== originalContent.value)
-const lineNumbers = computed(() => {
-  const lines = content.value.split('\n').length
-  return Array.from({ length: lines }, (_, i) => i + 1)
-})
 
 onMounted(async () => {
+  console.log('TemplateEditorModal mounted, template:', props.template)
   await loadTemplate()
 })
 
 async function loadTemplate() {
+  console.log('loadTemplate() called')
   loading.value = true
+
   try {
     const response = await window.$api.get(`/templates/${encodeURIComponent(props.template.filename)}`)
+    console.log('Template loaded:', response)
     templateData.value = response
     content.value = response.content || ''
     originalContent.value = response.content || ''
     placeholders.value = response.placeholders || []
+    
+    console.log('About to call loadSecrets()')
+    // Load secrets after template data is available
+    await loadSecrets()
   } catch (error) {
-    showToast('Failed to load template', 'error')
-    console.error('Failed to load template:', error)
-    emit('close')
+    console.error('Error in loadTemplate:', error)
   } finally {
     loading.value = false
+  }
+}
+
+async function loadSecrets() {
+  try {
+    // Use stage from props.template or templateData
+    const stage = templateData.value?.stage || props.template?.stage
+    console.log('Loading secrets for stage:', stage)
+    
+    if (!stage) {
+      console.warn('No stage available for loading secrets')
+      return
+    }
+    
+    // Load vaults first to get all available vault names
+    console.log('Loading vaults...')
+    const vaultsResponse = await window.$api.listVaults()
+    console.log('Vaults response:', vaultsResponse)
+    
+    // Extract vaults array from response
+    const vaults = vaultsResponse.vaults || vaultsResponse || []
+    console.log('Found vaults:', vaults)
+    
+    // Load secrets from all vaults for this stage
+    const allSecrets = []
+    
+    // Ensure vaults is an array
+    if (!Array.isArray(vaults)) {
+      console.error('Vaults is not an array:', vaults)
+      return
+    }
+    
+    for (const vault of vaults) {
+      try {
+        const vaultSlug = vault.slug || vault.name || vault
+        console.log(`Loading secrets from vault ${vaultSlug} for stage ${stage}...`)
+        const response = await window.$api.listSecrets(vaultSlug, stage, false)
+        console.log(`Response from ${vaultSlug}:`, response)
+        
+        const secrets = response.secrets || response || []
+        const secretCount = Array.isArray(secrets) ? secrets.length : 0
+        console.log(`Found ${secretCount} secrets in ${vaultSlug}`)
+        
+        if (Array.isArray(secrets)) {
+          for (const secret of secrets) {
+            allSecrets.push({
+              vault: vaultSlug,
+              key: secret.key || secret,
+              description: secret.description || ''
+            })
+          }
+        }
+      } catch (error) {
+        console.error(`Failed to load secrets from vault ${vault.slug || vault}:`, error)
+      }
+    }
+    
+    console.log(`Total: Loaded ${allSecrets.length} secrets across ${vaults.length} vaults for stage ${stage}`)
+    console.log('Sample secrets:', allSecrets.slice(0, 3))
+    
+    // Store secrets for editor
+    secretsForEditor.value = allSecrets
+    
+    // Try to update editor if it's ready
+    await nextTick()
+    if (editorRef.value) {
+      console.log('Editor is ready, updating secrets immediately')
+      editorRef.value.updateSecrets(allSecrets)
+    } else {
+      console.log('Editor not ready yet, will update via watcher')
+    }
+  } catch (error) {
+    console.error('Failed to load secrets for autocomplete:', error)
   }
 }
 
@@ -224,7 +257,7 @@ async function saveTemplate() {
     await window.$api.put(`/templates/${encodeURIComponent(props.template.filename)}`, {
       content: content.value
     })
-    
+
     originalContent.value = content.value
     showToast('Template saved successfully', 'success')
     emit('saved')
@@ -247,13 +280,13 @@ async function validateTemplate() {
     })
 
     if (!response.valid) {
-      validationErrors.value = response.errors.map(e => 
-        `Line ${e.line}: ${e.key} - ${e.error}`
+      validationErrors.value = response.errors.map(e =>
+          `Line ${e.line}: ${e.key} - ${e.error}`
       )
       showToast('Template has validation errors', 'warning')
     } else {
       showToast('Template is valid', 'success')
-      
+
       if (response.warnings && response.warnings.length > 0) {
         const unusedCount = response.warnings.filter(w => w.type === 'unused').length
         if (unusedCount > 0) {
@@ -280,35 +313,15 @@ function testTemplate() {
   // Could emit a 'test' event to parent to open test modal
 }
 
-function insertPlaceholder() {
-  showPlaceholderSelector.value = true
-}
-
-function onPlaceholderSelect(placeholder) {
-  const textarea = editorRef.value
-  const start = textarea.selectionStart
-  const end = textarea.selectionEnd
-  const text = textarea.value
-  
-  const newText = text.substring(0, start) + placeholder + text.substring(end)
-  content.value = newText
-  
-  // Set cursor position after inserted placeholder
-  setTimeout(() => {
-    textarea.selectionStart = textarea.selectionEnd = start + placeholder.length
-    textarea.focus()
-  }, 0)
-}
-
 function formatContent() {
   // Basic formatting: ensure consistent spacing and organization
   const lines = content.value.split('\n')
   const formatted = []
   let lastWasEmpty = false
-  
+
   for (const line of lines) {
     const trimmed = line.trim()
-    
+
     // Skip multiple empty lines
     if (trimmed === '') {
       if (!lastWasEmpty) {
@@ -317,9 +330,9 @@ function formatContent() {
       }
       continue
     }
-    
+
     lastWasEmpty = false
-    
+
     // Format based on content type
     if (trimmed.startsWith('#')) {
       // Comment line - preserve as is
@@ -333,7 +346,7 @@ function formatContent() {
       formatted.push(line)
     }
   }
-  
+
   content.value = formatted.join('\n').trim() + '\n'
   showToast('Template formatted', 'success')
 }
@@ -343,16 +356,24 @@ function updatePlaceholders() {
   const regex = /\{([^:}]+):([^}]+)\}/g
   const found = new Set()
   let match
-  
+
   while ((match = regex.exec(content.value)) !== null) {
     found.add(match[0])
   }
-  
+
   placeholders.value = Array.from(found).sort()
 }
 
 // Watch for content changes to update placeholders
 watch(content, updatePlaceholders)
+
+// Watch for editor to be ready and update secrets
+watch(editorRef, (newRef) => {
+  if (newRef && secretsForEditor.value.length > 0) {
+    console.log('Editor became available, updating with', secretsForEditor.value.length, 'secrets')
+    newRef.updateSecrets(secretsForEditor.value)
+  }
+})
 </script>
 
 <style scoped>

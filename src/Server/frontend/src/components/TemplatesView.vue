@@ -128,28 +128,28 @@
     />
 
     <TemplateEditorModal
-      v-if="editingTemplate"
-      :template="editingTemplate"
-      @close="editingTemplate = null"
+      v-if="showEditModal"
+      :template="selectedTemplate"
+      @close="showEditModal = false"
       @saved="onTemplateSaved"
     />
 
     <TemplateTesterModal
-      v-if="testingTemplate"
-      :template="testingTemplate"
-      @close="testingTemplate = null"
+      v-if="showTestModal"
+      :template="selectedTemplate"
+      @close="showTestModal = false"
     />
 
     <TemplateProcessorModal
-      v-if="processingTemplate"
-      :template="processingTemplate"
-      @close="processingTemplate = null"
+      v-if="showProcessModal"
+      :template="selectedTemplate"
+      @close="showProcessModal = false"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useToast } from '../composables/useToast'
 import CreateTemplateModal from './CreateTemplateModal.vue'
 import TemplateEditorModal from './TemplateEditorModal.vue'
@@ -162,9 +162,10 @@ const loading = ref(false)
 const templates = ref([])
 const templatePath = ref('')
 const showCreateModal = ref(false)
-const editingTemplate = ref(null)
-const testingTemplate = ref(null)
-const processingTemplate = ref(null)
+const showEditModal = ref(false)
+const showTestModal = ref(false)
+const showProcessModal = ref(false)
+const selectedTemplate = ref(null)
 
 onMounted(async () => {
   await loadSettings()
@@ -195,28 +196,19 @@ async function loadTemplates() {
 }
 
 function editTemplate(template) {
-  // Reset first to ensure Vue detects the change
-  editingTemplate.value = null
-  // Use nextTick to ensure the modal closes before reopening
-  nextTick(() => {
-    editingTemplate.value = template
-  })
+  console.log("Editing template:", template)
+  selectedTemplate.value = { ...template }
+  showEditModal.value = true
 }
 
 function testTemplate(template) {
-  // Reset first to ensure Vue detects the change
-  testingTemplate.value = null
-  nextTick(() => {
-    testingTemplate.value = template
-  })
+  selectedTemplate.value = { ...template }
+  showTestModal.value = true
 }
 
 function processTemplate(template) {
-  // Reset first to ensure Vue detects the change
-  processingTemplate.value = null
-  nextTick(() => {
-    processingTemplate.value = template
-  })
+  selectedTemplate.value = { ...template }
+  showProcessModal.value = true
 }
 
 async function deleteTemplate(template) {
@@ -240,7 +232,7 @@ function onTemplateCreated() {
 }
 
 function onTemplateSaved() {
-  editingTemplate.value = null
+  showEditModal.value = false
   loadTemplates()
 }
 
