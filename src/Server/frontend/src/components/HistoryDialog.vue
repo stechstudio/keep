@@ -60,11 +60,8 @@
           <tbody class="divide-y divide-border">
             <tr v-for="(entry, index) in history" :key="`${entry.version}-${index}`" class="hover:bg-muted/50 transition-colors">
               <td class="px-4 py-3 text-sm">
-                <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-accent">
+                <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium" :class="index === 0 ? 'bg-primary/10 text-primary' : 'bg-accent'">
                   v{{ entry.version }}
-                </span>
-                <span v-if="index === 0" class="ml-2 inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-primary/10 text-primary">
-                  Current
                 </span>
               </td>
               <td class="px-4 py-3 text-sm">
