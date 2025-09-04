@@ -10,12 +10,12 @@
       </div>
       <button 
         @click="showCreateModal = true"
-        class="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+        class="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
         </svg>
-        Create Template
+        <span>Add Template</span>
       </button>
     </div>
 
@@ -166,16 +166,26 @@ const editingTemplate = ref(null)
 const testingTemplate = ref(null)
 const processingTemplate = ref(null)
 
-onMounted(() => {
+onMounted(async () => {
+  await loadSettings()
   loadTemplates()
 })
+
+async function loadSettings() {
+  try {
+    const settings = await window.$api.getSettings()
+    templatePath.value = settings.template_path || 'env'
+  } catch (error) {
+    console.error('Failed to load settings:', error)
+    templatePath.value = 'env' // fallback
+  }
+}
 
 async function loadTemplates() {
   loading.value = true
   try {
-    const response = await window.$api.get('/api/templates')
+    const response = await window.$api.get('/templates')
     templates.value = response.templates || []
-    templatePath.value = response.templatePath || 'env'
   } catch (error) {
     showToast('Failed to load templates', 'error')
     console.error('Failed to load templates:', error)
@@ -202,7 +212,7 @@ async function deleteTemplate(template) {
   }
 
   try {
-    await window.$api.delete(`/api/templates/${encodeURIComponent(template.filename)}`)
+    await window.$api.delete(`/templates/${encodeURIComponent(template.filename)}`)
     showToast('Template deleted successfully', 'success')
     await loadTemplates()
   } catch (error) {

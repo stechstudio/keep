@@ -229,7 +229,7 @@ async function processTemplate() {
   error.value = ''
 
   try {
-    const response = await window.$api.post('/api/templates/process', {
+    const response = await window.$api.post('/templates/process', {
       filename: props.template.filename,
       stage: selectedStage.value,
       strategy: missingStrategy.value

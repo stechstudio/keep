@@ -181,7 +181,7 @@ async function loadStages() {
 async function loadVaults() {
   loadingVaults.value = true
   try {
-    const response = await window.$api.get('/api/vaults')
+    const response = await window.$api.listVaults()
     vaults.value = response.vaults?.map(v => v.slug) || []
   } catch (err) {
     error.value = 'Failed to load vaults'
@@ -198,7 +198,7 @@ async function checkExistingTemplate() {
   }
 
   try {
-    const response = await window.$api.get('/api/templates')
+    const response = await window.$api.get('/templates')
     const templates = response.templates || []
     templateExists.value = templates.some(t => t.stage === selectedStage.value)
     
@@ -221,7 +221,7 @@ async function generatePreview() {
   generatingPreview.value = true
 
   try {
-    const response = await window.$api.post('/api/templates/generate', {
+    const response = await window.$api.post('/templates/generate', {
       stage: selectedStage.value,
       vaults: selectedVaults.value.length > 0 ? selectedVaults.value : []
     })
@@ -244,7 +244,7 @@ async function createTemplate() {
   creating.value = true
 
   try {
-    const response = await window.$api.post('/api/templates/create', {
+    const response = await window.$api.post('/templates/create', {
       stage: selectedStage.value,
       vaults: selectedVaults.value.length > 0 ? selectedVaults.value : []
     })
