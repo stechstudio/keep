@@ -57,8 +57,7 @@ class VaultController extends ApiController
 
     public function listStages(): array
     {
-        $settings = $this->manager->getSettings();
-        $stages = $settings['stages'] ?? ['local', 'staging', 'production'];
+        $stages = $this->manager->getStages();
         
         return $this->success([
             'stages' => $stages
@@ -72,7 +71,7 @@ class VaultController extends ApiController
         return $this->success([
             'app_name' => $settings['app_name'] ?? 'Keep',
             'namespace' => $settings['namespace'] ?? '',
-            'stages' => $settings['stages'] ?? ['local', 'staging', 'production'],
+            'stages' => $this->manager->getStages(),
             'default_vault' => $this->manager->getDefaultVault(),
             'template_path' => $settings['template_path'] ?? 'env',
             'keep_version' => KeepApplication::VERSION

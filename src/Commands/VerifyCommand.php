@@ -36,13 +36,14 @@ class VerifyCommand extends BaseCommand
             }
 
             // Otherwise use existing logic
+            // Use getAllConfiguredVaults() to test all vaults, not just workspace filtered ones
             $vaults = $this->option('vault') 
                 ? [$this->option('vault')] 
-                : Keep::getConfiguredVaults()->keys()->toArray();
+                : Keep::getAllConfiguredVaults()->keys()->toArray();
                 
             $stages = $this->option('stage') 
                 ? [$this->option('stage')] 
-                : Keep::getStages();
+                : Keep::getAllStages();
             
             return $tester->testBulkPermissions($vaults, $stages);
         }, 'Checking vault access permissions...');
@@ -135,14 +136,14 @@ class VerifyCommand extends BaseCommand
             $context = Context::fromInput($input);
 
             // Validate vault exists
-            if (! in_array($context->vault, Keep::available())) {
+            if (! Keep::getAllConfiguredVaults()->has($context->vault)) {
                 $this->warn("Warning: Unknown vault '{$context->vault}' - skipping context '{$input}'");
 
                 continue;
             }
 
             // Validate stage exists
-            if (! in_array($context->stage, Keep::stages())) {
+            if (! in_array($context->stage, Keep::getAllStages())) {
                 $this->warn("Warning: Unknown stage '{$context->stage}' - skipping context '{$input}'");
 
                 continue;

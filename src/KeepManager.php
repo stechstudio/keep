@@ -6,6 +6,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use STS\Keep\Data\Collections\VaultConfigCollection;
 use STS\Keep\Data\Settings;
+use STS\Keep\Services\LocalStorage;
 use STS\Keep\Vaults\AbstractVault;
 use STS\Keep\Vaults\AwsSecretsManagerVault;
 use STS\Keep\Vaults\AwsSsmVault;
@@ -48,6 +49,14 @@ class KeepManager
 
     public function getConfiguredVaults(): Collection
     {
+        return $this->filterByWorkspace($this->configuredVaults);
+    }
+    
+    /**
+     * Get all configured vaults without workspace filtering
+     */
+    public function getAllConfiguredVaults(): Collection
+    {
         return $this->configuredVaults;
     }
     
@@ -63,7 +72,19 @@ class KeepManager
 
     public function getStages(): array
     {
-        return $this->settings?->stages() ?? [];
+        $allStages = $this->getAllStages();
+        return $this->filterStagesByWorkspace($allStages);
+    }
+    
+    /**
+     * Get all stages without workspace filtering
+     */
+    public function getAllStages(): array
+    {
+        if (!$this->isInitialized()) {
+            return [];
+        }
+        return $this->settings->stages() ?? [];
     }
 
     public function vault(string $name, string $stage): AbstractVault
@@ -118,5 +139,41 @@ class KeepManager
         $this->loadedVaults = [];
 
         return $this;
+    }
+    
+    /**
+     * Filter vaults based on workspace configuration
+     */
+    protected function filterByWorkspace(Collection $vaults): Collection
+    {
+        $localStorage = new LocalStorage();
+        $workspace = $localStorage->getWorkspace();
+        
+        // If no workspace is configured, return all vaults
+        if (empty($workspace) || empty($workspace['active_vaults'])) {
+            return $vaults;
+        }
+        
+        // Filter to only include active vaults
+        return $vaults->filter(function ($vault) use ($workspace) {
+            return in_array($vault->slug(), $workspace['active_vaults']);
+        });
+    }
+    
+    /**
+     * Filter stages based on workspace configuration
+     */
+    protected function filterStagesByWorkspace(array $stages): array
+    {
+        $localStorage = new LocalStorage();
+        $workspace = $localStorage->getWorkspace();
+        
+        // If no workspace is configured, return all stages
+        if (empty($workspace) || empty($workspace['active_stages'])) {
+            return $stages;
+        }
+        
+        // Filter to only include active stages
+        return array_values(array_intersect($stages, $workspace['active_stages']));
     }
 }

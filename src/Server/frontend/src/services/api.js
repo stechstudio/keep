@@ -188,6 +188,25 @@ class ApiClient {
       body: JSON.stringify({ content, vault, stage, strategy, only, except, dry_run })
     })
   }
+
+  // Workspace
+  async getWorkspace() {
+    return this.request('/workspace')
+  }
+
+  async updateWorkspace(activeVaults, activeStages) {
+    return this.request('/workspace', {
+      method: 'PUT',
+      body: JSON.stringify({ 
+        active_vaults: activeVaults, 
+        active_stages: activeStages 
+      })
+    })
+  }
+
+  async verifyWorkspace() {
+    return this.request('/workspace/verify', { method: 'POST' })
+  }
 }
 
 export const api = new ApiClient()

@@ -223,6 +223,115 @@
           <p>Stages represent different deployment environments for your secrets. Common stages include development, staging, and production. System stages (local, staging, production) cannot be removed.</p>
         </div>
       </div>
+
+      <!-- Workspace Settings -->
+      <div v-if="activeTab === 'workspace'" class="space-y-6">
+        <div>
+          <h1 class="text-2xl font-semibold mb-2">Workspace Configuration</h1>
+          <p class="text-sm text-muted-foreground">Personalize your Keep experience by selecting which vaults and stages you work with</p>
+        </div>
+
+        <div class="border border-border rounded-lg p-6 space-y-6">
+          <!-- Active Vaults Selection -->
+          <div>
+            <label class="block text-sm font-medium mb-3">Active Vaults</label>
+            <p class="text-xs text-muted-foreground mb-3">Select which vaults to include in your workspace</p>
+            <div class="space-y-2">
+              <div v-for="vault in availableVaults" :key="vault" class="flex items-center space-x-2">
+                <input
+                  :id="`vault-${vault}`"
+                  type="checkbox"
+                  :value="vault"
+                  v-model="workspaceForm.activeVaults"
+                  class="rounded border-border"
+                />
+                <label :for="`vault-${vault}`" class="text-sm cursor-pointer">
+                  {{ getVaultDisplayName(vault) }}
+                </label>
+              </div>
+            </div>
+            <div v-if="workspaceForm.activeVaults.length === 0" class="text-xs text-destructive mt-2">
+              At least one vault must be selected
+            </div>
+          </div>
+
+          <!-- Active Stages Selection -->
+          <div>
+            <label class="block text-sm font-medium mb-3">Active Stages</label>
+            <p class="text-xs text-muted-foreground mb-3">Select which stages to include in your workspace</p>
+            <div class="space-y-2">
+              <div v-for="stage in availableStages" :key="stage" class="flex items-center space-x-2">
+                <input
+                  :id="`stage-${stage}`"
+                  type="checkbox"
+                  :value="stage"
+                  v-model="workspaceForm.activeStages"
+                  class="rounded border-border"
+                />
+                <label :for="`stage-${stage}`" class="text-sm cursor-pointer">{{ stage }}</label>
+              </div>
+            </div>
+            <div v-if="workspaceForm.activeStages.length === 0" class="text-xs text-destructive mt-2">
+              At least one stage must be selected
+            </div>
+          </div>
+
+          <div class="pt-4 flex justify-between items-center">
+            <button
+              @click="resetWorkspace"
+              class="px-4 py-2 border border-border rounded-md hover:bg-muted transition-colors text-sm font-medium"
+            >
+              Reset to All
+            </button>
+            <div class="space-x-2">
+              <button
+                @click="verifyWorkspace"
+                :disabled="verifyingWorkspace"
+                class="px-4 py-2 border border-border rounded-md hover:bg-muted transition-colors text-sm font-medium disabled:opacity-50"
+              >
+                {{ verifyingWorkspace ? 'Verifying...' : 'Test Permissions' }}
+              </button>
+              <button
+                @click="saveWorkspace"
+                :disabled="workspaceForm.activeVaults.length === 0 || workspaceForm.activeStages.length === 0"
+                class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50"
+              >
+                Save Workspace
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Workspace Info -->
+        <div class="bg-muted/30 rounded-lg p-4 text-sm text-muted-foreground">
+          <p class="font-medium mb-1">About Workspace Configuration</p>
+          <p>Your workspace configuration is stored locally and not shared with your team. This allows each developer to customize their view to only show the vaults and stages they have access to and work with regularly.</p>
+          <p class="mt-2">Changes to your workspace will immediately affect which secrets are visible throughout the Keep UI.</p>
+        </div>
+
+        <!-- Current Workspace Summary -->
+        <div v-if="workspaceCreatedAt">
+          <h2 class="text-lg font-medium mb-4">Current Workspace</h2>
+          <div class="border border-border rounded-lg p-4 space-y-2 text-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-muted-foreground">Active Vaults</span>
+              <span>{{ workspaceForm.activeVaults.length }} of {{ availableVaults.length }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-muted-foreground">Active Stages</span>
+              <span>{{ workspaceForm.activeStages.length }} of {{ availableStages.length }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-muted-foreground">Created</span>
+              <span>{{ formatDate(workspaceCreatedAt) }}</span>
+            </div>
+            <div v-if="workspaceUpdatedAt" class="flex items-center justify-between">
+              <span class="text-muted-foreground">Last Updated</span>
+              <span>{{ formatDate(workspaceUpdatedAt) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -410,7 +519,8 @@ const toast = useToast()
 const tabs = [
   { id: 'general', label: 'General' },
   { id: 'vaults', label: 'Vaults' },
-  { id: 'stages', label: 'Stages' }
+  { id: 'stages', label: 'Stages' },
+  { id: 'workspace', label: 'Workspace' }
 ]
 const activeTab = ref('general')
 
@@ -447,6 +557,17 @@ const stageToDelete = ref('')
 const deleteStageModal = ref(null)
 const serverUrl = computed(() => typeof window !== 'undefined' ? window.location.origin : '')
 
+// Workspace
+const workspaceForm = ref({
+  activeVaults: [],
+  activeStages: []
+})
+const availableVaults = ref([])
+const availableStages = ref([])
+const workspaceCreatedAt = ref(null)
+const workspaceUpdatedAt = ref(null)
+const verifyingWorkspace = ref(false)
+
 // Helper functions
 function getVaultDisplayName(slug) {
   const vault = vaults.value.find(v => v.slug === slug)
@@ -479,6 +600,7 @@ onMounted(async () => {
   await loadSettings()
   await loadVaults()
   await loadStages()
+  await loadWorkspace()
 })
 
 // General Settings Functions
@@ -685,5 +807,94 @@ async function confirmDeleteStage() {
   } finally {
     stageToDelete.value = ''
   }
+}
+
+// Workspace Functions
+async function loadWorkspace() {
+  try {
+    const data = await window.$api.getWorkspace()
+    workspaceForm.value.activeVaults = data.active_vaults || []
+    workspaceForm.value.activeStages = data.active_stages || []
+    availableVaults.value = data.available_vaults || []
+    availableStages.value = data.available_stages || []
+    workspaceCreatedAt.value = data.created_at
+    workspaceUpdatedAt.value = data.updated_at
+  } catch (error) {
+    console.error('Failed to load workspace:', error)
+    toast.error('Failed to load workspace', error.message)
+  }
+}
+
+async function saveWorkspace() {
+  if (workspaceForm.value.activeVaults.length === 0) {
+    toast.error('Invalid workspace', 'At least one vault must be selected')
+    return
+  }
+  
+  if (workspaceForm.value.activeStages.length === 0) {
+    toast.error('Invalid workspace', 'At least one stage must be selected')
+    return
+  }
+  
+  try {
+    const result = await window.$api.updateWorkspace(
+      workspaceForm.value.activeVaults,
+      workspaceForm.value.activeStages
+    )
+    
+    if (result.success) {
+      workspaceUpdatedAt.value = result.workspace.updated_at
+      toast.success('Workspace saved', 'Your workspace configuration has been updated')
+      
+      // Reload vaults and stages to reflect the filtered workspace
+      await loadVaults()
+      await loadStages()
+    }
+  } catch (error) {
+    toast.error('Failed to save workspace', error.message)
+  }
+}
+
+function resetWorkspace() {
+  workspaceForm.value.activeVaults = [...availableVaults.value]
+  workspaceForm.value.activeStages = [...availableStages.value]
+}
+
+async function verifyWorkspace() {
+  verifyingWorkspace.value = true
+  showVerificationModal.value = true
+  verificationResults.value = null
+  
+  try {
+    const data = await window.$api.verifyWorkspace()
+    verificationResults.value = data.results || {}
+    
+    // Check if any vault/stage combination failed
+    const failedCombos = []
+    for (const [vaultName, stageResults] of Object.entries(data.results)) {
+      for (const [stageName, result] of Object.entries(stageResults)) {
+        if (!result.success) {
+          failedCombos.push(`${vaultName}:${stageName}`)
+        }
+      }
+    }
+    
+    if (failedCombos.length === 0) {
+      toast.success('Workspace verified', 'All selected vault/stage combinations are accessible')
+    } else {
+      toast.warning('Verification complete', `${failedCombos.length} vault/stage combination(s) are not accessible`)
+    }
+  } catch (error) {
+    toast.error('Failed to verify workspace', error.message)
+    showVerificationModal.value = false
+  } finally {
+    verifyingWorkspace.value = false
+  }
+}
+
+function formatDate(dateString) {
+  if (!dateString) return 'Never'
+  const date = new Date(dateString)
+  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString()
 }
 </script>

@@ -29,10 +29,8 @@ test('list returns configured vaults', function () {
 });
 
 test('listStages returns configured stages', function () {
-    $mockManager = $this->createPartialMock(KeepManager::class, ['getSettings']);
-    $mockManager->method('getSettings')->willReturn([
-        'stages' => ['local', 'staging', 'production', 'custom']
-    ]);
+    $mockManager = $this->createPartialMock(KeepManager::class, ['getStages']);
+    $mockManager->method('getStages')->willReturn(['local', 'staging', 'production', 'custom']);
     
     $controller = new VaultController($mockManager);
     $response = $controller->listStages();
@@ -43,13 +41,13 @@ test('listStages returns configured stages', function () {
 });
 
 test('getSettings returns app configuration', function () {
-    $mockManager = $this->createPartialMock(KeepManager::class, ['getSettings', 'getDefaultVault']);
+    $mockManager = $this->createPartialMock(KeepManager::class, ['getSettings', 'getDefaultVault', 'getStages']);
     $mockManager->method('getSettings')->willReturn([
         'app_name' => 'My App',
         'namespace' => 'MYAPP',
-        'stages' => ['local', 'prod'],
         'default_stage' => 'local'
     ]);
+    $mockManager->method('getStages')->willReturn(['local', 'prod']);
     $mockManager->method('getDefaultVault')->willReturn('aws');
     
     $controller = new VaultController($mockManager);
@@ -58,6 +56,7 @@ test('getSettings returns app configuration', function () {
     expect($response)->toHaveKeys(['app_name', 'namespace', 'stages', 'default_vault', 'template_path', 'keep_version']);
     expect($response['app_name'])->toBe('My App');
     expect($response['namespace'])->toBe('MYAPP');
+    expect($response['stages'])->toBe(['local', 'prod']);
     expect($response['default_vault'])->toBe('aws');
 });
 
