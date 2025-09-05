@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\File;
 use STS\Keep\Facades\Keep;
 use STS\Keep\Tests\Support\TestVault;
 
@@ -32,29 +31,46 @@ beforeEach(function() {
     // Clear any existing vaults
     TestVault::clearAll();
     
-    // Set up KeepManager to bind to container
+    // Set up KeepManager with vault configurations
     setupKeepManager([
         'app_name' => 'test-app',
         'namespace' => 'test-app',
         'default_vault' => 'test-vault',
         'stages' => ['local', 'development', 'production'],
+    ], [
+        'test-vault' => [
+            'slug' => 'test-vault',
+            'driver' => 'test',
+            'name' => 'Test Vault',
+            'scope' => '',
+        ],
+        'second-vault' => [
+            'slug' => 'second-vault',
+            'driver' => 'test',
+            'name' => 'Second Vault',
+            'scope' => '',
+        ],
     ]);
+    
+    // Also create the vault configuration files for the commands to find
+    $testVaultConfig = [
+        'slug' => 'test-vault',
+        'driver' => 'test',
+        'name' => 'Test Vault',
+        'scope' => '',
+    ];
+    file_put_contents('.keep/vaults/test-vault.json', json_encode($testVaultConfig, JSON_PRETTY_PRINT));
+    
+    $secondVaultConfig = [
+        'slug' => 'second-vault',
+        'driver' => 'test',
+        'name' => 'Second Vault',
+        'scope' => '',
+    ];
+    file_put_contents('.keep/vaults/second-vault.json', json_encode($secondVaultConfig, JSON_PRETTY_PRINT));
     
     // Register test vault driver
     Keep::addVaultDriver(TestVault::class);
-    
-    // Create test vaults
-    runCommand('vault:add', [
-        'slug' => 'test-vault',
-        '--driver' => 'test',
-        '--no-interaction' => true,
-    ]);
-    
-    runCommand('vault:add', [
-        'slug' => 'second-vault',
-        '--driver' => 'test',
-        '--no-interaction' => true,
-    ]);
     
     // Add some test secrets
     Keep::vault('test-vault', 'local')->set('db-password', 'secret123');
@@ -68,7 +84,7 @@ beforeEach(function() {
 afterEach(function() {
     // Clean up temp directory
     if (is_dir($this->tempDir)) {
-        File::deleteDirectory($this->tempDir);
+        deleteDirectory($this->tempDir);
     }
     
     // Restore original directory
@@ -77,6 +93,23 @@ afterEach(function() {
     // Clear test vaults
     TestVault::clearAll();
 });
+
+// Helper function to recursively delete directory
+function deleteDirectory($dir) {
+    if (!is_dir($dir)) return;
+    
+    $objects = scandir($dir);
+    foreach ($objects as $object) {
+        if ($object != "." && $object != "..") {
+            if (is_dir($dir . DIRECTORY_SEPARATOR . $object) && !is_link($dir . "/" . $object)) {
+                deleteDirectory($dir . DIRECTORY_SEPARATOR . $object);
+            } else {
+                unlink($dir . DIRECTORY_SEPARATOR . $object);
+            }
+        }
+    }
+    rmdir($dir);
+}
 
 test('template:add creates template for stage', function() {
     $commandTester = runCommand('template:add', [
