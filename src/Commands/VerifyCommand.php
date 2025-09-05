@@ -47,6 +47,9 @@ class VerifyCommand extends BaseCommand
 
             return $results;
         }, 'Checking vault access permissions...');
+        
+        // Save all collected permissions after verification is complete
+        $this->saveAllPermissions($results);
 
         $this->displayResults($results);
     }
@@ -65,13 +68,6 @@ class VerifyCommand extends BaseCommand
         if ($permissions['Delete']) $stagePermissions[] = 'delete';
         if ($permissions['History']) $stagePermissions[] = 'history';
         
-        // Update vault config with these permissions
-        $vaultConfig = Keep::getVaultConfig($vaultName);
-        if ($vaultConfig) {
-            $updatedConfig = $vaultConfig->withStagePermissions($stage, $stagePermissions);
-            $updatedConfig->save();
-        }
-        
         // Transform to match our existing format (for compatibility with display methods)
         return [
             'vault' => $vaultName,
@@ -81,6 +77,7 @@ class VerifyCommand extends BaseCommand
             'read' => $permissions['Read'],
             'history' => $permissions['History'],
             'cleanup' => $permissions['Delete'], // Delete permission indicates cleanup success
+            'permissions' => $stagePermissions, // Include permissions for saving later
         ];
     }
 
@@ -185,5 +182,30 @@ class VerifyCommand extends BaseCommand
         }
 
         return $contexts;
+    }
+    
+    protected function saveAllPermissions(array $results): void
+    {
+        // Group results by vault
+        $vaultPermissions = [];
+        foreach ($results as $result) {
+            $vaultName = $result['vault'];
+            $stage = $result['stage'];
+            $permissions = $result['permissions'] ?? [];
+            
+            if (!isset($vaultPermissions[$vaultName])) {
+                $vaultPermissions[$vaultName] = [];
+            }
+            $vaultPermissions[$vaultName][$stage] = $permissions;
+        }
+        
+        // Update each vault config with all its stage permissions
+        foreach ($vaultPermissions as $vaultName => $allStagePermissions) {
+            $vaultConfig = Keep::getVaultConfig($vaultName);
+            if ($vaultConfig) {
+                $updatedConfig = $vaultConfig->withPermissions($allStagePermissions);
+                $updatedConfig->save();
+            }
+        }
     }
 }

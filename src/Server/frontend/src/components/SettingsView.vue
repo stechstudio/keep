@@ -326,35 +326,40 @@
       </div>
 
       <div v-if="verificationResults" class="space-y-4">
-        <div v-for="(result, vaultName) in verificationResults" :key="vaultName" 
+        <div v-for="(stageResults, vaultName) in verificationResults" :key="vaultName" 
              class="border border-border rounded-lg p-4">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="font-medium">{{ getVaultDisplayName(vaultName) }}</h3>
-            <span :class="[
-              'px-2 py-1 rounded text-xs font-medium',
-              result.success ? 'bg-green-500/10 text-green-500' : 'bg-destructive/10 text-destructive'
-            ]">
-              {{ result.success ? 'Connected' : 'Failed' }}
-            </span>
-          </div>
+          <h3 class="font-medium mb-3">{{ getVaultDisplayName(vaultName) }}</h3>
           
-          <div v-if="result.success && result.permissions" class="grid grid-cols-5 gap-2 text-sm">
-            <div v-for="(status, permission) in result.permissions" :key="permission"
-                 class="flex items-center space-x-2">
-              <svg v-if="status" class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-              </svg>
-              <svg v-else class="w-4 h-4 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-              <span :class="status ? 'text-muted-foreground' : 'text-destructive'">
-                {{ permission }}
+          <!-- Show results for each stage -->
+          <div v-for="(result, stageName) in stageResults" :key="stageName" class="mb-3 last:mb-0">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm text-muted-foreground">{{ stageName }}</span>
+              <span :class="[
+                'px-2 py-1 rounded text-xs font-medium',
+                result.success ? 'bg-green-500/10 text-green-500' : 'bg-destructive/10 text-destructive'
+              ]">
+                {{ result.success ? 'Connected' : 'Failed' }}
               </span>
             </div>
-          </div>
-          
-          <div v-else-if="result.error" class="text-sm text-destructive mt-2">
-            {{ result.error }}
+            
+            <div v-if="result.success && result.permissions" class="grid grid-cols-5 gap-2 text-sm ml-4">
+              <div v-for="(status, permission) in result.permissions" :key="permission"
+                   class="flex items-center space-x-2">
+                <svg v-if="status" class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <svg v-else class="w-4 h-4 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                <span :class="status ? 'text-muted-foreground' : 'text-destructive'">
+                  {{ permission }}
+                </span>
+              </div>
+            </div>
+            
+            <div v-else-if="result.error" class="text-sm text-destructive ml-4">
+              {{ result.error }}
+            </div>
           </div>
         </div>
       </div>
@@ -600,15 +605,26 @@ async function verifyAllVaults() {
     const data = await window.$api.verifyVaults()
     const results = data.results || {}
     
-    // Results now come with permissions from backend
+    // Results now come with permissions from backend, organized by vault and stage
     verificationResults.value = results
     
-    const failedVaults = Object.entries(results).filter(([_, result]) => !result.success)
+    // Check if any vault/stage combination failed
+    const failedVaults = []
+    for (const [vaultName, stageResults] of Object.entries(results)) {
+      for (const [stageName, result] of Object.entries(stageResults)) {
+        if (!result.success) {
+          failedVaults.push(`${vaultName}:${stageName}`)
+        }
+      }
+    }
     if (failedVaults.length === 0) {
       toast.success('All vaults verified', 'All vaults are properly configured and accessible')
     } else {
-      toast.error('Verification failed', `${failedVaults.length} vault(s) failed verification`)
+      toast.error('Verification failed', `${failedVaults.length} vault/stage combination(s) failed verification`)
     }
+    
+    // Reload vaults to get updated permissions
+    await loadVaults()
   } catch (error) {
     toast.error('Failed to verify vaults', error.message)
     showVerificationModal.value = false
@@ -641,6 +657,9 @@ async function addStage() {
     stages.value.push(newStage.value)
     toast.success('Stage added', `Stage "${newStage.value}" has been added`)
     newStage.value = ''
+    
+    // Reload vaults to get updated permissions for the new stage
+    await loadVaults()
   } catch (error) {
     toast.error('Failed to add stage', error.message)
   }
