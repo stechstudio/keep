@@ -75,8 +75,19 @@ trait ConfiguresVaults
 
         info("✅ {$friendlyName} vault '{$slug}' configured successfully");
         
+        // Reload vault configurations to include the newly saved vault
+        // This ensures the permission tester can find and update the vault
+        $container = \STS\Keep\KeepContainer::getInstance();
+        $container->instance(
+            \STS\Keep\KeepManager::class,
+            new \STS\Keep\KeepManager(
+                \STS\Keep\Data\Settings::load(),
+                \STS\Keep\Data\Collections\VaultConfigCollection::load()
+            )
+        );
+        
         // Run verify to check and cache permissions for all stages
-        info('\nVerifying vault permissions...');
+        info("\nVerifying vault permissions...");
         $tester = new VaultPermissionTester();
         $collection = $tester->testVaultAcrossStages($slug);
         
