@@ -126,7 +126,8 @@ class VaultController extends ApiController
             Settings::fromArray($settings)->save();
             
             // Verify and cache permissions for all vaults with the new stage
-            $this->verifyPermissionsForNewStage($stageName);
+            $tester = new VaultPermissionTester();
+            $tester->testNewStageAcrossVaults($stageName);
             
             return $this->success([
                 'message' => 'Stage added successfully',
@@ -341,86 +342,15 @@ class VaultController extends ApiController
 
     public function verify(): array
     {
-        $results = [];
         $tester = new VaultPermissionTester();
-        $stages = $this->manager->getStages();
-        
-        foreach ($this->manager->getConfiguredVaults() as $vaultConfig) {
-            $vaultName = $vaultConfig->slug();
-            $vaultResults = [];
-            $allStagePermissions = [];
-            
-            // Test permissions for each stage
-            foreach ($stages as $stage) {
-                try {
-                    $vault = $this->manager->vault($vaultName, $stage);
-                    $permissions = $tester->testPermissions($vault);
-                    
-                    // Build permissions array for storage
-                    $stagePermissions = [];
-                    if ($permissions['List']) $stagePermissions[] = 'list';
-                    if ($permissions['Read']) $stagePermissions[] = 'read';
-                    if ($permissions['Write']) $stagePermissions[] = 'write';
-                    if ($permissions['Delete']) $stagePermissions[] = 'delete';
-                    if ($permissions['History']) $stagePermissions[] = 'history';
-                    
-                    $allStagePermissions[$stage] = $stagePermissions;
-                    
-                    $vaultResults[$stage] = [
-                        'success' => $permissions['List'] || $permissions['Read'],
-                        'permissions' => $permissions
-                    ];
-                } catch (Exception $e) {
-                    $vaultResults[$stage] = [
-                        'success' => false,
-                        'error' => $e->getMessage(),
-                        'permissions' => $tester->getEmptyPermissions()
-                    ];
-                    $allStagePermissions[$stage] = [];
-                }
-            }
-            
-            // Update vault config with all stage permissions
-            if (!empty($allStagePermissions)) {
-                $updatedConfig = $vaultConfig->withPermissions($allStagePermissions);
-                $updatedConfig->save();
-            }
-            
-            $results[$vaultName] = $vaultResults;
-        }
+        $collection = $tester->testAllPermissions();
         
         return $this->success([
-            'results' => $results
+            'results' => $collection->toApiResponse()
         ]);
     }
 
 
-    protected function verifyPermissionsForNewStage(string $stageName): void
-    {
-        $tester = new VaultPermissionTester();
-        
-        foreach ($this->manager->getConfiguredVaults() as $vaultConfig) {
-            try {
-                $vault = $this->manager->vault($vaultConfig->slug(), $stageName);
-                $permissions = $tester->testPermissions($vault);
-                
-                // Build permissions array
-                $stagePermissions = [];
-                if ($permissions['List']) $stagePermissions[] = 'list';
-                if ($permissions['Read']) $stagePermissions[] = 'read';
-                if ($permissions['Write']) $stagePermissions[] = 'write';
-                if ($permissions['Delete']) $stagePermissions[] = 'delete';
-                if ($permissions['History']) $stagePermissions[] = 'history';
-                
-                // Update vault config with these permissions
-                $updatedConfig = $vaultConfig->withStagePermissions($stageName, $stagePermissions);
-                $updatedConfig->save();
-            } catch (\Exception $e) {
-                // Skip vaults that can't be verified
-            }
-        }
-    }
-    
     public function diff(): array
     {
         $stages = $this->hasParam('stages')
