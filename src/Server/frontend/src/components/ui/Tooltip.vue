@@ -26,7 +26,7 @@
         >
           {{ content }}
           <div
-            class="absolute w-2 h-2 bg-popover border-l border-b border-border transform rotate-45"
+            class="absolute w-2 h-2 bg-popover border-b border-r border-border transform rotate-45"
             :class="arrowClass"
           />
         </div>
