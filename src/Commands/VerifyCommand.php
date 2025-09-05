@@ -3,6 +3,7 @@
 namespace STS\Keep\Commands;
 
 use Illuminate\Support\Str;
+use STS\Keep\Data\Collections\PermissionsCollection;
 use STS\Keep\Data\Context;
 use STS\Keep\Facades\Keep;
 use STS\Keep\Services\VaultPermissionTester;
@@ -21,65 +22,34 @@ class VerifyCommand extends BaseCommand
 
     public function process()
     {
-        $results = spin(function () {
+        $tester = new VaultPermissionTester();
+        
+        /** @var PermissionsCollection $collection */
+        $collection = spin(function () use ($tester) {
             // If --context is provided, use specific contexts
             if ($this->option('context')) {
                 $contexts = $this->parseContexts();
-                $results = [];
-
-                foreach ($contexts as $context) {
-                    $results[] = $this->verifyVaultStage($context->vault, $context->stage);
-                }
-
-                return $results;
+                $vaults = array_unique(array_map(fn($c) => $c->vault, $contexts));
+                $stages = array_unique(array_map(fn($c) => $c->stage, $contexts));
+                
+                return $tester->testBulkPermissions($vaults, $stages);
             }
 
             // Otherwise use existing logic
-            $vaults = $this->option('vault') ? [$this->option('vault')] : Keep::getConfiguredVaults();
-            $stages = $this->option('stage') ? [$this->option('stage')] : Keep::getStages();
-            $results = [];
-
-            foreach ($vaults as $vaultName => $config) {
-                foreach ($stages as $stage) {
-                    $results[] = $this->verifyVaultStage($vaultName, $stage);
-                }
-            }
-
-            return $results;
+            $vaults = $this->option('vault') 
+                ? [$this->option('vault')] 
+                : Keep::getConfiguredVaults()->keys()->toArray();
+                
+            $stages = $this->option('stage') 
+                ? [$this->option('stage')] 
+                : Keep::getStages();
+            
+            return $tester->testBulkPermissions($vaults, $stages);
         }, 'Checking vault access permissions...');
-        
-        // Save all collected permissions after verification is complete
-        $this->saveAllPermissions($results);
 
-        $this->displayResults($results);
+        $this->displayResults($collection->toDisplayArray());
     }
 
-    protected function verifyVaultStage(string $vaultName, string $stage): array
-    {
-        $vault = Keep::vault($vaultName, $stage);
-        $tester = new VaultPermissionTester();
-        $permissions = $tester->testPermissions($vault);
-        
-        // Build permissions array for storage
-        $stagePermissions = [];
-        if ($permissions['List']) $stagePermissions[] = 'list';
-        if ($permissions['Read']) $stagePermissions[] = 'read';
-        if ($permissions['Write']) $stagePermissions[] = 'write';
-        if ($permissions['Delete']) $stagePermissions[] = 'delete';
-        if ($permissions['History']) $stagePermissions[] = 'history';
-        
-        // Transform to match our existing format (for compatibility with display methods)
-        return [
-            'vault' => $vaultName,
-            'stage' => $stage,
-            'list' => $permissions['List'],
-            'write' => $permissions['Write'],
-            'read' => $permissions['Read'],
-            'history' => $permissions['History'],
-            'cleanup' => $permissions['Delete'], // Delete permission indicates cleanup success
-            'permissions' => $stagePermissions, // Include permissions for saving later
-        ];
-    }
 
     protected function displayResults(array $results): void
     {
@@ -182,30 +152,5 @@ class VerifyCommand extends BaseCommand
         }
 
         return $contexts;
-    }
-    
-    protected function saveAllPermissions(array $results): void
-    {
-        // Group results by vault
-        $vaultPermissions = [];
-        foreach ($results as $result) {
-            $vaultName = $result['vault'];
-            $stage = $result['stage'];
-            $permissions = $result['permissions'] ?? [];
-            
-            if (!isset($vaultPermissions[$vaultName])) {
-                $vaultPermissions[$vaultName] = [];
-            }
-            $vaultPermissions[$vaultName][$stage] = $permissions;
-        }
-        
-        // Update each vault config with all its stage permissions
-        foreach ($vaultPermissions as $vaultName => $allStagePermissions) {
-            $vaultConfig = Keep::getVaultConfig($vaultName);
-            if ($vaultConfig) {
-                $updatedConfig = $vaultConfig->withPermissions($allStagePermissions);
-                $updatedConfig->save();
-            }
-        }
     }
 }
