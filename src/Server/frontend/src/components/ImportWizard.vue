@@ -170,7 +170,7 @@
                     }"
                   >
                     <td class="px-4 py-2 font-mono">{{ secret.key }}</td>
-                    <td class="px-4 py-2 font-mono text-xs">
+                    <td class="px-4 py-2 font-mono text-xs break-all">
                       {{ secret.value || '(empty)' }}
                     </td>
                     <td class="px-4 py-2">

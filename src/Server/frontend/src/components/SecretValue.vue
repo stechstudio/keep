@@ -32,7 +32,7 @@
       </Tooltip>
     </div>
 
-    <div class="font-mono text-sm">
+    <div class="font-mono text-sm break-all">
       {{ displayValue }}
     </div>
   </div>

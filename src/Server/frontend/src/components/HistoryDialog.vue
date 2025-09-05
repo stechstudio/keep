@@ -65,7 +65,7 @@
                 </span>
               </td>
               <td class="px-4 py-3 text-sm">
-                <span class="font-mono">{{ getMaskedValue(entry.value) }}</span>
+                <span class="font-mono break-all">{{ getMaskedValue(entry.value) }}</span>
               </td>
               <td class="px-4 py-3 text-sm text-muted-foreground">
                 {{ entry.dataType }}

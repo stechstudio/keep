@@ -149,7 +149,7 @@
               :class="getCellClass(key, column.vault, column.stage)"
           >
             <div v-if="getSecretValue(key, column.vault, column.stage)" class="flex items-center justify-between">
-                <span class="font-mono text-sm">
+                <span class="font-mono text-sm break-all">
                   {{ getMaskedValue(key, column.vault, column.stage) }}
                 </span>
               <SecretActionsMenu
