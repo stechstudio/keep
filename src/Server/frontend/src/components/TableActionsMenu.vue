@@ -1,7 +1,8 @@
 <template>
   <div class="relative">
-    <!-- Three-dot menu button -->
+    <!-- Three-dot menu button - only show if user has some permissions -->
     <button
+      v-if="permissions.read || permissions.write"
       @click="toggleMenu($event)"
       class="p-2 rounded hover:bg-muted transition-colors"
       title="Actions"
@@ -19,6 +20,7 @@
     >
       <div class="py-1">
         <button
+          v-if="permissions.write"
           @click="showImportWizard = true; menuOpen = false"
           class="w-full text-left px-4 py-2 text-sm hover:bg-accent transition-colors flex items-center space-x-2"
         >
@@ -29,6 +31,7 @@
         </button>
         
         <button
+          v-if="permissions.read"
           @click="showExportModal = true; menuOpen = false"
           class="w-full text-left px-4 py-2 text-sm hover:bg-accent transition-colors flex items-center space-x-2"
         >
@@ -71,6 +74,10 @@ const props = defineProps({
   secrets: {
     type: Array,
     default: () => []
+  },
+  permissions: {
+    type: Object,
+    default: () => ({ list: true, read: true, write: true, delete: true, history: true })
   }
 })
 

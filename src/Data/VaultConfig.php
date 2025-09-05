@@ -14,7 +14,9 @@ class VaultConfig
         protected string $driver,
         protected string $name,
         protected string $scope = '',
-        protected array $config = []
+        protected array $config = [],
+        protected array $permissions = [],
+        protected ?string $permissionsVerifiedAt = null
     ) {
         $this->validate();
     }
@@ -34,13 +36,17 @@ class VaultConfig
         $driver = $data['driver'];
         $name = $data['name'];
         $scope = $data['scope'] ?? '';
+        $permissions = $data['permissions'] ?? [];
+        $permissionsVerifiedAt = $data['permissions_verified_at'] ?? null;
         
         // Everything else goes into config (vendor-specific settings)
         $config = array_diff_key($data, [
             'slug' => null, 
             'driver' => null, 
             'name' => null,
-            'scope' => null
+            'scope' => null,
+            'permissions' => null,
+            'permissions_verified_at' => null
         ]);
 
         return new static(
@@ -48,18 +54,31 @@ class VaultConfig
             driver: $driver,
             name: $name,
             scope: $scope,
-            config: $config
+            config: $config,
+            permissions: $permissions,
+            permissionsVerifiedAt: $permissionsVerifiedAt
         );
     }
 
     public function toArray(): array
     {
-        return array_merge([
+        $data = array_merge([
             'slug' => $this->slug,
             'driver' => $this->driver,
             'name' => $this->name,
             'scope' => $this->scope,
         ], $this->config);
+        
+        // Only include permissions if they exist
+        if (!empty($this->permissions)) {
+            $data['permissions'] = $this->permissions;
+        }
+        
+        if ($this->permissionsVerifiedAt !== null) {
+            $data['permissions_verified_at'] = $this->permissionsVerifiedAt;
+        }
+        
+        return $data;
     }
 
     protected function validate(): void
@@ -161,6 +180,26 @@ class VaultConfig
     {
         return $this->config;
     }
+    
+    public function permissions(): array
+    {
+        return $this->permissions;
+    }
+    
+    public function permissionsForStage(string $stage): array
+    {
+        return $this->permissions[$stage] ?? [];
+    }
+    
+    public function hasPermission(string $stage, string $permission): bool
+    {
+        return in_array($permission, $this->permissionsForStage($stage));
+    }
+    
+    public function permissionsVerifiedAt(): ?string
+    {
+        return $this->permissionsVerifiedAt;
+    }
 
     public function get(string $key, mixed $default = null): mixed
     {
@@ -189,7 +228,9 @@ class VaultConfig
             driver: $this->driver,
             name: $this->name,
             scope: $scope,
-            config: $this->config
+            config: $this->config,
+            permissions: $this->permissions,
+            permissionsVerifiedAt: $this->permissionsVerifiedAt
         );
     }
 
@@ -200,7 +241,9 @@ class VaultConfig
             driver: $this->driver,
             name: $this->name,
             scope: $this->scope,
-            config: $config
+            config: $config,
+            permissions: $this->permissions,
+            permissionsVerifiedAt: $this->permissionsVerifiedAt
         );
     }
 
@@ -214,7 +257,9 @@ class VaultConfig
             driver: $this->driver,
             name: $this->name,
             scope: $this->scope,
-            config: $newConfig
+            config: $newConfig,
+            permissions: $this->permissions,
+            permissionsVerifiedAt: $this->permissionsVerifiedAt
         );
     }
 
@@ -228,7 +273,38 @@ class VaultConfig
             driver: $this->driver,
             name: $this->name,
             scope: $this->scope,
-            config: $newConfig
+            config: $newConfig,
+            permissions: $this->permissions,
+            permissionsVerifiedAt: $this->permissionsVerifiedAt
+        );
+    }
+    
+    public function withPermissions(array $permissions, ?string $verifiedAt = null): static
+    {
+        return new static(
+            slug: $this->slug,
+            driver: $this->driver,
+            name: $this->name,
+            scope: $this->scope,
+            config: $this->config,
+            permissions: $permissions,
+            permissionsVerifiedAt: $verifiedAt ?? date('c')
+        );
+    }
+    
+    public function withStagePermissions(string $stage, array $stagePermissions): static
+    {
+        $newPermissions = $this->permissions;
+        $newPermissions[$stage] = $stagePermissions;
+        
+        return new static(
+            slug: $this->slug,
+            driver: $this->driver,
+            name: $this->name,
+            scope: $this->scope,
+            config: $this->config,
+            permissions: $newPermissions,
+            permissionsVerifiedAt: date('c')
         );
     }
 }

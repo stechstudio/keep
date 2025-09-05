@@ -63,8 +63,8 @@ import { useKeyboardShortcuts } from './composables/useKeyboardShortcuts'
 
 const tabs = [
   { id: 'secrets', label: 'Secrets', path: '/secrets' },
-  { id: 'templates', label: 'Templates', path: '/templates' },
   { id: 'diff', label: 'Compare', path: '/diff' },
+  { id: 'templates', label: 'Templates', path: '/templates' },
   { id: 'settings', label: 'Settings', path: '/settings' }
 ]
 

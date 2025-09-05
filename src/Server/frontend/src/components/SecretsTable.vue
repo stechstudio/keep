@@ -43,6 +43,7 @@
         </div>
         
         <button
+          v-if="permissions.write"
           @click="showAddDialog = true"
           class="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
         >
@@ -56,6 +57,7 @@
           :vault="vault"
           :stage="stage"
           :secrets="secrets"
+          :permissions="permissions"
           @imported="loadSecrets"
         />
       </div>
@@ -90,7 +92,7 @@
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
               <div class="flex items-center justify-end gap-1 opacity-30 group-hover:opacity-100 transition-opacity">
-                <Tooltip content="Edit" :delay-duration="200">
+                <Tooltip v-if="permissions.write" content="Edit" :delay-duration="200">
                   <button
                     @click="editSecret({ key: secret.key, value: secret.value, vault, stage })"
                     class="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
@@ -100,7 +102,7 @@
                     </svg>
                   </button>
                 </Tooltip>
-                <Tooltip content="Rename" :delay-duration="200">
+                <Tooltip v-if="permissions.write" content="Rename" :delay-duration="200">
                   <button
                     @click="showRenameDialog({ key: secret.key, value: secret.value, vault, stage })"
                     class="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
@@ -120,7 +122,7 @@
 <!--                    </svg>-->
 <!--                  </button>-->
 <!--                </Tooltip>-->
-                <Tooltip content="Copy to Stage" :delay-duration="200">
+                <Tooltip v-if="permissions.write" content="Copy to Stage" :delay-duration="200">
                   <button
                     @click="showCopyToStageDialog({ key: secret.key, value: secret.value, vault, stage })"
                     class="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
@@ -130,7 +132,7 @@
                     </svg>
                   </button>
                 </Tooltip>
-                <Tooltip content="History" :delay-duration="200">
+                <Tooltip v-if="permissions.history" content="History" :delay-duration="200">
                   <button
                     @click="showHistoryDialog({ key: secret.key, vault, stage })"
                     class="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
@@ -140,7 +142,7 @@
                     </svg>
                   </button>
                 </Tooltip>
-                <Tooltip content="Delete" :delay-duration="200">
+                <Tooltip v-if="permissions.delete" content="Delete" :delay-duration="200">
                   <button
                     @click="showDeleteDialog({ key: secret.key, vault, stage })"
                     class="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
@@ -264,6 +266,24 @@ const secrets = computed(() => {
     const valueMatches = secret.value && secret.value.toLowerCase().includes(query)
     return keyMatches || valueMatches
   })
+})
+
+// Get permissions for current vault and stage
+const permissions = computed(() => {
+  const currentVault = vaults.value.find(v => v.slug === vault.value)
+  if (!currentVault || !currentVault.permissions || !stage.value) {
+    // If no permissions are cached, assume full permissions for backward compatibility
+    return { list: true, read: true, write: true, delete: true, history: true }
+  }
+  
+  const stagePerms = currentVault.permissions[stage.value] || []
+  return {
+    list: stagePerms.includes('list'),
+    read: stagePerms.includes('read'),
+    write: stagePerms.includes('write'),
+    delete: stagePerms.includes('delete'),
+    history: stagePerms.includes('history')
+  }
 })
 
 // Keyboard shortcut cleanup functions
