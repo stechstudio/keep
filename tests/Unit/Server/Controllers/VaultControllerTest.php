@@ -112,11 +112,11 @@ test('removeStage prevents removing system stages', function () {
 });
 
 test('diff returns comparison matrix', function () {
-    $vault1 = new \STS\Keep\Vaults\TestVault('vault1', 'local');
+    $vault1 = new \STS\Keep\Tests\Support\TestVault('vault1', [], 'local');
     $vault1->set('SECRET1', 'value1');
     $vault1->set('SECRET2', 'value2');
     
-    $vault2 = new \STS\Keep\Vaults\TestVault('vault1', 'prod');
+    $vault2 = new \STS\Keep\Tests\Support\TestVault('vault1', [], 'prod');
     $vault2->set('SECRET1', 'value1_prod');
     
     $mockManager = $this->createPartialMock(KeepManager::class, ['vault', 'getConfiguredVaults']);
