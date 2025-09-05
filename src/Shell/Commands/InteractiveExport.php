@@ -40,25 +40,51 @@ class InteractiveExport
             '--vault' => $this->context->getVault(),
         ];
         
+        // Check if a stage template exists
+        $settings = \STS\Keep\Facades\Keep::getSettings();
+        $templateDir = $settings['template_path'] ?? 'env';
+        $stageTemplate = getcwd() . '/' . $templateDir . '/' . $this->context->getStage() . '.env';
+        $hasStageTemplate = file_exists($stageTemplate);
+        
+        // Build export mode options
+        $exportOptions = [
+            'all' => 'All secrets from current context',
+        ];
+        
+        // Add stage template option if it exists
+        if ($hasStageTemplate) {
+            $relativePath = $templateDir . '/' . $this->context->getStage() . '.env';
+            $exportOptions['stage_template'] = "Use {$relativePath}";
+        }
+        
+        // Always offer custom template option
+        $exportOptions['template'] = 'Use custom template file';
+        $exportOptions['filtered'] = 'Filtered secrets (with patterns)';
+        
         // Ask what they want to export
         $mode = select(
             label: 'What would you like to export?',
-            options: [
-                'all' => 'All secrets from current context',
-                'template' => 'Use a template file',
-                'filtered' => 'Filtered secrets (with patterns)',
-            ],
+            options: $exportOptions,
             default: 'all'
         );
         
-        // Handle template mode
-        if ($mode === 'template') {
+        // Handle template modes
+        if ($mode === 'stage_template') {
+            // Use the auto-discovered stage template
+            $options['--template'] = $stageTemplate;
+            $templateFile = $stageTemplate;
+        } elseif ($mode === 'template') {
+            // Ask for custom template path
             $templateFile = text(
                 label: 'Template file path',
                 placeholder: '.env.template',
                 required: true
             );
             $options['--template'] = $templateFile;
+        }
+        
+        // Handle template options (for both stage and custom templates)
+        if ($mode === 'stage_template' || $mode === 'template') {
             
             if (confirm('Include all vault secrets (not just template placeholders)?', false)) {
                 $options['--all'] = true;
