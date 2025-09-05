@@ -5,6 +5,8 @@ namespace STS\Keep\Server\Controllers;
 use STS\Keep\Data\Settings;
 use STS\Keep\Data\Template;
 use STS\Keep\Enums\MissingSecretStrategy;
+use STS\Keep\Facades\Keep;
+use STS\Keep\KeepManager;
 use STS\Keep\Services\TemplateService;
 use STS\Keep\Services\SecretLoader;
 use STS\Keep\Services\VaultDiscovery;
@@ -15,7 +17,7 @@ class TemplateController extends ApiController
     private SecretLoader $secretLoader;
     private VaultDiscovery $vaultDiscovery;
     
-    public function __construct(\STS\Keep\KeepManager $manager, array $query = [], array $body = [])
+    public function __construct(KeepManager $manager, array $query = [], array $body = [])
     {
         parent::__construct($manager, $query, $body);
         
@@ -180,7 +182,7 @@ class TemplateController extends ApiController
         $allVaults = $this->vaultDiscovery->discoverVaults($placeholders, $stage);
         foreach ($allVaults as $vaultName) {
             try {
-                $vault = \STS\Keep\Facades\Keep::vault($vaultName, $stage);
+                $vault = Keep::vault($vaultName, $stage);
                 $allSecrets = $vault->list();
                 $referencedKeys = $placeholders->getReferencedKeysForVault($vaultName, $vaultName);
                 
@@ -262,11 +264,11 @@ class TemplateController extends ApiController
         $placeholders = [];
         
         // Get all configured vaults using Keep facade
-        $configuredVaults = \STS\Keep\Facades\Keep::getConfiguredVaults();
+        $configuredVaults = Keep::getConfiguredVaults();
         
         foreach ($configuredVaults as $vaultName => $config) {
             try {
-                $vault = \STS\Keep\Facades\Keep::vault($vaultName, $stage);
+                $vault = Keep::vault($vaultName, $stage);
                 $secrets = $vault->list();
                 
                 foreach ($secrets as $secret) {
