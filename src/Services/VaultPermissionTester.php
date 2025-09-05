@@ -7,6 +7,7 @@ use STS\Keep\Data\Collections\FilterCollection;
 use STS\Keep\Data\Collections\PermissionsCollection;
 use STS\Keep\Data\VaultStagePermissions;
 use STS\Keep\Facades\Keep;
+use STS\Keep\Services\LocalStorage;
 use STS\Keep\Vaults\AbstractVault;
 
 class VaultPermissionTester
@@ -167,11 +168,9 @@ class VaultPermissionTester
     
     protected function persistVaultPermissions(string $vaultName, array $stagePermissions): void
     {
-        $vaultConfig = Keep::getVaultConfig($vaultName);
-        if ($vaultConfig) {
-            $updatedConfig = $vaultConfig->withPermissions($stagePermissions);
-            $updatedConfig->save();
-        }
+        // Save to local storage instead of vault config
+        $localStorage = new LocalStorage();
+        $localStorage->saveVaultPermissions($vaultName, $stagePermissions);
     }
     
     /**

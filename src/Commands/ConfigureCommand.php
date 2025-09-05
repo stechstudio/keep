@@ -141,6 +141,13 @@ class ConfigureCommand extends BaseCommand
 
         $this->filesystem->ensureDirectoryExists($keepDir);
         $this->filesystem->ensureDirectoryExists($keepDir.'/vaults');
+        $this->filesystem->ensureDirectoryExists($keepDir.'/local');
+        
+        // Create .gitignore to exclude local directory
+        $gitignorePath = $keepDir.'/.gitignore';
+        if (!file_exists($gitignorePath)) {
+            file_put_contents($gitignorePath, "# Ignore local user-specific files\nlocal/\n");
+        }
     }
 
     private function createGlobalSettings(string $appName, string $namespace, array $stages, array $existingSettings): void

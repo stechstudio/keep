@@ -5,6 +5,7 @@ namespace STS\Keep\Server\Controllers;
 use Exception;
 use STS\Keep\Data\Settings;
 use STS\Keep\KeepApplication;
+use STS\Keep\Services\LocalStorage;
 use STS\Keep\Services\VaultPermissionTester;
 
 class VaultController extends ApiController
@@ -14,7 +15,11 @@ class VaultController extends ApiController
         $vaults = $this->manager->getConfiguredVaults();
         $defaultVault = $this->manager->getDefaultVault();
         
-        $vaultList = $vaults->map(function($config) use ($defaultVault) {
+        // Load permissions from local storage
+        $localStorage = new LocalStorage();
+        $allPermissions = $localStorage->getPermissions();
+        
+        $vaultList = $vaults->map(function($config) use ($defaultVault, $allPermissions) {
             $slug = $config->slug();
             $name = $config->name();
             $driver = $config->driver();
@@ -38,8 +43,8 @@ class VaultController extends ApiController
                 'driver' => $driver,
                 'scope' => $scope,
                 'isDefault' => $slug === $defaultVault,
-                'permissions' => $config->permissions(),
-                'permissions_verified_at' => $config->permissionsVerifiedAt(),
+                'permissions' => $allPermissions[$slug] ?? [],
+                'permissions_verified_at' => $allPermissions['verified_at'] ?? null,
                 // Legacy fields for compatibility
                 'display' => $friendlyName . ' (' . $slug . ')'
             ];
