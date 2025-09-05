@@ -31,12 +31,16 @@ export function useKeyboardShortcuts() {
   
   // Global keyboard event handler
   function handleKeydown(event) {
-    // Don't trigger shortcuts when typing in inputs or textareas
+    // Check if target is inside a CodeMirror editor
+    const isInCodeMirror = event.target.closest('.cm-editor')
+    
+    // Don't trigger shortcuts when typing in inputs, textareas, or CodeMirror
     if (event.target.tagName === 'INPUT' || 
         event.target.tagName === 'TEXTAREA' || 
-        event.target.tagName === 'SELECT') {
+        event.target.tagName === 'SELECT' ||
+        isInCodeMirror) {
       
-      // ESC should still work to close modals even when in an input
+      // ESC should still work to close modals even when in an input or CodeMirror
       if (event.key === 'Escape') {
         event.preventDefault()
         // Call all registered modal close handlers
