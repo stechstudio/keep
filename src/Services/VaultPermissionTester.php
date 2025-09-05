@@ -123,7 +123,7 @@ class VaultPermissionTester
                     $permission = VaultStagePermissions::fromError($vaultName, $stage, $e->getMessage());
                 }
                 
-                $collection->add($permission);
+                $collection->addPermission($permission);
                 $vaultPermissions[$stage] = $permission->permissions();
             }
             
