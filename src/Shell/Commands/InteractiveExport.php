@@ -59,7 +59,6 @@ class InteractiveExport
         
         // Always offer custom template option
         $exportOptions['template'] = 'Use custom template file';
-        $exportOptions['filtered'] = 'Filtered secrets (with patterns)';
         
         // Ask what they want to export
         $mode = select(
@@ -100,27 +99,6 @@ class InteractiveExport
                 ],
                 default: 'fail'
             );
-        }
-        
-        // Handle filtered mode
-        if ($mode === 'filtered') {
-            $only = text(
-                label: 'Include only keys matching (e.g., DB_*, API_*)',
-                placeholder: 'Leave empty for all',
-                required: false
-            );
-            if ($only) {
-                $options['--only'] = $only;
-            }
-            
-            $except = text(
-                label: 'Exclude keys matching (e.g., *_SECRET)',
-                placeholder: 'Leave empty for none',
-                required: false
-            );
-            if ($except) {
-                $options['--except'] = $except;
-            }
         }
         
         // Ask about format (unless already specified via shortcut)
