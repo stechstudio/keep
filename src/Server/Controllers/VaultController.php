@@ -38,6 +38,8 @@ class VaultController extends ApiController
                 'driver' => $driver,
                 'scope' => $scope,
                 'isDefault' => $slug === $defaultVault,
+                'permissions' => $config->permissions(),
+                'permissions_verified_at' => $config->permissionsVerifiedAt(),
                 // Legacy fields for compatibility
                 'display' => $friendlyName . ' (' . $slug . ')'
             ];

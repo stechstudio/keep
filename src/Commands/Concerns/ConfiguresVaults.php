@@ -73,6 +73,9 @@ trait ConfiguresVaults
         }
 
         info("✅ {$friendlyName} vault '{$slug}' configured successfully");
+        
+        // Run verify to check and cache permissions for all stages
+        $this->verifyAndCachePermissions($slug);
 
         return ['slug' => $slug, 'config' => $vaultConfig];
     }
@@ -138,5 +141,51 @@ trait ConfiguresVaults
         }
 
         $updatedSettings->save();
+    }
+    
+    protected function verifyAndCachePermissions(string $vaultSlug): void
+    {
+        info('\nVerifying vault permissions...');
+        
+        $stages = Keep::getStages();
+        if (empty($stages)) {
+            return; // No stages configured yet
+        }
+        
+        $tester = new \STS\Keep\Services\VaultPermissionTester();
+        $allPermissions = [];
+        
+        foreach ($stages as $stage) {
+            try {
+                $vault = Keep::vault($vaultSlug, $stage);
+                $permissions = $tester->testPermissions($vault);
+                
+                // Build permissions array
+                $stagePermissions = [];
+                if ($permissions['List']) $stagePermissions[] = 'list';
+                if ($permissions['Read']) $stagePermissions[] = 'read';
+                if ($permissions['Write']) $stagePermissions[] = 'write';
+                if ($permissions['Delete']) $stagePermissions[] = 'delete';
+                if ($permissions['History']) $stagePermissions[] = 'history';
+                
+                $allPermissions[$stage] = $stagePermissions;
+                
+                // Display result for this stage
+                $permString = empty($stagePermissions) ? 'no permissions' : implode(', ', $stagePermissions);
+                info("  • {$stage}: {$permString}");
+            } catch (\Exception $e) {
+                // Skip stages that can't be verified
+                info("  • {$stage}: unable to verify");
+            }
+        }
+        
+        // Save all permissions at once
+        if (!empty($allPermissions)) {
+            $vaultConfig = Keep::getVaultConfig($vaultSlug);
+            if ($vaultConfig) {
+                $updatedConfig = $vaultConfig->withPermissions($allPermissions);
+                $updatedConfig->save();
+            }
+        }
     }
 }

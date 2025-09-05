@@ -113,12 +113,18 @@ class VaultEditCommand extends BaseCommand
             }
 
             info("✅ Vault configuration updated and renamed from '{$slug}' to '{$newSlug}'");
+            
+            // Refresh permissions for new slug
+            $this->verifyAndCachePermissions($newSlug);
         } else {
             // Save with same slug
             $updatedConfig['slug'] = $slug;
             $vaultConfig = VaultConfig::fromArray($updatedConfig);
             $vaultConfig->save();
             info("✅ Vault '{$slug}' configuration updated successfully");
+            
+            // Refresh permissions
+            $this->verifyAndCachePermissions($slug);
         }
 
         return self::SUCCESS;

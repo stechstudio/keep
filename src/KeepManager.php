@@ -52,6 +52,11 @@ class KeepManager
     {
         return $this->configuredVaults;
     }
+    
+    public function getVaultConfig(string $vaultName): ?\STS\Keep\Data\VaultConfig
+    {
+        return $this->configuredVaults->get($vaultName);
+    }
 
     public function getDefaultVault(): ?string
     {

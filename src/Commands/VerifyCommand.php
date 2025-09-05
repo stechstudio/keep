@@ -57,6 +57,21 @@ class VerifyCommand extends BaseCommand
         $tester = new VaultPermissionTester();
         $permissions = $tester->testPermissions($vault);
         
+        // Build permissions array for storage
+        $stagePermissions = [];
+        if ($permissions['List']) $stagePermissions[] = 'list';
+        if ($permissions['Read']) $stagePermissions[] = 'read';
+        if ($permissions['Write']) $stagePermissions[] = 'write';
+        if ($permissions['Delete']) $stagePermissions[] = 'delete';
+        if ($permissions['History']) $stagePermissions[] = 'history';
+        
+        // Update vault config with these permissions
+        $vaultConfig = Keep::getVaultConfig($vaultName);
+        if ($vaultConfig) {
+            $updatedConfig = $vaultConfig->withStagePermissions($stage, $stagePermissions);
+            $updatedConfig->save();
+        }
+        
         // Transform to match our existing format (for compatibility with display methods)
         return [
             'vault' => $vaultName,
