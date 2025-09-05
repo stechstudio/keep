@@ -91,7 +91,7 @@
               {{ formatDate(secret.modified) }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-              <div class="flex items-center justify-end gap-1 opacity-30 group-hover:opacity-100 transition-opacity">
+              <div class="flex items-center justify-end opacity-30 group-hover:opacity-100 transition-opacity">
                 <Tooltip v-if="permissions.write" content="Edit" :delay-duration="200">
                   <button
                     @click="editSecret({ key: secret.key, value: secret.value, vault, stage })"
