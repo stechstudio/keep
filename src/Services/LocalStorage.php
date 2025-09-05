@@ -106,6 +106,13 @@ class LocalStorage
         if (!is_dir($this->localPath)) {
             mkdir($this->localPath, 0755, true);
         }
+        
+        // Ensure .keep/.gitignore exists to ignore the local directory
+        $keepGitignorePath = dirname($this->localPath) . '/.gitignore';
+        if (!file_exists($keepGitignorePath)) {
+            $gitignoreContent = "# Ignore local user-specific files\nlocal/\n\n# But ensure this .gitignore file is tracked\n!.gitignore\n";
+            file_put_contents($keepGitignorePath, $gitignoreContent);
+        }
     }
     
     /**

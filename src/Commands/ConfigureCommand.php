@@ -146,7 +146,8 @@ class ConfigureCommand extends BaseCommand
         // Create .gitignore to exclude local directory
         $gitignorePath = $keepDir.'/.gitignore';
         if (!file_exists($gitignorePath)) {
-            file_put_contents($gitignorePath, "# Ignore local user-specific files\nlocal/\n");
+            $gitignoreContent = "# Ignore local user-specific files\nlocal/\n\n# But ensure this .gitignore file is tracked\n!.gitignore\n";
+            file_put_contents($gitignorePath, $gitignoreContent);
         }
     }
 
