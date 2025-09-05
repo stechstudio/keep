@@ -333,7 +333,7 @@
           <!-- Show results for each stage -->
           <div v-for="(result, stageName) in stageResults" :key="stageName" class="mb-3 last:mb-0">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-sm text-muted-foreground">{{ stageName }}</span>
+              <span class="text-sm">{{ stageName }}</span>
               <span :class="[
                 'px-2 py-1 rounded text-xs font-medium',
                 result.success ? 'bg-green-500/10 text-green-500' : 'bg-destructive/10 text-destructive'
@@ -342,7 +342,7 @@
               </span>
             </div>
             
-            <div v-if="result.success && result.permissions" class="grid grid-cols-5 gap-2 text-sm ml-4">
+            <div v-if="result.success && result.permissions" class="bg-gray-500/10 gap-2 grid grid-cols-5 px-3 py-1.5 rounded-md text-sm">
               <div v-for="(status, permission) in result.permissions" :key="permission"
                    class="flex items-center space-x-2">
                 <svg v-if="status" class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
