@@ -43,6 +43,10 @@ export function useToast() {
     return toast({ title, description, variant: 'default' })
   }
   
+  function warning(title, description) {
+    return toast({ title, description, variant: 'warning' })
+  }
+  
   // Generic showToast function that accepts variant as second parameter
   function showToast(title, variant = 'default', description = '') {
     const variantMap = {
@@ -68,6 +72,7 @@ export function useToast() {
     success,
     error,
     info,
+    warning,
     showToast,
   }
 }

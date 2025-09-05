@@ -37,6 +37,7 @@ use STS\Keep\Server\Controllers\VaultController;
 use STS\Keep\Server\Controllers\ExportController;
 use STS\Keep\Server\Controllers\ImportController;
 use STS\Keep\Server\Controllers\TemplateController;
+use STS\Keep\Server\Controllers\WorkspaceController;
 
 // Initialize server - get token from environment or generate one
 $AUTH_TOKEN = $_ENV['KEEP_AUTH_TOKEN'] ?? $_SERVER['KEEP_AUTH_TOKEN'] ?? bin2hex(random_bytes(32));
@@ -121,6 +122,11 @@ if (str_starts_with($path, '/api/')) {
     
     $router->post('/api/verify', [VaultController::class, 'verify']);
     $router->get('/api/diff', [VaultController::class, 'diff']);
+    
+    // Workspace routes
+    $router->get('/api/workspace', [WorkspaceController::class, 'get']);
+    $router->put('/api/workspace', [WorkspaceController::class, 'update']);
+    $router->post('/api/workspace/verify', [WorkspaceController::class, 'verify']);
     
     // Export routes
     $router->post('/api/export', [ExportController::class, 'export']);

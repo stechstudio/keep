@@ -51,8 +51,11 @@ class ShellContext
     
     public function getAvailableStages(): array
     {
-        $settings = Settings::load();
-        return $settings ? $settings->stages() : [];
+        try {
+            return Keep::getStages();
+        } catch (\Exception) {
+            return [];
+        }
     }
     
     public function getAvailableVaults(): array
