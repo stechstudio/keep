@@ -7,7 +7,7 @@ use STS\Keep\Data\VaultStagePermissions;
 
 class PermissionsCollection extends Collection
 {
-    public function add(VaultStagePermissions $permission): self
+    public function addPermission(VaultStagePermissions $permission): self
     {
         $key = $permission->vault() . ':' . $permission->stage();
         $this->put($key, $permission);
