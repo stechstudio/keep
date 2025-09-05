@@ -240,6 +240,49 @@ keep show --stage=staging --format=json
 keep show --stage=production --vault=secretsmanager --format=env
 ```
 
+## `keep template:add`
+
+Generate a template file from existing secrets in a stage.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `filename` | string | *required* | Template filename to create |
+| `--stage` | string | *required* | Stage to generate template from |
+| `--vault` | string | *all vaults* | Specific vault to use |
+| `--overwrite` | boolean | `false` | Overwrite existing template file |
+
+### Examples
+
+```bash
+# Create template from production secrets
+keep template:add .env.template --stage=production
+
+# Create from specific vault
+keep template:add api.template --stage=production --vault=ssm
+
+# Overwrite existing template
+keep template:add config.env --stage=staging --overwrite
+```
+
+## `keep template:validate`
+
+Validate template files for syntax and placeholder resolution.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `filename` | string | *required* | Template file to validate |
+| `--stage` | string | *optional* | Stage to validate against |
+
+### Examples
+
+```bash
+# Validate template syntax and placeholders
+keep template:validate .env.template
+
+# Validate against specific stage
+keep template:validate .env.template --stage=production
+```
+
 ## `keep shell`
 
 Start an interactive shell for Keep commands with persistent context.
@@ -543,7 +586,7 @@ Export secrets from vaults with optional template processing.
 |--------|------|---------|-------------|
 | `--stage` | string | *interactive* | Stage to export secrets from |
 | `--vault` | string | *auto-discover* | Vault(s) to export from (comma-separated) |
-| `--format` | string | `env` | Output format: `env`, `json` |
+| `--format` | string | `env` | Output format: `env`, `json`, `csv` |
 | `--template` | string | | Optional template file with placeholders |
 | `--all` | boolean | `false` | With template: also append non-placeholder secrets |
 | `--missing` | string | `fail` | Strategy for missing secrets: `fail`, `remove`, `blank`, `skip` |
@@ -563,6 +606,9 @@ keep export --stage=production --file=.env
 
 # JSON export
 keep export --stage=production --format=json --file=config.json
+
+# CSV export for spreadsheets
+keep export --stage=production --format=csv --file=secrets.csv
 
 # Export from specific vaults
 keep export --stage=production --vault=ssm,secretsmanager --file=.env

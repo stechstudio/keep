@@ -14,6 +14,11 @@ class Template
 
     public function __construct(protected string $contents) {}
 
+    public function contents(): string
+    {
+        return $this->contents;
+    }
+
     public function isEmpty(): bool
     {
         return empty(trim($this->contents));

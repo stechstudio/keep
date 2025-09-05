@@ -2,8 +2,9 @@ composer.lock
 workbench/
 vendor/
 .env*
-*_PLAN.md
+env/
 CLAUDE.md
+*_PLAN.md
 .claude
 .keep
 node_modules

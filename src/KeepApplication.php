@@ -14,6 +14,8 @@ class KeepApplication extends Application
 {
     protected KeepManager $manager;
 
+    public const string VERSION = '1.0.0-beta';
+
     public function __construct(protected KeepInstall $install)
     {
         $container = KeepContainer::getInstance();
@@ -21,7 +23,7 @@ class KeepApplication extends Application
         $events = new Dispatcher($container);
         $container->instance(Dispatcher::class, $events);
 
-        parent::__construct($container, $events, '1.0.0-alpha');
+        parent::__construct($container, $events, self::VERSION);
         $this->setName('Keep');
 
         $container->instance(
@@ -54,8 +56,10 @@ class KeepApplication extends Application
             Commands\DiffCommand::class,
             Commands\VerifyCommand::class,
             Commands\TemplateValidateCommand::class,
+            Commands\TemplateAddCommand::class,
             
             Commands\ShellCommand::class,
+            Commands\ServerCommand::class,
         ]);
         
         // Make shell the default command when running 'keep' without arguments

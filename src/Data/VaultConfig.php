@@ -13,7 +13,10 @@ class VaultConfig
         protected string $slug,
         protected string $driver,
         protected string $name,
-        protected array $config = []
+        protected string $scope = '',
+        protected array $config = [],
+        protected array $permissions = [],
+        protected ?string $permissionsVerifiedAt = null
     ) {
         $this->validate();
     }
@@ -28,27 +31,54 @@ class VaultConfig
             }
         }
 
-        // Extract slug, driver and name, rest goes into config
+        // Extract top-level properties
         $slug = $data['slug'];
         $driver = $data['driver'];
         $name = $data['name'];
-        $config = array_diff_key($data, ['slug' => null, 'driver' => null, 'name' => null]);
+        $scope = $data['scope'] ?? '';
+        $permissions = $data['permissions'] ?? [];
+        $permissionsVerifiedAt = $data['permissions_verified_at'] ?? null;
+        
+        // Everything else goes into config (vendor-specific settings)
+        $config = array_diff_key($data, [
+            'slug' => null, 
+            'driver' => null, 
+            'name' => null,
+            'scope' => null,
+            'permissions' => null,
+            'permissions_verified_at' => null
+        ]);
 
         return new static(
             slug: $slug,
             driver: $driver,
             name: $name,
-            config: $config
+            scope: $scope,
+            config: $config,
+            permissions: $permissions,
+            permissionsVerifiedAt: $permissionsVerifiedAt
         );
     }
 
     public function toArray(): array
     {
-        return array_merge([
+        $data = array_merge([
             'slug' => $this->slug,
             'driver' => $this->driver,
             'name' => $this->name,
+            'scope' => $this->scope,
         ], $this->config);
+        
+        // Only include permissions if they exist
+        if (!empty($this->permissions)) {
+            $data['permissions'] = $this->permissions;
+        }
+        
+        if ($this->permissionsVerifiedAt !== null) {
+            $data['permissions_verified_at'] = $this->permissionsVerifiedAt;
+        }
+        
+        return $data;
     }
 
     protected function validate(): void
@@ -141,9 +171,34 @@ class VaultConfig
         return $this->name;
     }
 
+    public function scope(): string
+    {
+        return $this->scope;
+    }
+
     public function config(): array
     {
         return $this->config;
+    }
+    
+    public function permissions(): array
+    {
+        return $this->permissions;
+    }
+    
+    public function permissionsForStage(string $stage): array
+    {
+        return $this->permissions[$stage] ?? [];
+    }
+    
+    public function hasPermission(string $stage, string $permission): bool
+    {
+        return in_array($permission, $this->permissionsForStage($stage));
+    }
+    
+    public function permissionsVerifiedAt(): ?string
+    {
+        return $this->permissionsVerifiedAt;
     }
 
     public function get(string $key, mixed $default = null): mixed
@@ -166,13 +221,29 @@ class VaultConfig
     }
 
     // Mutation methods (return new instance for immutability)
+    public function withScope(string $scope): static
+    {
+        return new static(
+            slug: $this->slug,
+            driver: $this->driver,
+            name: $this->name,
+            scope: $scope,
+            config: $this->config,
+            permissions: $this->permissions,
+            permissionsVerifiedAt: $this->permissionsVerifiedAt
+        );
+    }
+
     public function withConfig(array $config): static
     {
         return new static(
             slug: $this->slug,
             driver: $this->driver,
             name: $this->name,
-            config: $config
+            scope: $this->scope,
+            config: $config,
+            permissions: $this->permissions,
+            permissionsVerifiedAt: $this->permissionsVerifiedAt
         );
     }
 
@@ -185,7 +256,10 @@ class VaultConfig
             slug: $this->slug,
             driver: $this->driver,
             name: $this->name,
-            config: $newConfig
+            scope: $this->scope,
+            config: $newConfig,
+            permissions: $this->permissions,
+            permissionsVerifiedAt: $this->permissionsVerifiedAt
         );
     }
 
@@ -198,7 +272,39 @@ class VaultConfig
             slug: $this->slug,
             driver: $this->driver,
             name: $this->name,
-            config: $newConfig
+            scope: $this->scope,
+            config: $newConfig,
+            permissions: $this->permissions,
+            permissionsVerifiedAt: $this->permissionsVerifiedAt
+        );
+    }
+    
+    public function withPermissions(array $permissions, ?string $verifiedAt = null): static
+    {
+        return new static(
+            slug: $this->slug,
+            driver: $this->driver,
+            name: $this->name,
+            scope: $this->scope,
+            config: $this->config,
+            permissions: $permissions,
+            permissionsVerifiedAt: $verifiedAt ?? date('c')
+        );
+    }
+    
+    public function withStagePermissions(string $stage, array $stagePermissions): static
+    {
+        $newPermissions = $this->permissions;
+        $newPermissions[$stage] = $stagePermissions;
+        
+        return new static(
+            slug: $this->slug,
+            driver: $this->driver,
+            name: $this->name,
+            scope: $this->scope,
+            config: $this->config,
+            permissions: $newPermissions,
+            permissionsVerifiedAt: date('c')
         );
     }
 }

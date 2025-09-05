@@ -330,7 +330,7 @@ For supported services like RDS, enable automatic rotation:
 
 **Access Denied Errors**: Verify your IAM permissions include both Secrets Manager and KMS actions for the correct resource paths.
 
-**Secret Not Found**: Check your secret prefix configuration matches your expected naming structure.
+**Secret Not Found**: Check your secret scope configuration matches your expected naming structure.
 
 **Encryption Issues**: Ensure your IAM role has access to the KMS key being used (either AWS managed or custom).
 

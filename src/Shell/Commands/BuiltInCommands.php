@@ -499,10 +499,15 @@ class BuiltInCommands
                 'use <vault:stage>' => 'Switch both vault and stage (alias: u)',
                 'context' => 'Show current context (alias: ctx)',
             ],
-            '<comment>Analysis & Export</comment>' => [
+            '<comment>Import & Export</comment>' => [
                 'export' => 'Export secrets interactively',
+                'import <file>' => 'Import secrets from a file',
                 'verify' => 'Verify vault setup and permissions',
                 'info' => 'Show Keep information',
+            ],
+            '<comment>Template Management</comment>' => [
+                'template' => 'Generate template from current stage secrets (alias: t)',
+                'validate <file>' => 'Validate a template file against current stage',
             ],
             '<comment>Other</comment>' => [
                 'exit' => 'Exit the shell (or Ctrl+D)',

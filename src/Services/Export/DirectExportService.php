@@ -71,10 +71,10 @@ class DirectExportService
 
     protected function formatOutput(SecretCollection $secrets, string $format): string
     {
-        return $format === 'json'
-            ? $secrets
-                ->toKeyValuePair()
-                ->toJson(JSON_PRETTY_PRINT)
-            : $secrets->toEnvString();
+        return match ($format) {
+            'json' => $secrets->toKeyValuePair()->toJson(JSON_PRETTY_PRINT),
+            'csv' => $secrets->toCsvString(),
+            default => $secrets->toEnvString(),
+        };
     }
 }

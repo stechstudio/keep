@@ -32,11 +32,21 @@ trait GathersInput
 
     protected function key()
     {
+        // Check if the command even has a 'key' argument before trying to access it
+        if (!$this->getDefinition()->hasArgument('key')) {
+            return null;
+        }
+        
         return $this->key ??= $this->argument('key') ?? text('Key', 'DATABASE_PASSWORD', required: true);
     }
 
     protected function value()
     {
+        // Check if the command even has a 'value' argument before trying to access it
+        if (!$this->getDefinition()->hasArgument('value')) {
+            return null;
+        }
+        
         return $this->value ??= $this->argument('value') ?? text('Value', required: true);
     }
 

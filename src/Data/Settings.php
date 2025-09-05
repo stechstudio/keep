@@ -14,6 +14,7 @@ class Settings
         protected string $namespace,
         protected array $stages,
         protected ?string $defaultVault = null,
+        protected ?string $templatePath = null,
         protected ?string $createdAt = null,
         protected ?string $updatedAt = null,
         protected string $version = '1.0'
@@ -21,6 +22,7 @@ class Settings
         $this->validate();
         $this->createdAt ??= date('c');
         $this->updatedAt = date('c');
+        $this->templatePath ??= 'env';
     }
 
     public static function load(): ?static
@@ -47,6 +49,7 @@ class Settings
             namespace: $data['namespace'],
             stages: $data['stages'],
             defaultVault: $data['default_vault'] ?? null,
+            templatePath: $data['template_path'] ?? null,
             createdAt: $data['created_at'] ?? null,
             updatedAt: $data['updated_at'] ?? null,
             version: $data['version'] ?? '1.0'
@@ -60,6 +63,7 @@ class Settings
             'namespace' => $this->namespace,
             'stages' => $this->stages,
             'default_vault' => $this->defaultVault,
+            'template_path' => $this->templatePath(), // Use getter for default
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
             'version' => $this->version,
@@ -151,6 +155,11 @@ class Settings
         return $this->defaultVault;
     }
 
+    public function templatePath(): string
+    {
+        return $this->templatePath ?? 'env';
+    }
+
     public function version(): string
     {
         return $this->version;
@@ -180,6 +189,7 @@ class Settings
             namespace: $this->namespace,
             stages: $this->stages,
             defaultVault: $defaultVault,
+            templatePath: $this->templatePath,
             createdAt: $this->createdAt,
             updatedAt: $this->updatedAt,
             version: $this->version
@@ -193,6 +203,21 @@ class Settings
             namespace: $this->namespace,
             stages: $stages,
             defaultVault: $this->defaultVault,
+            templatePath: $this->templatePath,
+            createdAt: $this->createdAt,
+            updatedAt: $this->updatedAt,
+            version: $this->version
+        );
+    }
+    
+    public function withTemplatePath(?string $templatePath): static
+    {
+        return new static(
+            appName: $this->appName,
+            namespace: $this->namespace,
+            stages: $this->stages,
+            defaultVault: $this->defaultVault,
+            templatePath: $templatePath,
             createdAt: $this->createdAt,
             updatedAt: $this->updatedAt,
             version: $this->version
@@ -211,6 +236,7 @@ class Settings
             'namespace' => $this->namespace,
             'stages' => $this->stages,
             'default_vault' => $this->defaultVault,
+            'template_path' => $this->templatePath(), // Use getter for default
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
             'version' => $this->version,

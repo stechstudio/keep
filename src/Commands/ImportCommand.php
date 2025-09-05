@@ -3,7 +3,7 @@
 namespace STS\Keep\Commands;
 
 use STS\Keep\Data\Collections\SecretCollection;
-use STS\Keep\Data\Env;
+use STS\Keep\Services\ImportService;
 use STS\Keep\Exceptions\KeepException;
 
 use function Laravel\Prompts\table;
@@ -33,172 +33,115 @@ class ImportCommand extends BaseCommand
         }
 
         $envFilePath = $this->argument('from') ?? text('Path to .env file', required: true);
-        if (! file_exists($envFilePath) || ! is_readable($envFilePath)) {
-            $this->error("Env file [$envFilePath] does not exist or is not readable.");
-
+        
+        // Use ImportService for parsing and importing
+        $importService = new ImportService();
+        
+        try {
+            $importSecrets = $importService->parseEnvFile($envFilePath);
+        } catch (KeepException $e) {
+            $this->error($e->getMessage());
             return self::FAILURE;
         }
-
-        $env = Env::fromFile($envFilePath);
-
-        // Convert env entries to secrets and apply filtering
-        $importSecrets = $env->secrets()->filterByPatterns(
-            only: $this->option('only'),
-            except: $this->option('except')
-        );
 
         $context = $this->vaultContext();
         $vault = $context->createVault();
         $vaultSecrets = $vault->list();
 
-        if (! $this->canImport($importSecrets, $vaultSecrets)) {
+        // Determine strategy based on options
+        $strategy = ImportService::STRATEGY_FAIL;
+        if ($this->option('overwrite')) {
+            $strategy = ImportService::STRATEGY_OVERWRITE;
+        } elseif ($this->option('skip-existing')) {
+            $strategy = ImportService::STRATEGY_SKIP;
+        }
+        
+        // Check for conflicts first
+        $analysis = $importService->analyzeImport(
+            $importSecrets, 
+            $vaultSecrets,
+            $this->option('only'),
+            $this->option('except')
+        );
+        
+        // Show warnings if there are conflicts and no strategy specified
+        if ($analysis['existing'] > 0 && $strategy === ImportService::STRATEGY_FAIL) {
+            $existingKeys = collect($analysis['secrets'])
+                ->where('status', 'existing')
+                ->pluck('key');
+            $this->error('The following keys already exist: '.$existingKeys->implode(', '));
+            $this->line('Use --overwrite to overwrite existing keys, or --skip-existing to skip them.');
             return self::FAILURE;
         }
-
-        if ($this->option('dry-run')) {
-            $imported = null;
-        } else {
-            $imported = $this->runImport($importSecrets, $vaultSecrets, $vault);
+        
+        // Show warnings for other strategies
+        if ($analysis['existing'] > 0 && $strategy === ImportService::STRATEGY_OVERWRITE) {
+            $existingKeys = collect($analysis['secrets'])
+                ->where('status', 'existing')
+                ->pluck('key');
+            $this->warn('The following keys already exist and will be overwritten: '.$existingKeys->implode(', '));
+        } elseif ($analysis['existing'] > 0 && $strategy === ImportService::STRATEGY_SKIP) {
+            $existingKeys = collect($analysis['secrets'])
+                ->where('status', 'existing')
+                ->pluck('key');
+            $this->warn('The following keys already exist and will be skipped: '.$existingKeys->implode(', '));
         }
-
-        table(['Key', 'Status', 'Rev'], $this->resultsTable($importSecrets, $vaultSecrets, $imported));
+        
+        // Execute import
+        $result = $importService->executeImport(
+            $importSecrets,
+            $vault,
+            $strategy,
+            $this->option('only'),
+            $this->option('except'),
+            $this->option('dry-run')
+        );
+        
+        // Display results
+        table(['Key', 'Status', 'Rev'], $this->resultsTable($result));
+        
+        // Show errors if any
+        foreach ($result['errors'] as $error) {
+            $this->error($error);
+        }
 
         if ($this->option('dry-run')) {
             $this->info('This was a dry run. No secrets were imported.');
+        } else {
+            $this->success(sprintf('Imported %d secrets', $result['imported']->count()));
         }
     }
 
-    protected function canImport(SecretCollection $importSecrets, SecretCollection $vaultSecrets): bool
-    {
-        // If any keys exist in the vault, we can only proceed if --overwrite or --skip-existing is set
-        $existingKeys = $importSecrets->allKeys()->intersect($vaultSecrets->allKeys());
 
-        if ($existingKeys->isNotEmpty()) {
-            if ($this->option('overwrite')) {
-                $this->warn('The following keys already exist and will be overwritten: '.$existingKeys->implode(', '));
-
-                return true;
-            }
-
-            if ($this->option('skip-existing')) {
-                $this->warn('The following keys already exist and will be skipped: '.$existingKeys->implode(', '));
-
-                return true;
-            }
-
-            $this->error('The following keys already exist: '.$existingKeys->implode(', '));
-            $this->line('Use --overwrite to overwrite existing keys, or --skip-existing to skip them.');
-
-            return false;
-        }
-
-        return true;
-    }
-
-    protected function runImport(SecretCollection $importSecrets, SecretCollection $vaultSecrets, $vault): SecretCollection
-    {
-        $imported = new SecretCollection;
-
-        foreach ($importSecrets as $secret) {
-            if ($vaultSecrets->hasKey($secret->key()) && $this->option('skip-existing')) {
-                continue;
-            }
-
-            if (empty($secret->value())) {
-                $this->warn(sprintf('Skipping key [<secret-name>%s</secret-name>] with empty value.', $secret->key()));
-
-                continue;
-            }
-
-            // Validate key before importing to ensure it meets Keep's standards
-            try {
-                $this->validateUserKey($secret->key());
-            } catch (\InvalidArgumentException $e) {
-                $this->error(sprintf('Skipping invalid key [<secret-name>%s</secret-name>]: %s',
-                    $secret->key(),
-                    $e->getMessage()
-                ));
-
-                continue;
-            }
-
-            try {
-                $imported->push(
-                    $importedSecret = $vault->set($secret->key(), $secret->value())
-                );
-                $this->success(sprintf('Imported key [<secret-name>%s</secret-name>]', $importedSecret->key()));
-                usleep(150000); // Slight delay to avoid rate limits
-            } catch (KeepException $e) {
-                $this->error(sprintf('Failed to import key [<secret-name>%s</secret-name>]: %s',
-                    $secret->key(),
-                    $e->getMessage()
-                ));
-            }
-        }
-
-        return $imported;
-    }
-
-    protected function resultsTable(SecretCollection $importSecrets, SecretCollection $vaultSecrets, ?SecretCollection $imported): array
+    protected function resultsTable(array $result): array
     {
         $rows = [];
-
-        foreach ($importSecrets as $secret) {
-            $key = $secret->key();
-            $value = $secret->value();
-
-            // Determine status based on what actually happened
-            $status = 'Skipped';
-            $revision = null;
-
-            if ($imported && $imported->hasKey($key)) {
-                $status = 'Imported';
-                $revision = $imported->getByKey($key)->revision();
-            } elseif (empty($value)) {
-                $status = 'Skipped'; // Empty value
-            } elseif ($vaultSecrets->hasKey($key)) {
-                $status = 'Exists'; // Already exists in vault
-                $revision = $vaultSecrets->getByKey($key)?->revision();
-            }
-
+        
+        foreach ($result['results'] as $key => $info) {
+            $status = match($info['status']) {
+                'imported' => 'Imported',
+                'would_import' => 'Would Import',
+                'skipped' => match($info['reason'] ?? '') {
+                    'empty_value' => 'Skipped (empty)',
+                    'exists' => 'Skipped (exists)',
+                    default => 'Skipped'
+                },
+                'failed' => match($info['reason'] ?? '') {
+                    'invalid_key' => 'Failed (invalid)',
+                    'exists' => 'Failed (exists)',
+                    'vault_error' => 'Failed (error)',
+                    default => 'Failed'
+                },
+                default => 'Unknown'
+            };
+            
             $rows[] = [
                 'key' => $key,
                 'status' => $status,
-                'revision' => $revision,
+                'revision' => $info['revision'] ?? null,
             ];
         }
 
         return $rows;
-    }
-
-    /**
-     * Validate a user-provided key for safe vault operations.
-     * More permissive than .env requirements to support various use cases.
-     */
-    protected function validateUserKey(string $key): void
-    {
-        $trimmed = trim($key);
-
-        // Allow letters, digits, underscores, and hyphens (common in cloud services)
-        if (! preg_match('/^[A-Za-z0-9_-]+$/', $trimmed)) {
-            throw new \InvalidArgumentException(
-                "Secret key '{$key}' contains invalid characters. ".
-                'Only letters, numbers, underscores, and hyphens are allowed.'
-            );
-        }
-
-        // Length validation (reasonable limits for secret names)
-        if (strlen($trimmed) < 1 || strlen($trimmed) > 255) {
-            throw new \InvalidArgumentException(
-                "Secret key '{$key}' must be 1-255 characters long."
-            );
-        }
-
-        // Cannot start with hyphen (could be interpreted as command flag)
-        if (str_starts_with($trimmed, '-')) {
-            throw new \InvalidArgumentException(
-                "Secret key '{$key}' cannot start with hyphen."
-            );
-        }
     }
 }

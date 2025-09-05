@@ -6,8 +6,20 @@ export default defineConfig({
 
     // Base URL for GitHub Pages (repository name)
     base: '/keep/',
+    
+    // Ignore dead links for now
+    ignoreDeadLinks: true,
+    
+    // Favicon - must include base path explicitly for head elements
+    head: [
+        ['link', { rel: 'icon', type: 'image/svg+xml', href: '/keep/logo.svg' }],
+        ['link', { rel: 'alternate icon', type: 'image/svg+xml', href: '/keep/logo.svg' }],
+        ['link', { rel: 'mask-icon', href: '/keep/logo.svg', color: '#000000' }]
+    ],
 
     themeConfig: {
+        // Logo in nav bar
+        logo: '/logo.svg',
         // GitHub repository
         socialLinks: [
             {icon: 'github', link: 'https://github.com/stechstudio/keep'}
@@ -16,8 +28,7 @@ export default defineConfig({
         // Navigation
         nav: [
             {text: 'Home', link: '/'},
-            {text: 'Guide', link: '/guide/'},
-            {text: 'Examples', link: '/examples/'}
+            {text: 'Guide', link: '/guide/'}
         ],
 
         // Sidebar
@@ -29,18 +40,35 @@ export default defineConfig({
                         {text: 'Introduction', link: '/guide/'},
                         {text: 'Installation', link: '/guide/installation'},
                         {text: 'Configuration', link: '/guide/configuration'},
-                        {text: 'Quick Start', link: '/guide/quick-start'},
-                        {text: 'Interactive Shell', link: '/guide/shell'}
+                        {text: 'Quick Start', link: '/guide/quick-start'}
                     ]
                 },
                 {
-                    text: 'Managing Secrets',
+                    text: 'CLI Commands',
                     items: [
-                        {text: 'Overview', link: '/guide/managing-secrets/'},
-                        {text: 'Creating & Viewing', link: '/guide/managing-secrets/creating-viewing'},
-                        {text: 'Cross-Environment', link: '/guide/managing-secrets/cross-environment'},
-                        {text: 'Exporting to .env', link: '/guide/managing-secrets/exporting-to-env'}
-                        // {text: 'Runtime Secrets', link: '/guide/managing-secrets/runtime-secrets'} // Deferred to future release
+                        {text: 'Overview', link: '/guide/cli-commands/'},
+                        {text: 'Creating & Viewing', link: '/guide/cli-commands/creating-viewing'},
+                        {text: 'Cross-Environment', link: '/guide/cli-commands/cross-environment'},
+                        {text: 'Exporting to .env', link: '/guide/cli-commands/exporting-to-env'}
+                        // {text: 'Runtime Secrets', link: '/guide/cli-commands/runtime-secrets'} // Deferred to future release
+                    ]
+                },
+                {
+                    text: 'Interactive Shell',
+                    items: [
+                        {text: 'Getting Started', link: '/guide/shell'},
+                        {text: 'Commands & Shortcuts', link: '/guide/shell-commands'},
+                        {text: 'Tips & Tricks', link: '/guide/shell-tips'}
+                    ]
+                },
+                {
+                    text: 'Web UI',
+                    items: [
+                        {text: 'Getting Started', link: '/guide/web-ui/'},
+                        {text: 'Managing Secrets', link: '/guide/web-ui/managing-secrets'},
+                        {text: 'Diff & Compare', link: '/guide/web-ui/diff-compare'},
+                        {text: 'Import & Export', link: '/guide/web-ui/import-export'},
+                        {text: 'Security', link: '/guide/web-ui/security'}
                     ]
                 },
                 {
@@ -57,18 +85,6 @@ export default defineConfig({
                         {text: 'CLI Reference', link: '/guide/reference/cli-reference'},
                         {text: 'AWS Authentication', link: '/guide/reference/aws-authentication'}
                         // {text: 'Security Architecture', link: '/guide/reference/security-architecture'} // Deferred - encrypted cache feature
-                    ]
-                }
-            ],
-            '/examples/': [
-                {
-                    text: 'Examples',
-                    items: [
-                        {text: 'Overview', link: '/examples/'},
-                        // {text: 'Laravel Integration', link: '/examples/laravel'}, // Deferred to future release
-                        {text: 'CI/CD Workflows', link: '/examples/ci-cd'},
-                        {text: 'Multi-Environment Setup', link: '/examples/multi-environment'},
-                        {text: 'AWS Setup', link: '/examples/aws-setup'}
                     ]
                 }
             ]

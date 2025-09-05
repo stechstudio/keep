@@ -2,6 +2,7 @@
 
 namespace STS\Keep\Data;
 
+use Carbon\Carbon;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Arr;
 use STS\Keep\Data\Concerns\MasksValues;
@@ -12,6 +13,16 @@ class Secret implements Arrayable
     use MasksValues;
 
     protected string $key;
+    
+    /**
+     * Maximum width for table display values
+     */
+    const TABLE_VALUE_WIDTH = 80;
+    
+    /**
+     * Maximum width for diff table display (narrower due to multiple columns)
+     */
+    const DIFF_VALUE_WIDTH = 30;
 
     public function __construct(
         string $key,
@@ -22,6 +33,7 @@ class Secret implements Arrayable
         protected null|int|string $revision = 0,
         protected ?string $path = null,
         protected ?AbstractVault $vault = null,
+        protected ?Carbon $lastModified = null,
         protected bool $skipValidation = false,
     ) {
         $this->key = $skipValidation ? trim($key) : $this->validateKey($key);
@@ -79,6 +91,7 @@ class Secret implements Arrayable
         null|int|string $revision = 0,
         ?string $path = null,
         ?AbstractVault $vault = null,
+        ?Carbon $lastModified = null,
     ): static {
         return new static(
             key: $key,
@@ -89,6 +102,7 @@ class Secret implements Arrayable
             revision: $revision,
             path: $path,
             vault: $vault,
+            lastModified: $lastModified,
             skipValidation: true,
         );
     }
@@ -106,6 +120,7 @@ class Secret implements Arrayable
         null|int|string $revision = 0,
         ?string $path = null,
         ?AbstractVault $vault = null,
+        ?Carbon $lastModified = null,
     ): static {
         return new static(
             key: $key,
@@ -116,6 +131,7 @@ class Secret implements Arrayable
             revision: $revision,
             path: $path,
             vault: $vault,
+            lastModified: $lastModified,
             skipValidation: false,
         );
     }
@@ -188,6 +204,11 @@ class Secret implements Arrayable
         return $this->vault;
     }
 
+    public function lastModified(): ?Carbon
+    {
+        return $this->lastModified;
+    }
+
     public function withMaskedValue(): static
     {
         $masked = clone $this;
@@ -199,6 +220,97 @@ class Secret implements Arrayable
     public function masked(): ?string
     {
         return $this->maskValue($this->value);
+    }
+    
+    /**
+     * Format value for table display by wrapping long lines
+     */
+    public function formattedValue(?int $width = null): ?string
+    {
+        if ($this->value === null) {
+            return null;
+        }
+        
+        // For masked values, don't wrap (they're already short)
+        if (str_contains($this->value, '•') || str_contains($this->value, '*')) {
+            return $this->value;
+        }
+        
+        $width = $width ?? self::TABLE_VALUE_WIDTH;
+        
+        // If value already contains line breaks, respect them but still wrap long lines
+        $lines = explode("\n", $this->value);
+        $wrappedLines = [];
+        
+        foreach ($lines as $line) {
+            if (strlen($line) <= $width) {
+                $wrappedLines[] = $line;
+            } else {
+                // Wrap long lines at word boundaries if possible
+                $wrappedLines = array_merge($wrappedLines, $this->wrapLine($line, $width));
+            }
+        }
+        
+        return implode("\n", $wrappedLines);
+    }
+    
+    /**
+     * Wrap a single line of text
+     */
+    private function wrapLine(string $line, int $width): array
+    {
+        $wrapped = [];
+        $words = explode(' ', $line);
+        $currentLine = '';
+        
+        foreach ($words as $word) {
+            // If word itself is longer than width, chunk it
+            if (strlen($word) > $width) {
+                if ($currentLine) {
+                    $wrapped[] = $currentLine;
+                    $currentLine = '';
+                }
+                $wrapped = array_merge($wrapped, str_split($word, $width));
+                continue;
+            }
+            
+            $testLine = $currentLine ? $currentLine . ' ' . $word : $word;
+            
+            if (strlen($testLine) <= $width) {
+                $currentLine = $testLine;
+            } else {
+                if ($currentLine) {
+                    $wrapped[] = $currentLine;
+                }
+                $currentLine = $word;
+            }
+        }
+        
+        if ($currentLine) {
+            $wrapped[] = $currentLine;
+        }
+        
+        return $wrapped ?: [''];
+    }
+    
+    /**
+     * Get data formatted for table display
+     */
+    public function forTable(): array
+    {
+        return [
+            'key' => $this->key,
+            'value' => $this->formattedValue(),
+            'revision' => $this->revision,
+        ];
+    }
+    
+    /**
+     * Format value for diff table display (narrower columns)
+     */
+    public function formattedValueForDiff(): ?string
+    {
+        return $this->formattedValue(self::DIFF_VALUE_WIDTH);
     }
 
     public function only(array $keys): array
@@ -217,6 +329,21 @@ class Secret implements Arrayable
             'revision' => $this->revision,
             'path' => $this->path,
             'vault' => $this->vault?->name(),
+            'lastModified' => $this->lastModified?->toISOString(),
+        ];
+    }
+
+    /**
+     * Convert to array format suitable for API responses.
+     * Handles masking and only includes fields needed by API clients.
+     */
+    public function toApiArray(bool $unmask = false): array
+    {
+        return [
+            'key' => $this->key,
+            'value' => $unmask ? $this->value : $this->masked(),
+            'revision' => $this->revision,
+            'modified' => $this->lastModified?->toISOString(),
         ];
     }
 }

@@ -6,7 +6,7 @@ class PlaceholderValidationResult
 {
     public function __construct(
         public readonly Placeholder $placeholder,
-        public readonly string $vault,
+        public readonly ?string $vault,
         public readonly bool $valid,
         public readonly ?string $error = null,
         public readonly ?Secret $secret = null
@@ -28,7 +28,7 @@ class PlaceholderValidationResult
     /**
      * Create an invalid result
      */
-    public static function invalid(Placeholder $placeholder, string $vault, string $error): self
+    public static function invalid(Placeholder $placeholder, ?string $vault, string $error): self
     {
         return new self(
             placeholder: $placeholder,

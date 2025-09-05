@@ -39,6 +39,11 @@ class AwsSecretsManagerVault extends AbstractVault
                 default: $existingSettings['key'] ?? '',
                 hint: 'Leave empty to use the default AWS managed key'
             ),
+            'scope' => new TextPrompt(
+                label: 'Scope (optional)',
+                default: $existingSettings['scope'] ?? '',
+                hint: 'Optional scope to isolate secrets within namespace (e.g., "app2" for namespace/app2/stage/key)'
+            ),
         ];
     }
 
@@ -47,12 +52,11 @@ class AwsSecretsManagerVault extends AbstractVault
      */
     public function format(?string $key = null): string
     {
-        return Str::of(Keep::getNamespace())
-            ->append('/')
+        return Str::of('')
+            ->when(Keep::getNamespace(), fn($str) => $str->append(Keep::getNamespace().'/'))
+            ->when(trim($this->config['scope'] ?? '', '/'), fn($str, $scope) => $str->append($scope.'/'))
             ->append($this->stage)
-            ->append('/')
-            ->append($key)
-            ->replace('//', '/')
+            ->when($key, fn($str) => $str->append('/'.$key))
             ->trim('/')
             ->toString();
     }
@@ -62,12 +66,23 @@ class AwsSecretsManagerVault extends AbstractVault
      */
     protected function getSecretTags(): array
     {
-        return [
+        $tags = [
             'ManagedBy' => 'Keep',
             'Namespace' => Keep::getNamespace(),
             'Stage' => $this->stage,
             'VaultSlug' => $this->slug(),
         ];
+        
+        // Add scope tag if configured
+        $scope = $this->config['scope'] ?? '';
+        if ($scope) {
+            $scope = trim($scope, '/');
+            if ($scope) {
+                $tags['Scope'] = $scope;
+            }
+        }
+        
+        return $tags;
     }
 
     /**
@@ -80,34 +95,52 @@ class AwsSecretsManagerVault extends AbstractVault
             $nextToken = null;
 
             do {
+                $filters = [
+                    [
+                        'Key' => 'tag-key',
+                        'Values' => ['ManagedBy'],
+                    ],
+                    [
+                        'Key' => 'tag-value',
+                        'Values' => ['Keep'],
+                    ],
+                    [
+                        'Key' => 'tag-key',
+                        'Values' => ['Namespace'],
+                    ],
+                    [
+                        'Key' => 'tag-value',
+                        'Values' => [Keep::getNamespace()],
+                    ],
+                    [
+                        'Key' => 'tag-key',
+                        'Values' => ['Stage'],
+                    ],
+                    [
+                        'Key' => 'tag-value',
+                        'Values' => [$this->stage],
+                    ],
+                ];
+                
+                // Add scope filter if configured
+                $scope = $this->config['scope'] ?? '';
+                if ($scope) {
+                    $scope = trim($scope, '/');
+                    if ($scope) {
+                        $filters[] = [
+                            'Key' => 'tag-key',
+                            'Values' => ['Scope'],
+                        ];
+                        $filters[] = [
+                            'Key' => 'tag-value',
+                            'Values' => [$scope],
+                        ];
+                    }
+                }
+                
                 $params = [
                     'MaxResults' => 20,
-                    'Filters' => [
-                        [
-                            'Key' => 'tag-key',
-                            'Values' => ['ManagedBy'],
-                        ],
-                        [
-                            'Key' => 'tag-value',
-                            'Values' => ['Keep'],
-                        ],
-                        [
-                            'Key' => 'tag-key',
-                            'Values' => ['Namespace'],
-                        ],
-                        [
-                            'Key' => 'tag-value',
-                            'Values' => [Keep::getNamespace()],
-                        ],
-                        [
-                            'Key' => 'tag-key',
-                            'Values' => ['Stage'],
-                        ],
-                        [
-                            'Key' => 'tag-value',
-                            'Values' => [$this->stage],
-                        ],
-                    ],
+                    'Filters' => $filters,
                     'IncludePlannedDeletion' => false,
                 ];
 
@@ -115,26 +148,50 @@ class AwsSecretsManagerVault extends AbstractVault
                     $params['NextToken'] = $nextToken;
                 }
 
-                $result = $this->client()->batchGetSecretValue($params);
+                // First list secrets matching our filters
+                $listResult = $this->client()->listSecrets($params);
+                
+                // Get the actual secret values for the listed secrets
+                $secretList = $listResult->get('SecretList');
+                if (empty($secretList)) {
+                    break;
+                }
+                
+                // Collect secret ARNs for batch retrieval
+                $secretIds = [];
+                foreach ($secretList as $secretMeta) {
+                    $secretIds[] = $secretMeta['ARN'];
+                }
+                
+                // Batch get the secret values
+                $valueResult = $this->client()->batchGetSecretValue([
+                    'SecretIdList' => $secretIds
+                ]);
 
-                foreach ($result->get('SecretValues') as $secret) {
+                foreach ($valueResult->get('SecretValues') as $secret) {
                     $secretName = $secret['Name'];
 
                     // Extract the key from the full secret name using the expected format
-                    $expectedPrefix = Keep::getNamespace().'/'.$this->stage.'/';
-
+                    // Format: namespace/[scope/]stage/key
+                    $basePath = $this->format(); // Gets the base path without the key
+                    
                     // Skip if this doesn't match our expected naming pattern
-                    if (! Str::startsWith($secretName, $expectedPrefix)) {
+                    if (! Str::startsWith($secretName, $basePath . '/')) {
                         continue;
                     }
 
                     $key = Str::of($secretName)
-                        ->after($expectedPrefix)
+                        ->after($basePath . '/')
                         ->toString();
 
                     // Skip if we couldn't extract a valid key
                     if (empty($key)) {
                         continue;
+                    }
+
+                    $lastModified = null;
+                    if (isset($secret['CreatedDate'])) {
+                        $lastModified = Carbon::parse($secret['CreatedDate']);
                     }
 
                     $secrets->push(Secret::fromVault(
@@ -146,10 +203,11 @@ class AwsSecretsManagerVault extends AbstractVault
                         revision: $secret['VersionId'] ?? 1,
                         path: $secretName,
                         vault: $this,
+                        lastModified: $lastModified,
                     ));
                 }
 
-                $nextToken = $result->get('NextToken');
+                $nextToken = $listResult->get('NextToken');
             } while ($nextToken);
 
         } catch (SecretsManagerException $e) {
@@ -186,6 +244,11 @@ class AwsSecretsManagerVault extends AbstractVault
                 throw new SecretNotFoundException("Secret not found [{$this->format($key)}]");
             }
 
+            $lastModified = null;
+            if ($createdDate = $result->get('CreatedDate')) {
+                $lastModified = Carbon::parse($createdDate);
+            }
+
             return Secret::fromVault(
                 key: $key,
                 value: $value,
@@ -195,6 +258,7 @@ class AwsSecretsManagerVault extends AbstractVault
                 revision: $versionId ?? 1,
                 path: $this->format($key),
                 vault: $this,
+                lastModified: $lastModified,
             );
         } catch (SecretsManagerException $e) {
             if ($e->getAwsErrorCode() === 'ResourceNotFoundException') {

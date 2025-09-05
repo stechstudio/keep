@@ -4,6 +4,7 @@ namespace STS\Keep\Commands;
 
 use STS\Keep\Commands\Concerns\ValidatesStages;
 use STS\Keep\Data\Settings;
+use STS\Keep\Services\VaultPermissionTester;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\error;
@@ -44,6 +45,18 @@ class StageAddCommand extends BaseCommand
 
         info("✅ Stage '{$stageName}' has been added successfully!");
         $this->line('You can now use this stage with any Keep command using --stage='.$stageName);
+        
+        // Verify and cache permissions for all vaults with the new stage
+        $tester = new VaultPermissionTester();
+        $collection = $tester->testNewStageAcrossVaults($stageName);
+        
+        if (!$collection->isEmpty()) {
+            info('\nVerified vault permissions for the new stage:');
+            foreach ($collection as $permission) {
+                $permString = empty($permission->permissions()) ? 'no permissions' : implode(', ', $permission->permissions());
+                info("  • {$permission->vault()}: {$permString}");
+            }
+        }
 
         return self::SUCCESS;
     }

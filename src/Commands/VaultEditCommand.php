@@ -5,6 +5,7 @@ namespace STS\Keep\Commands;
 use STS\Keep\Commands\Concerns\ConfiguresVaults;
 use STS\Keep\Data\VaultConfig;
 use STS\Keep\Facades\Keep;
+use STS\Keep\Services\VaultPermissionTester;
 
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
@@ -113,12 +114,20 @@ class VaultEditCommand extends BaseCommand
             }
 
             info("✅ Vault configuration updated and renamed from '{$slug}' to '{$newSlug}'");
+            
+            // Refresh permissions for new slug
+            $tester = new VaultPermissionTester();
+            $tester->testVaultAcrossStages($newSlug);
         } else {
             // Save with same slug
             $updatedConfig['slug'] = $slug;
             $vaultConfig = VaultConfig::fromArray($updatedConfig);
             $vaultConfig->save();
             info("✅ Vault '{$slug}' configuration updated successfully");
+            
+            // Refresh permissions
+            $tester = new VaultPermissionTester();
+            $tester->testVaultAcrossStages($slug);
         }
 
         return self::SUCCESS;

@@ -4,6 +4,7 @@ namespace STS\Keep\Commands\Concerns;
 
 use STS\Keep\Data\VaultConfig;
 use STS\Keep\Facades\Keep;
+use STS\Keep\Services\VaultPermissionTester;
 
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
@@ -73,6 +74,18 @@ trait ConfiguresVaults
         }
 
         info("✅ {$friendlyName} vault '{$slug}' configured successfully");
+        
+        // Run verify to check and cache permissions for all stages
+        info('\nVerifying vault permissions...');
+        $tester = new VaultPermissionTester();
+        $collection = $tester->testVaultAcrossStages($slug);
+        
+        // Display summary of permissions
+        foreach ($collection->groupByStage() as $stage => $permissions) {
+            $permission = $permissions->first();
+            $permString = empty($permission->permissions()) ? 'no permissions' : implode(', ', $permission->permissions());
+            info("  • {$stage}: {$permString}");
+        }
 
         return ['slug' => $slug, 'config' => $vaultConfig];
     }

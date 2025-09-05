@@ -52,25 +52,29 @@ class TemplateParseService
         );
 
         // Output info
-        $output->writeln("<info>Processing template [{$options['template']}] for stage '{$stage}' as JSON...</info>");
+        $format = strtoupper($options['format'] ?? 'json');
+        $output->writeln("<info>Processing template [{$options['template']}] for stage '{$stage}' as {$format}...</info>");
         if ($options['all'] ?? false) {
             $output->writeln('<info>Including all additional secrets beyond template placeholders</info>');
         }
 
-        // Format as JSON (sorted by key)
-        $jsonOutput = json_encode($templateData, JSON_PRETTY_PRINT);
+        // Format output based on format option
+        $formattedOutput = match ($options['format'] ?? 'json') {
+            'csv' => $this->formatAsCsv($templateData, $allSecrets),
+            default => json_encode($templateData, JSON_PRETTY_PRINT),
+        };
 
         // Write output
         if ($options['file']) {
             $this->outputWriter->write(
                 $options['file'],
-                $jsonOutput,
+                $formattedOutput,
                 $options['overwrite'] ?? false,
                 $options['append'] ?? false
             );
             $output->writeln("<info>Secrets exported to [{$options['file']}].</info>");
         } else {
-            $output->writeln($jsonOutput);
+            $output->writeln($formattedOutput);
         }
 
         return 0;
@@ -135,5 +139,34 @@ class TemplateParseService
         ksort($result);
 
         return $result;
+    }
+
+    protected function formatAsCsv(array $templateData, SecretCollection $allSecrets): string
+    {
+        $csv = "Key,Value,Vault,Stage,Modified\n";
+        
+        foreach ($templateData as $key => $value) {
+            // Find the secret in the collection to get metadata
+            $secret = $allSecrets->getByKey($key);
+            
+            $csvKey = $this->escapeCsvField($key);
+            $csvValue = $this->escapeCsvField($value);
+            $vault = $secret ? $this->escapeCsvField($secret->vault()?->name() ?? '') : '';
+            $stage = $secret ? $this->escapeCsvField($secret->stage() ?? '') : '';
+            $modified = $secret && $secret->lastModified() ? $this->escapeCsvField($secret->lastModified()->toIso8601String()) : '';
+            
+            $csv .= "{$csvKey},{$csvValue},{$vault},{$stage},{$modified}\n";
+        }
+        
+        return $csv;
+    }
+
+    protected function escapeCsvField(string $field): string
+    {
+        // If field contains comma, quotes, or newline, wrap in quotes and escape quotes
+        if (preg_match('/[,"\n\r]/', $field)) {
+            return '"' . str_replace('"', '""', $field) . '"';
+        }
+        return $field;
     }
 }

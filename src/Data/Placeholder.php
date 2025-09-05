@@ -48,8 +48,17 @@ class Placeholder
     /**
      * Validate this placeholder and return validation result
      */
-    public function validate(string $defaultVault, string $stage): PlaceholderValidationResult
+    public function validate(?string $defaultVault, string $stage): PlaceholderValidationResult
     {
+        // If no vault specified in placeholder and no default vault, that's an error
+        if (! $this->vault && ! $defaultVault) {
+            return PlaceholderValidationResult::invalid(
+                $this,
+                null,
+                'No vault specified in placeholder (use {vault:key} format)'
+            );
+        }
+
         $vault = $this->vault ?? $defaultVault;
 
         try {
@@ -107,7 +116,7 @@ class Placeholder
     /**
      * Get the effective vault name (either specified vault or default)
      */
-    public function getEffectiveVault(string $defaultVault): string
+    public function getEffectiveVault(?string $defaultVault = null): ?string
     {
         return $this->vault ?? $defaultVault;
     }

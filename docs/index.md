@@ -14,23 +14,23 @@ hero:
       link: https://github.com/stechstudio/keep
 
 features:
-  - title: Interactive Shell
-    details: Full REPL with tab completion, context persistence, and instant secret access.
-    
   - title: Multi-Vault Support
     details: AWS SSM and Secrets Manager, with more providers coming soon.
     
   - title: Stage Management  
     details: Organize secrets by environment with seamless promotion workflows.
-    
+
   - title: Template System
     details: Generate configuration files from templates with smart placeholder replacement.
     
   - title: CLI First
     details: Powerful command-line interface built for CI/CD automation.
     
-  - title: Security Focused
-    details: Encrypted storage, secure AWS integration, and masked output by default.
+  - title: Interactive Shell
+    details: Full REPL with tab completion, context persistence, and instant secret access.
+
+  - title: User-Friendly Web UI
+    details: Visual secret management with diff matrix, import wizard, and real-time search.
 ---
 
 ## Quick Example
@@ -74,4 +74,20 @@ keep shell
 >>> exit                    # Exit when done
 ```
 
-Get started with our [installation guide](/guide/installation), explore the [interactive shell](/guide/shell), or see all [CLI commands](/guide/reference/cli-reference).
+## Web UI
+
+Launch a modern browser-based interface for visual secret management:
+
+```bash
+# Start the web server
+keep server
+
+# The UI provides:
+# - Visual diff matrix comparing environments
+# - Drag-and-drop import with conflict resolution
+# - Real-time search and filtering
+# - Export in multiple formats with preview
+# - Settings management for vaults and stages
+```
+
+Get started with our [installation guide](/guide/installation), explore the [interactive shell](/guide/shell), try the [Web UI](/WEB_UI), or see all [CLI commands](/guide/reference/cli-reference).

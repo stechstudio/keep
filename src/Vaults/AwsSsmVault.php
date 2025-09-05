@@ -24,7 +24,7 @@ class AwsSsmVault extends AbstractVault
 {
     public const string DRIVER = 'ssm';
 
-    public const string NAME = 'AWS Systems Manager Parameter Store';
+    public const string NAME = 'AWS SSM Parameter Store';
 
     protected SsmClient $client;
 
@@ -36,10 +36,10 @@ class AwsSsmVault extends AbstractVault
                 default: $existingSettings['region'] ?? 'us-east-1',
                 hint: 'The AWS region where your parameters will be stored'
             ),
-            'prefix' => new TextPrompt(
-                label: 'Parameter prefix (optional)',
-                default: $existingSettings['prefix'] ?? '',
-                hint: 'Base path for all your parameters (e.g., /[prefix]/myapp/production/DB_PASSWORD)'
+            'scope' => new TextPrompt(
+                label: 'Scope (optional)',
+                default: $existingSettings['scope'] ?? '',
+                hint: 'Optional scope to isolate secrets within namespace (e.g., "app2" for /namespace/app2/stage/key)'
             ),
             'key' => new TextPrompt(
                 label: 'KMS Key ID (optional)',
@@ -51,9 +51,9 @@ class AwsSsmVault extends AbstractVault
 
     public function format(?string $key = null): string
     {
-        return Str::of($this->config['prefix'] ?? '')
-            ->start('/')->finish('/')
-            ->append(Keep::getNamespace().'/')
+        return Str::of('/')
+            ->when(Keep::getNamespace(), fn($str) => $str->append(Keep::getNamespace().'/'))
+            ->when(trim($this->config['scope'] ?? '', '/'), fn($str, $scope) => $str->append($scope.'/'))
             ->append($this->stage.'/')
             ->append($key)
             ->rtrim('/')
@@ -86,6 +86,11 @@ class AwsSsmVault extends AbstractVault
                         ->trim('/')
                         ->toString();
 
+                    $lastModified = null;
+                    if (isset($parameter['LastModifiedDate'])) {
+                        $lastModified = Carbon::parse($parameter['LastModifiedDate']);
+                    }
+
                     $secrets->push(Secret::fromVault(
                         key: $key,
                         value: $parameter['Value'] ?? null,
@@ -95,6 +100,7 @@ class AwsSsmVault extends AbstractVault
                         revision: $parameter['Version'] ?? 0,
                         path: $parameter['Name'],
                         vault: $this,
+                        lastModified: $lastModified,
                     ));
                 }
             } while ($nextToken = $result->get('NextToken'));
@@ -133,6 +139,11 @@ class AwsSsmVault extends AbstractVault
                 throw ExceptionFactory::secretNotFound($key, $this->name());
             }
 
+            $lastModified = null;
+            if (isset($parameter['LastModifiedDate'])) {
+                $lastModified = Carbon::parse($parameter['LastModifiedDate']);
+            }
+
             return Secret::fromVault(
                 key: $key,
                 value: $parameter['Value'] ?? null,
@@ -142,6 +153,7 @@ class AwsSsmVault extends AbstractVault
                 revision: $parameter['Version'] ?? 0,
                 path: $parameter['Name'],
                 vault: $this,
+                lastModified: $lastModified,
             );
         } catch (SsmException $e) {
             if ($e->getAwsErrorCode() === 'ParameterNotFound') {

@@ -54,9 +54,12 @@ class SecretDiff implements Arrayable
             return '<fg=red>—</>';
         }
 
-        return $masked
-            ? '<fg=green>✓</> '.$this->maskValue($secret->value())
-            : $secret->value();
+        if ($masked) {
+            return '<fg=green>✓</> '.$this->maskValue($secret->value());
+        }
+        
+        // Use formatted value for diff tables to wrap long values
+        return $secret->formattedValueForDiff();
     }
 
     public function setValue(string $vaultStage, ?Secret $secret): void
