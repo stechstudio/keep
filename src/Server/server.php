@@ -7,7 +7,25 @@
  * Run with: php -S localhost:4000 src/Server/server.php
  */
 
-require_once __DIR__ . '/../../vendor/autoload.php';
+// Find the autoloader - works both when developing Keep and when installed as a package
+$autoloadPaths = [
+    __DIR__ . '/../../vendor/autoload.php',        // Keep development (keep/vendor/autoload.php)
+    __DIR__ . '/../../../../autoload.php',         // Installed as package (vendor/stechstudio/keep/src/Server -> vendor/autoload.php)
+    __DIR__ . '/../../../../../vendor/autoload.php', // Installed globally with Composer
+];
+
+$autoloadFound = false;
+foreach ($autoloadPaths as $path) {
+    if (file_exists($path)) {
+        require_once $path;
+        $autoloadFound = true;
+        break;
+    }
+}
+
+if (!$autoloadFound) {
+    die("Error: Unable to find Composer autoload.php. Please run 'composer install'.\n");
+}
 
 use STS\Keep\KeepManager;
 use STS\Keep\KeepContainer;
