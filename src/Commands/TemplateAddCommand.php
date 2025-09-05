@@ -2,7 +2,6 @@
 
 namespace STS\Keep\Commands;
 
-use STS\Keep\Commands\Concerns\GathersInput;
 use STS\Keep\Services\TemplateService;
 
 use function Laravel\Prompts\confirm;
@@ -14,7 +13,6 @@ use function Laravel\Prompts\text;
 
 class TemplateAddCommand extends BaseCommand
 {
-    use GathersInput;
 
     protected $signature = 'template:add 
         {--stage= : Stage to generate template for}

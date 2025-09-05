@@ -143,29 +143,17 @@ class SecretController extends ApiController
         $vault = $this->getVault();
         
         // Check if old key exists
-        try {
-            $secret = $vault->get(urldecode($oldKey));
-            if (!$secret) {
-                return $this->error('Secret not found', 404);
-            }
-        } catch (\Exception $e) {
+        if(!$vault->has(urldecode($oldKey))) {
             return $this->error('Secret not found', 404);
         }
         
         // Check if new key already exists
-        try {
-            $existing = $vault->get($newKey);
-            if ($existing) {
-                return $this->error('A secret with the new key already exists');
-            }
-        } catch (\Exception $e) {
-            // Good, new key doesn't exist
+        if($vault->has($newKey)) {
+            return $this->error('A secret with the new key already exists');
         }
-        
-        // Create new secret with new key
-        $vault->set($newKey, $secret->value());
-        
-        // Delete old secret
+
+
+        $vault->set($newKey, $vault->get(urldecode($oldKey))->value());
         $vault->delete(urldecode($oldKey));
         
         return $this->success([
