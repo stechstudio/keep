@@ -3,6 +3,7 @@
 namespace STS\Keep\Server\Controllers;
 
 use Exception;
+use STS\Keep\Data\Collections\FilterCollection;
 use STS\Keep\Services\SecretKeyValidator;
 
 class SecretController extends ApiController
@@ -202,9 +203,8 @@ class SecretController extends ApiController
         $limit = (int)$this->getParam('limit', 10);
         
         try {
-            $historyCollection = $vault->history(urldecode($key), new \STS\Keep\Data\Collections\FilterCollection(), $limit);
-            
-            // Apply masking if not unmasked
+            $historyCollection = $vault->history(urldecode($key), new FilterCollection(), $limit);
+
             if (!$this->isUnmasked()) {
                 $historyCollection = $historyCollection->withMaskedValues();
             }
@@ -224,7 +224,7 @@ class SecretController extends ApiController
                 'history' => $history,
                 'key' => urldecode($key),
                 'vault' => $this->query['vault'] ?? $this->manager->getDefaultVault(),
-                'stage' => $this->query['stage'] ?? $this->manager->getDefaultStage()
+                'stage' => $this->query['stage']
             ]);
         } catch (\Exception $e) {
             return $this->error('Failed to retrieve history: ' . $e->getMessage());
@@ -237,9 +237,8 @@ class SecretController extends ApiController
      */
     public function validationRules(): array
     {
-        $validator = new SecretKeyValidator();
         return $this->success([
-            'rules' => $validator->getValidationRules()
+            'rules' => (new SecretKeyValidator)->getValidationRules()
         ]);
     }
 }
