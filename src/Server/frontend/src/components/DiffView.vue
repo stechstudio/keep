@@ -9,7 +9,8 @@
               @click="showCombinationsDropdown = !showCombinationsDropdown"
               class="flex items-center space-x-2 px-3 py-2 bg-input border border-border rounded-md text-sm hover:bg-accent transition-colors"
           >
-            <span>Toggle Vaults / Stages ({{ selectedCombinations.length }}/{{ availableCombinations.length }})</span>
+            <span v-if="availableVaults.length > 1">Toggle Vaults / Stages ({{ selectedCombinations.length }}/{{ availableCombinations.length }})</span>
+            <span v-else>Toggle Stages ({{ selectedCombinations.length }}/{{ availableCombinations.length }})</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
             </svg>
@@ -29,8 +30,8 @@
                     class="mr-3 rounded border-border bg-input text-primary focus:ring-2 focus:ring-ring"
                 />
                 <span class="text-sm">
-                  <span>{{ combo.vaultDisplay }} ({{ combo.vault }})</span>
-                  <span class="mx-2 text-muted-foreground">/</span>
+                  <span v-if="availableVaults.length > 1">{{ combo.vaultDisplay }} ({{ combo.vault }})</span>
+                  <span v-if="availableVaults.length > 1" class="mx-2 text-muted-foreground">/</span>
                   <strong>{{ combo.stage }}</strong>
                 </span>
               </label>
@@ -58,6 +59,15 @@
 
       <!-- Right side controls -->
       <div class="flex space-x-2">
+        <button
+            @click="showRowColors = !showRowColors"
+            class="flex items-center space-x-2 px-3 py-2 text-sm border border-border rounded-md hover:bg-accent transition-colors"
+            title="Toggle row highlighting">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+          </svg>
+          <span>{{ showRowColors ? 'Hide' : 'Show' }} Colors</span>
+        </button>
         <button
             @click="unmaskAll = !unmaskAll"
             class="flex items-center space-x-2 px-3 py-2 text-sm border border-border rounded-md hover:bg-accent transition-colors"
@@ -119,10 +129,10 @@
         </tr>
         </thead>
         <tbody class="divide-y divide-border">
-        <tr v-for="key in sortedKeys" :key="key" :class="getRowClass(key)" class="transition-colors">
+        <tr v-for="key in sortedKeys" :key="key" :class="getRowClass(key)">
           <td class="sticky left-0 z-10 border-r border-border p-0">
             <div class="bg-background">
-              <div class="px-4 py-3 flex items-center space-x-2" :class="getRowClass(key, false)">
+              <div class="px-4 py-3 flex items-center space-x-2" :class="getRowClass(key)">
                 <span class="font-mono text-sm font-medium">{{ key }}</span>
                 <button
                     @click="toggleRowMask(key)"
@@ -369,6 +379,7 @@ const historySecret = ref(null)
 const deletingSecret = ref(null)
 const searchQuery = ref('')
 const searchInput = ref(null)
+const showRowColors = ref(true)
 
 // Computed columns based on selected combinations
 const activeColumns = computed(() => {
@@ -464,17 +475,18 @@ function getRowStatus(key) {
 }
 
 // Get the CSS class for a row based on its status
-function getRowClass(key, hover = true) {
+function getRowClass(key) {
+  if (!showRowColors.value) return ''
   const status = getRowStatus(key)
   switch (status) {
     case 'incomplete':
-      return 'bg-red-500/10 ' + (hover ? 'hover:bg-red-500/15' : '')
+      return 'bg-red-500/40'
     case 'identical':
-      return 'bg-green-500/10 ' + (hover ? 'hover:bg-green-500/15' : '')
+      return 'bg-green-500/40'
     case 'different':
-      return 'bg-yellow-500/10 ' + (hover ? 'hover:bg-yellow-500/15' : '')
+      return 'bg-yellow-500/40'
     default:
-      return 'hover:bg-muted/50'
+      return ''
   }
 }
 

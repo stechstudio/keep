@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-center space-x-3">
-    <!-- Vault Selector -->
-    <div class="relative">
+    <!-- Vault Selector - only show if more than one vault -->
+    <div v-if="vaults && vaults.length > 1" class="relative">
       <button
         @click="vaultOpen = !vaultOpen"
         class="flex items-center space-x-2 px-3 pl-0 py-1.5 transition-colors"
@@ -29,7 +29,7 @@
       </div>
     </div>
 
-    <div class="text-lg text-white/30 font-bold pr-3">/</div>
+    <div v-if="vaults && vaults.length > 1" class="text-lg text-white/30 font-bold pr-3">/</div>
 
     <!-- Stage Selector -->
     <div class="relative">
