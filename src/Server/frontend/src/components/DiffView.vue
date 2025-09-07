@@ -71,14 +71,14 @@
           </svg>
         </button>
         <button
-            @click="unmaskAll = !unmaskAll"
+            @click="toggleUnmask"
             :class="[
               'p-2 text-sm border border-border rounded-md transition-all',
               unmaskAll ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'hover:bg-accent'
             ]"
             :title="unmaskAll ? 'Hide all values' : 'Show all values'"
         >
-          <svg v-if="!unmaskAll" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg v-if="unmaskAll" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -370,7 +370,7 @@ const selectedCombinations = ref([])
 const availableCombinations = ref([])
 const fullDiffMatrix = ref(null) // Store all data from server
 const loading = ref(false)
-const unmaskAll = ref(false)
+const unmaskAll = ref(localStorage.getItem('keep.unmaskAll') === 'true')
 const unmaskedRows = ref(new Set())
 const showCombinationsDropdown = ref(false)
 const activeCellMenu = ref(null)
@@ -391,6 +391,12 @@ const showRowColors = ref(localStorage.getItem('keep.diff.showColors') !== 'fals
 function toggleRowColors() {
   showRowColors.value = !showRowColors.value
   localStorage.setItem('keep.diff.showColors', showRowColors.value.toString())
+}
+
+// Toggle unmask and persist preference
+function toggleUnmask() {
+  unmaskAll.value = !unmaskAll.value
+  localStorage.setItem('keep.unmaskAll', unmaskAll.value.toString())
 }
 
 // Computed columns based on selected combinations
