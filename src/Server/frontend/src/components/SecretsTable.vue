@@ -16,7 +16,11 @@
       <div class="flex space-x-3">
         <button
             @click="unmaskAll = !unmaskAll"
-            class="flex items-center space-x-2 px-3 py-1.5 text-sm border border-border rounded-md hover:bg-accent transition-colors"
+            :class="[
+              'p-2 text-sm border border-border rounded-md transition-all',
+              unmaskAll ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'hover:bg-accent'
+            ]"
+            :title="unmaskAll ? 'Hide all values' : 'Show all values'"
         >
           <svg v-if="!unmaskAll" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>

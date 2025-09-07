@@ -60,17 +60,23 @@
       <!-- Right side controls -->
       <div class="flex space-x-2">
         <button
-            @click="showRowColors = !showRowColors"
-            class="flex items-center space-x-2 px-3 py-2 text-sm border border-border rounded-md hover:bg-accent transition-colors"
+            @click="toggleRowColors"
+            :class="[
+              'p-2 text-sm border border-border rounded-md transition-all',
+              showRowColors ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'hover:bg-accent'
+            ]"
             title="Toggle row highlighting">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
           </svg>
-          <span>{{ showRowColors ? 'Hide' : 'Show' }} Colors</span>
         </button>
         <button
             @click="unmaskAll = !unmaskAll"
-            class="flex items-center space-x-2 px-3 py-2 text-sm border border-border rounded-md hover:bg-accent transition-colors"
+            :class="[
+              'p-2 text-sm border border-border rounded-md transition-all',
+              unmaskAll ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'hover:bg-accent'
+            ]"
+            :title="unmaskAll ? 'Hide all values' : 'Show all values'"
         >
           <svg v-if="!unmaskAll" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -379,7 +385,13 @@ const historySecret = ref(null)
 const deletingSecret = ref(null)
 const searchQuery = ref('')
 const searchInput = ref(null)
-const showRowColors = ref(true)
+const showRowColors = ref(localStorage.getItem('keep.diff.showColors') !== 'false') // Default true
+
+// Toggle row colors and persist preference
+function toggleRowColors() {
+  showRowColors.value = !showRowColors.value
+  localStorage.setItem('keep.diff.showColors', showRowColors.value.toString())
+}
 
 // Computed columns based on selected combinations
 const activeColumns = computed(() => {
