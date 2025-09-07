@@ -116,16 +116,17 @@
 
     <!-- Diff Matrix -->
     <div v-else-if="diffMatrix && Object.keys(diffMatrix).length > 0" class="border border-border rounded-lg overflow-y-visible overflow-x-auto">
-      <table class="w-full">
+      <table class="w-full" style="table-layout: fixed;">
         <thead class="bg-muted sticky top-0 z-10">
         <tr>
-          <th class="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider sticky left-0 bg-muted z-20 min-w-[200px]">
+          <th class="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider sticky left-0 bg-muted z-20 w-64">
             Secret Key
           </th>
           <th
               v-for="column in activeColumns"
               :key="column"
-              class="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-center border-l border-border min-w-[80px]"
+              class="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider text-center border-l border-border"
+              :style="columnWidthStyle"
           >
             <div class="flex flex-col">
               <span class="font-semibold">{{ column.vault }}</span>
@@ -163,6 +164,7 @@
               :key="`${key}-${column.vault}-${column.stage}`"
               class="px-4 py-3 text-left border-l border-border relative group"
               :class="getCellClass(key, column.vault, column.stage)"
+              :style="columnWidthStyle"
           >
             <div v-if="getSecretValue(key, column.vault, column.stage)" class="flex items-center justify-between">
                 <span class="font-mono text-sm break-all">
@@ -398,6 +400,19 @@ function toggleUnmask() {
   unmaskAll.value = !unmaskAll.value
   localStorage.setItem('keep.unmaskAll', unmaskAll.value.toString())
 }
+
+// Computed style for dynamic column widths
+const columnWidthStyle = computed(() => {
+  const columnCount = activeColumns.value.length
+  if (columnCount === 0) return {}
+  
+  // Calculate equal width for value columns
+  // Since first column is 256px (w-64), and we want equal distribution for the rest
+  // We'll use calc to get the remaining space divided equally
+  return {
+    width: `calc((100% - 16rem) / ${columnCount})`
+  }
+})
 
 // Computed columns based on selected combinations
 const activeColumns = computed(() => {
