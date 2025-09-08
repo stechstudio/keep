@@ -134,11 +134,11 @@ class RunCommand extends BaseCommand
         $inheritCurrent = !$this->option('no-inherit');
         
         // Handle template-based injection
-        // If --template is explicitly provided, use template mode
+        // Only use template if --template option is explicitly provided
         // But only if no filters are specified (filters only work in direct mode)
         $hasFilters = $this->option('only') || $this->option('except');
         
-        if (!$hasFilters && $this->hasOption('template') && $this->option('template') !== false) {
+        if (!$hasFilters && $templateOption !== null) {
             // If template value is empty string, it means auto-discovery
             $templatePath = $templateOption === '' ? null : $templateOption;
             return $this->buildFromTemplate($templatePath, $stage, $vaultSlug, $inheritCurrent);

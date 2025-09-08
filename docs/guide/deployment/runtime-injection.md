@@ -101,14 +101,14 @@ With Docker Compose, environment variables are automatically passed through when
 ## Template-Based Injection
 
 ```bash
-# Generate template from existing secrets
-keep template:add prod.env --stage=production
-
-# Use specific template
-keep run --vault=ssm --stage=production --template=env/prod.env -- npm start
+# Generate template from existing secrets in env/production.env
+keep template:add --stage=production
 
 # Auto-discover template (looks for env/{stage}.env)
 keep run --vault=ssm --stage=production --template -- npm start
+
+# Use specific template
+keep run --vault=ssm --stage=production --template=env/prod.env -- npm start
 ```
 
 See [Managing Templates](./templates.md) for detailed template documentation.
