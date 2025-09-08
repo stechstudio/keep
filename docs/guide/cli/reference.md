@@ -1,6 +1,6 @@
-# CLI Reference
+# CLI Command Reference
 
-Complete reference for all Keep commands with their options and usage examples.
+Complete reference for all Keep CLI commands with their options and usage examples.
 
 ## `keep configure`
 

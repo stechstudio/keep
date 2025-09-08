@@ -41,6 +41,7 @@ DB_PASSWORD="super-secret-password"
 
 You're now managing secrets with Keep! Here's where to go next:
 
-- **[Managing Secrets](./managing-secrets/)** - Comprehensive guide to secret operations
+- **[Web UI](./web-ui/)** - Primary interface for secret management
+- **[Interactive Shell](./shell)** - Exploratory operations and quick edits
 - **[Vaults](./vaults)** - Add production vaults (AWS SSM, Secrets Manager)
-- **[Exporting to .env](./managing-secrets/exporting-to-env)** - Export secrets for deployment
+- **[Deployment & Runtime](./deployment/)** - Production deployment strategies

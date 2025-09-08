@@ -44,21 +44,17 @@ export default defineConfig({
                     ]
                 },
                 {
-                    text: 'CLI Commands',
+                    text: 'CLI',
                     items: [
-                        {text: 'Overview', link: '/guide/cli-commands/'},
-                        {text: 'Creating & Viewing', link: '/guide/cli-commands/creating-viewing'},
-                        {text: 'Cross-Environment', link: '/guide/cli-commands/cross-environment'},
-                        {text: 'Exporting to .env', link: '/guide/cli-commands/exporting-to-env'}
-                        // {text: 'Runtime Secrets', link: '/guide/cli-commands/runtime-secrets'} // Deferred to future release
+                        {text: 'Overview', link: '/guide/cli/'},
+                        {text: 'Command Reference', link: '/guide/cli/reference'}
                     ]
                 },
                 {
                     text: 'Interactive Shell',
                     items: [
-                        {text: 'Getting Started', link: '/guide/shell'},
-                        {text: 'Commands & Shortcuts', link: '/guide/shell-commands'},
-                        {text: 'Tips & Tricks', link: '/guide/shell-tips'}
+                        {text: 'Overview', link: '/guide/shell/'},
+                        {text: 'Command Reference', link: '/guide/shell/reference'}
                     ]
                 },
                 {
@@ -82,7 +78,6 @@ export default defineConfig({
                 {
                     text: 'Reference',
                     items: [
-                        {text: 'CLI Reference', link: '/guide/reference/cli-reference'},
                         {text: 'AWS Authentication', link: '/guide/reference/aws-authentication'}
                         // {text: 'Security Architecture', link: '/guide/reference/security-architecture'} // Deferred - encrypted cache feature
                     ]

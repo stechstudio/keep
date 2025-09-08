@@ -1,6 +1,6 @@
-# Shell Commands & Shortcuts
+# Shell Command Reference
 
-The Keep interactive shell provides shortcuts and enhanced versions of CLI commands optimized for interactive use.
+Complete reference for all interactive shell commands, shortcuts, and options.
 
 ## Core Commands
 
