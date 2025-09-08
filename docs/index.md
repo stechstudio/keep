@@ -15,7 +15,7 @@ hero:
 
 features:
   - title: Multi-Vault Support
-    details: AWS SSM and Secrets Manager, with more providers coming soon.
+    details: Supports AWS SSM and Secrets Manager currently, with more providers planned.
     
   - title: Stage Management  
     details: Organize secrets by environment with seamless promotion workflows.

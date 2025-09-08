@@ -8,9 +8,10 @@ Managing secrets across local, staging, and production environments is challengi
 
 - **Unified Interface**: One CLI for all your secret vaults
 - **Stage Organization**: Separate secrets by environment (local, staging, production)
-- **Template Generation**: Build configuration files from templates with automatic secret injection
+- **Template Generation**: Build configuration files from templates with automatic secret replacement
 - **Team Collaboration**: Share vault access without exposing secret values
 - **Security First**: Encrypted storage, masked output, and secure AWS integration
+- **Deployment Ready**: Designed for CI/CD pipelines and automated workflows, supporting .env file generation or direct environment variable injection
 
 ## Getting Started
 

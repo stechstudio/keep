@@ -174,14 +174,14 @@ deploy:
 
 ## Security Best Practices
 
-### Never Do This
+### Anti-Patterns to Avoid
 
-❌ Store AWS credentials in your repository  
-❌ Put AWS credentials in `.env` files tracked by git  
-❌ Use long-lived AWS access keys in production  
-❌ Share AWS credentials between environments  
+❌ Storing AWS credentials in your repository  
+❌ Putting AWS credentials in `.env` files tracked by git  
+❌ Using long-lived AWS access keys in production  
+❌ Sharing AWS credentials between environments  
 
-### Always Do This
+### Recommended Practices
 
 ✅ Use temporary credentials when possible (aws-vault, SSO, instance roles)  
 ✅ Apply least-privilege IAM policies  
@@ -210,32 +210,6 @@ After setting up authentication, you need to configure IAM permissions for the A
 - **For AWS Secrets Manager**: See [Secrets Manager IAM Permissions](/guide/vaults/aws-secrets-manager#iam-permissions)
 
 Each vault type requires specific IAM permissions based on your usage pattern (read-only, read-write, or admin access).
-
-## PHP Application Considerations
-
-When using Keep with PHP applications:
-
-1. **Don't hardcode AWS credentials in config**
-   ```php
-   // config/aws.php - DON'T DO THIS
-   'credentials' => [
-       'key'    => env('AWS_ACCESS_KEY_ID'),
-       'secret' => env('AWS_SECRET_ACCESS_KEY'),
-   ]
-   ```
-
-2. **Let the SDK find credentials automatically**
-   ```php
-   // config/aws.php - DO THIS
-   'credentials' => null, // SDK will use IAM role, ~/.aws/credentials, etc.
-   ```
-
-3. **Generate .env before caching configuration**
-   ```bash
-   # deployment.sh
-   keep export --stage=production --output=.env
-   # Then cache your application configuration if needed
-   ```
 
 ## Troubleshooting
 

@@ -33,24 +33,6 @@ sh 'docker build --secret id=env,src=.env .'
 sh 'rm -f .env'  # Clean up
 ```
 
-### Automated Secret Rotation
-
-```bash
-#!/bin/bash
-# Rotate API keys across environments
-
-# Generate new key
-NEW_KEY=$(openssl rand -hex 32)
-
-# Update in all stages
-for stage in local staging production; do
-  keep set API_KEY "$NEW_KEY" --stage=$stage --force
-done
-
-# Restart services
-keep run --stage=production -- systemctl restart api-server
-```
-
 ### Bulk Operations
 
 ```bash
