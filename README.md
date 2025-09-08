@@ -16,6 +16,7 @@
 - **🔄 Bulk Operations** - Import, export, copy, and diff secrets across environments
 - **🤝 Team Collaboration** - Share secret management with proper access controls
 - **⚙️ CI/CD Ready** - Export secrets for deployment pipelines
+- **🚀 Runtime Injection** - Execute processes with injected secrets (no disk writes)
 
 ## Quick Example
 
@@ -40,6 +41,9 @@ composer require stechstudio/keep
 
 # Use template with placeholders
 ./vendor/bin/keep export --stage=production --template=.env.template --file=.env
+
+# Runtime injection - execute with secrets, no files created
+./vendor/bin/keep run --vault=ssm --stage=production -- npm start
 ```
 
 ## Interactive Shell
@@ -93,10 +97,10 @@ The Web UI provides:
 📚 **Full documentation available at [https://stechstudio.github.io/keep/](https://stechstudio.github.io/keep/)**
 
 - [Installation & Configuration](https://stechstudio.github.io/keep/guide/installation)
-- [Managing Secrets](https://stechstudio.github.io/keep/guide/managing-secrets/)
 - [Interactive Shell Guide](https://stechstudio.github.io/keep/guide/shell)
-- [AWS Authentication](https://stechstudio.github.io/keep/guide/reference/aws-authentication)
-- [CLI Reference](https://stechstudio.github.io/keep/guide/reference/cli-reference)
+- [Deployment & Runtime](https://stechstudio.github.io/keep/guide/deployment/)
+- [AWS Authentication](https://stechstudio.github.io/keep/guide/aws-authentication)
+- [CLI Reference](https://stechstudio.github.io/keep/guide/cli/reference)
 
 ## License
 
