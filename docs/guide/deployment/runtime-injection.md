@@ -39,6 +39,21 @@ php artisan queue:restart
 
 Once cached, Laravel completely ignores environment variables, reading everything from `bootstrap/cache/config.php`.
 
+## Symfony Applications
+
+Symfony compiles environment variables into the container during cache warmup. After compilation, all commands use the cached container:
+
+```bash
+# Inject secrets during container compilation (only injection needed!)
+keep run --vault=ssm --stage=production -- php bin/console cache:warmup --env=prod
+
+# All subsequent commands use compiled container - no injection required
+php bin/console doctrine:migrations:migrate --no-interaction
+php bin/console messenger:consume async
+```
+
+Once compiled, Symfony reads configuration from `var/cache/prod/` and never accesses environment variables.
+
 ## Node.js Applications
 
 ```bash

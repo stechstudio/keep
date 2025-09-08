@@ -39,10 +39,10 @@ composer require stechstudio/keep
 # Create template from existing secrets
 ./vendor/bin/keep template:add .env.template --stage=production
 
-# Use template with placeholders
-./vendor/bin/keep export --stage=production --template=.env.template --file=.env
+# Use template with placeholders to generate .env file
+./vendor/bin/keep export --stage=production --template=env/production.env --file=.env
 
-# Runtime injection - execute with secrets, no files created
+# Runtime injection - execute with secrets, no .env file created
 ./vendor/bin/keep run --vault=ssm --stage=production -- npm start
 ```
 
