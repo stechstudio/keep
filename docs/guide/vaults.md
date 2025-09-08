@@ -87,7 +87,7 @@ keep verify
 keep vault:list
 ```
 
-**Important:** Before adding AWS vaults, ensure your AWS credentials are properly configured. See [AWS Authentication](/guide/reference/aws-authentication) for setup instructions.
+**Important:** Before adding AWS vaults, ensure your AWS credentials are properly configured. See [AWS Authentication](/guide/aws-authentication) for setup instructions.
 
 ## Best Practices
 

@@ -40,6 +40,7 @@ export default defineConfig({
                         {text: 'Introduction', link: '/guide/'},
                         {text: 'Installation', link: '/guide/installation'},
                         {text: 'Configuration', link: '/guide/configuration'},
+                        {text: 'AWS Authentication', link: '/guide/aws-authentication'},
                         {text: 'Quick Start', link: '/guide/quick-start'}
                     ]
                 },
@@ -73,13 +74,6 @@ export default defineConfig({
                         {text: 'Comparison', link: '/guide/vaults'},
                         {text: 'AWS SSM', link: '/guide/vaults/aws-ssm'},
                         {text: 'AWS Secrets Manager', link: '/guide/vaults/aws-secrets-manager'}
-                    ]
-                },
-                {
-                    text: 'Reference',
-                    items: [
-                        {text: 'AWS Authentication', link: '/guide/reference/aws-authentication'}
-                        // {text: 'Security Architecture', link: '/guide/reference/security-architecture'} // Deferred - encrypted cache feature
                     ]
                 },
                 {

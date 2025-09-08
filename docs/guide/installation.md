@@ -4,7 +4,7 @@
 
 - PHP 8.3 or higher
 - Composer 2.0 or higher
-- AWS credentials configured (for AWS vaults) - see [AWS Authentication](/guide/reference/aws-authentication)
+- AWS credentials configured (for AWS vaults) - see [AWS Authentication](/guide/aws-authentication)
 
 ## Project Installation (Recommended)
 
