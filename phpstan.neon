@@ -3,7 +3,8 @@ parameters:
     paths:
         - src
     excludePaths:
-        - src/Laravel/SecretsServiceProvider.php.deferred
-        - src/Data/KeepRepository.php.deferred
-        - src/Contracts/KeepRepositoryInterface.php.deferred
+        analyseAndScan:
+            - src/Laravel/SecretsServiceProvider.php.deferred (?)
+            - src/Data/KeepRepository.php.deferred (?)
+            - src/Contracts/KeepRepositoryInterface.php.deferred (?)
     reportUnmatchedIgnoredErrors: false

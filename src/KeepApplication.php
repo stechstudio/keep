@@ -62,6 +62,7 @@ class KeepApplication extends Application
             
             Commands\ShellCommand::class,
             Commands\ServerCommand::class,
+            Commands\RunCommand::class,
         ]);
         
         // Make shell the default command when running 'keep' without arguments

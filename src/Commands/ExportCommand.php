@@ -4,6 +4,7 @@ namespace STS\Keep\Commands;
 
 use Illuminate\Filesystem\Filesystem;
 use STS\Keep\Commands\Concerns\GathersInput;
+use STS\Keep\Commands\Concerns\ResolvesTemplates;
 use STS\Keep\Services\Export\DirectExportService;
 use STS\Keep\Services\Export\TemplateParseService;
 use STS\Keep\Services\Export\TemplatePreserveService;
@@ -14,7 +15,7 @@ use STS\Keep\Services\VaultDiscovery;
 
 class ExportCommand extends BaseCommand
 {
-    use GathersInput;
+    use GathersInput, ResolvesTemplates;
 
     public $signature = 'export 
         {--format=env : Output format (env, json, or csv)} 
@@ -97,25 +98,6 @@ class ExportCommand extends BaseCommand
 
         // Template with env output - preserve mode
         return $this->templatePreserve->handle($options, $this->output);
-    }
-
-    /**
-     * Resolve template file path based on stage name.
-     */
-    protected function resolveTemplateForStage(string $stage): string
-    {
-        $settings = \STS\Keep\Facades\Keep::getSettings();
-        $templateDir = $settings['template_path'] ?? 'env';
-        $templateFile = getcwd() . '/' . $templateDir . '/' . $stage . '.env';
-        
-        if (! file_exists($templateFile)) {
-            throw new \InvalidArgumentException(
-                "No template found for stage '{$stage}' at {$templateFile}.\n" .
-                "Create one with: keep template:add {$stage}.env --stage={$stage}"
-            );
-        }
-        
-        return $templateFile;
     }
     
     /**
