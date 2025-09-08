@@ -62,10 +62,7 @@ export default defineConfig({
                     text: 'Web UI',
                     items: [
                         {text: 'Getting Started', link: '/guide/web-ui/'},
-                        {text: 'Managing Secrets', link: '/guide/web-ui/managing-secrets'},
-                        {text: 'Diff & Compare', link: '/guide/web-ui/diff-compare'},
-                        {text: 'Import & Export', link: '/guide/web-ui/import-export'},
-                        {text: 'Security', link: '/guide/web-ui/security'}
+                        {text: 'Features', link: '/guide/web-ui/features'}
                     ]
                 },
                 {
