@@ -16,6 +16,10 @@ use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\note;
 
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Illuminate\Console\OutputStyle;
+
 class RunCommand extends BaseCommand
 {
     use GathersInput, ResolvesTemplates;
@@ -42,16 +46,30 @@ class RunCommand extends BaseCommand
         $this->processRunner = new ProcessRunner();
     }
     
+    /**
+     * Override run to provide better error message for missing command
+     */
+    public function run(InputInterface $input, OutputInterface $output): int
+    {
+        try {
+            return parent::run($input, $output);
+        } catch (\Symfony\Component\Console\Exception\RuntimeException $e) {
+            if (str_contains($e->getMessage(), 'Not enough arguments (missing: "cmd")')) {
+                $this->output = new OutputStyle($input, $output);
+                error('No command specified to run');
+                note('Usage: keep run [options] -- <command> [arguments]');
+                note('Example: keep run --vault=ssm --stage=production -- npm start');
+                note('Example: keep run --vault=ssm --stage=production -- php artisan serve');
+                return self::FAILURE;
+            }
+            throw $e;
+        }
+    }
+    
     protected function process(): int
     {
         // Get command and arguments
         $commandArgs = $this->argument('cmd');
-        
-        if (empty($commandArgs)) {
-            error('No command specified');
-            note('Usage: keep run [options] -- <command> [arguments]');
-            return self::FAILURE;
-        }
         
         // Validate command exists
         $command = $commandArgs[0];
