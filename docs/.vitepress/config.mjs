@@ -86,6 +86,15 @@ export default defineConfig({
                         {text: 'AWS Authentication', link: '/guide/reference/aws-authentication'}
                         // {text: 'Security Architecture', link: '/guide/reference/security-architecture'} // Deferred - encrypted cache feature
                     ]
+                },
+                {
+                    text: 'Deployment & Runtime',
+                    items: [
+                        {text: 'Overview', link: '/guide/deployment/'},
+                        {text: 'Managing Templates', link: '/guide/deployment/templates'},
+                        {text: 'Runtime Secrets Injection', link: '/guide/deployment/runtime-injection'},
+                        {text: 'Exporting to Files', link: '/guide/deployment/exporting'}
+                    ]
                 }
             ]
         },

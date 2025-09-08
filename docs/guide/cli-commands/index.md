@@ -11,12 +11,15 @@ Set, get, list, and delete secrets across environments.
 Copy secrets between stages, import from `.env` files, and compare environments.
 
 ### [Exporting to .env](./exporting-to-env)
-Generate plaintext `.env` files for traditional deployments.
+Quick reference for export commands - see [Deployment & Runtime](/guide/deployment/) for comprehensive deployment strategies.
 
-<!-- Runtime Secrets deferred to future release
-### [Runtime Secrets](./runtime-secrets)
-Secure, high-performance alternative using encrypted caches.
--->
+## Advanced Deployment
+
+For production deployments, runtime injection, and template management, see the dedicated **[Deployment & Runtime](/guide/deployment/)** section which covers:
+
+- **Runtime Secrets Injection** - Execute processes with injected secrets (no files)
+- **Template Management** - Define and validate secret requirements
+- **Export Strategies** - Choose the right approach for your use case
 
 ## Core Concepts
 

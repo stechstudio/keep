@@ -1,162 +1,75 @@
 # Exporting to .env
 
-This guide covers generating configuration files for deployment using exports and templates. These are the primary ways to get your secrets into running applications.
+Keep provides powerful export capabilities for generating configuration files from your secrets. This page provides a quick reference - for detailed deployment strategies, see the [Deployment & Runtime](/guide/deployment/) section.
 
-## Exporting Secrets
+## Quick Reference
 
-The `keep export` command generates configuration files from your secrets in various formats, perfect for application deployment.
-
-### Basic Usage
+### Export Command
 
 ```bash
 # Export to .env file
-keep export --stage=production --output=.env
-
-# Export as JSON
-keep export --stage=local --format=json
-
-# Export as CSV
-keep export --stage=production --format=csv
-
-# Export to stdout (default)
-keep export --stage=staging
-```
-
-### Command Reference: `keep export`
-
-| Option        | Type    | Default | Description |
-|---------------|---------|---------|-------------|
-| `--stage`     | string  | *interactive* | Stage to export secrets from |
-| `--vault`     | string  | *default vault* | Vault to export secrets from |
-| `--format`    | string  | `env` | Output format: `env`, `json`, `csv` |
-| `--file`      | string  | *stdout* | Output file path |
-| `--append`    | boolean | `false` | Append to output file instead of overwriting |
-| `--overwrite` | boolean | `false` | Overwrite output file without confirmation |
-| `--only`      | string  | | Comma-separated list of keys to include |
-| `--except`    | string  | | Comma-separated list of keys to exclude |
-
-**Examples:**
-```bash
-# Basic .env export
 keep export --stage=production --file=.env
 
-# JSON export for configuration management
+# Export with template
+keep export --template=env/prod.env --stage=production --file=.env
+
+# Export as JSON
 keep export --stage=production --format=json --file=config.json
-
-# CSV export for spreadsheets
-keep export --stage=production --format=csv --file=secrets.csv
-
-# Export only API-related secrets
-keep export --stage=production --only="API_*" --file=api.env
-
-# Export all except certain keys
-keep export --stage=production --except="PRIVATE_KEY,SECRET_TOKEN" --file=.env
-
-# Export to stdout for piping
-keep export --stage=production --format=json | jq '.API_KEY'
 ```
 
-## Template-Based Export
-
-The `keep export --template` command combines secrets with template files, allowing you to create complete configuration files with both secrets and static values.
-
-### Basic Usage
+### Run Command (Runtime Injection)
 
 ```bash
-# Merge template with secrets
-keep export --template=.env.template --stage=production --file=.env
+# Run process with injected secrets
+keep run --vault=aws-ssm --stage=production -- npm start
 
-# Output to stdout
-keep export --template=.env.template --stage=local
-
-# Include all secrets beyond template placeholders
-keep export --template=.env.template --stage=production --all --file=.env
+# Use template for specific secrets
+keep run --vault=aws-ssm --stage=production --template -- npm start
 ```
 
-### Template Options
+## Deployment Strategies
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `--template` | string | | Template file with placeholders (required) |
-| `--all` | boolean | `false` | Also append non-placeholder secrets |
-| `--missing` | string | `fail` | Handle missing secrets: `fail`, `skip`, `blank`, `remove` |
-| `--format` | string | `env` | Output format: `env` (preserves structure), `json` (parses data) |
+Keep offers three main approaches for getting secrets into your applications:
 
-## Template Syntax
-
-A template is a .env file where some of the values are placeholders in curly braces `{}`. For example:
+### 1. Runtime Injection (Recommended)
+**Most secure** - Inject secrets directly into processes without writing to disk.
 
 ```bash
-# Specify the vault slug and secret name
-API_KEY={ssm:service-api-key}
-
-# If the key name matches the secret name, you can omit the secret name
-DB_PASSWORD={ssm}
-
-# Multiple vaults are supported if configured
-REDIS_URL={secretsmanager:REDIS_URL}
+keep run --vault=aws-ssm --stage=production -- npm start
 ```
 
-**Examples:**
-```bash
-# Basic template merge (preserves structure)
-keep export --template=.env.template --stage=production --file=.env
+[Learn more about Runtime Injection →](/guide/deployment/runtime-injection)
 
-# Handle missing secrets gracefully
-keep export --template=.env.template --stage=local --missing=skip --file=.env
-
-# Remove lines with missing secrets
-keep export --template=.env.template --stage=staging --missing=remove --file=.env
-
-# Template to JSON (parses and transforms data)
-keep export --template=.env.template --stage=production --format=json --file=config.json
-
-# Template with all additional secrets
-keep export --template=.env.template --stage=production --all --file=.env
-```
-
-### Creating Templates
-
-The `template:add` command generates template files from your existing secrets:
+### 2. Template Management
+**Most flexible** - Define which secrets your apps need using templates.
 
 ```bash
-# Create template from all secrets in a stage
+# Create template
 keep template:add production.env --stage=production
 
-# Create template from specific vault
-keep template:add api.env --stage=production --vault=ssm
-
-# Overwrite existing template
-keep template:add config.env --stage=staging --overwrite
+# Use template
+keep export --template=production.env --stage=production --file=.env
 ```
 
-### Template Validation
+[Learn more about Templates →](/guide/deployment/templates)
 
-Validate templates to ensure all placeholders can be resolved:
+### 3. File Export
+**Most compatible** - Generate .env files for legacy applications.
 
 ```bash
-# Validate template for a specific stage
-keep template:validate app.template --stage=production
-
-# Validate without specifying stage (checks all placeholders)
-keep template:validate app.template
+keep export --stage=production --file=.env
 ```
 
-<!-- Future enhancement: Cache Export
-## Cache Export
+[Learn more about File Export →](/guide/deployment/exporting)
 
-The export command can also create encrypted cache files for Laravel integration using the `--cache` flag:
+## Complete Documentation
 
-```bash
-# Export secrets to encrypted cache file
-keep export --stage=production --cache
+For comprehensive guides on deployment strategies, template management, and security best practices, see the **[Deployment & Runtime](/guide/deployment/)** section.
 
-# Export from specific vaults to cache
-keep export --stage=production --vault=ssm,secretsmanager --cache
-
-# Cache with filters
-keep export --stage=production --only="API_*,DB_*" --cache
-```
-
-The `--cache` flag creates an encrypted `.keep.php` file in `.keep/cache/` and updates your `.env` file with the required `KEEP_CACHE_KEY_PART` for decryption.
--->
+### Key Topics Covered:
+- [Runtime Secrets Injection](/guide/deployment/runtime-injection) - Execute processes with injected secrets
+- [Managing Templates](/guide/deployment/templates) - Create and manage configuration templates
+- [Exporting to Files](/guide/deployment/exporting) - Generate configuration files
+- Security comparisons and best practices
+- Framework-specific examples (Laravel, Node.js, Python, Docker)
+- CI/CD integration patterns

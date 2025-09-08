@@ -652,6 +652,51 @@ REDIS_URL={secretsmanager:REDIS_URL}
 
 
 
+## `keep run`
+
+Execute subprocesses with secrets injected as environment variables (diskless).
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--vault` | string | *interactive* | Vault to fetch secrets from |
+| `--stage` | string | *interactive* | Stage to use |
+| `--template` | string | | Template file path, or auto-discover if empty |
+| `--only` | string | | Include only matching keys (patterns) |
+| `--except` | string | | Exclude matching keys (patterns) |
+| `--no-inherit` | boolean | `false` | Don't inherit current environment |
+
+**Arguments:**
+- `cmd...` - Command and arguments to run (after `--`)
+
+**Examples:**
+```bash
+# Run with all secrets from vault
+keep run --vault=ssm --stage=production -- npm start
+
+# Use template for selective secrets + static config
+keep run --vault=ssm --stage=production --template=env/prod.env -- npm start
+
+# Auto-discover template (looks for env/{stage}.env)
+keep run --vault=ssm --stage=production --template -- npm start
+
+# Filter secrets by pattern
+keep run --vault=ssm --stage=production --only='DB_*' -- npm run migrate
+
+# Clean environment (no inheritance)
+keep run --vault=ssm --stage=production --no-inherit -- node server.js
+
+# Laravel config cache (one-time injection)
+keep run --vault=ssm --stage=production -- php artisan config:cache
+```
+
+**Key Features:**
+- Secrets never touch disk - only exist in subprocess memory
+- Exit codes propagated for CI/CD compatibility
+- TTY support for interactive commands
+- Works with templates for complete configuration (secrets + static values)
+
+See [Runtime Secrets Injection](/guide/deployment/runtime-injection) for detailed documentation.
+
 ## Getting Help
 
 Each command includes detailed help:
