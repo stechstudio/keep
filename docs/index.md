@@ -90,4 +90,20 @@ keep server
 # - Settings management for vaults and stages
 ```
 
+## Runtime Injection
+
+Execute processes with secrets injected as environment variables - no files written to disk:
+
+```bash
+# Laravel: inject secrets during config caching
+keep run --vault=ssm --stage=production -- php artisan config:cache
+
+# Node.js: run build or start with injected secrets
+keep run --vault=ssm --stage=production -- npm run build
+keep run --vault=ssm --stage=production -- npm start
+
+# Any command with secrets available as env vars
+keep run --vault=ssm --stage=production -- ./deploy.sh
+```
+
 Get started with our [installation guide](/guide/installation), explore the [interactive shell](/guide/shell), try the [Web UI](/WEB_UI), or see all [CLI commands](/guide/reference/cli-reference).
