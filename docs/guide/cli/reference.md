@@ -80,6 +80,25 @@ keep stage:add sandbox --no-interaction
 - Can contain letters, numbers, hyphens, and underscores
 - Examples: `qa`, `demo`, `integration`, `sandbox`, `dev2`, `staging-eu`
 
+## `keep workspace:configure`
+
+Personalize your workspace by filtering which vaults and stages appear in commands and UI.
+
+**Examples:**
+```bash
+keep workspace:configure
+```
+
+**Interactive prompts:**
+- Select active vaults (from all configured vaults)
+- Select active stages (from all configured stages)
+
+**Notes:**
+- By default, all vaults and stages are shown (no filtering)
+- Workspace settings are personal and not committed to version control
+- Filtering is cosmetic only - doesn't affect permissions or access
+- Useful for focusing on specific environments or reducing clutter
+
 ## `keep verify`
 
 Verify vault configuration, authentication, and permissions by running a comprehensive test matrix.
