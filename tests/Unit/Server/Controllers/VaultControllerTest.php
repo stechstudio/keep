@@ -63,8 +63,6 @@ test('getSettings returns app configuration', function () {
 test('addStage validates and adds new stage', function () {
     $mockManager = $this->createPartialMock(KeepManager::class, ['getSettings']);
     $mockManager->method('getSettings')->willReturn([
-        'app_name' => 'test-app',
-        'namespace' => 'TEST',
         'stages' => ['local', 'staging', 'production'],
         'version' => '1.0'
     ]);
@@ -88,8 +86,6 @@ test('addStage validates and adds new stage', function () {
 test('removeStage prevents removing system stages', function () {
     $mockManager = $this->createPartialMock(KeepManager::class, ['getSettings']);
     $mockManager->method('getSettings')->willReturn([
-        'app_name' => 'test-app',
-        'namespace' => 'TEST',
         'stages' => ['local', 'staging', 'production', 'custom'],
         'version' => '1.0'
     ]);
