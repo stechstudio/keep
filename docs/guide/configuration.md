@@ -16,7 +16,7 @@ This interactive command will:
 You'll be prompted for:
 - **Project name**: Display name for your project
 - **Namespace**: Unique identifier for secret prefixes
-- **Stages**: Environment names (defaults to local, staging, production)
+- **Environments**: Environment names (defaults to local, staging, production)
 
 ## Project Structure
 
@@ -88,7 +88,7 @@ In larger teams, you might have:
 
 Workspace filtering lets each developer see only what's relevant to them, while the full configuration remains available to the team.
 
-## Managing Stages
+## Managing Environments
 
 The default envs are local, staging, and production. You can add custom envs as needed:
 

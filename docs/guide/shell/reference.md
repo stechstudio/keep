@@ -174,7 +174,7 @@ Summary:
 • Identical across all environments: 1 (25%)
 • Different values: 2 (50%)
 • Missing in some envs: 1 (25%)
-• Stages compared: 2
+• Environments compared: 2
 ```
 
 ### Import/Export
@@ -204,7 +204,7 @@ Note: The `import` command is only available in the CLI, not the shell.
 Checking vault access permissions...
 Keep Vault Verification Results
 ┌────────────────┬────────────┬──────┬───────┬──────┬─────────┬────────┐
-│ Vault          │ Stage      │ List │ Write │ Read │ History │ Delete │
+│ Vault          │ Environment      │ List │ Write │ Read │ History │ Delete │
 ├────────────────┼────────────┼──────┼───────┼──────┼─────────┼────────┤
 │ ssm            │ local      │ ✓    │ ✓     │ ✓    │ ✓       │ ✓      │
 │ ssm            │ staging    │ ✓    │ ✓     │ ✓    │ ✓       │ ✓      │

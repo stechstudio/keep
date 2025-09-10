@@ -68,7 +68,7 @@ keep set DB_PASSWORD "..." --vault=databases --env=production
 - **SSM**: Path-based (`/myapp/env/key`)
 - **Secrets Manager**: Tag-based with namespace tags
 
-**Stage Separation**
+**Environment Separation**
 Each vault organizes secrets by env:
 - `development`
 - `staging`

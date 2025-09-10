@@ -56,7 +56,7 @@ Add a custom env/environment beyond the standard ones (local, staging, productio
 | `--no-interaction` | boolean | `false` | Run without prompts |
 
 **Arguments:**
-- `[name]` - Stage name (prompted if not provided)
+- `[name]` - Environment name (prompted if not provided)
 
 **Examples:**
 ```bash
@@ -75,7 +75,7 @@ keep env:add hotfix
 keep env:add sandbox --no-interaction
 ```
 
-**Stage Name Requirements:**
+**Environment Name Requirements:**
 - Must be lowercase
 - Can contain letters, numbers, hyphens, and underscores
 - Examples: `qa`, `demo`, `integration`, `sandbox`, `dev2`, `staging-eu`
@@ -231,7 +231,7 @@ Show all secrets from a vault and environment.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--env` | string | *interactive* | Stage to list secrets from |
+| `--env` | string | *interactive* | Environment to list secrets from |
 | `--vault` | string | *default vault* | Vault to list secrets from |
 | `--unmask` | boolean | `false` | Show actual secret values instead of masked |
 | `--format` | string | `table` | Output format: `table`, `json`, `env` |
@@ -266,7 +266,7 @@ Generate a template file from existing secrets in a environment.
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `filename` | string | *required* | Template filename to create |
-| `--env` | string | *required* | Stage to generate template from |
+| `--env` | string | *required* | Environment to generate template from |
 | `--vault` | string | *all vaults* | Specific vault to use |
 | `--overwrite` | boolean | `false` | Overwrite existing template file |
 
@@ -290,7 +290,7 @@ Validate template files for syntax and placeholder resolution.
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `filename` | string | *required* | Template file to validate |
-| `--env` | string | *optional* | Stage to validate against |
+| `--env` | string | *optional* | Environment to validate against |
 
 ### Examples
 
@@ -374,7 +374,7 @@ Remove secrets from vaults.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--env` | string | *interactive* | Stage to delete secret from |
+| `--env` | string | *interactive* | Environment to delete secret from |
 | `--vault` | string | *default vault* | Vault to delete the secret from |
 | `--force` | boolean | `false` | Delete without confirmation prompt |
 
@@ -402,7 +402,7 @@ Rename a secret while preserving its value and metadata.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--env` | string | *interactive* | Stage where the secret exists |
+| `--env` | string | *interactive* | Environment where the secret exists |
 | `--vault` | string | *default vault* | Vault containing the secret |
 | `--force` | boolean | `false` | Skip confirmation prompt |
 
@@ -430,7 +430,7 @@ Search for text within secret values.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--env` | string | *interactive* | Stage to search in |
+| `--env` | string | *interactive* | Environment to search in |
 | `--vault` | string | *default vault* | Vault to search in |
 | `--unmask` | boolean | `false` | Show actual secret values in results |
 | `--case-sensitive` | boolean | `false` | Make the search case-sensitive |
@@ -603,7 +603,7 @@ Export secrets from vaults with optional template processing.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--env` | string | *interactive* | Stage to export secrets from |
+| `--env` | string | *interactive* | Environment to export secrets from |
 | `--vault` | string | *auto-discover* | Vault(s) to export from (comma-separated) |
 | `--format` | string | `env` | Output format: `env`, `json`, `csv` |
 | `--template` | string | | Optional template file with placeholders |
@@ -678,7 +678,7 @@ Execute subprocesses with secrets injected as environment variables (diskless).
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `--vault` | string | *interactive* | Vault to fetch secrets from |
-| `--env` | string | *interactive* | Stage to use |
+| `--env` | string | *interactive* | Environment to use |
 | `--template` | string | | Template file path, or auto-discover if empty |
 | `--only` | string | | Include only matching keys (patterns) |
 | `--except` | string | | Exclude matching keys (patterns) |

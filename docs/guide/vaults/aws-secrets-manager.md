@@ -91,7 +91,7 @@ For developers who need complete access to manage secrets across all environment
           "aws:TagKeys": [
             "ManagedBy",
             "Namespace",
-            "Stage",
+            "Environment",
             "VaultSlug"
           ]
         }
@@ -141,7 +141,7 @@ For developers who should only access development and staging environments:
           "secretsmanager:ResourceTag/Namespace": "myapp"
         },
         "ForAnyValue:StringEquals": {
-          "secretsmanager:ResourceTag/Stage": [
+          "secretsmanager:ResourceTag/Environment": [
             "staging",
             "production"
           ]
@@ -168,7 +168,7 @@ For developers who should only access development and staging environments:
           "aws:RequestTag/Namespace": "myapp"
         },
         "ForAnyValue:StringEquals": {
-          "aws:RequestTag/Stage": [
+          "aws:RequestTag/Environment": [
             "staging",
             "production"
           ]
@@ -177,7 +177,7 @@ For developers who should only access development and staging environments:
           "aws:TagKeys": [
             "ManagedBy",
             "Namespace",
-            "Stage",
+            "Environment",
             "VaultSlug"
           ]
         }
@@ -216,7 +216,7 @@ For production deployment processes that only need to read production secrets:
       "Condition": {
         "StringEquals": {
           "secretsmanager:ResourceTag/Namespace": "myapp",
-          "secretsmanager:ResourceTag/Stage": "production"
+          "secretsmanager:ResourceTag/Environment": "production"
         }
       }
     },
@@ -256,7 +256,7 @@ Keep organizes secrets using simple path-style naming for duplicate avoidance, w
 
 ## Security Best Practices
 
-**Tag-Based Access Control**: Keep uses tags (`ManagedBy`, `Namespace`, `Stage`, `VaultSlug`) for precise IAM permissions instead of resource ARNs.
+**Tag-Based Access Control**: Keep uses tags (`ManagedBy`, `Namespace`, `Environment`, `VaultSlug`) for precise IAM permissions instead of resource ARNs.
 
 **Automatic Encryption**: All secrets are automatically encrypted at rest using AWS KMS.
 
