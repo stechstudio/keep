@@ -24,8 +24,8 @@
 # Install
 composer require stechstudio/keep
 
-# Configure
-./vendor/bin/keep configure
+# Initialize
+./vendor/bin/keep init
 
 # Interactive shell - the fastest way to work
 ./vendor/bin/keep shell

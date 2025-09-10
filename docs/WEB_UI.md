@@ -259,7 +259,7 @@ A: Yes, but each session gets its own token. Changes are not synchronized in rea
 A: Currently uses a dark theme. Light theme support planned for future release.
 
 **Q: Can I export the UI settings?**
-A: Settings are stored in Keep's configuration files, not the UI. Use `keep configure` to manage.
+A: Settings are stored in Keep's configuration files, not the UI. Use `keep init` to manage.
 
 ## Changelog
 

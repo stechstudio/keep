@@ -2,9 +2,9 @@
 
 Complete reference for all Keep CLI commands with their options and usage examples.
 
-## `keep configure`
+## `keep init`
 
-Configure Keep settings and vault connections.
+Initialize Keep settings and vault connections.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -12,11 +12,11 @@ Configure Keep settings and vault connections.
 
 **Examples:**
 ```bash
-# Interactive configuration
-keep configure
+# Interactive initialization
+keep init
 
-# Non-interactive configuration
-keep configure --no-interaction
+# Non-interactive initialization
+keep init --no-interaction
 ```
 
 ## `keep vault:add`
@@ -124,7 +124,7 @@ keep verify
 **Common use cases:**
 ```bash
 # Run after initial setup
-keep configure
+keep init
 keep vault:add
 keep verify
 
@@ -160,7 +160,7 @@ keep info
 keep info
 
 # Verify configuration after setup
-keep configure
+keep init
 keep info
 
 # Debug path issues

@@ -1,10 +1,10 @@
 <?php
 
-it('runs configure command successfully', function () {
+it('runs init command successfully', function () {
     $tempDir = createTempKeepDir();
 
     // We can't easily test interactive prompts, so let's just test that the command can be invoked
-    $commandTester = runCommand('configure', ['--no-interaction' => true]);
+    $commandTester = runCommand('init', ['--no-interaction' => true]);
 
     // With --no-interaction, Laravel Prompts should handle gracefully
     // The exact behavior may vary, but the command shouldn't crash
@@ -16,7 +16,7 @@ it('runs configure command successfully', function () {
 it('creates .keep directory structure', function () {
     $tempDir = createTempKeepDir();
 
-    // Manually create what the configure command would do
+    // Manually create what the init command would do
     mkdir('.keep', 0755, true);
     mkdir('.keep/vaults', 0755, true);
 

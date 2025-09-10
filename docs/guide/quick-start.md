@@ -1,6 +1,6 @@
 # Quick Start
 
-This guide gets you managing secrets with Keep in 5 minutes. We'll assume you've already run `keep configure` and set up your first vault (see [Configuration](./configuration) if you haven't).
+This guide gets you managing secrets with Keep in 5 minutes. We'll assume you've already run `keep init` and set up your first vault (see [Configuration](./configuration) if you haven't).
 
 ## Setting Your First Secret
 

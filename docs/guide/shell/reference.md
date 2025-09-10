@@ -421,7 +421,7 @@ Many commands become interactive when arguments are omitted:
 These commands are not available in the shell:
 - `import` - Use the CLI: `keep import file.env`
 - `push` / `pull` - Use the CLI for bulk operations
-- `configure` - Use the CLI: `keep configure`
+- `init` - Use the CLI: `keep init`
 
 ### Security Notes
 - The shell masks secret values by default using `****` or showing only first 4 characters

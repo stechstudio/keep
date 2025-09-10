@@ -151,7 +151,7 @@ describe('VaultEditCommand', function () {
 
             $output = stripAnsi($commandTester->getDisplay());
             expect($output)->toContain('Keep is not initialized in this directory');
-            expect($output)->toContain('Run: keep configure');
+            expect($output)->toContain('Run: keep init');
         });
     });
 });

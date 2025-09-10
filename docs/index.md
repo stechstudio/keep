@@ -37,7 +37,7 @@ features:
 
 ```bash
 # Configure your project
-keep configure
+keep init
 
 # Add a vault
 keep vault:add

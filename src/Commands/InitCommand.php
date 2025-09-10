@@ -14,17 +14,17 @@ use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\note;
 use function Laravel\Prompts\text;
 
-class ConfigureCommand extends BaseCommand
+class InitCommand extends BaseCommand
 {
     use ConfiguresVaults, ValidatesEnvs;
 
-    protected $signature = 'configure';
+    protected $signature = 'init';
 
-    protected $description = 'Configure Keep settings for your project';
+    protected $description = 'Initialize Keep settings for your project';
 
     protected function requiresInitialization(): bool
     {
-        return false; // configure command should work whether initialized or not
+        return false; // init command should work whether initialized or not
     }
 
     protected function process()

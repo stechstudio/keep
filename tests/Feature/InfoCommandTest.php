@@ -42,7 +42,7 @@ it('shows uninitialized message when Keep is not configured', function () {
 
     $output = stripAnsi($commandTester->getDisplay());
     expect($output)->toContain('Keep is not initialized in this directory');
-    expect($output)->toContain('Run: keep configure');
+    expect($output)->toContain('Run: keep init');
 
     cleanupTempDir($tempDir);
 });

@@ -5,7 +5,7 @@
 Navigate to your project and run:
 
 ```bash
-keep configure
+keep init
 ```
 
 This interactive command will:

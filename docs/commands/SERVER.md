@@ -144,7 +144,7 @@ The web UI does not create or modify any local files. All data is read from and 
 
 ## Related Commands
 
-- [`keep configure`](CONFIGURE.md) - Set up vaults before using UI
+- [`keep init`](INIT.md) - Set up vaults before using UI
 - [`keep list`](LIST.md) - CLI alternative to view secrets
 - [`keep export`](EXPORT.md) - CLI alternative for exporting
 

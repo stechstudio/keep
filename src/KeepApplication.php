@@ -33,7 +33,7 @@ class KeepApplication extends Application
 
         $this->resolveCommands([
             Commands\InfoCommand::class,
-            Commands\ConfigureCommand::class,
+            Commands\InitCommand::class,
 
             Commands\VaultAddCommand::class,
             Commands\VaultEditCommand::class,
