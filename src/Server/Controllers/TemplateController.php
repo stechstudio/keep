@@ -2,20 +2,17 @@
 
 namespace STS\Keep\Server\Controllers;
 
+use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Data\Settings;
 use STS\Keep\Data\Template;
 use STS\Keep\Enums\MissingSecretStrategy;
 use STS\Keep\Facades\Keep;
 use STS\Keep\KeepManager;
 use STS\Keep\Services\TemplateService;
-use STS\Keep\Services\SecretLoader;
-use STS\Keep\Services\VaultDiscovery;
 
 class TemplateController extends ApiController
 {
     private TemplateService $templateService;
-    private SecretLoader $secretLoader;
-    private VaultDiscovery $vaultDiscovery;
     
     public function __construct(KeepManager $manager, array $query = [], array $body = [])
     {
@@ -25,8 +22,6 @@ class TemplateController extends ApiController
         $templatePath = $settings ? $settings->templatePath() : 'env';
         
         $this->templateService = new TemplateService($templatePath);
-        $this->secretLoader = new SecretLoader();
-        $this->vaultDiscovery = new VaultDiscovery();
     }
     
     /**
@@ -179,7 +174,7 @@ class TemplateController extends ApiController
         }
         
         // Check for unused secrets (warnings)
-        $allVaults = $this->vaultDiscovery->discoverVaults($placeholders, $stage);
+        $allVaults = array_unique(array_filter($placeholders->map->vault->toArray()));
         foreach ($allVaults as $vaultName) {
             try {
                 $vault = Keep::vault($vaultName, $stage);
@@ -231,8 +226,8 @@ class TemplateController extends ApiController
         
         // Discover vaults and load secrets
         $placeholders = $template->placeholders();
-        $vaultNames = $this->vaultDiscovery->discoverVaults($placeholders, $stage);
-        $allSecrets = $this->secretLoader->loadFromVaults($vaultNames, $stage);
+        $vaultNames = array_unique(array_filter($placeholders->map->vault->toArray()));
+        $allSecrets = SecretCollection::loadFromVaults($vaultNames, $stage);
         
         // Process the template
         $processedContent = $template->merge($allSecrets, $missingStrategy);

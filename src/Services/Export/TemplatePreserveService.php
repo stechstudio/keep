@@ -2,18 +2,15 @@
 
 namespace STS\Keep\Services\Export;
 
+use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Data\Template;
 use STS\Keep\Enums\MissingSecretStrategy;
 use STS\Keep\Services\OutputWriter;
-use STS\Keep\Services\SecretLoader;
-use STS\Keep\Services\VaultDiscovery;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class TemplatePreserveService
 {
     public function __construct(
-        protected SecretLoader $secretLoader,
-        protected VaultDiscovery $vaultDiscovery,
         protected OutputWriter $outputWriter
     ) {}
 
@@ -30,7 +27,7 @@ class TemplatePreserveService
 
         // Load secrets
         $stage = $options['stage'];
-        $allSecrets = $this->secretLoader->loadFromVaults($vaultNames, $stage);
+        $allSecrets = SecretCollection::loadFromVaults($vaultNames, $stage);
 
         // Apply filters
         $allSecrets = $allSecrets->filterByPatterns(
@@ -90,7 +87,7 @@ class TemplatePreserveService
         }
 
         // Otherwise, auto-discover from template
-        return $this->vaultDiscovery->discoverFromTemplate($template);
+        return $template->allReferencedVaults();
     }
 
     protected function processTemplate(

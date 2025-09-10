@@ -3,10 +3,11 @@
 namespace STS\Keep\Server\Controllers;
 
 use Exception;
+use STS\Keep\Data\Collections\PermissionsCollection;
 use STS\Keep\Data\Settings;
+use STS\Keep\Data\VaultStagePermissions;
 use STS\Keep\KeepApplication;
 use STS\Keep\Services\LocalStorage;
-use STS\Keep\Services\VaultPermissionTester;
 
 class VaultController extends ApiController
 {
@@ -132,8 +133,7 @@ class VaultController extends ApiController
                 Settings::fromArray($settings)->save();
                 
                 // Verify and cache permissions for all vaults with the new stage
-                $tester = new VaultPermissionTester();
-                $tester->testNewStageAcrossVaults($stageName);
+                $this->testNewStageAcrossVaults($stageName);
             }
             
             return $this->success([
@@ -359,12 +359,52 @@ class VaultController extends ApiController
 
     public function verify(): array
     {
-        $tester = new VaultPermissionTester();
-        $collection = $tester->testAllPermissions();
+        $collection = $this->testAllPermissions();
         
         return $this->success([
             'results' => $collection->toApiResponse()
         ]);
+    }
+    
+    protected function testAllPermissions(): PermissionsCollection
+    {
+        $vaultNames = $this->manager->getConfiguredVaults()->keys()->toArray();
+        $stages = $this->manager->getStages();
+        return $this->testBulkPermissions($vaultNames, $stages);
+    }
+    
+    protected function testNewStageAcrossVaults(string $stageName): PermissionsCollection
+    {
+        $vaultNames = $this->manager->getConfiguredVaults()->keys()->toArray();
+        return $this->testBulkPermissions($vaultNames, [$stageName]);
+    }
+    
+    protected function testBulkPermissions(array $vaultNames, array $stages): PermissionsCollection
+    {
+        $collection = new PermissionsCollection();
+        $localStorage = new LocalStorage();
+        
+        foreach ($vaultNames as $vaultName) {
+            $vaultPermissions = [];
+            
+            foreach ($stages as $stage) {
+                try {
+                    $vault = $this->manager->vault($vaultName, $stage);
+                    $results = $vault->testPermissions();
+                    $permission = VaultStagePermissions::fromTestResults($vaultName, $stage, $results);
+                } catch (Exception $e) {
+                    $permission = VaultStagePermissions::fromError($vaultName, $stage, $e->getMessage());
+                }
+                
+                $collection->addPermission($permission);
+                $vaultPermissions[$stage] = $permission->permissions();
+            }
+            
+            // Persist permissions for this vault
+            $localStorage->saveVaultPermissions($vaultName, $vaultPermissions);
+        }
+        
+        return $collection;
     }
 
 

@@ -2,8 +2,11 @@
 
 namespace STS\Keep\Server\Controllers;
 
+use Exception;
+use STS\Keep\Data\Collections\PermissionsCollection;
+use STS\Keep\Data\VaultStagePermissions;
+use STS\Keep\Facades\Keep;
 use STS\Keep\Services\LocalStorage;
-use STS\Keep\Services\VaultPermissionTester;
 
 class WorkspaceController extends ApiController
 {
@@ -99,8 +102,7 @@ class WorkspaceController extends ApiController
         $activeStages = $workspace['active_stages'] ?? $this->manager->getAllStages();
         
         // Test permissions
-        $tester = new VaultPermissionTester();
-        $collection = $tester->testBulkPermissions($activeVaults, $activeStages);
+        $collection = $this->testBulkPermissions($activeVaults, $activeStages);
         
         // Format results for frontend
         $results = [];
@@ -123,5 +125,33 @@ class WorkspaceController extends ApiController
             'success' => true,
             'results' => $results
         ];
+    }
+    
+    protected function testBulkPermissions(array $vaultNames, array $stages): PermissionsCollection
+    {
+        $collection = new PermissionsCollection();
+        $localStorage = new LocalStorage();
+        
+        foreach ($vaultNames as $vaultName) {
+            $vaultPermissions = [];
+            
+            foreach ($stages as $stage) {
+                try {
+                    $vault = Keep::vault($vaultName, $stage);
+                    $results = $vault->testPermissions();
+                    $permission = VaultStagePermissions::fromTestResults($vaultName, $stage, $results);
+                } catch (Exception $e) {
+                    $permission = VaultStagePermissions::fromError($vaultName, $stage, $e->getMessage());
+                }
+                
+                $collection->addPermission($permission);
+                $vaultPermissions[$stage] = $permission->permissions();
+            }
+            
+            // Persist permissions for this vault
+            $localStorage->saveVaultPermissions($vaultName, $vaultPermissions);
+        }
+        
+        return $collection;
     }
 }

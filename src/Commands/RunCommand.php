@@ -5,11 +5,10 @@ namespace STS\Keep\Commands;
 use Illuminate\Filesystem\Filesystem;
 use STS\Keep\Commands\Concerns\GathersInput;
 use STS\Keep\Commands\Concerns\ResolvesTemplates;
-use STS\Keep\Data\Collections\SecretsCollection;
+use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Data\Template;
 use STS\Keep\Exceptions\ProcessExecutionException;
 use STS\Keep\Facades\Keep;
-use STS\Keep\Services\EnvironmentBuilder;
 use STS\Keep\Services\ProcessRunner;
 
 use function Laravel\Prompts\error;
@@ -35,14 +34,12 @@ class RunCommand extends BaseCommand
     
     protected $description = 'Execute a subprocess with secrets injected as environment variables';
     
-    protected EnvironmentBuilder $environmentBuilder;
     protected ProcessRunner $processRunner;
     
     public function __construct(Filesystem $filesystem)
     {
         parent::__construct($filesystem);
         
-        $this->environmentBuilder = new EnvironmentBuilder();
         $this->processRunner = new ProcessRunner();
     }
     
@@ -105,7 +102,9 @@ class RunCommand extends BaseCommand
             );
             
             // Clear sensitive data from memory
-            $this->environmentBuilder->clearEnvironment($environment);
+            foreach ($environment as $key => $value) {
+                unset($environment[$key]);
+            }
             
             // Return the exit code from the subprocess
             if (!$result->successful) {
@@ -183,7 +182,7 @@ class RunCommand extends BaseCommand
         }
         
         // Build environment from template
-        return $this->environmentBuilder->buildFromTemplate($template, $vaults, $inheritCurrent);
+        return $template->toEnvironment($vaults, $inheritCurrent);
     }
     
     /**
@@ -217,6 +216,6 @@ class RunCommand extends BaseCommand
         note("Injecting {$secrets->count()} secret(s) as environment variables");
         
         // Build environment
-        return $this->environmentBuilder->buildFromSecrets($secrets, $inheritCurrent);
+        return $secrets->toEnvironment($inheritCurrent);
     }
 }

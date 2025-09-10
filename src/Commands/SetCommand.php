@@ -2,8 +2,6 @@
 
 namespace STS\Keep\Commands;
 
-use STS\Keep\Services\SecretKeyValidator;
-
 class SetCommand extends BaseCommand
 {
     public $signature = 'set 
@@ -17,11 +15,7 @@ class SetCommand extends BaseCommand
 
     public function process()
     {
-        // Validate key using the shared validator service
         $key = $this->key();
-        $validator = new SecretKeyValidator();
-        $validator->validate($key);
-
         $context = $this->vaultContext();
         $secret = $context->createVault()->set($key, $this->value(), $this->secure());
 

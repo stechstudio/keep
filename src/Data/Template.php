@@ -7,6 +7,7 @@ use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Data\Concerns\FormatsEnvValues;
 use STS\Keep\Enums\MissingSecretStrategy;
 use STS\Keep\Exceptions\ExceptionFactory;
+use STS\Keep\Vaults\AbstractVault;
 
 class Template
 {
@@ -88,6 +89,39 @@ class Template
         preg_match_all($pattern, $this->contents, $matches);
 
         return array_unique($matches[1] ?? []);
+    }
+
+    /**
+     * Build environment variables array from template.
+     *
+     * @param array<string, AbstractVault> $vaults Array of vaults keyed by slug
+     * @param bool $inheritCurrent Whether to inherit current environment
+     * @return array<string, string> Key-value pairs for environment
+     */
+    public function toEnvironment(array $vaults, bool $inheritCurrent = true): array
+    {
+        $env = $inheritCurrent ? getenv() : [];
+        
+        $placeholders = $this->placeholders();
+        
+        foreach ($placeholders as $placeholder) {
+            $vaultSlug = $placeholder->vault;
+            $key = $placeholder->key;
+            
+            if (!isset($vaults[$vaultSlug])) {
+                continue;
+            }
+            
+            try {
+                $secret = $vaults[$vaultSlug]->get($key);
+                $envKey = $placeholder->envKey;
+                $env[$envKey] = $secret->value() ?? '';
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+        
+        return $env;
     }
 
     /**

@@ -10,8 +10,6 @@ use STS\Keep\Services\Export\TemplateParseService;
 use STS\Keep\Services\Export\TemplatePreserveService;
 // use STS\Keep\Services\Export\CacheExportService; // Future enhancement
 use STS\Keep\Services\OutputWriter;
-use STS\Keep\Services\SecretLoader;
-use STS\Keep\Services\VaultDiscovery;
 
 class ExportCommand extends BaseCommand
 {
@@ -47,13 +45,11 @@ class ExportCommand extends BaseCommand
         parent::__construct($filesystem);
 
         // Initialize services
-        $secretLoader = new SecretLoader;
-        $vaultDiscovery = new VaultDiscovery;
         $outputWriter = new OutputWriter($filesystem);
 
-        $this->directExport = new DirectExportService($secretLoader, $outputWriter);
-        $this->templatePreserve = new TemplatePreserveService($secretLoader, $vaultDiscovery, $outputWriter);
-        $this->templateParse = new TemplateParseService($secretLoader, $vaultDiscovery, $outputWriter);
+        $this->directExport = new DirectExportService($outputWriter);
+        $this->templatePreserve = new TemplatePreserveService($outputWriter);
+        $this->templateParse = new TemplateParseService($outputWriter);
         // $this->cacheExport = new CacheExportService($secretLoader, $filesystem); // Future enhancement
     }
 

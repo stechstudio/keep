@@ -2,10 +2,13 @@
 
 namespace STS\Keep\Commands;
 
+use Exception;
 use STS\Keep\Commands\Concerns\ConfiguresVaults;
+use STS\Keep\Data\Collections\PermissionsCollection;
 use STS\Keep\Data\VaultConfig;
+use STS\Keep\Data\VaultStagePermissions;
 use STS\Keep\Facades\Keep;
-use STS\Keep\Services\VaultPermissionTester;
+use STS\Keep\Services\LocalStorage;
 
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
@@ -116,8 +119,7 @@ class VaultEditCommand extends BaseCommand
             info("✅ Vault configuration updated and renamed from '{$slug}' to '{$newSlug}'");
             
             // Refresh permissions for new slug
-            $tester = new VaultPermissionTester();
-            $tester->testVaultAcrossStages($newSlug);
+            $this->testVaultAcrossStages($newSlug);
         } else {
             // Save with same slug
             $updatedConfig['slug'] = $slug;
@@ -126,11 +128,34 @@ class VaultEditCommand extends BaseCommand
             info("✅ Vault '{$slug}' configuration updated successfully");
             
             // Refresh permissions
-            $tester = new VaultPermissionTester();
-            $tester->testVaultAcrossStages($slug);
+            $this->testVaultAcrossStages($slug);
         }
 
         return self::SUCCESS;
+    }
+    
+    protected function testVaultAcrossStages(string $vaultName): void
+    {
+        $stages = Keep::getStages();
+        $collection = new PermissionsCollection();
+        $localStorage = new LocalStorage();
+        $vaultPermissions = [];
+        
+        foreach ($stages as $stage) {
+            try {
+                $vault = Keep::vault($vaultName, $stage);
+                $results = $vault->testPermissions();
+                $permission = VaultStagePermissions::fromTestResults($vaultName, $stage, $results);
+            } catch (Exception $e) {
+                $permission = VaultStagePermissions::fromError($vaultName, $stage, $e->getMessage());
+            }
+            
+            $collection->addPermission($permission);
+            $vaultPermissions[$stage] = $permission->permissions();
+        }
+        
+        // Persist permissions for this vault
+        $localStorage->saveVaultPermissions($vaultName, $vaultPermissions);
     }
 
     private function findVaultClass(string $driver): ?string

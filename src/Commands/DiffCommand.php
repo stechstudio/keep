@@ -4,9 +4,9 @@ namespace STS\Keep\Commands;
 
 use Illuminate\Support\Collection;
 use STS\Keep\Commands\Concerns\GathersInput;
+use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Data\SecretDiff;
 use STS\Keep\Facades\Keep;
-use STS\Keep\Services\DiffService;
 
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\table;
@@ -41,11 +41,10 @@ class DiffCommand extends BaseCommand
             return self::FAILURE;
         }
 
-        $diffService = new DiffService;
-        $diffs = spin(fn () => $diffService->compare($vaults, $stages, $this->option('only'), $this->option('except')), 'Gathering secrets for comparison...');
+        $diffs = spin(fn () => SecretCollection::compare($vaults, $stages, $this->option('only'), $this->option('except')), 'Gathering secrets for comparison...');
 
         if ($diffs->isNotEmpty()) {
-            $this->displayTable($diffs, $vaults, $stages, $diffService);
+            $this->displayTable($diffs, $vaults, $stages);
         } else {
             $this->info('No secrets found in any of the specified vault/stage combinations.');
         }
@@ -92,7 +91,7 @@ class DiffCommand extends BaseCommand
         return Keep::getStages();
     }
 
-    protected function displayTable(Collection $diffs, array $vaults, array $stages, DiffService $diffService): void
+    protected function displayTable(Collection $diffs, array $vaults, array $stages): void
     {
         $this->newLine();
         $this->info('Secret Comparison Matrix');
@@ -128,12 +127,12 @@ class DiffCommand extends BaseCommand
 
         table($headers, $rows);
 
-        $this->displaySummary($diffs, $vaults, $stages, $diffService);
+        $this->displaySummary($diffs, $vaults, $stages);
     }
 
-    protected function displaySummary(Collection $diffs, array $vaults, array $stages, DiffService $diffService): void
+    protected function displaySummary(Collection $diffs, array $vaults, array $stages): void
     {
-        $summary = $diffService->generateSummary($diffs, $vaults, $stages);
+        $summary = SecretCollection::generateDiffSummary($diffs, $vaults, $stages);
 
         $this->info('Summary:');
         $this->line("• Total secrets: {$summary['total_secrets']}");

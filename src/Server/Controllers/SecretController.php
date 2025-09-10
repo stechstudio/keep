@@ -4,7 +4,6 @@ namespace STS\Keep\Server\Controllers;
 
 use Exception;
 use STS\Keep\Data\Collections\FilterCollection;
-use STS\Keep\Services\SecretKeyValidator;
 
 class SecretController extends ApiController
 {
@@ -38,16 +37,12 @@ class SecretController extends ApiController
             return $error;
         }
         
-        // Validate the secret key
-        $validator = new SecretKeyValidator();
         try {
-            $validator->validate($this->body['key']);
+            $vault = $this->getVault();
+            $vault->set($this->body['key'], $this->body['value']);
         } catch (\InvalidArgumentException $e) {
             return $this->error($e->getMessage());
         }
-        
-        $vault = $this->getVault();
-        $vault->set($this->body['key'], $this->body['value']);
         
         return $this->success([
             'success' => true,

@@ -7,15 +7,11 @@ use STS\Keep\Data\Env;
 use STS\Keep\Data\Template;
 use STS\Keep\Enums\MissingSecretStrategy;
 use STS\Keep\Services\OutputWriter;
-use STS\Keep\Services\SecretLoader;
-use STS\Keep\Services\VaultDiscovery;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class TemplateParseService
 {
     public function __construct(
-        protected SecretLoader $secretLoader,
-        protected VaultDiscovery $vaultDiscovery,
         protected OutputWriter $outputWriter
     ) {}
 
@@ -32,7 +28,7 @@ class TemplateParseService
 
         // Load secrets
         $stage = $options['stage'];
-        $allSecrets = $this->secretLoader->loadFromVaults($vaultNames, $stage);
+        $allSecrets = SecretCollection::loadFromVaults($vaultNames, $stage);
 
         // Apply filters
         $allSecrets = $allSecrets->filterByPatterns(
@@ -99,7 +95,7 @@ class TemplateParseService
         }
 
         // Otherwise, auto-discover from template
-        return $this->vaultDiscovery->discoverFromTemplate($template);
+        return $template->allReferencedVaults();
     }
 
     protected function parseTemplate(

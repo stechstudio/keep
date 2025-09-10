@@ -3,14 +3,13 @@
 namespace STS\Keep\Services\Export;
 
 use STS\Keep\Data\Collections\SecretCollection;
+use STS\Keep\Facades\Keep;
 use STS\Keep\Services\OutputWriter;
-use STS\Keep\Services\SecretLoader;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class DirectExportService
 {
     public function __construct(
-        protected SecretLoader $secretLoader,
         protected OutputWriter $outputWriter
     ) {}
 
@@ -23,7 +22,7 @@ class DirectExportService
         $vaultNames = $this->getVaultNames($options);
 
         // Load secrets from vaults
-        $allSecrets = $this->secretLoader->loadFromVaults($vaultNames, $stage);
+        $allSecrets = SecretCollection::loadFromVaults($vaultNames, $stage);
 
         // Apply filters
         $allSecrets = $allSecrets->filterByPatterns(
@@ -66,7 +65,7 @@ class DirectExportService
         }
 
         // Otherwise, use ALL configured vaults
-        return $this->secretLoader->getAllVaultNames();
+        return Keep::getConfiguredVaults()->keys()->toArray();
     }
 
     protected function formatOutput(SecretCollection $secrets, string $format): string

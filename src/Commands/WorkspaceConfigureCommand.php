@@ -2,9 +2,12 @@
 
 namespace STS\Keep\Commands;
 
+use Exception;
+use STS\Keep\Data\Collections\PermissionsCollection;
+use STS\Keep\Data\VaultStagePermissions;
+use STS\Keep\Data\Workspace;
 use STS\Keep\Facades\Keep;
 use STS\Keep\Services\LocalStorage;
-use STS\Keep\Services\VaultPermissionTester;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\info;
@@ -94,9 +97,8 @@ class WorkspaceConfigureCommand extends BaseCommand
         $this->info('');
         info('Verifying permissions for your workspace...');
         
-        $tester = new VaultPermissionTester();
         $collection = spin(
-            fn() => $tester->testBulkPermissions($activeVaults, $activeStages),
+            fn() => $this->testBulkPermissions($activeVaults, $activeStages),
             'Testing vault access permissions...'
         );
         
@@ -130,5 +132,33 @@ class WorkspaceConfigureCommand extends BaseCommand
         note('Your workspace is configured! The UI will now only show your selected vaults and stages.');
         
         return self::SUCCESS;
+    }
+    
+    protected function testBulkPermissions(array $vaultNames, array $stages): PermissionsCollection
+    {
+        $collection = new PermissionsCollection();
+        $localStorage = new LocalStorage();
+        
+        foreach ($vaultNames as $vaultName) {
+            $vaultPermissions = [];
+            
+            foreach ($stages as $stage) {
+                try {
+                    $vault = Keep::vault($vaultName, $stage);
+                    $results = $vault->testPermissions();
+                    $permission = VaultStagePermissions::fromTestResults($vaultName, $stage, $results);
+                } catch (Exception $e) {
+                    $permission = VaultStagePermissions::fromError($vaultName, $stage, $e->getMessage());
+                }
+                
+                $collection->addPermission($permission);
+                $vaultPermissions[$stage] = $permission->permissions();
+            }
+            
+            // Persist permissions for this vault
+            $localStorage->saveVaultPermissions($vaultName, $vaultPermissions);
+        }
+        
+        return $collection;
     }
 }

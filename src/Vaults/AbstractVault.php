@@ -2,6 +2,7 @@
 
 namespace STS\Keep\Vaults;
 
+use Exception;
 use Illuminate\Support\Str;
 use STS\Keep\Data\Collections\FilterCollection;
 use STS\Keep\Data\Collections\SecretCollection;
@@ -74,5 +75,89 @@ abstract class AbstractVault
         $this->delete($oldKey);
         
         return $newSecret;
+    }
+
+    /**
+     * Test permissions for this vault by attempting various operations.
+     */
+    public function testPermissions(): array
+    {
+        $permissions = [
+            'Read' => false,
+            'Write' => false,
+            'List' => false,
+            'Delete' => false,
+            'History' => false,
+        ];
+        
+        $testKey = 'keep-verify-'.bin2hex(random_bytes(4));
+        $writeSucceeded = false;
+        $existingSecrets = null;
+        
+        // Test List permission
+        try {
+            $existingSecrets = $this->list();
+            $permissions['List'] = true;
+        } catch (Exception) {
+            // List failed
+        }
+        
+        // Test Write permission
+        try {
+            $this->set($testKey, 'test_value');
+            $permissions['Write'] = true;
+            $writeSucceeded = true;
+        } catch (Exception) {
+            // Write failed
+        }
+        
+        // Test Read permission
+        if ($writeSucceeded) {
+            try {
+                $secret = $this->get($testKey);
+                $permissions['Read'] = ($secret->value() === 'test_value');
+            } catch (Exception) {
+                // Read failed
+            }
+        } elseif ($permissions['List'] && $existingSecrets && $existingSecrets->count() > 0) {
+            try {
+                $firstSecret = $existingSecrets->first();
+                $this->get($firstSecret->key());
+                $permissions['Read'] = true;
+            } catch (Exception) {
+                // Read failed
+            }
+        }
+        
+        // Test History permission
+        if ($writeSucceeded) {
+            try {
+                $this->history($testKey, new FilterCollection(), 10);
+                $permissions['History'] = true;
+            } catch (Exception) {
+                // History not supported or failed
+            }
+        } elseif ($permissions['List'] && $existingSecrets && $existingSecrets->count() > 0) {
+            try {
+                $firstSecret = $existingSecrets->first();
+                $this->history($firstSecret->key(), new FilterCollection(), 10);
+                $permissions['History'] = true;
+            } catch (Exception) {
+                // History not supported or failed
+            }
+        }
+        
+        // Test Delete permission (cleanup test key if write succeeded)
+        if ($writeSucceeded) {
+            try {
+                $this->delete($testKey);
+                $permissions['Delete'] = true;
+            } catch (Exception $e) {
+                error_log("Warning: Failed to clean up verify test key '{$testKey}' in vault '{$this->name()}': ".$e->getMessage());
+                $permissions['Delete'] = false;
+            }
+        }
+        
+        return $permissions;
     }
 }

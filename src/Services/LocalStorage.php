@@ -15,10 +15,7 @@ class LocalStorage
         $this->localPath = getcwd() . '/.keep/local';
         $this->ensureLocalDirectoryExists();
     }
-    
-    /**
-     * Get the permissions data
-     */
+
     public function getPermissions(): array
     {
         $path = $this->localPath . '/permissions.json';
@@ -26,44 +23,34 @@ class LocalStorage
         if (!file_exists($path)) {
             return [];
         }
-        
-        $content = file_get_contents($path);
-        return json_decode($content, true) ?: [];
+
+        return json_decode(file_get_contents($path), true) ?: [];
     }
-    
-    /**
-     * Save permissions data
-     */
+
     public function savePermissions(array $permissions): void
     {
         $path = $this->localPath . '/permissions.json';
         $json = json_encode($permissions, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+
         file_put_contents($path, $json);
     }
-    
-    /**
-     * Get permissions for a specific vault
-     */
+
     public function getVaultPermissions(string $vaultName): array
     {
         $permissions = $this->getPermissions();
+
         return $permissions[$vaultName] ?? [];
     }
-    
-    /**
-     * Save permissions for a specific vault
-     */
+
     public function saveVaultPermissions(string $vaultName, array $stagePermissions): void
     {
         $permissions = $this->getPermissions();
         $permissions[$vaultName] = $stagePermissions;
         $permissions['verified_at'] = date('c');
+
         $this->savePermissions($permissions);
     }
-    
-    /**
-     * Get the workspace configuration (future use)
-     */
+
     public function getWorkspace(): array
     {
         $path = $this->localPath . '/workspace.json';
@@ -75,15 +62,13 @@ class LocalStorage
         $content = file_get_contents($path);
         return json_decode($content, true) ?: [];
     }
-    
-    /**
-     * Save workspace configuration (future use)
-     */
+
     public function saveWorkspace(array $workspace): void
     {
         $path = $this->localPath . '/workspace.json';
         $workspace['updated_at'] = date('c');
         $json = json_encode($workspace, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+
         file_put_contents($path, $json);
     }
     
@@ -97,10 +82,7 @@ class LocalStorage
             unlink($file);
         }
     }
-    
-    /**
-     * Ensure the local directory exists
-     */
+
     protected function ensureLocalDirectoryExists(): void
     {
         if (!is_dir($this->localPath)) {
@@ -114,10 +96,7 @@ class LocalStorage
             file_put_contents($keepGitignorePath, $gitignoreContent);
         }
     }
-    
-    /**
-     * Check if local storage exists
-     */
+
     public function exists(): bool
     {
         return is_dir($this->localPath);

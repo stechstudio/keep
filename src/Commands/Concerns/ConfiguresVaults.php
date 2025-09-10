@@ -2,9 +2,12 @@
 
 namespace STS\Keep\Commands\Concerns;
 
+use Exception;
+use STS\Keep\Data\Collections\PermissionsCollection;
 use STS\Keep\Data\VaultConfig;
+use STS\Keep\Data\VaultStagePermissions;
 use STS\Keep\Facades\Keep;
-use STS\Keep\Services\VaultPermissionTester;
+use STS\Keep\Services\LocalStorage;
 
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
@@ -88,8 +91,7 @@ trait ConfiguresVaults
         
         // Run verify to check and cache permissions for all stages
         info("\nVerifying vault permissions...");
-        $tester = new VaultPermissionTester();
-        $collection = $tester->testVaultAcrossStages($slug);
+        $collection = $this->testVaultAcrossStages($slug);
         
         // Display summary of permissions
         foreach ($collection->groupByStage() as $stage => $permissions) {
@@ -99,6 +101,32 @@ trait ConfiguresVaults
         }
 
         return ['slug' => $slug, 'config' => $vaultConfig];
+    }
+    
+    protected function testVaultAcrossStages(string $vaultName): PermissionsCollection
+    {
+        $stages = Keep::getStages();
+        $collection = new PermissionsCollection();
+        $localStorage = new LocalStorage();
+        $vaultPermissions = [];
+        
+        foreach ($stages as $stage) {
+            try {
+                $vault = Keep::vault($vaultName, $stage);
+                $results = $vault->testPermissions();
+                $permission = VaultStagePermissions::fromTestResults($vaultName, $stage, $results);
+            } catch (Exception $e) {
+                $permission = VaultStagePermissions::fromError($vaultName, $stage, $e->getMessage());
+            }
+            
+            $collection->addPermission($permission);
+            $vaultPermissions[$stage] = $permission->permissions();
+        }
+        
+        // Persist permissions for this vault
+        $localStorage->saveVaultPermissions($vaultName, $vaultPermissions);
+        
+        return $collection;
     }
 
     private function generateUniqueSlug(string $driver): string

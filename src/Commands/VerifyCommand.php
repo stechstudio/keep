@@ -2,11 +2,12 @@
 
 namespace STS\Keep\Commands;
 
+use Exception;
 use Illuminate\Support\Str;
 use STS\Keep\Data\Collections\PermissionsCollection;
 use STS\Keep\Data\Context;
+use STS\Keep\Data\VaultStagePermissions;
 use STS\Keep\Facades\Keep;
-use STS\Keep\Services\VaultPermissionTester;
 
 use function Laravel\Prompts\spin;
 use function Laravel\Prompts\table;
@@ -22,17 +23,15 @@ class VerifyCommand extends BaseCommand
 
     public function process()
     {
-        $tester = new VaultPermissionTester();
-        
         /** @var PermissionsCollection $collection */
-        $collection = spin(function () use ($tester) {
+        $collection = spin(function () {
             // If --context is provided, use specific contexts
             if ($this->option('context')) {
                 $contexts = $this->parseContexts();
                 $vaults = array_unique(array_map(fn($c) => $c->vault, $contexts));
                 $stages = array_unique(array_map(fn($c) => $c->stage, $contexts));
                 
-                return $tester->testBulkPermissions($vaults, $stages);
+                return $this->testBulkPermissions($vaults, $stages);
             }
 
             // Otherwise use existing logic
@@ -45,10 +44,31 @@ class VerifyCommand extends BaseCommand
                 ? [$this->option('stage')] 
                 : Keep::getAllStages();
             
-            return $tester->testBulkPermissions($vaults, $stages);
+            return $this->testBulkPermissions($vaults, $stages);
         }, 'Checking vault access permissions...');
 
         $this->displayResults($collection->toDisplayArray());
+    }
+
+    protected function testBulkPermissions(array $vaultNames, array $stages): PermissionsCollection
+    {
+        $collection = new PermissionsCollection();
+        
+        foreach ($vaultNames as $vaultName) {
+            foreach ($stages as $stage) {
+                try {
+                    $vault = Keep::vault($vaultName, $stage);
+                    $results = $vault->testPermissions();
+                    $permission = VaultStagePermissions::fromTestResults($vaultName, $stage, $results);
+                } catch (Exception $e) {
+                    $permission = VaultStagePermissions::fromError($vaultName, $stage, $e->getMessage());
+                }
+                
+                $collection->addPermission($permission);
+            }
+        }
+        
+        return $collection;
     }
 
 
