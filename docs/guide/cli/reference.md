@@ -80,13 +80,13 @@ keep env:add sandbox --no-interaction
 - Can contain letters, numbers, hyphens, and underscores
 - Examples: `qa`, `demo`, `integration`, `sandbox`, `dev2`, `staging-eu`
 
-## `keep workspace:configure`
+## `keep workspace`
 
 Personalize your workspace by filtering which vaults and envs appear in commands and UI.
 
 **Examples:**
 ```bash
-keep workspace:configure
+keep workspace
 ```
 
 **Interactive prompts:**

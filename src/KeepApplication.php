@@ -41,7 +41,7 @@ class KeepApplication extends Application
 
             Commands\EnvAddCommand::class,
             
-            Commands\WorkspaceConfigureCommand::class,
+            Commands\WorkspaceCommand::class,
 
             Commands\GetCommand::class,
             Commands\SetCommand::class,

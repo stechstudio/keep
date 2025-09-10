@@ -69,7 +69,7 @@ By default, Keep shows **all configured vaults and envs** - no filtering is appl
 If you want to filter which vaults and envs appear in commands and the Web UI:
 
 ```bash
-keep workspace:configure
+keep workspace
 ```
 
 This is useful when:
@@ -153,7 +153,7 @@ The `.keep/.gitignore` file is automatically created to exclude personal files.
 
 1. Clone the repository (includes `.keep/` configuration)
 2. Run `keep verify` to check AWS access
-3. Run `keep workspace:configure` to personalize their workspace
+3. Run `keep workspace` to personalize their workspace
 4. Start working with secrets immediately
 
 ## Next Steps

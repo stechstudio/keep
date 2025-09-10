@@ -15,9 +15,9 @@ use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\note;
 use function Laravel\Prompts\spin;
 
-class WorkspaceConfigureCommand extends BaseCommand
+class WorkspaceCommand extends BaseCommand
 {
-    protected $signature = 'workspace:configure';
+    protected $signature = 'workspace';
     
     protected $description = 'Configure your personal workspace - select which vaults and environments you work with';
     
