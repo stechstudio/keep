@@ -318,7 +318,7 @@ import { useToast } from '../composables/useToast'
 
 const props = defineProps({
   vault: String,
-  stage: String
+  env: String
 })
 
 const emit = defineEmits(['imported', 'close'])
@@ -414,7 +414,7 @@ async function analyzeImport() {
     const response = await window.$api.analyzeImport({
       content: envContent.value,
       vault: props.vault,
-      stage: props.stage,
+      env: props.env,
       only: filters.value.only || null,
       except: filters.value.except || null
     })
@@ -440,7 +440,7 @@ async function executeImport() {
     const response = await window.$api.executeImport({
       content: envContent.value,
       vault: props.vault,
-      stage: props.stage,
+      env: props.env,
       strategy: conflictStrategy.value,
       only: filters.value.only || null,
       except: filters.value.except || null,

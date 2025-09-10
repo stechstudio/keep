@@ -17,16 +17,16 @@ class CacheExportService
 
     public function handle(array $options, OutputInterface $output): int
     {
-        $stage = $options['stage'];
+        $env = $options['env'];
         $vaultNames = $this->determineVaults($options);
 
         if (count($vaultNames) === 1) {
-            $output->writeln("<info>Loading secrets from vault '{$vaultNames[0]}' for stage '{$stage}'...</info>");
+            $output->writeln("<info>Loading secrets from vault '{$vaultNames[0]}' for environment '{$env}'...</info>");
         } else {
-            $output->writeln('<info>Loading secrets from '.count($vaultNames).' vaults ('.implode(', ', $vaultNames).") for stage '{$stage}'...</info>");
+            $output->writeln('<info>Loading secrets from '.count($vaultNames).' vaults ('.implode(', ', $vaultNames).") for environment '{$env}'...</info>");
         }
 
-        $allSecrets = $this->secretLoader->loadFromVaults($vaultNames, $stage);
+        $allSecrets = $this->secretLoader->loadFromVaults($vaultNames, $env);
 
         // Apply filters
         $allSecrets = $allSecrets->filterByPatterns(
@@ -37,7 +37,7 @@ class CacheExportService
         $output->writeln('<info>Found '.$allSecrets->count().' total secrets to cache</info>');
 
         $keyPart = Str::random(32);
-        $this->writeCacheFile($stage, $allSecrets->toKeyValuePair()->toArray(), $keyPart, $output);
+        $this->writeCacheFile($env, $allSecrets->toKeyValuePair()->toArray(), $keyPart, $output);
         $this->saveKeyPartToEnv($keyPart, $output);
 
         return 0;
@@ -54,9 +54,9 @@ class CacheExportService
         return $this->secretLoader->getAllVaultNames();
     }
 
-    protected function writeCacheFile(string $stage, array $secrets, string $keyPart, OutputInterface $output): void
+    protected function writeCacheFile(string $env, array $secrets, string $keyPart, OutputInterface $output): void
     {
-        $outputPath = getcwd()."/.keep/cache/{$stage}.keep.php";
+        $outputPath = getcwd()."/.keep/cache/{$env}.keep.php";
 
         $encryptedData = (new Crypt($keyPart))->encrypt($secrets);
         $phpContent = "<?php\n\nreturn ".var_export($encryptedData, true).';';

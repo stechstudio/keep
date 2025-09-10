@@ -15,10 +15,10 @@ class DirectExportService
 
     public function handle(array $options, OutputInterface $output): int
     {
-        $stage = $options['stage'];
+        $env = $options['env'];
         $vaultNames = $this->getVaultNames($options);
 
-        $allSecrets = SecretCollection::loadFromVaults($vaultNames, $stage);
+        $allSecrets = SecretCollection::loadFromVaults($vaultNames, $env);
 
         $allSecrets = $allSecrets->filterByPatterns(
             only: $options['only'] ?? null,
@@ -27,9 +27,9 @@ class DirectExportService
 
         $formattedOutput = $this->formatOutput($allSecrets, $options['format']);
         if (count($vaultNames) === 1) {
-            $output->writeln("<info>Exporting secrets from vault '{$vaultNames[0]}' for stage '{$stage}'...</info>");
+            $output->writeln("<info>Exporting secrets from vault '{$vaultNames[0]}' for environment '{$env}'...</info>");
         } else {
-            $output->writeln('<info>Exporting secrets from '.count($vaultNames).' vaults ('.implode(', ', $vaultNames).") for stage '{$stage}'...</info>");
+            $output->writeln('<info>Exporting secrets from '.count($vaultNames).' vaults ('.implode(', ', $vaultNames).") for environment '{$env}'...</info>");
         }
         $output->writeln('<info>Found '.$allSecrets->count().' total secrets to export</info>');
 

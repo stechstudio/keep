@@ -5,7 +5,7 @@
       <div>
         <h1 class="text-2xl font-bold">Environment Templates</h1>
         <p class="text-muted-foreground mt-1">
-          Manage .env templates for different stages
+          Manage .env templates for different envs
         </p>
       </div>
       <button 
@@ -48,7 +48,7 @@
         <thead class="bg-muted/50">
           <tr>
             <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Template</th>
-            <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Stage</th>
+            <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Env</th>
             <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Size</th>
             <th class="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Last Modified</th>
             <th class="px-4 py-3 text-right text-sm font-medium text-muted-foreground"></th>
@@ -66,7 +66,7 @@
             </td>
             <td class="px-4 py-3">
               <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                {{ template.stageDisplay || template.stage }}
+                {{ template.envDisplay || template.env }}
               </span>
             </td>
             <td class="px-4 py-3 text-sm text-muted-foreground">

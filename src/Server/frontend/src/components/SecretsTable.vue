@@ -1,14 +1,14 @@
 <template>
   <div>
-    <!-- Header with vault/stage selectors on left, search and add button on right -->
+    <!-- Header with vault/env selectors on left, search and add button on right -->
     <div class="flex items-center justify-between mb-6">
-      <!-- Left side: Vault & Stage Selectors -->
+      <!-- Left side: Vault & Env Selectors -->
       <div class="flex items-center">
-        <VaultStageSelector 
+        <VaultEnvSelector 
           v-model:vault="vault"
-          v-model:stage="stage"
+          v-model:env="env"
           :vaults="vaults"
-          :stages="stages"
+          :envs="envs"
         />
       </div>
       
@@ -59,7 +59,7 @@
         
         <TableActionsMenu
           :vault="vault"
-          :stage="stage"
+          :env="env"
           :secrets="secrets"
           :permissions="permissions"
           @imported="loadSecrets"
@@ -98,7 +98,7 @@
               <div class="flex items-center justify-end opacity-30 group-hover:opacity-100 transition-opacity">
                 <Tooltip v-if="permissions.write" content="Edit" :delay-duration="200">
                   <button
-                    @click="editSecret({ key: secret.key, value: secret.value, vault, stage })"
+                    @click="editSecret({ key: secret.key, value: secret.value, vault, env })"
                     class="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,7 +108,7 @@
                 </Tooltip>
                 <Tooltip v-if="permissions.write" content="Rename" :delay-duration="200">
                   <button
-                    @click="showRenameDialog({ key: secret.key, value: secret.value, vault, stage })"
+                    @click="showRenameDialog({ key: secret.key, value: secret.value, vault, env })"
                     class="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,7 +118,7 @@
                 </Tooltip>
 <!--                <Tooltip content="Copy Value" :delay-duration="200">-->
 <!--                  <button-->
-<!--                    @click="handleCopyValue({ key: secret.key, value: secret.value, vault, stage })"-->
+<!--                    @click="handleCopyValue({ key: secret.key, value: secret.value, vault, env })"-->
 <!--                    class="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"-->
 <!--                  >-->
 <!--                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">-->
@@ -126,9 +126,9 @@
 <!--                    </svg>-->
 <!--                  </button>-->
 <!--                </Tooltip>-->
-                <Tooltip v-if="permissions.write" content="Copy to Stage" :delay-duration="200">
+                <Tooltip v-if="permissions.write" content="Copy to Env" :delay-duration="200">
                   <button
-                    @click="showCopyToStageDialog({ key: secret.key, value: secret.value, vault, stage })"
+                    @click="showCopyToEnvDialog({ key: secret.key, value: secret.value, vault, env })"
                     class="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,7 +138,7 @@
                 </Tooltip>
                 <Tooltip v-if="permissions.history" content="History" :delay-duration="200">
                   <button
-                    @click="showHistoryDialog({ key: secret.key, vault, stage })"
+                    @click="showHistoryDialog({ key: secret.key, vault, env })"
                     class="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -148,7 +148,7 @@
                 </Tooltip>
                 <Tooltip v-if="permissions.delete" content="Delete" :delay-duration="200">
                   <button
-                    @click="showDeleteDialog({ key: secret.key, vault, stage })"
+                    @click="showDeleteDialog({ key: secret.key, vault, env })"
                     class="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -172,7 +172,7 @@
       v-if="showAddDialog || editingSecret"
       :secret="editingSecret"
       :vault="editingSecret ? editingSecret.vault : vault"
-      :stage="editingSecret ? editingSecret.stage : stage"
+      :env="editingSecret ? editingSecret.env : env"
       @success="handleSecretSaveSuccess"
       @close="closeDialog"
     />
@@ -182,20 +182,20 @@
       v-if="renamingSecret"
       :currentKey="renamingSecret.key"
       :vault="vault"
-      :stage="stage"
+      :env="env"
       @success="handleRenameSuccess"
       @close="renamingSecret = null"
     />
     
-    <!-- Copy to Stage Dialog -->
-    <CopyToStageDialog
+    <!-- Copy to Env Dialog -->
+    <CopyToEnvDialog
       v-if="copyingSecret"
       :secretKey="copyingSecret.key"
       :currentVault="vault"
-      :currentStage="stage"
+      :currentEnv="env"
       :vaults="vaults"
-      :stages="stages"
-      @copy="handleCopyToStage"
+      :envs="envs"
+      @copy="handleCopyToEnv"
       @close="copyingSecret = null"
     />
     
@@ -204,7 +204,7 @@
       v-if="historySecret"
       :secretKey="historySecret.key"
       :vault="vault"
-      :stage="stage"
+      :env="env"
       @refresh="loadSecrets"
       @close="historySecret = null"
     />
@@ -214,7 +214,7 @@
       v-if="deletingSecret"
       :secretKey="deletingSecret.key"
       :vault="vault"
-      :stage="stage"
+      :env="env"
       @success="handleDeleteSuccess"
       @close="deletingSecret = null"
     />
@@ -223,11 +223,11 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
-import VaultStageSelector from './VaultStageSelector.vue'
+import VaultEnvSelector from './VaultEnvSelector.vue'
 import SecretValue from './SecretValue.vue'
 import SecretDialog from './SecretDialog.vue'
 import RenameDialog from './RenameDialog.vue'
-import CopyToStageDialog from './CopyToStageDialog.vue'
+import CopyToEnvDialog from './CopyToEnvDialog.vue'
 import HistoryDialog from './HistoryDialog.vue'
 import DeleteConfirmDialog from './DeleteConfirmDialog.vue'
 import TableActionsMenu from './TableActionsMenu.vue'
@@ -240,12 +240,12 @@ import { formatDate } from '../utils/formatters'
 
 const emit = defineEmits(['refresh'])
 const toast = useToast()
-const { vaults, stages, settings, loadAll: loadVaultData } = useVault()
-const { secrets: allSecrets, loading, loadSecrets: fetchSecrets, copySecretToStage } = useSecrets()
+const { vaults, envs, settings, loadAll: loadVaultData } = useVault()
+const { secrets: allSecrets, loading, loadSecrets: fetchSecrets, copySecretToEnv } = useSecrets()
 const { registerSearchHandler, registerModalCloseHandler, registerMaskToggleHandler } = useKeyboardShortcuts()
 
 const vault = ref(localStorage.getItem('keep.secrets.vault') || '')
-const stage = ref(localStorage.getItem('keep.secrets.stage') || '')
+const env = ref(localStorage.getItem('keep.secrets.env') || '')
 const searchQuery = ref('')
 const searchInput = ref(null)
 const unmaskAll = ref(localStorage.getItem('keep.unmaskAll') === 'true')
@@ -272,21 +272,21 @@ const secrets = computed(() => {
   })
 })
 
-// Get permissions for current vault and stage
+// Get permissions for current vault and env
 const permissions = computed(() => {
   const currentVault = vaults.value.find(v => v.slug === vault.value)
-  if (!currentVault || !currentVault.permissions || !stage.value) {
+  if (!currentVault || !currentVault.permissions || !env.value) {
     // If no permissions are cached, assume full permissions for backward compatibility
     return { list: true, read: true, write: true, delete: true, history: true }
   }
   
-  const stagePerms = currentVault.permissions[stage.value] || []
+  const envPerms = currentVault.permissions[env.value] || []
   return {
-    list: stagePerms.includes('list'),
-    read: stagePerms.includes('read'),
-    write: stagePerms.includes('write'),
-    delete: stagePerms.includes('delete'),
-    history: stagePerms.includes('history')
+    list: envPerms.includes('list'),
+    read: envPerms.includes('read'),
+    write: envPerms.includes('write'),
+    delete: envPerms.includes('delete'),
+    history: envPerms.includes('history')
   }
 })
 
@@ -294,7 +294,7 @@ const permissions = computed(() => {
 let cleanupModalHandler = null
 
 onMounted(async () => {
-  await loadVaultsAndStages()
+  await loadVaultsAndEnvs()
   await loadSecrets()
   
   // Register keyboard shortcut handlers
@@ -327,15 +327,15 @@ onUnmounted(() => {
   }
 })
 
-watch(() => [vault.value, stage.value], () => {
+watch(() => [vault.value, env.value], () => {
   // Save to localStorage
   if (vault.value) localStorage.setItem('keep.secrets.vault', vault.value)
-  if (stage.value) localStorage.setItem('keep.secrets.stage', stage.value)
+  if (env.value) localStorage.setItem('keep.secrets.env', env.value)
   
   loadSecrets()
 })
 
-async function loadVaultsAndStages() {
+async function loadVaultsAndEnvs() {
   try {
     await loadVaultData()
     
@@ -350,12 +350,12 @@ async function loadVaultsAndStages() {
         localStorage.setItem('keep.secrets.vault', vault.value)
       }
     }
-    if (!stage.value && stages.value.length) {
-      stage.value = stages.value[0]
-      localStorage.setItem('keep.secrets.stage', stage.value)
+    if (!env.value && envs.value.length) {
+      env.value = envs.value[0]
+      localStorage.setItem('keep.secrets.env', env.value)
     }
   } catch (error) {
-    // Failed to load vaults and stages
+    // Failed to load vaults and envs
   }
 }
 
@@ -366,11 +366,11 @@ function toggleUnmask() {
 }
 
 async function loadSecrets() {
-  if (!vault.value || !stage.value) return
+  if (!vault.value || !env.value) return
   
   try {
     // Always load all secrets - filtering is done client-side
-    await fetchSecrets(vault.value, stage.value, true)
+    await fetchSecrets(vault.value, env.value, true)
   } catch (error) {
     // Failed to load secrets
   }
@@ -397,7 +397,7 @@ function showRenameDialog(data) {
   renamingSecret.value = data
 }
 
-function showCopyToStageDialog(data) {
+function showCopyToEnvDialog(data) {
   copyingSecret.value = data
 }
 
@@ -426,16 +426,16 @@ async function handleRenameSuccess() {
   await loadSecrets()
 }
 
-async function handleCopyToStage({ targetVault, targetStage }) {
+async function handleCopyToEnv({ targetVault, targetEnv }) {
   try {
-    await copySecretToStage(
+    await copySecretToEnv(
       copyingSecret.value.key, 
-      targetStage, 
+      targetEnv, 
       targetVault, 
-      copyingSecret.value.stage,
+      copyingSecret.value.env,
       copyingSecret.value.vault
     )
-    toast.success('Secret copied', `Secret '${copyingSecret.value.key}' copied to ${targetVault}:${targetStage}`)
+    toast.success('Secret copied', `Secret '${copyingSecret.value.key}' copied to ${targetVault}:${targetEnv}`)
     copyingSecret.value = null
   } catch (error) {
     console.error('Failed to copy secret:', error)

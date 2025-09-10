@@ -11,7 +11,7 @@ it('shows no vaults message when none are configured', function () {
         'app_name' => 'test-app',
         'namespace' => 'test-app',
         'default_vault' => null,
-        'stages' => ['development'],
+        'envs' => ['development'],
         'created_at' => date('c'),
         'version' => '1.0',
     ];
@@ -40,7 +40,7 @@ it('lists configured vaults', function () {
         'app_name' => 'test-app',
         'namespace' => 'test-app',
         'default_vault' => 'primary',
-        'stages' => ['development'],
+        'envs' => ['development'],
         'created_at' => date('c'),
         'version' => '1.0',
     ];

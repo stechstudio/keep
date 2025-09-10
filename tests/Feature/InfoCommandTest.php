@@ -11,7 +11,7 @@ it('shows system information', function () {
         'app_name' => 'test-app',
         'namespace' => 'test-app',
         'default_vault' => null,
-        'stages' => ['development', 'production'],
+        'envs' => ['development', 'production'],
         'created_at' => date('c'),
         'version' => '1.0',
     ];
@@ -58,7 +58,7 @@ it('shows configuration when Keep is initialized', function () {
         'app_name' => 'test-app',
         'namespace' => 'test-app',
         'default_vault' => null,
-        'stages' => ['development', 'production'],
+        'envs' => ['development', 'production'],
         'created_at' => date('c'),
         'version' => '1.0',
     ];
@@ -89,7 +89,7 @@ it('shows configured vaults when they exist', function () {
         'app_name' => 'test-app',
         'namespace' => 'test-app',
         'default_vault' => 'test-vault',
-        'stages' => ['development', 'production'],
+        'envs' => ['development', 'production'],
         'created_at' => date('c'),
         'version' => '1.0',
     ];

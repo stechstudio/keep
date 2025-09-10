@@ -33,7 +33,7 @@ class SecretController extends ApiController
 
     public function create(): array
     {
-        if ($error = $this->requireFields(['key', 'value', 'vault', 'stage'])) {
+        if ($error = $this->requireFields(['key', 'value', 'vault', 'env'])) {
             return $error;
         }
         
@@ -46,13 +46,13 @@ class SecretController extends ApiController
         
         return $this->success([
             'success' => true,
-            'message' => "Secret '{$this->body['key']}' created in vault '{$this->body['vault']}' stage '{$this->body['stage']}'"
+            'message' => "Secret '{$this->body['key']}' created in vault '{$this->body['vault']}' environment '{$this->body['env']}'"
         ]);
     }
 
     public function update(string $key): array
     {
-        if ($error = $this->requireFields(['value', 'vault', 'stage'])) {
+        if ($error = $this->requireFields(['value', 'vault', 'env'])) {
             return $error;
         }
         
@@ -61,13 +61,13 @@ class SecretController extends ApiController
         
         return $this->success([
             'success' => true,
-            'message' => "Secret '{$key}' updated in vault '{$this->body['vault']}' stage '{$this->body['stage']}'"
+            'message' => "Secret '{$key}' updated in vault '{$this->body['vault']}' environment '{$this->body['env']}'"
         ]);
     }
 
     public function delete(string $key): array
     {
-        if ($error = $this->requireFields(['vault', 'stage'])) {
+        if ($error = $this->requireFields(['vault', 'env'])) {
             return $error;
         }
         
@@ -81,7 +81,7 @@ class SecretController extends ApiController
             if (str_starts_with($decodedKey, '__keep_verify_') || str_starts_with($decodedKey, 'keep-verify-')) {
                 throw new \STS\Keep\Exceptions\SecretNotFoundException(
                     "Test key '{$decodedKey}' not found. This may be an orphaned verification key. " .
-                    "It might have been created in a different namespace or stage context."
+                    "It might have been created in a different namespace or environment context."
                 );
             }
             throw $e;
@@ -119,7 +119,7 @@ class SecretController extends ApiController
 
     public function rename(string $oldKey): array
     {
-        if ($error = $this->requireFields(['newKey', 'vault', 'stage'])) {
+        if ($error = $this->requireFields(['newKey', 'vault', 'env'])) {
             return $error;
         }
         
@@ -158,15 +158,15 @@ class SecretController extends ApiController
         ]);
     }
 
-    public function copyToStage(string $key): array
+    public function copyToEnv(string $key): array
     {
-        if ($error = $this->requireFields(['targetStage'])) {
+        if ($error = $this->requireFields(['targetEnv'])) {
             return $error;
         }
         
-        $targetStage = $this->body['targetStage'];
+        $targetEnv = $this->body['targetEnv'];
         
-        // Get source vault (from vault/stage query params or body)
+        // Get source vault (from vault/env query params or body)
         $sourceVault = $this->getVault();
         
         // Get the secret from source
@@ -181,14 +181,14 @@ class SecretController extends ApiController
         
         // Get the target vault (can be different vault)
         $targetVaultName = $this->getParam('targetVault', $this->getParam('vault', $this->manager->getDefaultVault()));
-        $targetVault = $this->manager->vault($targetVaultName, $targetStage);
+        $targetVault = $this->manager->vault($targetVaultName, $targetEnv);
         
         // Copy to target
         $targetVault->set(urldecode($key), $secret->value());
         
         return $this->success([
             'success' => true,
-            'message' => "Secret '{$key}' copied to {$targetVaultName}:{$targetStage}"
+            'message' => "Secret '{$key}' copied to {$targetVaultName}:{$targetEnv}"
         ]);
     }
 
@@ -219,7 +219,7 @@ class SecretController extends ApiController
                 'history' => $history,
                 'key' => urldecode($key),
                 'vault' => $this->query['vault'] ?? $this->manager->getDefaultVault(),
-                'stage' => $this->query['stage']
+                'env' => $this->query['env']
             ]);
         } catch (\Exception $e) {
             return $this->error('Failed to retrieve history: ' . $e->getMessage());

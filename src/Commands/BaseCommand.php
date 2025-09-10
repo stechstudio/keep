@@ -79,10 +79,10 @@ abstract class BaseCommand extends Command
             }
         }
 
-        if (! isset($existing['stage']) && method_exists($this, 'stage')) {
-            $stage = $this->stage();
-            if ($stage !== null) {
-                $newContext['stage'] = $stage;
+        if (! isset($existing['env']) && method_exists($this, 'env')) {
+            $env = $this->env();
+            if ($env !== null) {
+                $newContext['env'] = $env;
             }
         }
 
@@ -137,20 +137,20 @@ abstract class BaseCommand extends Command
     }
     
     /**
-     * Output a message with vault/stage context highlighting
+     * Output a message with vault/env context highlighting
      */
-    public function contextInfo(string $vault, string $stage, string $message): void
+    public function contextInfo(string $vault, string $env, string $message): void
     {
-        $context = "<context>{$vault}:{$stage}</context>";
-        $this->info(str_replace("{$vault}:{$stage}", $context, $message));
+        $context = "<context>{$vault}:{$env}</context>";
+        $this->info(str_replace("{$vault}:{$env}", $context, $message));
     }
     
     /**
      * Output vault context
      */
-    public function showContext(string $vault, string $stage): void
+    public function showContext(string $vault, string $env): void
     {
-        $this->line("Current context: <context>{$vault}:{$stage}</context>");
+        $this->line("Current context: <context>{$vault}:{$env}</context>");
     }
     
     /**

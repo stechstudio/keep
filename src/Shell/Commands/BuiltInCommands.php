@@ -24,7 +24,7 @@ class BuiltInCommands
         $this->register(['clear', 'cls'], fn() => $this->clear());
         $this->register(['help', '?'], fn($args) => $this->help($args));
         $this->register(['context', 'ctx'], fn() => $this->context());
-        $this->register('stage', fn($args) => $this->stage($args));
+        $this->register('env', fn($args) => $this->env($args));
         $this->register('vault', fn($args) => $this->vault($args));
         $this->register(['use', 'u'], fn($args) => $this->use($args));
         $this->register('colors', fn() => $this->showColors());
@@ -101,20 +101,20 @@ class BuiltInCommands
     {
         $this->output->writeln('');
         $this->output->writeln(sprintf(
-            "Vault: <alert>%s</alert>\nStage: <alert>%s</alert>",
+            "Vault: <alert>%s</alert>\nEnv: <alert>%s</alert>",
             $this->context->getVault(),
-            $this->context->getStage()
+            $this->context->getEnv()
         ));
     }
     
-    protected function stage(array $args): void
+    protected function env(array $args): void
     {
         if (isset($args[0])) {
-            $this->switchStage($args[0]);
+            $this->switchEnv($args[0]);
             return;
         }
         
-        $this->selectStage();
+        $this->selectEnv();
     }
     
     protected function vault(array $args): void
@@ -130,33 +130,33 @@ class BuiltInCommands
     protected function use(array $args): void
     {
         if (!isset($args[0])) {
-            $this->output->writeln('<error>Usage: use <vault:stage></error>');
+            $this->output->writeln('<error>Usage: use <vault:env></error>');
             return;
         }
         
         if (!str_contains($args[0], ':')) {
-            $this->output->writeln('<error>Format must be vault:stage</error>');
+            $this->output->writeln('<error>Format must be vault:env</error>');
             return;
         }
         
-        [$vault, $stage] = explode(':', $args[0], 2);
+        [$vault, $env] = explode(':', $args[0], 2);
         
         $this->context->setVault($vault);
-        $this->context->setStage($stage);
+        $this->context->setEnv($env);
         
         $this->output->writeln(sprintf(
             'Switched to: <alert>%s:%s</alert>',
             $vault,
-            $stage
+            $env
         ));
     }
     
-    protected function switchStage(string $stage): void
+    protected function switchEnv(string $env): void
     {
-        $this->context->setStage($stage);
+        $this->context->setEnv($env);
         $this->output->writeln(sprintf(
-            'Switched to stage: <alert>%s</alert>',
-            $stage
+            'Switched to environment: <alert>%s</alert>',
+            $env
         ));
     }
     
@@ -169,23 +169,23 @@ class BuiltInCommands
         ));
     }
     
-    protected function selectStage(): void
+    protected function selectEnv(): void
     {
-        $stages = $this->context->getAvailableStages();
-        $current = $this->context->getStage();
+        $envs = $this->context->getAvailableEnvs();
+        $current = $this->context->getEnv();
         
         $selected = select(
-            label: 'Select a stage:',
-            options: $stages,
+            label: 'Select an environment:',
+            options: $envs,
             default: $current,
             hint: 'Use arrow keys to navigate, Enter to select'
         );
         
         if ($selected !== $current) {
-            $this->switchStage($selected);
+            $this->switchEnv($selected);
         } else {
             $this->output->writeln(sprintf(
-                'Already on stage: <context>%s</context>',
+                'Already on environment: <context>%s</context>',
                 $current
             ));
         }
@@ -279,7 +279,7 @@ class BuiltInCommands
         return [
             'get' => [
                 'usage' => 'get <key>',
-                'description' => 'Retrieve a secret value from the current vault and stage.',
+                'description' => 'Retrieve a secret value from the current vault and environment.',
                 'examples' => [
                     'get DB_PASSWORD',
                     'get API_KEY',
@@ -289,7 +289,7 @@ class BuiltInCommands
             ],
             'set' => [
                 'usage' => 'set <key> <value>',
-                'description' => 'Create or update a secret in the current vault and stage.',
+                'description' => 'Create or update a secret in the current vault and environment.',
                 'examples' => [
                     'set DB_PASSWORD "my-secure-pass"',
                     'set API_KEY sk-1234567890',
@@ -299,7 +299,7 @@ class BuiltInCommands
             ],
             'delete' => [
                 'usage' => 'delete <key> [force]',
-                'description' => 'Delete a secret from the current vault and stage.',
+                'description' => 'Delete a secret from the current vault and environment.',
                 'examples' => [
                     'delete OLD_KEY',
                     'delete API_KEY force      # Skip confirmation',
@@ -309,7 +309,7 @@ class BuiltInCommands
             ],
             'show' => [
                 'usage' => 'show [unmask]',
-                'description' => 'Display all secrets in the current vault and stage.',
+                'description' => 'Display all secrets in the current vault and environment.',
                 'examples' => [
                     'show',
                     'show unmask      # Show unmasked values',
@@ -319,7 +319,7 @@ class BuiltInCommands
             ],
             'copy' => [
                 'usage' => 'copy <key> [destination]',
-                'description' => 'Copy a secret from the current context to another stage or vault:stage.',
+                'description' => 'Copy a secret from the current context to another environment or vault:environment.',
                 'examples' => [
                     'copy DB_PASSWORD staging',
                     'copy API_KEY aws:production',
@@ -328,8 +328,8 @@ class BuiltInCommands
                 ],
             ],
             'diff' => [
-                'usage' => 'diff <stage1> <stage2>',
-                'description' => 'Compare secrets between two stages in the current vault.',
+                'usage' => 'diff <env1> <env2>',
+                'description' => 'Compare secrets between two environments in the current vault.',
                 'examples' => [
                     'diff development staging',
                     'diff staging production',
@@ -360,12 +360,12 @@ class BuiltInCommands
                     'search "Token" case-sensitive      # Case-sensitive search',
                 ],
             ],
-            'stage' => [
-                'usage' => 'stage [name]',
-                'description' => 'Switch to a different stage or interactively select one.',
+            'env' => [
+                'usage' => 'env [name]',
+                'description' => 'Switch to a different environment or interactively select one.',
                 'examples' => [
-                    'stage production',
-                    'stage      # Interactive selection',
+                    'env production',
+                    'env      # Interactive selection',
                 ],
             ],
             'vault' => [
@@ -377,8 +377,8 @@ class BuiltInCommands
                 ],
             ],
             'use' => [
-                'usage' => 'use <vault:stage>',
-                'description' => 'Switch both vault and stage at once.',
+                'usage' => 'use <vault:env>',
+                'description' => 'Switch both vault and environment at once.',
                 'examples' => [
                     'use aws:production',
                     'use test:development',
@@ -388,7 +388,7 @@ class BuiltInCommands
             ],
             'context' => [
                 'usage' => 'context',
-                'description' => 'Display the current vault and stage context.',
+                'description' => 'Display the current vault and environment context.',
                 'examples' => [
                     'context',
                     'ctx      # Using alias',
@@ -470,7 +470,7 @@ class BuiltInCommands
         $this->output->writeln('<warning>⚠ Warning message - attention needed</warning>');
         $this->output->writeln('<error>✗ Error message - something went wrong</error>');
         $this->output->writeln('');
-        $this->output->writeln('<context>ssm:production</context> - Vault and stage context');
+        $this->output->writeln('<context>ssm:production</context> - Vault and environment context');
         $this->output->writeln('<secret-name>DB_PASSWORD</secret-name> - Secret names');
         $this->output->writeln('<command-name>get</command-name> <neutral>- Command names</neutral>');
         $this->output->writeln('<suggestion>set</suggestion> - Command suggestions');
@@ -491,12 +491,12 @@ class BuiltInCommands
                 'search <query>' => 'Search for secrets containing text',
                 'copy <key> [destination]' => 'Copy single secret (e.g., copy DB_PASS staging)',
                 'copy only <pattern>' => 'Copy secrets matching pattern',
-                'diff <stage1> <stage2>' => 'Compare secrets between stages',
+                'diff <env1> <env2>' => 'Compare secrets between environments',
             ],
             '<comment>Context Management</comment>' => [
-                'stage <name>' => 'Switch to a different stage',
+                'env <name>' => 'Switch to a different environment',
                 'vault <name>' => 'Switch to a different vault',
-                'use <vault:stage>' => 'Switch both vault and stage (alias: u)',
+                'use <vault:env>' => 'Switch both vault and environment (alias: u)',
                 'context' => 'Show current context (alias: ctx)',
             ],
             '<comment>Import & Export</comment>' => [
@@ -506,8 +506,8 @@ class BuiltInCommands
                 'info' => 'Show Keep information',
             ],
             '<comment>Template Management</comment>' => [
-                'template' => 'Generate template from current stage secrets (alias: t)',
-                'validate <file>' => 'Validate a template file against current stage',
+                'template' => 'Generate template from current environment secrets (alias: t)',
+                'validate <file>' => 'Validate a template file against current environment',
             ],
             '<comment>Other</comment>' => [
                 'exit' => 'Exit the shell (or Ctrl+D)',

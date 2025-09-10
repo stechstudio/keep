@@ -15,7 +15,7 @@ Templates provide:
 
 ```bash
 # Create template from existing secrets
-keep template:add production.env --stage=production
+keep template:add production.env --env=production
 ```
 
 ### 2. [Runtime Secrets Injection](./runtime-injection.md)
@@ -29,10 +29,10 @@ Best for:
 
 ```bash
 # With template (includes static values)
-keep run --vault=ssm --stage=production --template -- npm start
+keep run --vault=ssm --env=production --template -- npm start
 
 # Without template (secrets only)
-keep run --vault=ssm --stage=production -- npm start
+keep run --vault=ssm --env=production -- npm start
 ```
 
 ### 3. [Exporting to Files](./exporting.md)
@@ -45,10 +45,10 @@ Best for:
 
 ```bash
 # With template
-keep export --template=env/production.env --stage=production --file=.env
+keep export --template=env/production.env --env=production --file=.env
 
 # Without template
-keep export --stage=production --file=.env
+keep export --env=production --file=.env
 ```
 
 ## When to Use Each Approach
@@ -68,19 +68,19 @@ keep export --stage=production --file=.env
 ### Laravel
 ```bash
 # One-time injection for config cache
-keep run --vault=ssm --stage=production -- php artisan config:cache
+keep run --vault=ssm --env=production -- php artisan config:cache
 # All subsequent commands use cached config
 php artisan migrate --force
 ```
 
 ### Node.js
 ```bash
-keep run --vault=ssm --stage=production --template -- npm start
+keep run --vault=ssm --env=production --template -- npm start
 ```
 
 ### Docker
 ```bash
-keep run --vault=ssm --stage=production -- docker-compose up
+keep run --vault=ssm --env=production -- docker-compose up
 ```
 
 ## Template Organization
@@ -93,7 +93,7 @@ env/
 └── ci.env             # CI/CD requirements
 ```
 
-One template per stage, containing both secrets (as placeholders) and static configuration.
+One template per env, containing both secrets (as placeholders) and static configuration.
 
 
 ## Next Steps

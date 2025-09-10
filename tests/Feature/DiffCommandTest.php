@@ -13,7 +13,7 @@ describe('DiffCommand', function () {
             'app_name' => 'test-app',
             'namespace' => 'test-app',
             'default_vault' => 'test',
-            'stages' => ['testing', 'staging', 'production'],
+            'envs' => ['testing', 'staging', 'production'],
             'created_at' => date('c'),
             'version' => '1.0',
         ];
@@ -31,27 +31,27 @@ describe('DiffCommand', function () {
     });
 
     describe('command structure and signature', function () {
-        it('accepts vault and stage options for comparisons', function () {
+        it('accepts vault and env options for comparisons', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'test',
-                '--stage' => 'testing,production',
+                '--env' => 'testing,production',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should accept --vault and --stage options without validation error
-            expect($output)->not->toMatch('/(invalid.*vault|invalid.*stage|unknown.*option)/i');
+            // Should accept --vault and --env options without validation error
+            expect($output)->not->toMatch('/(invalid.*env|unknown.*option)/i');
         });
 
-        it('accepts stage option for comma-separated stages', function () {
+        it('accepts env option for comma-separated environments', function () {
             $commandTester = runCommand('diff', [
-                '--stage' => 'testing,production',
+                '--env' => 'testing,production',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should accept --stage option without validation error
-            expect($output)->not->toMatch('/(invalid.*stage|unknown.*option)/i');
+            // Should accept --env option without validation error
+            expect($output)->not->toMatch('/(invalid.*env|unknown.*option)/i');
         });
 
         it('accepts vault option for comma-separated vaults', function () {
@@ -68,7 +68,7 @@ describe('DiffCommand', function () {
         it('accepts unmask flag option', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'test',
-                '--stage' => 'testing,production',
+                '--env' => 'testing,production',
                 '--unmask' => true,
             ]);
 
@@ -80,49 +80,49 @@ describe('DiffCommand', function () {
     });
 
     describe('parameter validation', function () {
-        it('handles valid vault and stage combinations', function () {
+        it('handles valid vault and environment combinations', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'test',
-                '--stage' => 'testing,production',
+                '--env' => 'testing,production',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should accept valid vault/stage combinations
-            expect($output)->not->toMatch('/(invalid.*vault|invalid.*stage)/i');
+            // Should accept valid vault/env combinations
+            expect($output)->not->toMatch('/(invalid.*env)/i');
         });
 
-        it('validates vault and stage option parsing', function () {
+        it('validates vault and env option parsing', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'ssm',
-                '--stage' => 'testing,staging',
+                '--env' => 'testing,staging',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should parse vault and stage options without syntax errors
+            // Should parse vault and env options without syntax errors
             expect($output)->not->toMatch('/(invalid.*syntax|parse.*error)/i');
         });
 
-        it('handles comma-separated stage lists', function () {
+        it('handles comma-separated env lists', function () {
             $commandTester = runCommand('diff', [
-                '--stage' => 'testing,staging,production',
+                '--env' => 'testing,staging,production',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should parse comma-separated stages without error
-            expect($output)->not->toMatch('/(invalid.*stage|parse.*error)/i');
+            // Should parse comma-separated envs without error
+            expect($output)->not->toMatch('/(invalid.*env|parse.*error)/i');
         });
 
-        it('warns about unknown stages appropriately', function () {
+        it('warns about unknown envs appropriately', function () {
             $commandTester = runCommand('diff', [
-                '--stage' => 'testing,invalid-stage',
+                '--env' => 'testing,invalid.*env',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should handle unknown stages gracefully (either warn or ignore)
+            // Should handle unknown envs gracefully (either warn or ignore)
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
     });
@@ -139,21 +139,21 @@ describe('DiffCommand', function () {
             expect($output)->toMatch('/(No vaults available|not found|error)/i');
         });
 
-        it('handles no stages available gracefully', function () {
+        it('handles no environments available gracefully', function () {
             $commandTester = runCommand('diff', [
-                '--stage' => 'nonexistent-stage',
+                '--env' => 'nonexistent-env',
             ]);
 
             expect($commandTester->getStatusCode())->toBe(1);
 
             $output = stripAnsi($commandTester->getDisplay());
-            expect($output)->toMatch('/(No stages available|not found|error)/i');
+            expect($output)->toMatch('/(No environments available|not found|error|Warning: Unknown environments)/i');
         });
 
         it('handles vault connection issues gracefully', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'test',
-                '--stage' => 'testing,production',
+                '--env' => 'testing,production',
             ]);
 
             // Command should complete (success or controlled failure)
@@ -166,7 +166,7 @@ describe('DiffCommand', function () {
         it('handles empty vault conditions appropriately', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should handle empty vaults without crashing
@@ -179,7 +179,7 @@ describe('DiffCommand', function () {
         it('shows comparison matrix structure', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'test',
-                '--stage' => 'testing,production',
+                '--env' => 'testing,production',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -192,7 +192,7 @@ describe('DiffCommand', function () {
         it('displays summary information', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'test',
-                '--stage' => 'testing,staging',
+                '--env' => 'testing,staging',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -204,7 +204,7 @@ describe('DiffCommand', function () {
         it('handles unmask flag appropriately', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'test',
-                '--stage' => 'testing,production',
+                '--env' => 'testing,production',
                 '--unmask' => true,
             ]);
 
@@ -215,23 +215,23 @@ describe('DiffCommand', function () {
         });
     });
 
-    describe('vault and stage option functionality', function () {
-        it('parses vault and stage options correctly', function () {
+    describe('vault and env option functionality', function () {
+        it('parses vault and env options correctly', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'ssm',
-                '--stage' => 'testing,production',
+                '--env' => 'testing,production',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should parse vault and stage options without error
+            // Should parse vault and env options without error
             expect($output)->not->toMatch('/(invalid.*context|parse.*error)/i');
         });
 
         it('handles comma-separated options correctly', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'ssm',
-                '--stage' => 'testing,production',
+                '--env' => 'testing,production',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -240,23 +240,23 @@ describe('DiffCommand', function () {
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
 
-        it('validates vault and stage references', function () {
+        it('validates vault and env references', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'ssm,invalid',
-                '--stage' => 'testing,nonexistent',
+                '--env' => 'testing,nonexistent',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should handle invalid vault and stage references gracefully
+            // Should handle invalid.*env references gracefully
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
     });
 
-    describe('vault and stage filtering', function () {
+    describe('vault and env filtering', function () {
         it('uses default vault when not specified', function () {
             $commandTester = runCommand('diff', [
-                '--stage' => 'testing,production',
+                '--env' => 'testing,production',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -265,26 +265,26 @@ describe('DiffCommand', function () {
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
 
-        it('uses all configured stages when not specified', function () {
+        it('uses all configured envs when not specified', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'ssm',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should use all stages without error
+            // Should use all envs without error
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
 
-        it('handles single stage comparison', function () {
+        it('handles single env comparison', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should handle single stage without error
+            // Should handle single env without error
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
     });
@@ -293,7 +293,7 @@ describe('DiffCommand', function () {
         it('handles special characters in options', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -304,7 +304,7 @@ describe('DiffCommand', function () {
 
         it('handles whitespace in comma-separated lists', function () {
             $commandTester = runCommand('diff', [
-                '--stage' => 'testing, production, staging',
+                '--env' => 'testing, production, staging',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -316,7 +316,7 @@ describe('DiffCommand', function () {
         it('processes multiple vault combinations', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'test',
-                '--stage' => 'testing,production',
+                '--env' => 'testing,production',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -328,7 +328,7 @@ describe('DiffCommand', function () {
         it('handles spinner and loading states appropriately', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should complete without hanging on spinner
@@ -341,7 +341,7 @@ describe('DiffCommand', function () {
         it('handles diff service responses appropriately', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'test',
-                '--stage' => 'testing,production',
+                '--env' => 'testing,production',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -353,7 +353,7 @@ describe('DiffCommand', function () {
         it('displays appropriate messages for empty results', function () {
             $commandTester = runCommand('diff', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -367,7 +367,7 @@ describe('DiffCommand', function () {
         it('accepts only option for filtering keys', function () {
             $commandTester = runCommand('diff', [
                 '--only' => 'API_*',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -380,7 +380,7 @@ describe('DiffCommand', function () {
         it('accepts except option for excluding keys', function () {
             $commandTester = runCommand('diff', [
                 '--except' => 'SECRET_*',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -394,7 +394,7 @@ describe('DiffCommand', function () {
             $commandTester = runCommand('diff', [
                 '--only' => 'API_*,DB_*',
                 '--except' => 'SECRET_*',
-                '--stage' => 'testing,production',
+                '--env' => 'testing,production',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());

@@ -2,7 +2,7 @@
 
 use STS\Keep\Data\Settings;
 
-describe('StageAddCommand', function () {
+describe('EnvAddCommand', function () {
 
     beforeEach(function () {
         $this->tempDir = createTempKeepDir();
@@ -15,7 +15,7 @@ describe('StageAddCommand', function () {
             'app_name' => 'test-app',
             'namespace' => 'test-app',
             'default_vault' => 'test',
-            'stages' => ['testing', 'production'],
+            'envs' => ['testing', 'production'],
             'created_at' => date('c'),
             'version' => '1.0',
         ];
@@ -38,110 +38,110 @@ describe('StageAddCommand', function () {
         }
     });
 
-    describe('adding custom stages', function () {
+    describe('adding custom environments', function () {
 
-        it('adds a new custom stage via argument', function () {
+        it('adds a new custom environment via argument', function () {
             $initialSettings = Settings::load();
 
-            // Use a unique stage name for this test
-            $stageName = 'test-stage-'.uniqid();
+            // Use a unique environment name for this test
+            $envName = 'test-env-'.uniqid();
 
-            expect($initialSettings->stages())->not->toContain($stageName);
+            expect($initialSettings->envs())->not->toContain($envName);
 
-            // Add a custom stage (auto-confirmed in non-interactive mode)
-            $commandTester = runCommand('stage:add', [
-                'name' => $stageName,
+            // Add a custom environment (auto-confirmed in non-interactive mode)
+            $commandTester = runCommand('env:add', [
+                'name' => $envName,
             ]);
 
             expect($commandTester->getStatusCode())->toBe(0);
 
-            // Verify stage was added
+            // Verify environment was added
             $updatedSettings = Settings::load();
-            expect($updatedSettings->stages())->toContain($stageName);
+            expect($updatedSettings->envs())->toContain($envName);
         });
 
-        it('validates stage name format', function () {
-            // Try to add an invalid stage name
-            $commandTester = runCommand('stage:add', [
-                'name' => 'invalid stage!', // Contains space and special char
+        it('validates environment name format', function () {
+            // Try to add an invalid environment name
+            $commandTester = runCommand('env:add', [
+                'name' => 'invalid env!', // Contains space and special char
             ]);
 
             expect($commandTester->getStatusCode())->toBe(1);
             expect($commandTester->getDisplay())->toContain('can only contain');
 
-            // Verify stage was not added
+            // Verify environment was not added
             $settings = Settings::load();
-            expect($settings->stages())->not->toContain('invalid stage!');
+            expect($settings->envs())->not->toContain('invalid env!');
         });
 
-        it('prevents duplicate stage names', function () {
+        it('prevents duplicate environment names', function () {
             $settings = Settings::load();
-            $existingStage = $settings->stages()[0]; // Get first existing stage
+            $existingEnv = $settings->envs()[0]; // Get first existing environment
 
             // Try to add a duplicate
-            $commandTester = runCommand('stage:add', [
-                'name' => $existingStage,
+            $commandTester = runCommand('env:add', [
+                'name' => $existingEnv,
             ]);
 
             expect($commandTester->getStatusCode())->toBe(1);
 
             // Count should remain the same
             $updatedSettings = Settings::load();
-            expect(count($updatedSettings->stages()))->toBe(count($settings->stages()));
+            expect(count($updatedSettings->envs()))->toBe(count($settings->envs()));
         });
 
         it('allows lowercase alphanumeric names with hyphens and underscores', function () {
             $validNames = ['dev-2', 'test_env', 'qa1', 'prod-backup'];
 
-            foreach ($validNames as $stageName) {
-                // Remove stage if it exists (cleanup from previous tests)
+            foreach ($validNames as $envName) {
+                // Remove environment if it exists (cleanup from previous tests)
                 $settings = Settings::load();
-                $stages = array_diff($settings->stages(), [$stageName]);
+                $envs = array_diff($settings->envs(), [$envName]);
                 Settings::fromArray([
                     'app_name' => $settings->appName(),
                     'namespace' => $settings->namespace(),
-                    'stages' => array_values($stages),
+                    'envs' => array_values($envs),
                     'default_vault' => $settings->defaultVault(),
                     'created_at' => $settings->createdAt(),
                 ])->save();
 
-                // Add the stage
-                $commandTester = runCommand('stage:add', [
-                    'name' => $stageName,
+                // Add the environment
+                $commandTester = runCommand('env:add', [
+                    'name' => $envName,
                 ]);
 
                 expect($commandTester->getStatusCode())->toBe(0);
 
                 // Verify it was added
                 $updatedSettings = Settings::load();
-                expect($updatedSettings->stages())->toContain($stageName);
+                expect($updatedSettings->envs())->toContain($envName);
             }
         });
     });
 
     describe('integration with other commands', function () {
 
-        it('makes custom stage available for use', function () {
-            // Add a unique custom stage
-            $stageName = 'integration-'.uniqid();
-            $commandTester = runCommand('stage:add', ['name' => $stageName]);
+        it('makes custom environment available for use', function () {
+            // Add a unique custom environment
+            $envName = 'integration-'.uniqid();
+            $commandTester = runCommand('env:add', ['name' => $envName]);
 
             expect($commandTester->getStatusCode())->toBe(0);
-            expect($commandTester->getDisplay())->toContain("Stage '{$stageName}' has been added successfully");
+            expect($commandTester->getDisplay())->toContain("Environment '{$envName}' has been added successfully");
 
-            // Verify the custom stage is persisted in settings
+            // Verify the custom environment is persisted in settings
             $settings = Settings::load();
-            expect($settings->stages())->toContain($stageName);
+            expect($settings->envs())->toContain($envName);
 
-            // Verify multiple custom stages can be added
-            $secondStage = 'secondary-'.uniqid();
-            $secondCommand = runCommand('stage:add', ['name' => $secondStage]);
+            // Verify multiple custom environments can be added
+            $secondEnv = 'secondary-'.uniqid();
+            $secondCommand = runCommand('env:add', ['name' => $secondEnv]);
 
             expect($secondCommand->getStatusCode())->toBe(0);
 
             $updatedSettings = Settings::load();
-            expect($updatedSettings->stages())->toContain($stageName);
-            expect($updatedSettings->stages())->toContain($secondStage);
+            expect($updatedSettings->envs())->toContain($envName);
+            expect($updatedSettings->envs())->toContain($secondEnv);
         });
     });
 });

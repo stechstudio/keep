@@ -20,11 +20,11 @@ trait GathersInput
 
     protected string $toVaultName;
 
-    protected string $stage;
+    protected string $env;
 
-    protected string $fromStage;
+    protected string $fromEnv;
 
-    protected string $toStage;
+    protected string $toEnv;
 
     protected string $from;
 
@@ -60,12 +60,12 @@ trait GathersInput
         };
     }
 
-    protected function stage($prompt = 'Stage', $cacheName = 'stage')
+    protected function env($prompt = 'Environment', $cacheName = 'env')
     {
         return $this->{$cacheName} ??= match (true) {
-            $this->hasOption('stage') && (bool) $this->option('stage') => $this->option('stage'),
-            count(Keep::getStages()) === 1 => Keep::getStages()[0],
-            default => select($prompt, Keep::getStages()),
+            $this->hasOption('env') && (bool) $this->option('env') => $this->option('env'),
+            count(Keep::getEnvs()) === 1 => Keep::getEnvs()[0],
+            default => select($prompt, Keep::getEnvs()),
         };
     }
 
@@ -74,7 +74,7 @@ trait GathersInput
      */
     public function resetInput(): void
     {
-        unset($this->key, $this->value, $this->vaultName, $this->fromVaultName, $this->toVaultName, $this->stage, $this->fromStage, $this->toStage, $this->from, $this->to);
+        unset($this->key, $this->value, $this->vaultName, $this->fromVaultName, $this->toVaultName, $this->env, $this->fromEnv, $this->toEnv, $this->from, $this->to);
     }
 
     protected function from()
@@ -82,7 +82,7 @@ trait GathersInput
         return match (true) {
             isset($this->from) => $this->from,
             (bool) $this->option('from') => $this->option('from'),
-            default => $this->vaultName('From (vault)', 'fromVaultName').':'.$this->stage('From (stage)', 'fromStage'),
+            default => $this->vaultName('From (vault)', 'fromVaultName').':'.$this->env('From (environment)', 'fromEnv'),
         };
     }
 
@@ -91,14 +91,14 @@ trait GathersInput
         return match (true) {
             isset($this->to) => $this->to,
             (bool) $this->option('to') => $this->option('to'),
-            default => $this->vaultName('To (vault)', 'toVaultName').':'.$this->stage('To (stage)', 'toStage'),
+            default => $this->vaultName('To (vault)', 'toVaultName').':'.$this->env('To (environment)', 'toEnv'),
         };
     }
 
-    protected function vaultContext(string $vaultPrompt = 'Vault', string $stagePrompt = 'Stage'): Context
+    protected function vaultContext(string $vaultPrompt = 'Vault', string $envPrompt = 'Environment'): Context
     {
-        // Create context from separate vault/stage selection
-        return new Context($this->vaultName($vaultPrompt), $this->stage($stagePrompt));
+        // Create context from separate vault/env selection
+        return new Context($this->vaultName($vaultPrompt), $this->env($envPrompt));
     }
 
     protected function secure(): bool

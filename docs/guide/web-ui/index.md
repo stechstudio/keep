@@ -27,9 +27,9 @@ The Web UI provides five main sections:
 
 - **Secrets** - Manage individual secrets with search, filtering, and inline editing
 - **Templates** - Create and manage configuration templates with placeholders
-- **Diff** - Compare secrets across stages and vaults in a matrix view
+- **Diff** - Compare secrets across envs and vaults in a matrix view
 - **Export** - Generate configuration files in various formats
-- **Settings** - Configure vaults, stages, workspace, and preferences
+- **Settings** - Configure vaults, envs, workspace, and preferences
 
 ## Security
 

@@ -10,7 +10,7 @@ use STS\Keep\Data\Settings;
 use STS\Keep\Data\Collections\VaultConfigCollection;
 use STS\Keep\Tests\Support\TestVault;
 
-test('list returns all secrets for vault and stage', function () {
+test('list returns all secrets for vault and env', function () {
     $vault = new TestVault('test', [], 'local');
     $vault->set('API_KEY', 'secret123');
     $vault->set('DB_PASSWORD', 'pass456');
@@ -21,7 +21,7 @@ test('list returns all secrets for vault and stage', function () {
     $mockManager = $this->createPartialMock(KeepManager::class, ['vault']);
     $mockManager->method('vault')->willReturn($vault);
     
-    $controller = new SecretController($mockManager, ['vault' => 'test', 'stage' => 'local']);
+    $controller = new SecretController($mockManager, ['vault' => 'test', 'env' => 'local']);
     $response = $controller->list();
     
     expect($response)->toHaveKey('secrets');
@@ -36,7 +36,7 @@ test('get returns single secret with unmask option', function () {
     $mockManager->method('vault')->willReturn($vault);
     
     // Test masked
-    $controller = new SecretController($mockManager, ['vault' => 'test', 'stage' => 'local']);
+    $controller = new SecretController($mockManager, ['vault' => 'test', 'env' => 'local']);
     $response = $controller->get('API_KEY');
     
     expect($response)->toHaveKey('secret');
@@ -44,7 +44,7 @@ test('get returns single secret with unmask option', function () {
     expect($response['secret']['value'])->toContain('****'); // Masked value contains asterisks
     
     // Test unmasked
-    $controller = new SecretController($mockManager, ['vault' => 'test', 'stage' => 'local', 'unmask' => 'true']);
+    $controller = new SecretController($mockManager, ['vault' => 'test', 'env' => 'local', 'unmask' => 'true']);
     $response = $controller->get('API_KEY');
     
     expect($response['secret']['value'])->toBe('secret123');
@@ -58,8 +58,8 @@ test('create adds new secret to vault', function () {
     
     $controller = new SecretController(
         $mockManager, 
-        ['vault' => 'test', 'stage' => 'local'],
-        ['key' => 'NEW_SECRET', 'value' => 'new_value', 'vault' => 'test', 'stage' => 'local']
+        ['vault' => 'test', 'env' => 'local'],
+        ['key' => 'NEW_SECRET', 'value' => 'new_value', 'vault' => 'test', 'env' => 'local']
     );
     $response = $controller->create();
     
@@ -77,8 +77,8 @@ test('delete removes secret from vault', function () {
     
     $controller = new SecretController(
         $mockManager, 
-        ['vault' => 'test', 'stage' => 'local'],
-        ['vault' => 'test', 'stage' => 'local']
+        ['vault' => 'test', 'env' => 'local'],
+        ['vault' => 'test', 'env' => 'local']
     );
     
     expect($vault->get('TO_DELETE'))->not->toBeNull();
@@ -101,7 +101,7 @@ test('search filters secrets by query', function () {
     $mockManager = $this->createPartialMock(KeepManager::class, ['vault']);
     $mockManager->method('vault')->willReturn($vault);
     
-    $controller = new SecretController($mockManager, ['vault' => 'test', 'stage' => 'local', 'q' => 'api']);
+    $controller = new SecretController($mockManager, ['vault' => 'test', 'env' => 'local', 'q' => 'api']);
     $response = $controller->search();
     
     expect($response)->toHaveKey('secrets');

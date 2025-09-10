@@ -4,7 +4,7 @@ namespace STS\Keep\Commands;
 
 use Illuminate\Support\Str;
 use STS\Keep\Commands\Concerns\ConfiguresVaults;
-use STS\Keep\Commands\Concerns\ValidatesStages;
+use STS\Keep\Commands\Concerns\ValidatesEnvs;
 use STS\Keep\Data\Settings;
 use STS\Keep\Facades\Keep;
 
@@ -16,7 +16,7 @@ use function Laravel\Prompts\text;
 
 class ConfigureCommand extends BaseCommand
 {
-    use ConfiguresVaults, ValidatesStages;
+    use ConfiguresVaults, ValidatesEnvs;
 
     protected $signature = 'configure';
 
@@ -47,8 +47,8 @@ class ConfigureCommand extends BaseCommand
             default: $existingSettings['namespace'] ?? Str::slug($appName)
         );
 
-        $stages = multiselect(
-            label: 'Which environments/stages do you want to manage secrets for?',
+        $envs = multiselect(
+            label: 'Which environments do you want to manage secrets for?',
             options: [
                 'local' => 'Local (development)',
                 'qa' => 'QA (test team validation)',
@@ -56,30 +56,30 @@ class ConfigureCommand extends BaseCommand
                 'staging' => 'Staging (pre-production)',
                 'sandbox' => 'Sandbox (demos / experiments)',
                 'production' => 'Production (live)',
-                'custom' => '➕ Add custom stage...',
+                'custom' => '➕ Add custom environment...',
             ],
-            default: $existingSettings['stages'] ?? ['local', 'staging', 'production'],
+            default: $existingSettings['envs'] ?? ['local', 'staging', 'production'],
             scroll: 6,
-            hint: 'You can add more later with "keep stage:add". Toggle with space bar, confirm with enter.',
+            hint: 'You can add more later with "keep env:add". Toggle with space bar, confirm with enter.',
         );
 
-        // Handle custom stage input
-        if (in_array('custom', $stages)) {
-            $stages = array_diff($stages, ['custom']); // Remove 'custom' from list
+        // Handle custom environment input
+        if (in_array('custom', $envs)) {
+            $envs = array_diff($envs, ['custom']); // Remove 'custom' from list
 
-            $customStages = text(
-                label: 'Enter custom stage names (comma-separated, lowercase only)',
+            $customEnvs = text(
+                label: 'Enter custom environment names (comma-separated, lowercase only)',
                 placeholder: 'e.g., dev2, demo, integration',
-                validate: fn ($value) => $this->validateCustomStagesInput($value)
+                validate: fn ($value) => $this->validateCustomEnvsInput($value)
             );
 
-            $customStagesList = array_map('trim', explode(',', $customStages));
-            $stages = array_merge($stages, $customStagesList);
+            $customEnvsList = array_map('trim', explode(',', $customEnvs));
+            $envs = array_merge($envs, $customEnvsList);
         }
 
         // Create configuration structure
         $this->createKeepDirectory();
-        $this->createGlobalSettings($appName, $namespace, $stages, $existingSettings);
+        $this->createGlobalSettings($appName, $namespace, $envs, $existingSettings);
 
         info('✅ Configuration updated successfully!');
 
@@ -151,28 +151,28 @@ class ConfigureCommand extends BaseCommand
         }
     }
 
-    private function createGlobalSettings(string $appName, string $namespace, array $stages, array $existingSettings): void
+    private function createGlobalSettings(string $appName, string $namespace, array $envs, array $existingSettings): void
     {
         Settings::fromArray([
             'app_name' => $appName,
             'namespace' => $namespace,
             'default_vault' => $existingSettings['default_vault'] ?? null,
-            'stages' => $stages,
+            'envs' => $envs,
             'created_at' => $existingSettings['created_at'] ?? date('c'),
             'updated_at' => date('c'),
             'version' => '1.0',
         ])->save();
     }
 
-    private function validateCustomStagesInput(string $value): ?string
+    private function validateCustomEnvsInput(string $value): ?string
     {
         if (empty($value)) {
-            return 'Please enter at least one custom stage name';
+            return 'Please enter at least one custom environment name';
         }
 
-        $stages = array_map('trim', explode(',', $value));
-        foreach ($stages as $stage) {
-            $error = $this->getStageValidationError($stage);
+        $envs = array_map('trim', explode(',', $value));
+        foreach ($envs as $env) {
+            $error = $this->getEnvValidationError($env);
             if ($error) {
                 return $error;
             }

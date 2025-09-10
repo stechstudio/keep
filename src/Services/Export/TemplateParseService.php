@@ -21,8 +21,8 @@ class TemplateParseService
 
         $vaultNames = $this->determineVaults($options, $template);
 
-        $stage = $options['stage'];
-        $allSecrets = SecretCollection::loadFromVaults($vaultNames, $stage);
+        $env = $options['env'];
+        $allSecrets = SecretCollection::loadFromVaults($vaultNames, $env);
 
         $allSecrets = $allSecrets->filterByPatterns(
             only: $options['only'] ?? null,
@@ -39,7 +39,7 @@ class TemplateParseService
         );
 
         $format = strtoupper($options['format'] ?? 'json');
-        $output->writeln("<info>Processing template [{$options['template']}] for stage '{$stage}' as {$format}...</info>");
+        $output->writeln("<info>Processing template [{$options['template']}] for environment '{$env}' as {$format}...</info>");
         if ($options['all'] ?? false) {
             $output->writeln('<info>Including all additional secrets beyond template placeholders</info>');
         }
@@ -126,7 +126,7 @@ class TemplateParseService
 
     protected function formatAsCsv(array $templateData, SecretCollection $allSecrets): string
     {
-        $csv = "Key,Value,Vault,Stage,Modified\n";
+        $csv = "Key,Value,Vault,Env,Modified\n";
         
         foreach ($templateData as $key => $value) {
             // Find the secret in the collection to get metadata
@@ -135,10 +135,10 @@ class TemplateParseService
             $csvKey = $this->escapeCsvField($key);
             $csvValue = $this->escapeCsvField($value);
             $vault = $secret ? $this->escapeCsvField($secret->vault()?->name() ?? '') : '';
-            $stage = $secret ? $this->escapeCsvField($secret->stage() ?? '') : '';
+            $env = $secret ? $this->escapeCsvField($secret->env() ?? '') : '';
             $modified = $secret && $secret->lastModified() ? $this->escapeCsvField($secret->lastModified()->toIso8601String()) : '';
             
-            $csv .= "{$csvKey},{$csvValue},{$vault},{$stage},{$modified}\n";
+            $csv .= "{$csvKey},{$csvValue},{$vault},{$env},{$modified}\n";
         }
         
         return $csv;

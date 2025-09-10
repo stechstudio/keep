@@ -13,83 +13,83 @@ describe('Settings', function () {
                 ->toThrow(InvalidArgumentException::class, 'Missing required setting: namespace');
 
             expect(fn () => Settings::fromArray(['app_name' => 'test', 'namespace' => 'test']))
-                ->toThrow(InvalidArgumentException::class, 'Missing required setting: stages');
+                ->toThrow(InvalidArgumentException::class, 'Missing required setting: envs');
         });
 
         it('validates app name', function () {
-            expect(fn () => new Settings('', 'namespace', ['stage']))
+            expect(fn () => new Settings('', 'namespace', ['env']))
                 ->toThrow(InvalidArgumentException::class, 'App name cannot be empty');
 
-            expect(fn () => new Settings('   ', 'namespace', ['stage']))
+            expect(fn () => new Settings('   ', 'namespace', ['env']))
                 ->toThrow(InvalidArgumentException::class, 'App name cannot be empty');
 
-            expect(fn () => new Settings(str_repeat('a', 101), 'namespace', ['stage']))
+            expect(fn () => new Settings(str_repeat('a', 101), 'namespace', ['env']))
                 ->toThrow(InvalidArgumentException::class, 'App name cannot exceed 100 characters');
         });
 
         it('validates namespace', function () {
-            expect(fn () => new Settings('app', 'invalid space', ['stage']))
+            expect(fn () => new Settings('app', 'invalid space', ['env']))
                 ->toThrow(InvalidArgumentException::class, 'Namespace must contain only letters');
 
-            expect(fn () => new Settings('app', 'invalid@symbol', ['stage']))
+            expect(fn () => new Settings('app', 'invalid@symbol', ['env']))
                 ->toThrow(InvalidArgumentException::class, 'Namespace must contain only letters');
 
-            expect(fn () => new Settings('app', str_repeat('a', 101), ['stage']))
+            expect(fn () => new Settings('app', str_repeat('a', 101), ['env']))
                 ->toThrow(InvalidArgumentException::class, 'Namespace cannot exceed 100 characters');
         });
 
-        it('validates stages', function () {
+        it('validates envs', function () {
             expect(fn () => new Settings('app', 'namespace', []))
-                ->toThrow(InvalidArgumentException::class, 'At least one stage must be defined');
+                ->toThrow(InvalidArgumentException::class, 'At least one environment must be defined');
 
             expect(fn () => new Settings('app', 'namespace', ['']))
-                ->toThrow(InvalidArgumentException::class, 'All stages must be non-empty strings');
+                ->toThrow(InvalidArgumentException::class, 'All environments must be non-empty strings');
 
             expect(fn () => new Settings('app', 'namespace', ['UPPERCASE']))
-                ->toThrow(InvalidArgumentException::class, 'Stage \'UPPERCASE\' must contain only lowercase');
+                ->toThrow(InvalidArgumentException::class, 'Environment \'UPPERCASE\' must contain only lowercase');
 
             expect(fn () => new Settings('app', 'namespace', ['invalid space']))
-                ->toThrow(InvalidArgumentException::class, 'Stage \'invalid space\' must contain only lowercase');
+                ->toThrow(InvalidArgumentException::class, 'Environment \'invalid space\' must contain only lowercase');
 
             expect(fn () => new Settings('app', 'namespace', [str_repeat('a', 51)]))
                 ->toThrow(InvalidArgumentException::class, 'cannot exceed 50 characters');
 
-            expect(fn () => new Settings('app', 'namespace', ['stage1', 'stage1']))
-                ->toThrow(InvalidArgumentException::class, 'Duplicate stages are not allowed');
+            expect(fn () => new Settings('app', 'namespace', ['env1', 'env1']))
+                ->toThrow(InvalidArgumentException::class, 'Duplicate environments are not allowed');
         });
 
-        it('accepts valid stage formats', function () {
-            $validStages = [
+        it('accepts valid env formats', function () {
+            $validEnvs = [
                 'development',
                 'staging',
                 'production',
                 'qa',
                 'uat',
                 'test_env',
-                'stage-1',
+                'env-1',
                 'env123',
             ];
 
-            $settings = new Settings('app', 'namespace', $validStages);
-            expect($settings->stages())->toBe($validStages);
+            $settings = new Settings('app', 'namespace', $validEnvs);
+            expect($settings->envs())->toBe($validEnvs);
         });
 
         it('validates default vault', function () {
-            expect(fn () => new Settings('app', 'namespace', ['stage'], 'invalid space'))
+            expect(fn () => new Settings('app', 'namespace', ['env'], 'invalid space'))
                 ->toThrow(InvalidArgumentException::class, 'Default vault name must contain only letters');
 
-            expect(fn () => new Settings('app', 'namespace', ['stage'], 'invalid@symbol'))
+            expect(fn () => new Settings('app', 'namespace', ['env'], 'invalid@symbol'))
                 ->toThrow(InvalidArgumentException::class, 'Default vault name must contain only letters');
         });
 
         it('validates version format', function () {
-            expect(fn () => new Settings('app', 'namespace', ['stage'], null, null, null, null, 'invalid'))
+            expect(fn () => new Settings('app', 'namespace', ['env'], null, null, null, null, 'invalid'))
                 ->toThrow(InvalidArgumentException::class, 'Version must be in format "major.minor" (e.g., "1.0")');
 
-            expect(fn () => new Settings('app', 'namespace', ['stage'], null, null, null, null, '1.0.0'))
+            expect(fn () => new Settings('app', 'namespace', ['env'], null, null, null, null, '1.0.0'))
                 ->toThrow(InvalidArgumentException::class, 'Version must be in format "major.minor" (e.g., "1.0")');
 
-            $settings = new Settings('app', 'namespace', ['stage'], null, null, null, null, '2.1');
+            $settings = new Settings('app', 'namespace', ['env'], null, null, null, null, '2.1');
             expect($settings->version())->toBe('2.1');
         });
     });
@@ -113,7 +113,7 @@ describe('Settings', function () {
             $original = new Settings(
                 appName: 'My App',
                 namespace: 'my_app',
-                stages: ['local', 'staging', 'production'],
+                envs: ['local', 'staging', 'production'],
                 defaultVault: 'primary'
             );
 
@@ -126,7 +126,7 @@ describe('Settings', function () {
 
             expect($loaded->appName())->toBe('My App');
             expect($loaded->namespace())->toBe('my_app');
-            expect($loaded->stages())->toBe(['local', 'staging', 'production']);
+            expect($loaded->envs())->toBe(['local', 'staging', 'production']);
             expect($loaded->defaultVault())->toBe('primary');
             expect($loaded->version())->toBe('1.0');
         });
@@ -134,7 +134,7 @@ describe('Settings', function () {
         it('creates directory if not exists', function () {
             $nestedPath = $this->tempDir.'/nested/deep/settings.json';
 
-            $settings = new Settings('app', 'namespace', ['stage']);
+            $settings = new Settings('app', 'namespace', ['env']);
             $settings->saveToFile($nestedPath);
 
             expect(file_exists($nestedPath))->toBeTrue();
@@ -175,7 +175,7 @@ describe('Settings', function () {
 
     describe('immutable mutations', function () {
         it('returns new instance with withDefaultVault', function () {
-            $original = new Settings('app', 'namespace', ['stage']);
+            $original = new Settings('app', 'namespace', ['env']);
             $updated = $original->withDefaultVault('new_vault');
 
             expect($original->defaultVault())->toBeNull();
@@ -183,30 +183,30 @@ describe('Settings', function () {
             expect($updated)->not->toBe($original);
         });
 
-        it('returns new instance with withStages', function () {
-            $original = new Settings('app', 'namespace', ['stage1']);
-            $updated = $original->withStages(['stage1', 'stage2']);
+        it('returns new instance with withEnvs', function () {
+            $original = new Settings('app', 'namespace', ['env1']);
+            $updated = $original->withEnvs(['env1', 'env2']);
 
-            expect($original->stages())->toBe(['stage1']);
-            expect($updated->stages())->toBe(['stage1', 'stage2']);
+            expect($original->envs())->toBe(['env1']);
+            expect($updated->envs())->toBe(['env1', 'env2']);
             expect($updated)->not->toBe($original);
         });
     });
 
     describe('utility methods', function () {
-        it('checks if stage exists', function () {
+        it('checks if env exists', function () {
             $settings = new Settings('app', 'namespace', ['dev', 'prod']);
 
-            expect($settings->hasStage('dev'))->toBeTrue();
-            expect($settings->hasStage('prod'))->toBeTrue();
-            expect($settings->hasStage('staging'))->toBeFalse();
+            expect($settings->hasEnv('dev'))->toBeTrue();
+            expect($settings->hasEnv('prod'))->toBeTrue();
+            expect($settings->hasEnv('staging'))->toBeFalse();
         });
 
         it('converts to array correctly', function () {
             $settings = new Settings(
                 appName: 'Test App',
                 namespace: 'test_app',
-                stages: ['local', 'prod'],
+                envs: ['local', 'prod'],
                 defaultVault: 'primary'
             );
 
@@ -214,7 +214,7 @@ describe('Settings', function () {
 
             expect($array)->toHaveKey('app_name', 'Test App');
             expect($array)->toHaveKey('namespace', 'test_app');
-            expect($array)->toHaveKey('stages', ['local', 'prod']);
+            expect($array)->toHaveKey('envs', ['local', 'prod']);
             expect($array)->toHaveKey('default_vault', 'primary');
             expect($array)->toHaveKey('version', '1.0');
             expect($array)->toHaveKey('created_at');
@@ -225,13 +225,13 @@ describe('Settings', function () {
             $settings = new Settings(
                 appName: 'My App',
                 namespace: 'my_namespace',
-                stages: ['dev', 'staging', 'prod'],
+                envs: ['dev', 'staging', 'prod'],
                 defaultVault: 'primary_vault'
             );
 
             expect($settings->get('app_name'))->toBe('My App');
             expect($settings->get('namespace'))->toBe('my_namespace');
-            expect($settings->get('stages'))->toBe(['dev', 'staging', 'prod']);
+            expect($settings->get('envs'))->toBe(['dev', 'staging', 'prod']);
             expect($settings->get('default_vault'))->toBe('primary_vault');
             expect($settings->get('version'))->toBe('1.0');
             expect($settings->get('nonexistent_key'))->toBeNull();
@@ -247,7 +247,7 @@ describe('Settings', function () {
             $settings = Settings::fromArray([
                 'app_name' => 'app',
                 'namespace' => 'namespace',
-                'stages' => ['stage'],
+                'envs' => ['env'],
                 'created_at' => $fixedTime,
             ]);
 

@@ -15,7 +15,7 @@ describe('Export cache functionality', function () {
             'app_name' => 'test-app',
             'namespace' => 'test-app',
             'default_vault' => 'test',
-            'stages' => ['testing', 'production'],
+            'envs' => ['testing', 'production'],
             'created_at' => date('c'),
             'version' => '1.0',
         ];
@@ -76,7 +76,7 @@ describe('Export cache functionality', function () {
         $setTester = ($this->runCommandWithPersistence)('set', [
             'key' => 'TEST_SECRET',
             'value' => 'secret-value',
-            '--stage' => 'testing',
+            '--env' => 'testing',
             '--vault' => 'test',
             '--plain' => true,
         ]);
@@ -85,7 +85,7 @@ describe('Export cache functionality', function () {
 
         // Run export command with --cache flag
         $commandTester = ($this->runCommandWithPersistence)('export', [
-            '--stage' => 'testing',
+            '--env' => 'testing',
             '--vault' => 'test',
             '--cache' => true,
         ]);
@@ -115,14 +115,14 @@ describe('Export cache functionality', function () {
 
         // Run export cache command
         $commandTester = runCommand('export', [
-            '--stage' => 'testing',
+            '--env' => 'testing',
             '--vault' => 'test',
             '--cache' => true,
         ]);
 
         expect($commandTester->getStatusCode())->toBe(0);
 
-        // Verify standard cache directory and stage-specific file was created
+        // Verify standard cache directory and env-specific file was created
         expect(is_dir($this->tempDir.'/.keep/cache'))->toBeTrue();
         expect(file_exists($this->tempDir.'/.keep/cache/testing.keep.php'))->toBeTrue();
         expect(file_exists($this->tempDir.'/.keep/cache/.gitignore'))->toBeTrue();
@@ -137,7 +137,7 @@ describe('Export cache functionality', function () {
         ($this->runCommandWithPersistence)('set', [
             'key' => 'SECRET_1',
             'value' => 'from-vault1',
-            '--stage' => 'testing',
+            '--env' => 'testing',
             '--vault' => 'vault1',
             '--plain' => true,
         ]);
@@ -145,7 +145,7 @@ describe('Export cache functionality', function () {
         ($this->runCommandWithPersistence)('set', [
             'key' => 'SECRET_1B',
             'value' => 'vault1-value-b',
-            '--stage' => 'testing',
+            '--env' => 'testing',
             '--vault' => 'vault1',
             '--plain' => true,
         ]);
@@ -153,14 +153,14 @@ describe('Export cache functionality', function () {
         ($this->runCommandWithPersistence)('set', [
             'key' => 'SECRET_2',
             'value' => 'from-vault2',
-            '--stage' => 'testing',
+            '--env' => 'testing',
             '--vault' => 'vault2',
             '--plain' => true,
         ]);
 
         // Run export cache command without specifying vault
         $commandTester = ($this->runCommandWithPersistence)('export', [
-            '--stage' => 'testing',
+            '--env' => 'testing',
             '--cache' => true,
         ]);
 
@@ -183,7 +183,7 @@ describe('Export cache functionality', function () {
         ($this->runCommandWithPersistence)('set', [
             'key' => 'SECRET_1',
             'value' => 'from-vault1',
-            '--stage' => 'testing',
+            '--env' => 'testing',
             '--vault' => 'vault1',
             '--plain' => true,
         ]);
@@ -191,7 +191,7 @@ describe('Export cache functionality', function () {
         ($this->runCommandWithPersistence)('set', [
             'key' => 'SECRET_2',
             'value' => 'from-vault2',
-            '--stage' => 'testing',
+            '--env' => 'testing',
             '--vault' => 'vault2',
             '--plain' => true,
         ]);
@@ -199,14 +199,14 @@ describe('Export cache functionality', function () {
         ($this->runCommandWithPersistence)('set', [
             'key' => 'SECRET_3',
             'value' => 'from-vault3',
-            '--stage' => 'testing',
+            '--env' => 'testing',
             '--vault' => 'vault3',
             '--plain' => true,
         ]);
 
         // Run export cache command with specific vaults
         $commandTester = ($this->runCommandWithPersistence)('export', [
-            '--stage' => 'testing',
+            '--env' => 'testing',
             '--vault' => 'vault1,vault3',
             '--cache' => true,
         ]);
@@ -221,7 +221,7 @@ describe('Export cache functionality', function () {
         ($this->runCommandWithPersistence)('set', [
             'key' => 'API_KEY',
             'value' => 'api-value',
-            '--stage' => 'testing',
+            '--env' => 'testing',
             '--vault' => 'test',
             '--plain' => true,
         ]);
@@ -229,7 +229,7 @@ describe('Export cache functionality', function () {
         ($this->runCommandWithPersistence)('set', [
             'key' => 'DB_PASSWORD',
             'value' => 'db-value',
-            '--stage' => 'testing',
+            '--env' => 'testing',
             '--vault' => 'test',
             '--plain' => true,
         ]);
@@ -237,14 +237,14 @@ describe('Export cache functionality', function () {
         ($this->runCommandWithPersistence)('set', [
             'key' => 'APP_DEBUG',
             'value' => 'true',
-            '--stage' => 'testing',
+            '--env' => 'testing',
             '--vault' => 'test',
             '--plain' => true,
         ]);
 
         // Export cache with --only filter
         $commandTester = ($this->runCommandWithPersistence)('export', [
-            '--stage' => 'testing',
+            '--env' => 'testing',
             '--vault' => 'test',
             '--only' => 'API_*,DB_*',
             '--cache' => true,
@@ -261,7 +261,7 @@ describe('Export cache functionality', function () {
 
         // Run export cache command
         $commandTester = runCommand('export', [
-            '--stage' => 'testing',
+            '--env' => 'testing',
             '--vault' => 'test',
             '--cache' => true,
         ]);

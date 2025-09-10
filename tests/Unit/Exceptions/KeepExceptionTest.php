@@ -45,7 +45,7 @@ describe('KeepException', function () {
         $exception = (new KeepException('Secret not found'))
             ->withContext([
                 'vault' => 'ssm',
-                'stage' => 'production',
+                'env' => 'production',
                 'key' => 'DB_PASSWORD',
                 'path' => '/app/production/DB_PASSWORD',
                 'lineNumber' => 15,
@@ -57,7 +57,7 @@ describe('KeepException', function () {
         expect($output)->toEqual([
             ['message' => 'Secret not found', 'style' => 'error'],
             ['message' => '  Vault: ssm', 'style' => 'line'],
-            ['message' => '  Stage: production', 'style' => 'line'],
+            ['message' => '  Env: production', 'style' => 'line'],
             ['message' => '  Key: DB_PASSWORD', 'style' => 'line'],
             ['message' => '  Path: /app/production/DB_PASSWORD', 'style' => 'line'],
             ['message' => '  Template line: 15', 'style' => 'line'],
@@ -117,7 +117,7 @@ describe('KeepException', function () {
         $exception = (new KeepException('Error'))
             ->withContext([
                 'vault' => 'vault-name',
-                'stage' => 'staging',
+                'env' => 'staging',
                 'key' => 'KEY_NAME',
                 'path' => '/full/path',
                 'lineNumber' => 42,
@@ -130,7 +130,7 @@ describe('KeepException', function () {
         expect($output)->toEqual([
             ['message' => 'Error', 'style' => 'error'],
             ['message' => '  Vault: vault-name', 'style' => 'line'],
-            ['message' => '  Stage: staging', 'style' => 'line'],
+            ['message' => '  Env: staging', 'style' => 'line'],
             ['message' => '  Key: KEY_NAME', 'style' => 'line'],
             ['message' => '  Path: /full/path', 'style' => 'line'],
             ['message' => '  Template line: 42', 'style' => 'line'],

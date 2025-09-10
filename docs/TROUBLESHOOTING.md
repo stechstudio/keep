@@ -68,7 +68,7 @@ location.reload()
 **Debug**:
 ```bash
 # Test vault access via CLI
-keep list --vault=aws --stage=production
+keep list --vault=aws --env=production
 
 # Check AWS credentials
 aws sts get-caller-identity
@@ -90,13 +90,13 @@ aws sts get-caller-identity
 #### Values Not Updating
 **Check**:
 - Changes saved successfully (check for errors)
-- Correct vault/stage selected
+- Correct vault/env selected
 - No caching (refresh page)
 
 **Debug**:
 ```bash
 # Verify via CLI
-keep get MY_SECRET --vault=aws --stage=prod
+keep get MY_SECRET --vault=aws --env=prod
 ```
 
 #### Masked Values Won't Unmask
@@ -169,7 +169,7 @@ DEBUG=1 keep server
 ```bash
 # Test API directly
 curl -H "X-Auth-Token: <token>" \
-     http://localhost:4000/api/secrets?vault=aws&stage=local
+     http://localhost:4000/api/secrets?vault=aws&env=local
 ```
 
 ## Performance Issues
@@ -177,7 +177,7 @@ curl -H "X-Auth-Token: <token>" \
 ### Slow Response Times
 **Optimize**:
 - Reduce number of secrets per vault
-- Use specific vault/stage combinations
+- Use specific vault/env combinations
 - Close unused browser tabs
 
 ### High Memory Usage
@@ -200,7 +200,7 @@ top -p $(pgrep -f "php.*server.php")
 - Test with `keep verify`
 
 ### "Secret not found"
-- Verify correct vault/stage
+- Verify correct vault/env
 - Check key exists
 - Ensure proper permissions
 

@@ -26,8 +26,8 @@ class TemplatePreserveService
         $vaultNames = $this->determineVaults($options, $template);
 
         // Load secrets
-        $stage = $options['stage'];
-        $allSecrets = SecretCollection::loadFromVaults($vaultNames, $stage);
+        $env = $options['env'];
+        $allSecrets = SecretCollection::loadFromVaults($vaultNames, $env);
 
         // Apply filters
         $allSecrets = $allSecrets->filterByPatterns(
@@ -47,7 +47,7 @@ class TemplatePreserveService
         );
 
         // Output info
-        $output->writeln("<info>Processing template [{$options['template']}] for stage '{$stage}'...</info>");
+        $output->writeln("<info>Processing template [{$options['template']}] for environment '{$env}'...</info>");
         if ($options['all'] ?? false) {
             $output->writeln('<info>Including all additional secrets beyond template placeholders</info>');
         }

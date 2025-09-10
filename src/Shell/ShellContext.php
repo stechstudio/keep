@@ -7,19 +7,19 @@ use STS\Keep\Facades\Keep;
 
 class ShellContext
 {
-    private string $currentStage;
+    private string $currentEnv;
     private string $currentVault;
     private array $cachedSecrets = [];
     private ?int $cacheTimestamp = null;
     
     private const CACHE_TTL = 60; // Cache for 60 seconds
     
-    public function __construct(?string $initialStage = null, ?string $initialVault = null)
+    public function __construct(?string $initialEnv = null, ?string $initialVault = null)
     {
         $settings = Settings::load();
         
-        $this->currentStage = $initialStage 
-            ?? $settings->stages()[0] 
+        $this->currentEnv = $initialEnv 
+            ?? $settings->envs()[0] 
             ?? 'development';
             
         $this->currentVault = $initialVault 
@@ -27,14 +27,14 @@ class ShellContext
             ?? 'test';
     }
     
-    public function getStage(): string
+    public function getEnv(): string
     {
-        return $this->currentStage;
+        return $this->currentEnv;
     }
     
-    public function setStage(string $stage): void
+    public function setEnv(string $env): void
     {
-        $this->currentStage = $stage;
+        $this->currentEnv = $env;
         $this->invalidateCache();
     }
     
@@ -49,10 +49,10 @@ class ShellContext
         $this->invalidateCache();
     }
     
-    public function getAvailableStages(): array
+    public function getAvailableEnvs(): array
     {
         try {
-            return Keep::getStages();
+            return Keep::getEnvs();
         } catch (\Exception) {
             return [];
         }
@@ -98,7 +98,7 @@ class ShellContext
         try {
             $this->ensureKeepInitialized();
             
-            $vault = Keep::vault($this->currentVault, $this->currentStage);
+            $vault = Keep::vault($this->currentVault, $this->currentEnv);
             $secrets = $vault->list();
             
             $this->cachedSecrets = $secrets->allKeys()->toArray();

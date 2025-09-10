@@ -13,7 +13,7 @@ describe('CopyCommand', function () {
             'app_name' => 'test-app',
             'namespace' => 'test-app',
             'default_vault' => 'test',
-            'stages' => ['testing', 'production'],
+            'envs' => ['testing', 'production'],
             'created_at' => date('c'),
             'version' => '1.0',
         ];
@@ -102,7 +102,7 @@ describe('CopyCommand', function () {
             expect($output)->toContain('Source and destination are identical');
         });
 
-        it('accepts different stage names', function () {
+        it('accepts different environment names', function () {
             $commandTester = runCommand('copy', [
                 'key' => 'TEST_KEY',
                 '--from' => 'testing',
@@ -115,7 +115,7 @@ describe('CopyCommand', function () {
             expect($output)->not->toMatch('/identical|same/i');
         });
 
-        it('accepts vault:stage syntax', function () {
+        it('accepts vault:env syntax', function () {
             $commandTester = runCommand('copy', [
                 'key' => 'TEST_KEY',
                 '--from' => 'ssm:testing',
@@ -124,7 +124,7 @@ describe('CopyCommand', function () {
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should parse vault:stage syntax without error
+            // Should parse vault:env syntax without error
             expect($output)->not->toMatch('/(invalid.*syntax|parse.*error)/i');
         });
     });
@@ -158,17 +158,17 @@ describe('CopyCommand', function () {
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
 
-        it('validates stage parameters exist in configuration', function () {
+        it('validates environment parameters exist in configuration', function () {
             $commandTester = runCommand('copy', [
                 'key' => 'STAGE_TEST_KEY',
-                '--from' => 'testing', // Valid stage from our config
-                '--to' => 'production',  // Valid stage from our config
+                '--from' => 'testing', // Valid env from our config
+                '--to' => 'production',  // Valid env from our config
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should accept valid stages without validation error
-            expect($output)->not->toMatch('/invalid.*stage/i');
+            // Should accept valid environments without validation error
+            expect($output)->not->toMatch('/invalid.*env/i');
         });
     });
 
@@ -280,7 +280,7 @@ describe('CopyCommand', function () {
             expect($output)->not->toMatch('/invalid.*key/i');
         });
 
-        it('handles vault:stage syntax correctly', function () {
+        it('handles vault:env syntax correctly', function () {
             $commandTester = runCommand('copy', [
                 'key' => 'SYNTAX_TEST_KEY',
                 '--from' => 'ssm:testing',
@@ -289,15 +289,15 @@ describe('CopyCommand', function () {
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should parse vault:stage syntax without syntax errors
+            // Should parse vault:env syntax without syntax errors
             expect($output)->not->toMatch('/(invalid.*syntax|parse.*error)/i');
         });
 
-        it('handles mixed syntax (stage and vault:stage)', function () {
+        it('handles mixed syntax (env and vault:env)', function () {
             $commandTester = runCommand('copy', [
                 'key' => 'MIXED_SYNTAX_KEY',
-                '--from' => 'testing',        // Plain stage
-                '--to' => 'ssm:production',    // vault:stage
+                '--from' => 'testing',        // Plain environment
+                '--to' => 'ssm:production',    // vault:env
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());

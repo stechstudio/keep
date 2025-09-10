@@ -34,7 +34,7 @@ You'll be prompted for:
 
 **AWS Region**: The AWS region where your parameters will be stored (e.g., `us-east-1`)
 
-**Scope**: Optional scope to isolate secrets within your namespace. If you specify `app2`, your parameters will be stored as `/[namespace]/app2/[stage]/[key]`
+**Scope**: Optional scope to isolate secrets within your namespace. If you specify `app2`, your parameters will be stored as `/[namespace]/app2/[env]/[key]`
 
 **KMS Key ID**: Optional. Leave empty to use AWS managed key (`alias/aws/ssm`), or specify a custom KMS key for additional security
 
@@ -194,13 +194,13 @@ With the example configuration above, Keep will organize your parameters like th
 ### Basic Secret Management
 ```bash
 # Set a production database password
-keep set DB_PASSWORD --stage=production
+keep set DB_PASSWORD --env=production
 
 # Retrieve for verification
-keep get DB_PASSWORD --stage=production
+keep get DB_PASSWORD --env=production
 
 # Export for deployment
-keep export --stage=production --output=.env
+keep export --env=production --output=.env
 ```
 
 ### Cross-Environment Workflows
@@ -209,13 +209,13 @@ keep export --stage=production --output=.env
 keep copy DB_PASSWORD --from=staging --to=production
 
 # Compare environments
-keep diff --stage=staging,production
+keep diff --env=staging,production
 ```
 
 ### Template-Based Deployment
 ```bash
 # Use secrets in templates
-keep export --template=env.template --stage=production --vault=ssm --output=.env
+keep export --template=env.template --env=production --vault=ssm --output=.env
 ```
 
 ## Troubleshooting

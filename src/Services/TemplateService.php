@@ -39,25 +39,25 @@ class TemplateService
         return $this->templatePath;
     }
     
-    public function templateExists(string $stage): bool
+    public function templateExists(string $env): bool
     {
-        $filename = $this->getTemplateFilename($stage);
+        $filename = $this->getTemplateFilename($env);
         return file_exists($this->templatePath . '/' . $filename);
     }
     
-    public function getTemplateFilename(string $stage): string
+    public function getTemplateFilename(string $env): string
     {
-        return $stage . '.env';
+        return $env . '.env';
     }
     
-    public function generateTemplate(string $stage, array $vaultFilter = []): string
+    public function generateTemplate(string $env, array $vaultFilter = []): string
     {
         $templates = [];
-        $vaults = $this->getVaultsForStage($stage, $vaultFilter);
+        $vaults = $this->getVaultsForEnv($env, $vaultFilter);
         
         foreach ($vaults as $vaultName) {
             try {
-                $vault = Keep::vault($vaultName, $stage);
+                $vault = Keep::vault($vaultName, $env);
                 $secrets = $vault->list();
                 
                 if ($secrets->isEmpty()) {
@@ -71,16 +71,16 @@ class TemplateService
         }
         
         if (empty($templates)) {
-            throw new KeepException("No secrets found for stage '{$stage}'");
+            throw new KeepException("No secrets found for environment '{$env}'");
         }
         
-        $header = $this->generateTemplateHeader($stage);
+        $header = $this->generateTemplateHeader($env);
         $nonSecretExamples = $this->generateNonSecretSection();
         
         return $header . "\n" . implode("\n", $templates) . "\n" . $nonSecretExamples;
     }
     
-    public function saveTemplate(string $stage, string $content): string
+    public function saveTemplate(string $env, string $content): string
     {
         if (!is_dir($this->templatePath)) {
             if (!mkdir($this->templatePath, 0755, true)) {
@@ -88,7 +88,7 @@ class TemplateService
             }
         }
         
-        $filename = $this->getTemplateFilename($stage);
+        $filename = $this->getTemplateFilename($env);
         $filepath = $this->templatePath . '/' . $filename;
         
         if (file_put_contents($filepath, $content) === false) {
@@ -119,12 +119,12 @@ class TemplateService
         return implode("\n", $lines);
     }
     
-    protected function generateTemplateHeader(string $stage): string
+    protected function generateTemplateHeader(string $env): string
     {
         $date = date('Y-m-d H:i:s');
         $lines = [
             "# ===================================================",
-            "# Keep Template - Stage: {$stage}",
+            "# Keep Template - Environment: {$env}",
             "# Generated: {$date}",
             "# ===================================================",
             "",
@@ -151,7 +151,7 @@ class TemplateService
         return implode("\n", $lines);
     }
     
-    protected function getVaultsForStage(string $stage, array $vaultFilter = []): array
+    protected function getVaultsForEnv(string $env, array $vaultFilter = []): array
     {
         $configuredVaults = Keep::getConfiguredVaults();
         $vaults = [];
@@ -178,12 +178,12 @@ class TemplateService
         
         foreach ($files as $file) {
             $filename = basename($file);
-            $stage = $this->extractStageFromFilename($filename);
+            $env = $this->extractEnvFromFilename($filename);
             
             $templates[] = [
                 'filename' => $filename,
                 'path' => $file,
-                'stage' => $stage,
+                'env' => $env,
                 'size' => filesize($file),
                 'lastModified' => filemtime($file),
             ];
@@ -192,7 +192,7 @@ class TemplateService
         return $templates;
     }
     
-    protected function extractStageFromFilename(string $filename): ?string
+    protected function extractEnvFromFilename(string $filename): ?string
     {
         if (preg_match('/^([^.]+)\.env$/', $filename, $matches)) {
             return $matches[1];

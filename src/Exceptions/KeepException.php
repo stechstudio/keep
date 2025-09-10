@@ -33,7 +33,7 @@ class KeepException extends RuntimeException
         // Build context details
         $contextLines = array_filter([
             'Vault' => $this->context['vault'] ?? null,
-            'Stage' => $this->context['stage'] ?? null,
+            'Env' => $this->context['env'] ?? null,
             'Key' => $this->context['key'] ?? null,
             'Path' => $this->context['path'] ?? null,
             'Template line' => $this->context['lineNumber'] ?? null,

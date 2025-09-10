@@ -15,7 +15,7 @@
       <div class="mb-4">
         <label class="block text-sm font-medium mb-2">From</label>
         <input
-          :value="`${currentVault} / ${currentStage}`"
+          :value="`${currentVault} / ${currentEnv}`"
           disabled
           class="w-full px-3 py-2 bg-muted border border-border rounded-md text-sm opacity-60"
         />
@@ -32,9 +32,9 @@
             v-for="combo in availableCombinations"
             :key="combo.key"
             :value="combo.key"
-            :disabled="combo.key === `${currentVault}:${currentStage}`"
+            :disabled="combo.key === `${currentVault}:${currentEnv}`"
           >
-            {{ combo.display }} / {{ combo.stage }}
+            {{ combo.display }} / {{ combo.env }}
           </option>
         </select>
       </div>
@@ -70,7 +70,7 @@ const props = defineProps({
     type: String,
     required: true
   },
-  currentStage: {
+  currentEnv: {
     type: String,
     required: true
   },
@@ -78,7 +78,7 @@ const props = defineProps({
     type: Array,
     required: true
   },
-  stages: {
+  envs: {
     type: Array,
     required: true
   }
@@ -91,12 +91,12 @@ const targetCombination = ref('')
 const availableCombinations = computed(() => {
   const combinations = []
   for (const vault of props.vaults) {
-    for (const stage of props.stages) {
+    for (const env of props.envs) {
       combinations.push({
-        key: `${vault.slug || vault}:${stage}`,
+        key: `${vault.slug || vault}:${env}`,
         vaultSlug: vault.slug || vault,
         display: vault.display || vault.name || vault,
-        stage: stage
+        env: env
       })
     }
   }
@@ -105,8 +105,8 @@ const availableCombinations = computed(() => {
 
 function handleCopy() {
   if (targetCombination.value) {
-    const [targetVault, targetStage] = targetCombination.value.split(':')
-    emit('copy', { targetVault, targetStage })
+    const [targetVault, targetEnv] = targetCombination.value.split(':')
+    emit('copy', { targetVault, targetEnv })
   }
 }
 </script>

@@ -13,7 +13,7 @@ describe('SetCommand', function () {
             'app_name' => 'test-app',
             'namespace' => 'test-app',
             'default_vault' => 'test',
-            'stages' => ['testing', 'production'],
+            'envs' => ['testing', 'production'],
             'created_at' => date('c'),
             'version' => '1.0',
         ];
@@ -36,7 +36,7 @@ describe('SetCommand', function () {
             $commandTester = runCommand('set', [
                 'value' => 'test-value',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should fail due to missing key argument
@@ -47,19 +47,19 @@ describe('SetCommand', function () {
             expect($output)->toMatch('/(Aborted|error|required|missing)/i');
         });
 
-        it('validates vault and stage parameters', function () {
+        it('validates vault and env parameters', function () {
             $commandTester = runCommand('set', [
                 'key' => 'TEST_KEY',
                 'value' => 'test-value',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Command should accept valid parameters (might fail on AWS interaction)
             $output = stripAnsi($commandTester->getDisplay());
 
             // Should not show parameter validation errors
-            expect($output)->not->toMatch('/(invalid vault|invalid stage)/i');
+            expect($output)->not->toMatch('/(invalid vault|invalid env)/i');
         });
 
         it('accepts plain flag option', function () {
@@ -67,7 +67,7 @@ describe('SetCommand', function () {
                 'key' => 'TEST_KEY',
                 'value' => 'test-value',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--plain' => true,
             ]);
 
@@ -85,7 +85,7 @@ describe('SetCommand', function () {
                 'key' => 'MESSAGE_TEST_KEY',
                 'value' => 'message-test-value',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -102,7 +102,7 @@ describe('SetCommand', function () {
                 'key' => 'ERROR_TEST_KEY',
                 'value' => 'error-test-value',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Command should complete (success or controlled failure)
@@ -112,18 +112,18 @@ describe('SetCommand', function () {
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
 
-        it('validates stage parameter exists in configuration', function () {
+        it('validates env parameter exists in configuration', function () {
             $commandTester = runCommand('set', [
                 'key' => 'STAGE_TEST_KEY',
-                'value' => 'stage-test-value',
+                'value' => 'env-test-value',
                 '--vault' => 'test',
-                '--stage' => 'testing', // Valid stage from our config
+                '--env' => 'testing', // Valid env from our config
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should accept valid stage without validation error
-            expect($output)->not->toMatch('/invalid.*stage/i');
+            // Should accept valid environment without validation error
+            expect($output)->not->toMatch('/invalid.*env/i');
         });
     });
 
@@ -133,7 +133,7 @@ describe('SetCommand', function () {
                 'key' => 'KEY_WITH_SPECIAL-CHARS.123',
                 'value' => 'special-char-value',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -149,7 +149,7 @@ describe('SetCommand', function () {
                 'key' => 'SPECIAL_VALUE_KEY',
                 'value' => $specialValue,
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -163,7 +163,7 @@ describe('SetCommand', function () {
                 'key' => 'EMPTY_VALUE_KEY',
                 'value' => '',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -180,7 +180,7 @@ describe('SetCommand', function () {
                 'key' => 'UNICODE_KEY',
                 'value' => $unicodeValue,
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());

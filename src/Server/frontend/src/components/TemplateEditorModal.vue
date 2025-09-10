@@ -35,7 +35,7 @@
           <div class="flex items-center justify-between bg-muted/50 rounded-md p-2">
             <div class="flex items-center gap-2">
               <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                Stage: {{ templateData.stage }}
+                Env: {{ templateData.env }}
               </span>
             </div>
             <div class="flex items-center gap-2">
@@ -53,7 +53,7 @@
             <TemplateCodeEditor
                 ref="editorRef"
                 v-model="content"
-                :stage="templateData.stage"
+                :env="templateData.env"
                 placeholder="# Enter your template content here...&#10;# Use {vault:key} syntax for placeholders"
             />
           </div>
@@ -188,10 +188,10 @@ async function loadTemplate() {
 
 async function loadSecrets() {
   try {
-    // Use stage from props.template or templateData
-    const stage = templateData.value?.stage || props.template?.stage
+    // Use env from props.template or templateData
+    const env = templateData.value?.env || props.template?.env
     
-    if (!stage) {
+    if (!env) {
       return
     }
     
@@ -201,7 +201,7 @@ async function loadSecrets() {
     // Extract vaults array from response
     const vaults = vaultsResponse.vaults || vaultsResponse || []
     
-    // Load secrets from all vaults for this stage
+    // Load secrets from all vaults for this env
     const allSecrets = []
     
     // Ensure vaults is an array
@@ -212,7 +212,7 @@ async function loadSecrets() {
     for (const vault of vaults) {
       try {
         const vaultSlug = vault.slug || vault.name || vault
-        const response = await window.$api.listSecrets(vaultSlug, stage, false)
+        const response = await window.$api.listSecrets(vaultSlug, env, false)
         
         const secrets = response.secrets || response || []
         
@@ -273,7 +273,7 @@ async function validateTemplate() {
   try {
     const response = await window.$api.post('/templates/validate', {
       content: content.value,
-      stage: templateData.value.stage
+      env: templateData.value.env
     })
 
     if (!response.valid) {

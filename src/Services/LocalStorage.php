@@ -42,10 +42,10 @@ class LocalStorage
         return $permissions[$vaultName] ?? [];
     }
 
-    public function saveVaultPermissions(string $vaultName, array $stagePermissions): void
+    public function saveVaultPermissions(string $vaultName, array $envPermissions): void
     {
         $permissions = $this->getPermissions();
-        $permissions[$vaultName] = $stagePermissions;
+        $permissions[$vaultName] = $envPermissions;
         $permissions['verified_at'] = date('c');
 
         $this->savePermissions($permissions);

@@ -27,14 +27,14 @@
         <!-- Test Configuration -->
         <div v-if="!hasRun" class="space-y-4 mb-6">
           <div>
-            <label class="block text-sm font-medium mb-2">Test Against Stage</label>
+            <label class="block text-sm font-medium mb-2">Test Against Env</label>
             <select
-              v-model="selectedStage"
+              v-model="selectedEnv"
               class="w-full px-3 py-2 border border-border rounded-md bg-background focus:ring-2 focus:ring-primary focus:border-transparent"
             >
-              <option :value="template.stage">{{ template.stage }} (template stage)</option>
-              <option v-for="stage in otherStages" :key="stage" :value="stage">
-                {{ stage }}
+              <option :value="template.env">{{ template.env }} (template env)</option>
+              <option v-for="env in otherEnvs" :key="env" :value="env">
+                {{ env }}
               </option>
             </select>
           </div>
@@ -148,7 +148,7 @@
             </svg>
             <p class="text-green-600 font-medium">All placeholders are valid!</p>
             <p class="text-sm text-muted-foreground mt-1">
-              The template can be successfully processed for the {{ selectedStage }} stage.
+              The template can be successfully processed for the {{ selectedEnv }} env.
             </p>
           </div>
         </div>
@@ -172,7 +172,7 @@
             <button
               v-if="!hasRun"
               @click="runValidation"
-              :disabled="validating || !selectedStage"
+              :disabled="validating || !selectedEnv"
               class="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
               {{ validating ? 'Validating...' : 'Run Validation' }}
@@ -200,8 +200,8 @@ const { showToast } = useToast()
 
 const validating = ref(false)
 const hasRun = ref(false)
-const selectedStage = ref('')
-const stages = ref([])
+const selectedEnv = ref('')
+const envs = ref([])
 const validationResult = ref({
   valid: false,
   errors: [],
@@ -210,27 +210,27 @@ const validationResult = ref({
   placeholderCount: 0
 })
 
-const otherStages = computed(() => {
-  return stages.value.filter(s => s !== props.template.stage)
+const otherEnvs = computed(() => {
+  return envs.value.filter(s => s !== props.template.env)
 })
 
 onMounted(async () => {
-  selectedStage.value = props.template.stage
-  await loadStages()
+  selectedEnv.value = props.template.env
+  await loadEnvs()
 })
 
-async function loadStages() {
+async function loadEnvs() {
   try {
     const settings = await window.$api.getSettings()
-    stages.value = settings.stages || []
+    envs.value = settings.envs || []
   } catch (error) {
-    // Failed to load stages
+    // Failed to load envs
   }
 }
 
 async function runValidation() {
-  if (!selectedStage.value) {
-    showToast('Please select a stage', 'warning')
+  if (!selectedEnv.value) {
+    showToast('Please select a env', 'warning')
     return
   }
 
@@ -238,7 +238,7 @@ async function runValidation() {
   try {
     const response = await window.$api.post('/templates/validate', {
       filename: props.template.filename,
-      stage: selectedStage.value
+      env: selectedEnv.value
     })
 
     validationResult.value = response

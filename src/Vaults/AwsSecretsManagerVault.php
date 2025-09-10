@@ -42,7 +42,7 @@ class AwsSecretsManagerVault extends AbstractVault
             'scope' => new TextPrompt(
                 label: 'Scope (optional)',
                 default: $existingSettings['scope'] ?? '',
-                hint: 'Optional scope to isolate secrets within namespace (e.g., "app2" for namespace/app2/stage/key)'
+                hint: 'Optional scope to isolate secrets within namespace (e.g., "app2" for namespace/app2/env/key)'
             ),
         ];
     }
@@ -55,7 +55,7 @@ class AwsSecretsManagerVault extends AbstractVault
         return Str::of('')
             ->when(Keep::getNamespace(), fn($str) => $str->append(Keep::getNamespace().'/'))
             ->when(trim($this->config['scope'] ?? '', '/'), fn($str, $scope) => $str->append($scope.'/'))
-            ->append($this->stage)
+            ->append($this->env)
             ->when($key, fn($str) => $str->append('/'.$key))
             ->trim('/')
             ->toString();
@@ -69,7 +69,7 @@ class AwsSecretsManagerVault extends AbstractVault
         $tags = [
             'ManagedBy' => 'Keep',
             'Namespace' => Keep::getNamespace(),
-            'Stage' => $this->stage,
+            'Env' => $this->env,
             'VaultSlug' => $this->slug(),
         ];
         
@@ -114,11 +114,11 @@ class AwsSecretsManagerVault extends AbstractVault
                     ],
                     [
                         'Key' => 'tag-key',
-                        'Values' => ['Stage'],
+                        'Values' => ['Env'],
                     ],
                     [
                         'Key' => 'tag-value',
-                        'Values' => [$this->stage],
+                        'Values' => [$this->env],
                     ],
                 ];
                 
@@ -172,7 +172,7 @@ class AwsSecretsManagerVault extends AbstractVault
                     $secretName = $secret['Name'];
 
                     // Extract the key from the full secret name using the expected format
-                    // Format: namespace/[scope/]stage/key
+                    // Format: namespace/[scope/]env/key
                     $basePath = $this->format(); // Gets the base path without the key
                     
                     // Skip if this doesn't match our expected naming pattern
@@ -199,7 +199,7 @@ class AwsSecretsManagerVault extends AbstractVault
                         value: $secret['SecretString'] ?? null,
                         encryptedValue: null,
                         secure: true,
-                        stage: $this->stage,
+                        env: $this->env,
                         revision: $secret['VersionId'] ?? 1,
                         path: $secretName,
                         vault: $this,
@@ -254,7 +254,7 @@ class AwsSecretsManagerVault extends AbstractVault
                 value: $value,
                 encryptedValue: null,
                 secure: true, // AWS Secrets Manager always encrypts
-                stage: $this->stage,
+                env: $this->env,
                 revision: $versionId ?? 1,
                 path: $this->format($key),
                 vault: $this,
@@ -312,7 +312,7 @@ class AwsSecretsManagerVault extends AbstractVault
                 $createParams = [
                     'Name' => $secretName,
                     'SecretString' => $value,
-                    'Description' => "Keep secret: {$key} for {$this->stage} stage in {$this->slug()} vault",
+                    'Description' => "Keep secret: {$key} for {$this->env} environment in {$this->slug()} vault",
                     'Tags' => collect($tags)->map(fn ($value, $key) => [
                         'Key' => $key,
                         'Value' => $value,
@@ -386,7 +386,7 @@ class AwsSecretsManagerVault extends AbstractVault
                         lastModifiedDate: isset($version['CreatedDate']) ? Carbon::parse($version['CreatedDate']) : null,
                         lastModifiedUser: null, // AWS Secrets Manager doesn't track user info
                         dataType: 'SecretString',
-                        labels: $version['VersionStages'] ?? [],
+                        labels: $version['VersionEnvs'] ?? [],
                         policies: null,
                         description: null,
                         secure: true, // AWS Secrets Manager always encrypts

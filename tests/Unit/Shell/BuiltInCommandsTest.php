@@ -33,8 +33,8 @@ describe('BuiltInCommands', function () {
             expect($this->commands->has('ctx'))->toBeTrue();
         });
         
-        it('registers stage command', function () {
-            expect($this->commands->has('stage'))->toBeTrue();
+        it('registers env command', function () {
+            expect($this->commands->has('env'))->toBeTrue();
         });
         
         it('registers vault command', function () {

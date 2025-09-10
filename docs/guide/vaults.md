@@ -58,18 +58,18 @@ keep vault:add --driver=aws-secrets-manager --name=databases
 
 Then target specific vaults:
 ```bash
-keep set API_KEY "..." --vault=primary --stage=production
-keep set DB_PASSWORD "..." --vault=databases --stage=production
+keep set API_KEY "..." --vault=primary --env=production
+keep set DB_PASSWORD "..." --vault=databases --env=production
 ```
 
 ## Organization
 
 **Namespace Isolation**
-- **SSM**: Path-based (`/myapp/stage/key`)
+- **SSM**: Path-based (`/myapp/env/key`)
 - **Secrets Manager**: Tag-based with namespace tags
 
 **Stage Separation**
-Each vault organizes secrets by stage:
+Each vault organizes secrets by env:
 - `development`
 - `staging`
 - `production`

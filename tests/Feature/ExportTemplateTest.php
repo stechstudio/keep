@@ -13,7 +13,7 @@ describe('ExportCommand template functionality', function () {
             'app_name' => 'test-app',
             'namespace' => 'test-app',
             'default_vault' => 'test',
-            'stages' => ['testing', 'production'],
+            'envs' => ['testing', 'production'],
             'created_at' => date('c'),
             'version' => '1.0',
         ];
@@ -46,7 +46,7 @@ describe('ExportCommand template functionality', function () {
             try {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                 ]);
 
                 $output = stripAnsi($commandTester->getDisplay());
@@ -64,7 +64,7 @@ describe('ExportCommand template functionality', function () {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
                     '--all' => true,
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                 ]);
 
                 $output = stripAnsi($commandTester->getDisplay());
@@ -83,7 +83,7 @@ describe('ExportCommand template functionality', function () {
                     $commandTester = runCommand('export', [
                         '--template' => $templateFile,
                         '--missing' => $strategy,
-                        '--stage' => 'testing',
+                        '--env' => 'testing',
                     ]);
 
                     $output = stripAnsi($commandTester->getDisplay());
@@ -103,7 +103,7 @@ describe('ExportCommand template functionality', function () {
             try {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'blank',
                 ]);
 
@@ -123,7 +123,7 @@ describe('ExportCommand template functionality', function () {
             try {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'skip',
                     '--format' => 'env',
                 ]);
@@ -145,7 +145,7 @@ describe('ExportCommand template functionality', function () {
             try {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'blank',
                 ]);
 
@@ -165,7 +165,7 @@ describe('ExportCommand template functionality', function () {
             try {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'skip',
                 ]);
 
@@ -185,7 +185,7 @@ describe('ExportCommand template functionality', function () {
             try {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'blank',
                     // Note: NOT specifying --vault
                 ]);
@@ -205,7 +205,7 @@ describe('ExportCommand template functionality', function () {
             try {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'blank',
                     // Note: NOT specifying --vault
                 ]);
@@ -226,7 +226,7 @@ describe('ExportCommand template functionality', function () {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
                     '--vault' => 'test,test2', // Override auto-discovery
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'blank',
                 ]);
 
@@ -248,7 +248,7 @@ describe('ExportCommand template functionality', function () {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
                     '--missing' => 'remove',
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                 ]);
 
                 $output = $commandTester->getDisplay();
@@ -267,7 +267,7 @@ describe('ExportCommand template functionality', function () {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
                     '--missing' => 'blank',
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                 ]);
 
                 $output = $commandTester->getDisplay();
@@ -286,7 +286,7 @@ describe('ExportCommand template functionality', function () {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
                     '--missing' => 'skip',
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                 ]);
 
                 $output = $commandTester->getDisplay();
@@ -307,7 +307,7 @@ describe('ExportCommand template functionality', function () {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
                     '--all' => true,
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'blank',
                 ]);
 
@@ -329,7 +329,7 @@ describe('ExportCommand template functionality', function () {
                     '--template' => $templateFile,
                     '--all' => true,
                     '--format' => 'env',
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'blank',
                 ]);
 
@@ -356,7 +356,7 @@ describe('ExportCommand template functionality', function () {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
                     '--format' => 'json',
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'blank',
                 ]);
 
@@ -421,7 +421,7 @@ describe('ExportCommand template functionality', function () {
                     '--template' => $templateFile,
                     '--format' => 'json',
                     '--all' => true,
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'blank',
                 ]);
 
@@ -473,7 +473,7 @@ describe('ExportCommand template functionality', function () {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
                     '--format' => 'json',
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'blank',
                 ]);
 
@@ -530,7 +530,7 @@ describe('ExportCommand template functionality', function () {
                     '--template' => $templateFile,
                     '--file' => $outputFile,
                     '--overwrite' => true,
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'blank',
                 ]);
 
@@ -556,7 +556,7 @@ describe('ExportCommand template functionality', function () {
                     '--template' => $templateFile,
                     '--file' => $outputFile,
                     '--append' => true,
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'blank',
                 ]);
 
@@ -576,7 +576,7 @@ describe('ExportCommand template functionality', function () {
         it('handles non-existent template file gracefully', function () {
             $commandTester = runCommand('export', [
                 '--template' => '/nonexistent/template/file.env',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -590,7 +590,7 @@ describe('ExportCommand template functionality', function () {
             try {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                 ]);
 
                 $output = $commandTester->getDisplay();
@@ -608,7 +608,7 @@ describe('ExportCommand template functionality', function () {
             try {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'skip',
                 ]);
 
@@ -630,7 +630,7 @@ describe('ExportCommand template functionality', function () {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
                     '--only' => 'DB_*',
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'blank',
                 ]);
 
@@ -651,7 +651,7 @@ describe('ExportCommand template functionality', function () {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
                     '--except' => 'SECRET_*',
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'blank',
                 ]);
 
@@ -688,7 +688,7 @@ TEMPLATE;
             try {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'blank',
                 ]);
 
@@ -720,7 +720,7 @@ TEMPLATE;
             try {
                 $commandTester = runCommand('export', [
                     '--template' => $templateFile,
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--missing' => 'blank',
                     '--format' => 'env',
                 ]);

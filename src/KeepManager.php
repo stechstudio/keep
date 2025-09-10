@@ -70,26 +70,26 @@ class KeepManager
         return $this->settings?->defaultVault();
     }
 
-    public function getStages(): array
+    public function getEnvs(): array
     {
-        $allStages = $this->getAllStages();
-        return $this->filterStagesByWorkspace($allStages);
+        $allEnvs = $this->getAllEnvs();
+        return $this->filterEnvsByWorkspace($allEnvs);
     }
     
     /**
-     * Get all stages without workspace filtering
+     * Get all envs without workspace filtering
      */
-    public function getAllStages(): array
+    public function getAllEnvs(): array
     {
         if (!$this->isInitialized()) {
             return [];
         }
-        return $this->settings->stages() ?? [];
+        return $this->settings->envs() ?? [];
     }
 
-    public function vault(string $name, string $stage): AbstractVault
+    public function vault(string $name, string $env): AbstractVault
     {
-        $cacheKey = "{$name}:{$stage}";
+        $cacheKey = "{$name}:{$env}";
 
         if (isset($this->loadedVaults[$cacheKey])) {
             return $this->loadedVaults[$cacheKey];
@@ -110,7 +110,7 @@ class KeepManager
             throw new \InvalidArgumentException("Vault driver '{$driver}' for '{$name}' is not available.");
         }
 
-        $vault = new $driverClass($name, $config->toArray(), $stage);
+        $vault = new $driverClass($name, $config->toArray(), $env);
         $this->loadedVaults[$cacheKey] = $vault;
 
         return $vault;
@@ -161,19 +161,19 @@ class KeepManager
     }
     
     /**
-     * Filter stages based on workspace configuration
+     * Filter envs based on workspace configuration
      */
-    protected function filterStagesByWorkspace(array $stages): array
+    protected function filterEnvsByWorkspace(array $envs): array
     {
         $localStorage = new LocalStorage();
         $workspace = $localStorage->getWorkspace();
         
-        // If no workspace is configured, return all stages
-        if (empty($workspace) || empty($workspace['active_stages'])) {
-            return $stages;
+        // If no workspace is configured, return all envs
+        if (empty($workspace) || empty($workspace['active_envs'])) {
+            return $envs;
         }
         
-        // Filter to only include active stages
-        return array_values(array_intersect($stages, $workspace['active_stages']));
+        // Filter to only include active envs
+        return array_values(array_intersect($envs, $workspace['active_envs']));
     }
 }

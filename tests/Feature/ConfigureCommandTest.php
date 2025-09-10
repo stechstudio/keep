@@ -24,7 +24,7 @@ it('creates .keep directory structure', function () {
         'app_name' => 'test-app',
         'namespace' => 'test-app',
         'default_vault' => null,
-        'stages' => ['development', 'production'],
+        'envs' => ['development', 'production'],
         'created_at' => date('c'),
         'version' => '1.0',
     ];
@@ -37,7 +37,7 @@ it('creates .keep directory structure', function () {
 
     $loadedSettings = json_decode(file_get_contents('.keep/settings.json'), true);
     expect($loadedSettings['app_name'])->toBe('test-app');
-    expect($loadedSettings['stages'])->toBe(['development', 'production']);
+    expect($loadedSettings['envs'])->toBe(['development', 'production']);
 
     cleanupTempDir($tempDir);
 });

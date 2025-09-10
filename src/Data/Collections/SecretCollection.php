@@ -32,16 +32,16 @@ class SecretCollection extends Collection
 
     public function toCsvString(): string
     {
-        $csv = "Key,Value,Vault,Stage,Modified\n";
+        $csv = "Key,Value,Vault,Environment,Modified\n";
         
         $this->each(function (Secret $secret) use (&$csv) {
             $key = $this->escapeCsvField($secret->key());
             $value = $this->escapeCsvField($secret->value());
             $vault = $this->escapeCsvField($secret->vault()?->name() ?? '');
-            $stage = $this->escapeCsvField($secret->stage() ?? '');
+            $env = $this->escapeCsvField($secret->env() ?? '');
             $modified = $this->escapeCsvField($secret->lastModified()?->toIso8601String() ?? '');
             
-            $csv .= "{$key},{$value},{$vault},{$stage},{$modified}\n";
+            $csv .= "{$key},{$value},{$vault},{$env},{$modified}\n";
         });
         
         return $csv;
@@ -106,12 +106,12 @@ class SecretCollection extends Collection
      * Load secrets from multiple vaults and merge them.
      * Later vaults override earlier ones for duplicate keys.
      */
-    public static function loadFromVaults(array $vaultNames, string $stage): static
+    public static function loadFromVaults(array $vaultNames, string $env): static
     {
         $allSecrets = new static;
 
         foreach ($vaultNames as $vaultName) {
-            $vault = Keep::vault($vaultName, $stage);
+            $vault = Keep::vault($vaultName, $env);
             $vaultSecrets = $vault->list();
             $allSecrets = $allSecrets->merge($vaultSecrets);
         }
@@ -131,36 +131,36 @@ class SecretCollection extends Collection
         return $env;
     }
 
-    public static function compare(array $vaults, array $stages, ?string $only = null, ?string $except = null): Collection
+    public static function compare(array $vaults, array $envs, ?string $only = null, ?string $except = null): Collection
     {
-        $allSecrets = static::gatherSecrets($vaults, $stages, $only, $except);
+        $allSecrets = static::gatherSecrets($vaults, $envs, $only, $except);
         $allKeys = static::extractAllKeys($allSecrets);
 
         return $allKeys->map(function (string $key) use ($allSecrets) {
             $diff = new SecretDiff($key);
 
-            foreach ($allSecrets as $vaultStage => $secrets) {
+            foreach ($allSecrets as $vaultEnv => $secrets) {
                 $secret = $secrets->getByKey($key);
-                $diff->setValue($vaultStage, $secret);
+                $diff->setValue($vaultEnv, $secret);
             }
 
             return $diff;
         })->sortBy('key')->values();
     }
 
-    protected static function gatherSecrets(array $vaults, array $stages, ?string $only = null, ?string $except = null): array
+    protected static function gatherSecrets(array $vaults, array $envs, ?string $only = null, ?string $except = null): array
     {
         $allSecrets = [];
 
         foreach ($vaults as $vaultName) {
-            foreach ($stages as $stage) {
-                $vaultStageKey = "{$vaultName}.{$stage}";
+            foreach ($envs as $env) {
+                $vaultEnvKey = "{$vaultName}.{$env}";
 
                 try {
-                    $secrets = Keep::vault($vaultName, $stage)->list();
-                    $allSecrets[$vaultStageKey] = $secrets->filterByPatterns(only: $only, except: $except);
+                    $secrets = Keep::vault($vaultName, $env)->list();
+                    $allSecrets[$vaultEnvKey] = $secrets->filterByPatterns(only: $only, except: $except);
                 } catch (\Exception $e) {
-                    $allSecrets[$vaultStageKey] = new static([]);
+                    $allSecrets[$vaultEnvKey] = new static([]);
                 }
             }
         }
@@ -179,7 +179,7 @@ class SecretCollection extends Collection
         return $allKeys->unique()->sort()->values();
     }
 
-    public static function generateDiffSummary(Collection $diffs, array $vaults, array $stages): array
+    public static function generateDiffSummary(Collection $diffs, array $vaults, array $envs): array
     {
         $totalSecrets = $diffs->count();
         $identical = $diffs->filter(fn (SecretDiff $diff) => $diff->status() === SecretDiff::STATUS_IDENTICAL)->count();
@@ -194,7 +194,7 @@ class SecretCollection extends Collection
             'identical_percentage' => $totalSecrets > 0 ? round(($identical / $totalSecrets) * 100) : 0,
             'different_percentage' => $totalSecrets > 0 ? round(($different / $totalSecrets) * 100) : 0,
             'incomplete_percentage' => $totalSecrets > 0 ? round(($incomplete / $totalSecrets) * 100) : 0,
-            'stages_compared' => implode(', ', $stages),
+            'envs_compared' => implode(', ', $envs),
             'vaults_compared' => implode(', ', $vaults),
         ];
     }

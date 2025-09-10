@@ -15,7 +15,7 @@
         
         <div class="text-sm text-muted-foreground">
           Vault: <span class="font-medium">{{ vault }}</span> • 
-          Stage: <span class="font-medium">{{ stage }}</span>
+          Env: <span class="font-medium">{{ env }}</span>
         </div>
         
         <button
@@ -56,12 +56,12 @@
       Exporting secrets...
     </div>
     
-    <div v-if="!loading && !exportResult && vault && stage" class="text-center py-8 text-muted-foreground">
+    <div v-if="!loading && !exportResult && vault && env" class="text-center py-8 text-muted-foreground">
       Select a format and click "Export" to generate output
     </div>
     
-    <div v-if="!vault || !stage" class="text-center py-8 text-muted-foreground">
-      Please select a vault and stage to export
+    <div v-if="!vault || !env" class="text-center py-8 text-muted-foreground">
+      Please select a vault and env to export
     </div>
   </div>
 </template>
@@ -72,7 +72,7 @@ import { useToast } from '../composables/useToast'
 
 const props = defineProps({
   vault: String,
-  stage: String
+  env: String
 })
 
 const toast = useToast()
@@ -81,13 +81,13 @@ const exportResult = ref('')
 const loading = ref(false)
 
 async function exportSecrets() {
-  if (!props.vault || !props.stage) return
+  if (!props.vault || !props.env) return
   
   loading.value = true
   exportResult.value = ''
   
   try {
-    const data = await window.$api.exportSecrets(props.vault, props.stage, format.value)
+    const data = await window.$api.exportSecrets(props.vault, props.env, format.value)
     exportResult.value = data.content || ''
   } catch (error) {
     console.error('Failed to export secrets:', error)
@@ -120,7 +120,7 @@ function downloadFile() {
                    format.value === 'yaml' ? '.yaml' :
                    '.sh'
   
-  const filename = `${props.vault}-${props.stage}${extension}`
+  const filename = `${props.vault}-${props.env}${extension}`
   const blob = new Blob([exportResult.value], { type: 'text/plain' })
   const url = window.URL.createObjectURL(blob)
   const a = document.createElement('a')

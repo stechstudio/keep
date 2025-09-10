@@ -126,17 +126,17 @@ class TemplateServiceTest extends TestCase
         $prodTemplate = array_values($prodTemplate)[0];
         
         $this->assertEquals('production.env', $prodTemplate['filename']);
-        $this->assertEquals('production', $prodTemplate['stage']);
+        $this->assertEquals('production', $prodTemplate['env']);
         $this->assertEquals(10, $prodTemplate['size']); // "PROD=value" is 10 bytes
         $this->assertIsInt($prodTemplate['lastModified']);
         
         // Check second template
-        $stageTemplate = array_filter($templates, fn($t) => $t['filename'] === 'staging.env');
-        $this->assertCount(1, $stageTemplate);
-        $stageTemplate = array_values($stageTemplate)[0];
+        $envTemplate = array_filter($templates, fn($t) => $t['filename'] === 'staging.env');
+        $this->assertCount(1, $envTemplate);
+        $envTemplate = array_values($envTemplate)[0];
         
-        $this->assertEquals('staging.env', $stageTemplate['filename']);
-        $this->assertEquals('staging', $stageTemplate['stage']);
+        $this->assertEquals('staging.env', $envTemplate['filename']);
+        $this->assertEquals('staging', $envTemplate['env']);
     }
     
     public function test_scan_templates_returns_empty_array_for_missing_directory(): void
@@ -201,9 +201,9 @@ class TemplateServiceTest extends TestCase
     {
         // Create a mock service to test protected methods
         $service = new class($this->tempDir) extends TemplateService {
-            public function testGenerateTemplateHeader(string $stage): string
+            public function testGenerateTemplateHeader(string $env): string
             {
-                return $this->generateTemplateHeader($stage);
+                return $this->generateTemplateHeader($env);
             }
             
             public function testGenerateNonSecretSection(): string
@@ -213,7 +213,7 @@ class TemplateServiceTest extends TestCase
         };
         
         $header = $service->testGenerateTemplateHeader('production');
-        $this->assertStringContainsString('# Keep Template - Stage: production', $header);
+        $this->assertStringContainsString('# Keep Template - Environment: production', $header);
         $this->assertStringContainsString('# Generated:', $header);
         
         $nonSecret = $service->testGenerateNonSecretSection();

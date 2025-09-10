@@ -2,13 +2,13 @@
 
 namespace STS\Keep\Data;
 
-class VaultStagePermissions
+class VaultEnvPermissions
 {
     protected array $permissions = [];
 
     public function __construct(
         protected string $vault,
-        protected string $stage,
+        protected string $env,
         protected bool $list = false,
         protected bool $read = false,
         protected bool $write = false,
@@ -29,11 +29,11 @@ class VaultStagePermissions
         if ($this->history) $this->permissions[] = 'history';
     }
 
-    public static function fromTestResults(string $vault, string $stage, array $results): static
+    public static function fromTestResults(string $vault, string $env, array $results): static
     {
         return new static(
             vault: $vault,
-            stage: $stage,
+            env: $env,
             list: $results['List'] ?? false,
             read: $results['Read'] ?? false,
             write: $results['Write'] ?? false,
@@ -44,11 +44,11 @@ class VaultStagePermissions
         );
     }
 
-    public static function fromError(string $vault, string $stage, string $error): static
+    public static function fromError(string $vault, string $env, string $error): static
     {
         return new static(
             vault: $vault,
-            stage: $stage,
+            env: $env,
             list: false,
             read: false,
             write: false,
@@ -64,9 +64,9 @@ class VaultStagePermissions
         return $this->vault;
     }
 
-    public function stage(): string
+    public function env(): string
     {
-        return $this->stage;
+        return $this->env;
     }
 
     public function permissions(): array
@@ -118,7 +118,7 @@ class VaultStagePermissions
     {
         return [
             'vault' => $this->vault,
-            'stage' => $this->stage,
+            'env' => $this->env,
             'list' => $this->list,
             'read' => $this->read,
             'write' => $this->write,
@@ -134,7 +134,7 @@ class VaultStagePermissions
     {
         return [
             'vault' => $this->vault,
-            'stage' => $this->stage,
+            'env' => $this->env,
             'list' => $this->list,
             'write' => $this->write,
             'read' => $this->read,

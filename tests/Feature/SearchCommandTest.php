@@ -15,7 +15,7 @@ describe('SearchCommand', function () {
             'app_name' => 'test-app',
             'namespace' => 'test-app',
             'default_vault' => 'test',
-            'stages' => ['test', 'production'],
+            'envs' => ['test', 'production'],
             'created_at' => date('c'),
             'version' => '1.0',
         ];
@@ -37,23 +37,23 @@ describe('SearchCommand', function () {
         runCommand('set', [
             'key' => 'API_KEY',
             'value' => 'sk-1234567890abcdef',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         runCommand('set', [
             'key' => 'DATABASE_URL',
             'value' => 'postgresql://localhost:5432/mydb',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         runCommand('set', [
             'key' => 'SECRET_TOKEN',
             'value' => 'token-1234',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         // Search for '1234'
         $tester = runCommand('search', [
             'query' => '1234',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         expect($tester->getStatusCode())->toBe(0);
@@ -67,14 +67,14 @@ describe('SearchCommand', function () {
     });
 
     it('performs case-insensitive search by default', function () {
-        runCommand('set', ['key' => 'KEY1', 'value' => 'MySecret', '--stage' => 'test']);
-        runCommand('set', ['key' => 'KEY2', 'value' => 'mysecret', '--stage' => 'test']);
-        runCommand('set', ['key' => 'KEY3', 'value' => 'MYSECRET', '--stage' => 'test']);
-        runCommand('set', ['key' => 'KEY4', 'value' => 'other', '--stage' => 'test']);
+        runCommand('set', ['key' => 'KEY1', 'value' => 'MySecret', '--env' => 'test']);
+        runCommand('set', ['key' => 'KEY2', 'value' => 'mysecret', '--env' => 'test']);
+        runCommand('set', ['key' => 'KEY3', 'value' => 'MYSECRET', '--env' => 'test']);
+        runCommand('set', ['key' => 'KEY4', 'value' => 'other', '--env' => 'test']);
         
         $tester = runCommand('search', [
             'query' => 'mysecret',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         expect($tester->getStatusCode())->toBe(0);
@@ -89,14 +89,14 @@ describe('SearchCommand', function () {
     });
 
     it('performs case-sensitive search when specified', function () {
-        runCommand('set', ['key' => 'KEY1', 'value' => 'MySecret', '--stage' => 'test']);
-        runCommand('set', ['key' => 'KEY2', 'value' => 'mysecret', '--stage' => 'test']);
-        runCommand('set', ['key' => 'KEY3', 'value' => 'MYSECRET', '--stage' => 'test']);
+        runCommand('set', ['key' => 'KEY1', 'value' => 'MySecret', '--env' => 'test']);
+        runCommand('set', ['key' => 'KEY2', 'value' => 'mysecret', '--env' => 'test']);
+        runCommand('set', ['key' => 'KEY3', 'value' => 'MYSECRET', '--env' => 'test']);
         
         $tester = runCommand('search', [
             'query' => 'mysecret',
             '--case-sensitive' => true,
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         expect($tester->getStatusCode())->toBe(0);
@@ -113,12 +113,12 @@ describe('SearchCommand', function () {
         runCommand('set', [
             'key' => 'API_KEY',
             'value' => 'sk-verysecretkey123',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         $tester = runCommand('search', [
             'query' => 'secret',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         expect($tester->getStatusCode())->toBe(0);
@@ -133,13 +133,13 @@ describe('SearchCommand', function () {
         runCommand('set', [
             'key' => 'API_KEY',
             'value' => 'sk-verysecretkey123',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         $tester = runCommand('search', [
             'query' => 'secret',
             '--unmask' => true,
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         expect($tester->getStatusCode())->toBe(0);
@@ -156,12 +156,12 @@ describe('SearchCommand', function () {
     });
 
     it('returns success with message when no matches found', function () {
-        runCommand('set', ['key' => 'KEY1', 'value' => 'value1', '--stage' => 'test']);
-        runCommand('set', ['key' => 'KEY2', 'value' => 'value2', '--stage' => 'test']);
+        runCommand('set', ['key' => 'KEY1', 'value' => 'value1', '--env' => 'test']);
+        runCommand('set', ['key' => 'KEY2', 'value' => 'value2', '--env' => 'test']);
         
         $tester = runCommand('search', [
             'query' => 'nonexistent',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         expect($tester->getStatusCode())->toBe(0);
@@ -171,7 +171,7 @@ describe('SearchCommand', function () {
     it('handles empty vault gracefully', function () {
         $tester = runCommand('search', [
             'query' => 'anything',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         expect($tester->getStatusCode())->toBe(0);
@@ -179,16 +179,16 @@ describe('SearchCommand', function () {
     });
 
     it('respects only and except filters', function () {
-        runCommand('set', ['key' => 'API_KEY', 'value' => 'contains-search-term', '--stage' => 'test']);
-        runCommand('set', ['key' => 'DB_PASSWORD', 'value' => 'contains-search-term', '--stage' => 'test']);
-        runCommand('set', ['key' => 'CACHE_KEY', 'value' => 'contains-search-term', '--stage' => 'test']);
-        runCommand('set', ['key' => 'OTHER_SECRET', 'value' => 'contains-search-term', '--stage' => 'test']);
+        runCommand('set', ['key' => 'API_KEY', 'value' => 'contains-search-term', '--env' => 'test']);
+        runCommand('set', ['key' => 'DB_PASSWORD', 'value' => 'contains-search-term', '--env' => 'test']);
+        runCommand('set', ['key' => 'CACHE_KEY', 'value' => 'contains-search-term', '--env' => 'test']);
+        runCommand('set', ['key' => 'OTHER_SECRET', 'value' => 'contains-search-term', '--env' => 'test']);
         
         // Test with 'only' filter
         $tester = runCommand('search', [
             'query' => 'search',
             '--only' => '*_KEY',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         expect($tester->getStatusCode())->toBe(0);
@@ -202,13 +202,13 @@ describe('SearchCommand', function () {
     });
 
     it('outputs JSON format when specified', function () {
-        runCommand('set', ['key' => 'KEY1', 'value' => 'search-value', '--stage' => 'test']);
-        runCommand('set', ['key' => 'KEY2', 'value' => 'search-value', '--stage' => 'test']);
+        runCommand('set', ['key' => 'KEY1', 'value' => 'search-value', '--env' => 'test']);
+        runCommand('set', ['key' => 'KEY2', 'value' => 'search-value', '--env' => 'test']);
         
         $tester = runCommand('search', [
             'query' => 'search',
             '--format' => 'json',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         expect($tester->getStatusCode())->toBe(0);
@@ -223,13 +223,13 @@ describe('SearchCommand', function () {
     });
 
     it('outputs JSON without ANSI codes when unmasked', function () {
-        runCommand('set', ['key' => 'TEST_KEY', 'value' => 'contains-search-term-here', '--stage' => 'test']);
+        runCommand('set', ['key' => 'TEST_KEY', 'value' => 'contains-search-term-here', '--env' => 'test']);
         
         $tester = runCommand('search', [
             'query' => 'search',
             '--format' => 'json',
             '--unmask' => true,
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         expect($tester->getStatusCode())->toBe(0);
@@ -253,18 +253,18 @@ describe('SearchCommand', function () {
         runCommand('set', [
             'key' => 'STRIPE_KEY',
             'value' => 'test_key_4eC39HqLyjWDarjtT1zdp7dc',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         runCommand('set', [
             'key' => 'AWS_KEY',
             'value' => 'TESTKEY123EXAMPLE',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         // Search for partial match
         $tester = runCommand('search', [
             'query' => '39Hq',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         expect($tester->getStatusCode())->toBe(0);

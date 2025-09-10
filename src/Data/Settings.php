@@ -12,7 +12,7 @@ class Settings
     public function __construct(
         protected string $appName,
         protected string $namespace,
-        protected array $stages,
+        protected array $envs,
         protected ?string $defaultVault = null,
         protected ?string $templatePath = null,
         protected ?string $createdAt = null,
@@ -36,18 +36,25 @@ class Settings
 
     public static function fromArray(array $data): static
     {
-        // Validate required fields exist
-        $required = ['app_name', 'namespace', 'stages'];
+        // Validate required fields exist (check app_name and namespace first)
+        $required = ['app_name', 'namespace'];
         foreach ($required as $field) {
             if (! isset($data[$field])) {
                 throw new InvalidArgumentException("Missing required setting: {$field}");
             }
         }
+        
+        // Get the envs array
+        $envs = $data['envs'] ?? null;
+        
+        if (!$envs) {
+            throw new InvalidArgumentException("Missing required setting: envs");
+        }
 
         return new static(
             appName: $data['app_name'],
             namespace: $data['namespace'],
-            stages: $data['stages'],
+            envs: $envs,
             defaultVault: $data['default_vault'] ?? null,
             templatePath: $data['template_path'] ?? null,
             createdAt: $data['created_at'] ?? null,
@@ -61,7 +68,7 @@ class Settings
         return [
             'app_name' => $this->appName,
             'namespace' => $this->namespace,
-            'stages' => $this->stages,
+            'envs' => $this->envs,
             'default_vault' => $this->defaultVault,
             'template_path' => $this->templatePath(), // Use getter for default
             'created_at' => $this->createdAt,
@@ -93,30 +100,30 @@ class Settings
             throw new InvalidArgumentException('Namespace cannot exceed 100 characters');
         }
 
-        // Validate stages
-        if (empty($this->stages)) {
-            throw new InvalidArgumentException('At least one stage must be defined');
+        // Validate envs
+        if (empty($this->envs)) {
+            throw new InvalidArgumentException('At least one environment must be defined');
         }
 
-        foreach ($this->stages as $stage) {
-            if (! is_string($stage) || empty(trim($stage))) {
-                throw new InvalidArgumentException('All stages must be non-empty strings');
+        foreach ($this->envs as $env) {
+            if (! is_string($env) || empty(trim($env))) {
+                throw new InvalidArgumentException('All environments must be non-empty strings');
             }
 
-            if (! preg_match('/^[a-z0-9_-]+$/', $stage)) {
+            if (! preg_match('/^[a-z0-9_-]+$/', $env)) {
                 throw new InvalidArgumentException(
-                    "Stage '{$stage}' must contain only lowercase letters, numbers, underscores, and hyphens"
+                    "Environment '{$env}' must contain only lowercase letters, numbers, underscores, and hyphens"
                 );
             }
 
-            if (strlen($stage) > 50) {
-                throw new InvalidArgumentException("Stage '{$stage}' cannot exceed 50 characters");
+            if (strlen($env) > 50) {
+                throw new InvalidArgumentException("Environment '{$env}' cannot exceed 50 characters");
             }
         }
 
-        // Check for duplicate stages
-        if (count($this->stages) !== count(array_unique($this->stages))) {
-            throw new InvalidArgumentException('Duplicate stages are not allowed');
+        // Check for duplicate envs
+        if (count($this->envs) !== count(array_unique($this->envs))) {
+            throw new InvalidArgumentException('Duplicate environments are not allowed');
         }
 
         // Validate default vault if provided
@@ -145,10 +152,11 @@ class Settings
         return $this->namespace;
     }
 
-    public function stages(): array
+    public function envs(): array
     {
-        return $this->stages;
+        return $this->envs;
     }
+    
 
     public function defaultVault(): ?string
     {
@@ -187,7 +195,7 @@ class Settings
         return new static(
             appName: $this->appName,
             namespace: $this->namespace,
-            stages: $this->stages,
+            envs: $this->envs,
             defaultVault: $defaultVault,
             templatePath: $this->templatePath,
             createdAt: $this->createdAt,
@@ -196,12 +204,12 @@ class Settings
         );
     }
 
-    public function withStages(array $stages): static
+    public function withEnvs(array $envs): static
     {
         return new static(
             appName: $this->appName,
             namespace: $this->namespace,
-            stages: $stages,
+            envs: $envs,
             defaultVault: $this->defaultVault,
             templatePath: $this->templatePath,
             createdAt: $this->createdAt,
@@ -209,13 +217,13 @@ class Settings
             version: $this->version
         );
     }
-    
+        
     public function withTemplatePath(?string $templatePath): static
     {
         return new static(
             appName: $this->appName,
             namespace: $this->namespace,
-            stages: $this->stages,
+            envs: $this->envs,
             defaultVault: $this->defaultVault,
             templatePath: $templatePath,
             createdAt: $this->createdAt,
@@ -224,17 +232,17 @@ class Settings
         );
     }
 
-    public function hasStage(string $stage): bool
+    public function hasEnv(string $env): bool
     {
-        return in_array($stage, $this->stages, true);
+        return in_array($env, $this->envs, true);
     }
-
+    
     public function get(string $key, mixed $default = null): mixed
     {
         return match ($key) {
             'app_name' => $this->appName,
             'namespace' => $this->namespace,
-            'stages' => $this->stages,
+            'envs' => $this->envs,
             'default_vault' => $this->defaultVault,
             'template_path' => $this->templatePath(), // Use getter for default
             'created_at' => $this->createdAt,

@@ -21,17 +21,17 @@
           </button>
         </div>
 
-        <!-- Stage Selection -->
+        <!-- Env Selection -->
         <div class="space-y-4">
           <div>
             <select
-              v-model="selectedStage"
+              v-model="selectedEnv"
               @change="checkExistingTemplate"
               class="w-full px-3 py-2 border border-border rounded-md bg-background focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
             >
-              <option value="">Select a stage</option>
-              <option v-for="stage in stages" :key="stage" :value="stage">
-                {{ stage }}
+              <option value="">Select a env</option>
+              <option v-for="env in envs" :key="env" :value="env">
+                {{ env }}
               </option>
             </select>
           </div>
@@ -44,7 +44,7 @@
               </svg>
               <div>
                 <p class="text-sm font-medium">Template already exists</p>
-                <p class="text-sm text-muted-foreground">{{ selectedStage }}.env already exists. You can edit it from the templates list.</p>
+                <p class="text-sm text-muted-foreground">{{ selectedEnv }}.env already exists. You can edit it from the templates list.</p>
               </div>
             </div>
           </div>
@@ -90,7 +90,7 @@
             Cancel
           </button>
           <button
-            v-if="!preview && selectedStage && !templateExists"
+            v-if="!preview && selectedEnv && !templateExists"
             @click="generatePreview"
             :disabled="generatingPreview"
             class="px-4 py-2 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50"
@@ -118,8 +118,8 @@ import { useToast } from '../composables/useToast'
 const emit = defineEmits(['close', 'created'])
 const { showToast } = useToast()
 
-const stages = ref([])
-const selectedStage = ref('')
+const envs = ref([])
+const selectedEnv = ref('')
 const preview = ref('')
 const error = ref('')
 const generatingPreview = ref(false)
@@ -128,21 +128,21 @@ const templateExists = ref(false)
 const copied = ref(false)
 
 onMounted(async () => {
-  await loadStages()
+  await loadEnvs()
 })
 
-async function loadStages() {
+async function loadEnvs() {
   try {
     const settings = await window.$api.getSettings()
-    stages.value = settings.stages || []
+    envs.value = settings.envs || []
   } catch (err) {
-    error.value = 'Failed to load stages'
-    console.error('Failed to load stages:', err)
+    error.value = 'Failed to load envs'
+    console.error('Failed to load envs:', err)
   }
 }
 
 async function checkExistingTemplate() {
-  if (!selectedStage.value) {
+  if (!selectedEnv.value) {
     templateExists.value = false
     return
   }
@@ -150,7 +150,7 @@ async function checkExistingTemplate() {
   try {
     const response = await window.$api.get('/templates')
     const templates = response.templates || []
-    templateExists.value = templates.some(t => t.stage === selectedStage.value)
+    templateExists.value = templates.some(t => t.env === selectedEnv.value)
     
     if (templateExists.value) {
       preview.value = ''
@@ -162,8 +162,8 @@ async function checkExistingTemplate() {
 }
 
 async function generatePreview() {
-  if (!selectedStage.value) {
-    error.value = 'Please select a stage'
+  if (!selectedEnv.value) {
+    error.value = 'Please select a env'
     return
   }
 
@@ -172,7 +172,7 @@ async function generatePreview() {
 
   try {
     const response = await window.$api.post('/templates/generate', {
-      stage: selectedStage.value,
+      env: selectedEnv.value,
       vaults: [] // Empty array means use all vaults
     })
     
@@ -186,7 +186,7 @@ async function generatePreview() {
 }
 
 async function createTemplate() {
-  if (!selectedStage.value || !preview.value) {
+  if (!selectedEnv.value || !preview.value) {
     return
   }
 
@@ -195,7 +195,7 @@ async function createTemplate() {
 
   try {
     const response = await window.$api.post('/templates/create', {
-      stage: selectedStage.value,
+      env: selectedEnv.value,
       vaults: [] // Empty array means use all vaults
     })
     
@@ -220,8 +220,8 @@ async function copyPreview() {
   }
 }
 
-// Reset preview when stage changes
-watch(selectedStage, () => {
+// Reset preview when env changes
+watch(selectedEnv, () => {
   preview.value = ''
   error.value = ''
 })

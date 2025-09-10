@@ -25,7 +25,7 @@ test('sensitive values are masked by default', function () {
     $mockManager = test()->createPartialMock(\STS\Keep\KeepManager::class, ['vault']);
     $mockManager->method('vault')->willReturn($vault);
     
-    $controller = new \STS\Keep\Server\Controllers\SecretController($mockManager, ['vault' => 'test', 'stage' => 'local']);
+    $controller = new \STS\Keep\Server\Controllers\SecretController($mockManager, ['vault' => 'test', 'env' => 'local']);
     $response = $controller->list();
     
     // Should be masked by default
@@ -34,7 +34,7 @@ test('sensitive values are masked by default', function () {
     expect($response['secrets'][0]['value'])->not->toContain('super-secret-key-123');
     
     // Should unmask when requested
-    $controller = new \STS\Keep\Server\Controllers\SecretController($mockManager, ['vault' => 'test', 'stage' => 'local', 'unmask' => 'true']);
+    $controller = new \STS\Keep\Server\Controllers\SecretController($mockManager, ['vault' => 'test', 'env' => 'local', 'unmask' => 'true']);
     $response = $controller->list();
     
     expect($response['secrets'][0]['value'])->toBe('super-secret-key-123');
@@ -46,7 +46,7 @@ test('input sanitization prevents injection', function () {
     // Test dangerous characters in key names
     $controller = new \STS\Keep\Server\Controllers\SecretController(
         $mockManager,
-        ['vault' => 'test', 'stage' => 'local'],
+        ['vault' => 'test', 'env' => 'local'],
         ['key' => '../../../etc/passwd', 'value' => 'test']
     );
     
@@ -65,7 +65,7 @@ test('error messages do not leak sensitive information', function () {
             new \STS\Keep\Data\Settings(
                 appName: 'Test App',
                 namespace: 'TEST',
-                stages: ['local']
+                envs: ['local']
             ),
             new \STS\Keep\Data\Collections\VaultConfigCollection()
         )

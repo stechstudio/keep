@@ -85,7 +85,7 @@ function setupKeepManager(array $settingsOverride = [], array $vaults = []): \ST
         'app_name' => 'test-app',
         'namespace' => 'test-app',
         'default_vault' => 'test',
-        'stages' => ['testing', 'production'],
+        'envs' => ['testing', 'production'],
     ];
 
     // Default test vault

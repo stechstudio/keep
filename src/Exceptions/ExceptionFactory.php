@@ -46,12 +46,12 @@ class ExceptionFactory
     /**
      * Create a KeepException with vault context.
      */
-    public static function vaultError(string $message, ?string $vault = null, ?string $stage = null): KeepException
+    public static function vaultError(string $message, ?string $vault = null, ?string $env = null): KeepException
     {
         return (new KeepException($message))
             ->withContext(array_filter([
                 'vault' => $vault,
-                'stage' => $stage,
+                'env' => $env,
             ], fn ($v) => $v !== null));
     }
 

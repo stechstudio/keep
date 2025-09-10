@@ -8,7 +8,7 @@ use STS\Keep\Shell\ShellContext;
 class ShellCommand extends BaseCommand
 {
     protected $signature = 'shell 
-        {--stage= : Initial stage to use}
+        {--env= : Initial environment to use}
         {--vault= : Initial vault to use}';
     
     protected $description = 'Start an interactive shell for Keep commands';
@@ -23,7 +23,7 @@ class ShellCommand extends BaseCommand
         }
         
         $context = new ShellContext(
-            $this->option('stage'),
+            $this->option('env'),
             $this->option('vault')
         );
 

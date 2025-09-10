@@ -26,8 +26,8 @@ class RunCommand extends BaseCommand
     protected $signature = 'run 
         {cmd* : Command and arguments to run}
         {--vault= : Specific vault to use}
-        {--stage= : Stage to use (required)}
-        {--template= : Template file path, or auto-discover {stage}.env if no path given}
+        {--env= : Environment to use (required)}
+        {--template= : Template file path, or auto-discover {env}.env if no path given}
         {--only= : Only include secrets matching pattern}
         {--except= : Exclude secrets matching pattern}
         {--no-inherit : Do not inherit current environment variables}';
@@ -52,8 +52,8 @@ class RunCommand extends BaseCommand
                 $this->output = new OutputStyle($input, $output);
                 error('No command specified to run');
                 note('Usage: keep run [options] -- <command> [arguments]');
-                note('Example: keep run --vault=ssm --stage=production -- npm start');
-                note('Example: keep run --vault=ssm --stage=production -- php artisan serve');
+                note('Example: keep run --vault=ssm --env=production -- npm start');
+                note('Example: keep run --vault=ssm --env=production -- php artisan serve');
                 return self::FAILURE;
             }
             throw $e;
@@ -69,13 +69,13 @@ class RunCommand extends BaseCommand
             return self::FAILURE;
         }
         
-        $stage = $this->stage();
+        $env = $this->env();
         $vault = $this->vaultName();
         
         info("🚀 Preparing environment for: " . implode(' ', $commandArgs));
         
         try {
-            $environment = $this->buildEnvironment($stage, $vault);
+            $environment = $this->buildEnvironment($env, $vault);
             
             $inheritCurrent = !$this->option('no-inherit');
             
@@ -111,7 +111,7 @@ class RunCommand extends BaseCommand
         }
     }
     
-    protected function buildEnvironment(string $stage, string $vaultSlug): array
+    protected function buildEnvironment(string $env, string $vaultSlug): array
     {
         $templateOption = $this->option('template');
         $inheritCurrent = !$this->option('no-inherit');
@@ -120,16 +120,16 @@ class RunCommand extends BaseCommand
         
         if (!$hasFilters && $templateOption !== null) {
             $templatePath = $templateOption === '' ? null : $templateOption;
-            return $this->buildFromTemplate($templatePath, $stage, $vaultSlug, $inheritCurrent);
+            return $this->buildFromTemplate($templatePath, $env, $vaultSlug, $inheritCurrent);
         }
         
-        return $this->buildFromVault($stage, $vaultSlug, $inheritCurrent);
+        return $this->buildFromVault($env, $vaultSlug, $inheritCurrent);
     }
     
-    protected function buildFromTemplate(?string $templatePath, string $stage, string $vaultSlug, bool $inheritCurrent): array
+    protected function buildFromTemplate(?string $templatePath, string $env, string $vaultSlug, bool $inheritCurrent): array
     {
         if ($templatePath === null) {
-            $templatePath = $this->resolveTemplateForStage($stage);
+            $templatePath = $this->resolveTemplateForEnv($env);
             note("Using template: {$templatePath}");
         }
         
@@ -144,21 +144,21 @@ class RunCommand extends BaseCommand
         
         $vaults = [];
         if (empty($referencedVaults)) {
-            $vaults[$vaultSlug] = Keep::vault($vaultSlug, $stage);
+            $vaults[$vaultSlug] = Keep::vault($vaultSlug, $env);
         } else {
             foreach ($referencedVaults as $vaultRef) {
-                $vaults[$vaultRef] = Keep::vault($vaultRef, $stage);
+                $vaults[$vaultRef] = Keep::vault($vaultRef, $env);
             }
         }
         
         return $template->toEnvironment($vaults, $inheritCurrent);
     }
     
-    protected function buildFromVault(string $stage, string $vaultSlug, bool $inheritCurrent): array
+    protected function buildFromVault(string $env, string $vaultSlug, bool $inheritCurrent): array
     {
-        $vault = Keep::vault($vaultSlug, $stage);
+        $vault = Keep::vault($vaultSlug, $env);
         
-        info("Loading secrets from {$vaultSlug}:{$stage}");
+        info("Loading secrets from {$vaultSlug}:{$env}");
         
         $secrets = $vault->list();
         $only = $this->option('only');

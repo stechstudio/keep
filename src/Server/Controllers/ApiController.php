@@ -27,12 +27,12 @@ abstract class ApiController
         return ['error' => $message, '_status' => $status];
     }
 
-    protected function getVault(string $defaultStage = 'local')
+    protected function getVault(string $defaultEnv = 'local')
     {
         $vaultName = $this->body['vault'] ?? $this->query['vault'] ?? $this->manager->getDefaultVault();
-        $stage = $this->body['stage'] ?? $this->query['stage'] ?? $defaultStage;
+        $env = $this->body['env'] ?? $this->query['env'] ?? $defaultEnv;
         
-        return $this->manager->vault($vaultName, $stage);
+        return $this->manager->vault($vaultName, $env);
     }
 
     protected function isUnmasked(): bool

@@ -36,25 +36,25 @@ class InteractiveExport
         
         // Build options starting with context
         $options = [
-            '--stage' => $this->context->getStage(),
+            '--env' => $this->context->getEnv(),
             '--vault' => $this->context->getVault(),
         ];
         
-        // Check if a stage template exists
+        // Check if an env template exists
         $settings = \STS\Keep\Facades\Keep::getSettings();
         $templateDir = $settings['template_path'] ?? 'env';
-        $stageTemplate = getcwd() . '/' . $templateDir . '/' . $this->context->getStage() . '.env';
-        $hasStageTemplate = file_exists($stageTemplate);
+        $envTemplate = getcwd() . '/' . $templateDir . '/' . $this->context->getEnv() . '.env';
+        $hasEnvTemplate = file_exists($envTemplate);
         
         // Build export mode options
         $exportOptions = [
             'all' => 'All secrets from current context',
         ];
         
-        // Add stage template option if it exists
-        if ($hasStageTemplate) {
-            $relativePath = $templateDir . '/' . $this->context->getStage() . '.env';
-            $exportOptions['stage_template'] = "Use {$relativePath}";
+        // Add env template option if it exists
+        if ($hasEnvTemplate) {
+            $relativePath = $templateDir . '/' . $this->context->getEnv() . '.env';
+            $exportOptions['env_template'] = "Use {$relativePath}";
         }
         
         // Always offer custom template option
@@ -68,10 +68,10 @@ class InteractiveExport
         );
         
         // Handle template modes
-        if ($mode === 'stage_template') {
-            // Use the auto-discovered stage template
-            $options['--template'] = $stageTemplate;
-            $templateFile = $stageTemplate;
+        if ($mode === 'env_template') {
+            // Use the auto-discovered env template
+            $options['--template'] = $envTemplate;
+            $templateFile = $envTemplate;
         } elseif ($mode === 'template') {
             // Ask for custom template path
             $templateFile = text(
@@ -82,8 +82,8 @@ class InteractiveExport
             $options['--template'] = $templateFile;
         }
         
-        // Handle template options (for both stage and custom templates)
-        if ($mode === 'stage_template' || $mode === 'template') {
+        // Handle template options (for both environment and custom templates)
+        if ($mode === 'env_template' || $mode === 'template') {
             
             if (confirm('Include all vault secrets (not just template placeholders)?', false)) {
                 $options['--all'] = true;
@@ -181,7 +181,7 @@ class InteractiveExport
     private function runNonInteractive(array $args): int
     {
         $options = [
-            '--stage' => $this->context->getStage(),
+            '--env' => $this->context->getEnv(),
             '--vault' => $this->context->getVault(),
         ];
         

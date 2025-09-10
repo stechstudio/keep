@@ -13,7 +13,7 @@ describe('VerifyCommand', function () {
             'app_name' => 'test-app',
             'namespace' => 'test-app',
             'default_vault' => 'test',
-            'stages' => ['testing', 'staging', 'production'],
+            'envs' => ['testing', 'staging', 'production'],
             'created_at' => date('c'),
             'version' => '1.0',
         ];
@@ -31,7 +31,7 @@ describe('VerifyCommand', function () {
     });
 
     describe('basic functionality', function () {
-        it('verifies all vault/stage combinations by default', function () {
+        it('verifies all vault/env combinations by default', function () {
             $commandTester = runCommand('verify');
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -87,15 +87,15 @@ describe('VerifyCommand', function () {
             expect($output)->not->toMatch('/(invalid.*vault|unknown.*option)/i');
         });
 
-        it('handles stage parameter if supported', function () {
+        it('handles env parameter if supported', function () {
             $commandTester = runCommand('verify', [
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should handle stage parameter without error
-            expect($output)->not->toMatch('/(invalid.*stage|unknown.*option)/i');
+            // Should handle environment parameter without error
+            expect($output)->not->toMatch('/(invalid.*env|unknown.*option)/i');
         });
     });
 
@@ -199,38 +199,38 @@ describe('VerifyCommand', function () {
         });
     });
 
-    describe('stage and vault handling', function () {
-        it('verifies testing stage', function () {
+    describe('environment and vault handling', function () {
+        it('verifies testing environment', function () {
             $commandTester = runCommand('verify', [
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should handle testing stage without error
-            expect($output)->not->toMatch('/(invalid.*stage|error)/i');
+            // Should handle testing environment without error
+            expect($output)->not->toMatch('/(invalid.*env|invalid.*environment|error)/i');
         });
 
-        it('verifies staging stage', function () {
+        it('verifies staging environment', function () {
             $commandTester = runCommand('verify', [
-                '--stage' => 'staging',
+                '--env' => 'staging',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should handle staging stage without error
-            expect($output)->not->toMatch('/(invalid.*stage|error)/i');
+            // Should handle staging environment without error
+            expect($output)->not->toMatch('/(invalid.*env|invalid.*environment|error)/i');
         });
 
-        it('verifies production stage', function () {
+        it('verifies production environment', function () {
             $commandTester = runCommand('verify', [
-                '--stage' => 'production',
+                '--env' => 'production',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should handle production stage without error
-            expect($output)->not->toMatch('/(invalid.*stage|error)/i');
+            // Should handle production environment without error
+            expect($output)->not->toMatch('/(invalid.*env|invalid.*environment|error)/i');
         });
 
         it('uses test vault for verification', function () {
@@ -246,12 +246,12 @@ describe('VerifyCommand', function () {
     });
 
     describe('verification completeness', function () {
-        it('verifies all configured stages when not specified', function () {
+        it('verifies all configured environments when not specified', function () {
             $commandTester = runCommand('verify');
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should verify multiple stages
+            // Should verify multiple envs
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
 

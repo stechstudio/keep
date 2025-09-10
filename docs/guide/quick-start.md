@@ -5,31 +5,31 @@ This guide gets you managing secrets with Keep in 5 minutes. We'll assume you've
 ## Setting Your First Secret
 
 ```bash
-# Run interactively - you'll be prompted for key, value, and stage
+# Run interactively - you'll be prompted for key, value, and env
 keep set
 
 # Or specify everything directly
-keep set DB_PASSWORD "super-secret-password" --stage=local
+keep set DB_PASSWORD "super-secret-password" --env=local
 ```
 
 ## Viewing Your Secrets
 
 ```bash
 # List all secrets (values are masked by default)
-keep list --stage=local
+keep list --env=local
 
 # Get a specific secret
-keep get DB_PASSWORD --stage=local
+keep get DB_PASSWORD --env=local
 
 # Show the actual value (unmasked)
-keep get DB_PASSWORD --stage=local --unmask
+keep get DB_PASSWORD --env=local --unmask
 ```
 
 ## Export to .env File
 
 ```bash
 # Export secrets to a .env file
-keep export --stage=local --output=.env
+keep export --env=local --output=.env
 ```
 
 This creates a `.env` file with your secrets:

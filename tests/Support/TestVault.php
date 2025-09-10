@@ -22,10 +22,10 @@ class TestVault extends AbstractVault
     }
 
     /**
-     * Vault and stage-aware storage structure:
+     * Vault and env-aware storage structure:
      * [
      *     'vault-name' => [
-     *         'stage' => [
+     *         'env' => [
      *             'path' => Secret
      *         ]
      *     ]
@@ -37,7 +37,7 @@ class TestVault extends AbstractVault
      * History storage structure:
      * [
      *     'vault-name' => [
-     *         'stage' => [
+     *         'env' => [
      *             'path' => [SecretHistory] // Array of history entries
      *         ]
      *     ]
@@ -78,7 +78,7 @@ class TestVault extends AbstractVault
         $secrets = $this->getVaultStageSecrets();
         $revision = isset($secrets[$path]) ? $secrets[$path]->revision() + 1 : 1;
 
-        $secret = Secret::fromUser($key, $value, null, $secure, $this->stage, $revision, $path, $this);
+        $secret = Secret::fromUser($key, $value, null, $secure, $this->env, $revision, $path, $this);
         $this->setVaultStageSecret($path, $secret);
 
         // Add to history
@@ -103,7 +103,7 @@ class TestVault extends AbstractVault
             throw new SecretNotFoundException("Secret [{$key}] not found in vault [{$this->name()}]");
         }
 
-        unset(self::$storage[$this->name()][$this->stage][$path]);
+        unset(self::$storage[$this->name()][$this->env][$path]);
 
         return true;
     }
@@ -111,19 +111,19 @@ class TestVault extends AbstractVault
     public function format(?string $key = null): string
     {
         if (! $key) {
-            return sprintf('/%s/%s/', $this->config['namespace'] ?? 'test-app', $this->stage);
+            return sprintf('/%s/%s/', $this->config['namespace'] ?? 'test-app', $this->env);
         }
 
         $formattedKey = strtoupper($key);
 
-        return sprintf('/%s/%s/%s', $this->config['namespace'] ?? 'test-app', $this->stage, $formattedKey);
+        return sprintf('/%s/%s/%s', $this->config['namespace'] ?? 'test-app', $this->env, $formattedKey);
     }
 
     public function clear(): void
     {
-        // Clear only this vault's stage
-        if (isset(self::$storage[$this->name()][$this->stage])) {
-            self::$storage[$this->name()][$this->stage] = [];
+        // Clear only this vault's env
+        if (isset(self::$storage[$this->name()][$this->env])) {
+            self::$storage[$this->name()][$this->env] = [];
         }
     }
 
@@ -140,15 +140,15 @@ class TestVault extends AbstractVault
     }
 
     /**
-     * Get secrets for the current vault and stage
+     * Get secrets for the current vault and env
      */
     protected function getVaultStageSecrets(): array
     {
-        return self::$storage[$this->name()][$this->stage] ?? [];
+        return self::$storage[$this->name()][$this->env] ?? [];
     }
 
     /**
-     * Set a secret for the current vault and stage
+     * Set a secret for the current vault and env
      */
     protected function setVaultStageSecret(string $path, Secret $secret): void
     {
@@ -156,11 +156,11 @@ class TestVault extends AbstractVault
             self::$storage[$this->name()] = [];
         }
 
-        if (! isset(self::$storage[$this->name()][$this->stage])) {
-            self::$storage[$this->name()][$this->stage] = [];
+        if (! isset(self::$storage[$this->name()][$this->env])) {
+            self::$storage[$this->name()][$this->env] = [];
         }
 
-        self::$storage[$this->name()][$this->stage][$path] = $secret;
+        self::$storage[$this->name()][$this->env][$path] = $secret;
     }
 
     public function history(string $key, FilterCollection $filters, ?int $limit = 10): SecretHistoryCollection
@@ -190,12 +190,12 @@ class TestVault extends AbstractVault
             self::$history[$this->name()] = [];
         }
 
-        if (! isset(self::$history[$this->name()][$this->stage])) {
-            self::$history[$this->name()][$this->stage] = [];
+        if (! isset(self::$history[$this->name()][$this->env])) {
+            self::$history[$this->name()][$this->env] = [];
         }
 
-        if (! isset(self::$history[$this->name()][$this->stage][$path])) {
-            self::$history[$this->name()][$this->stage][$path] = [];
+        if (! isset(self::$history[$this->name()][$this->env][$path])) {
+            self::$history[$this->name()][$this->env][$path] = [];
         }
 
         $historyEntry = new SecretHistory(
@@ -211,7 +211,7 @@ class TestVault extends AbstractVault
             secure: $secret->isSecure(),
         );
 
-        self::$history[$this->name()][$this->stage][$path][] = $historyEntry;
+        self::$history[$this->name()][$this->env][$path][] = $historyEntry;
     }
 
     /**
@@ -219,11 +219,11 @@ class TestVault extends AbstractVault
      */
     protected function getVaultStageHistory(string $path): array
     {
-        return self::$history[$this->name()][$this->stage][$path] ?? [];
+        return self::$history[$this->name()][$this->env][$path] ?? [];
     }
 
     /**
-     * Clear all secrets from all vaults and stages (for test cleanup)
+     * Clear all secrets from all vaults and envs (for test cleanup)
      */
     public static function clearAll(): void
     {

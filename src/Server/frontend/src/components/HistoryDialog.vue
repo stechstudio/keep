@@ -5,7 +5,7 @@
         <div>
           <h2 class="text-lg font-semibold">Secret History</h2>
           <p class="text-sm text-muted-foreground mt-1">
-            {{ secretKey }} • {{ vault }} / {{ stage }}
+            {{ secretKey }} • {{ vault }} / {{ env }}
           </p>
         </div>
         <button
@@ -108,7 +108,7 @@ const props = defineProps({
     type: String,
     required: true
   },
-  stage: {
+  env: {
     type: String,
     required: true
   }
@@ -134,7 +134,7 @@ async function loadHistory() {
     const data = await getSecretHistory(
       props.secretKey, 
       props.vault, 
-      props.stage, 
+      props.env, 
       20, 
       true  // Always get unmasked values
     )

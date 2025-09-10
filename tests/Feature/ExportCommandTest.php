@@ -13,7 +13,7 @@ describe('ExportCommand', function () {
             'app_name' => 'test-app',
             'namespace' => 'test-app',
             'default_vault' => 'test',
-            'stages' => ['testing', 'production'],
+            'envs' => ['testing', 'production'],
             'created_at' => date('c'),
             'version' => '1.0',
         ];
@@ -38,7 +38,7 @@ describe('ExportCommand', function () {
                 $commandTester = runCommand('export', [
                     '--format' => $format,
                     '--vault' => 'test',
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                 ]);
 
                 $output = stripAnsi($commandTester->getDisplay());
@@ -52,7 +52,7 @@ describe('ExportCommand', function () {
             $commandTester = runCommand('export', [
                 '--file' => '/tmp/test-export.env',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--overwrite' => true,
             ]);
 
@@ -66,7 +66,7 @@ describe('ExportCommand', function () {
             $commandTester = runCommand('export', [
                 '--overwrite' => true,
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -79,7 +79,7 @@ describe('ExportCommand', function () {
             $commandTester = runCommand('export', [
                 '--append' => true,
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -93,7 +93,7 @@ describe('ExportCommand', function () {
         it('defaults to env format when not specified', function () {
             $commandTester = runCommand('export', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -106,7 +106,7 @@ describe('ExportCommand', function () {
             $commandTester = runCommand('export', [
                 '--format' => 'json',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -119,7 +119,7 @@ describe('ExportCommand', function () {
             $commandTester = runCommand('export', [
                 '--format' => 'env',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should produce some output (even if empty due to no secrets)
@@ -131,7 +131,7 @@ describe('ExportCommand', function () {
         it('outputs to stdout by default', function () {
             $commandTester = runCommand('export', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should output to stdout without error
@@ -146,7 +146,7 @@ describe('ExportCommand', function () {
                     '--file' => $tempFile,
                     '--overwrite' => true,
                     '--vault' => 'test',
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                 ]);
 
                 $output = stripAnsi($commandTester->getDisplay());
@@ -171,7 +171,7 @@ describe('ExportCommand', function () {
                     '--file' => $tempFile,
                     '--overwrite' => true,
                     '--vault' => 'test',
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                 ]);
 
                 $output = stripAnsi($commandTester->getDisplay());
@@ -194,7 +194,7 @@ describe('ExportCommand', function () {
                     '--file' => $tempFile,
                     '--append' => true,
                     '--vault' => 'test',
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                 ]);
 
                 $output = stripAnsi($commandTester->getDisplay());
@@ -213,7 +213,7 @@ describe('ExportCommand', function () {
         it('handles vault connection issues gracefully', function () {
             $commandTester = runCommand('export', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Command should complete (success or controlled failure)
@@ -223,13 +223,13 @@ describe('ExportCommand', function () {
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
 
-        it('handles invalid stage gracefully', function () {
+        it('handles invalid env gracefully', function () {
             $commandTester = runCommand('export', [
                 '--vault' => 'test',
-                '--stage' => 'invalid-stage',
+                '--env' => 'invalid.*env',
             ]);
 
-            // Should handle invalid stage without crashing
+            // Should handle invalid env without crashing
             $output = stripAnsi($commandTester->getDisplay());
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
@@ -237,7 +237,7 @@ describe('ExportCommand', function () {
         it('handles empty vault gracefully', function () {
             $commandTester = runCommand('export', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should handle empty vault without error
@@ -245,11 +245,11 @@ describe('ExportCommand', function () {
         });
     });
 
-    describe('stage and vault handling', function () {
+    describe('env and vault handling', function () {
         it('uses specified vault parameter', function () {
             $commandTester = runCommand('export', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -258,28 +258,28 @@ describe('ExportCommand', function () {
             expect($output)->not->toMatch('/invalid.*vault/i');
         });
 
-        it('uses specified stage parameter', function () {
+        it('uses specified env parameter', function () {
             $commandTester = runCommand('export', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should handle stage parameter without error
-            expect($output)->not->toMatch('/invalid.*stage/i');
+            // Should handle environment parameter without error
+            expect($output)->not->toMatch('/invalid.*env/i');
         });
 
-        it('handles production stage parameter', function () {
+        it('handles production env parameter', function () {
             $commandTester = runCommand('export', [
                 '--vault' => 'test',
-                '--stage' => 'production',
+                '--env' => 'production',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should handle production stage without error
-            expect($output)->not->toMatch('/invalid.*stage/i');
+            // Should handle production environment without error
+            expect($output)->not->toMatch('/invalid.*env/i');
         });
     });
 
@@ -288,7 +288,7 @@ describe('ExportCommand', function () {
             $commandTester = runCommand('export', [
                 '--format' => 'env',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -301,7 +301,7 @@ describe('ExportCommand', function () {
             $commandTester = runCommand('export', [
                 '--format' => 'json',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -314,7 +314,7 @@ describe('ExportCommand', function () {
             $commandTester = runCommand('export', [
                 '--format' => 'env',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should produce valid output structure
@@ -326,7 +326,7 @@ describe('ExportCommand', function () {
         it('handles context creation appropriately', function () {
             $commandTester = runCommand('export', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -339,7 +339,7 @@ describe('ExportCommand', function () {
             $commandTester = runCommand('export', [
                 '--format' => 'json',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -353,7 +353,7 @@ describe('ExportCommand', function () {
                 '--file' => '/tmp/test-export-validation.env',
                 '--overwrite' => true,
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -372,7 +372,7 @@ describe('ExportCommand', function () {
         it('handles vault listing operation', function () {
             $commandTester = runCommand('export', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should handle vault listing without error
@@ -383,7 +383,7 @@ describe('ExportCommand', function () {
             $commandTester = runCommand('export', [
                 '--format' => 'json',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should handle format conversion without error
@@ -393,7 +393,7 @@ describe('ExportCommand', function () {
         it('provides appropriate completion status', function () {
             $commandTester = runCommand('export', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should complete with appropriate status
@@ -405,7 +405,7 @@ describe('ExportCommand', function () {
         it('accepts only option for filtering keys', function () {
             $commandTester = runCommand('export', [
                 '--only' => 'API_*',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -418,7 +418,7 @@ describe('ExportCommand', function () {
         it('accepts except option for excluding keys', function () {
             $commandTester = runCommand('export', [
                 '--except' => 'SECRET_*',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -432,7 +432,7 @@ describe('ExportCommand', function () {
             $commandTester = runCommand('export', [
                 '--only' => 'API_*,DB_*',
                 '--except' => 'SECRET_*',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--format' => 'json',
             ]);
 
@@ -448,7 +448,7 @@ describe('ExportCommand', function () {
                 '--only' => 'APP_*',
                 '--format' => 'env',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());

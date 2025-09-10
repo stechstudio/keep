@@ -26,9 +26,9 @@ class CommandRegistry
     ];
     
     /**
-     * Commands that don't require stage context
+     * Commands that don't require env context
      */
-    private const NO_STAGE_COMMANDS = ['diff', 'copy', 'info', 'verify'];
+    private const NO_ENV_COMMANDS = ['diff', 'copy', 'info', 'verify'];
     
     /**
      * Commands that don't require vault context
@@ -45,7 +45,7 @@ class CommandRegistry
      */
     private const BUILTIN_COMMANDS = [
         'exit', 'quit', 'q', 'clear', 'cls', 'help', '?', 
-        'context', 'ctx', 'stage', 'vault', 'use', 'u', 'colors'
+        'context', 'ctx', 'env', 'vault', 'use', 'u', 'colors'
     ];
     
     /**
@@ -96,11 +96,11 @@ class CommandRegistry
     }
     
     /**
-     * Check if a command requires stage context
+     * Check if a command requires env context
      */
-    public static function requiresStage(string $command): bool
+    public static function requiresEnv(string $command): bool
     {
-        return !in_array($command, self::NO_STAGE_COMMANDS);
+        return !in_array($command, self::NO_ENV_COMMANDS);
     }
     
     /**

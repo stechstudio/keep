@@ -13,7 +13,7 @@ describe('ImportCommand', function () {
             'app_name' => 'test-app',
             'namespace' => 'test-app',
             'default_vault' => 'test',
-            'stages' => ['testing', 'production'],
+            'envs' => ['testing', 'production'],
             'created_at' => date('c'),
             'version' => '1.0',
         ];
@@ -70,7 +70,7 @@ describe('ImportCommand', function () {
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -84,7 +84,7 @@ describe('ImportCommand', function () {
                 'from' => '/tmp/keeper-test/basic.env',
                 '--dry-run' => true,
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -96,7 +96,7 @@ describe('ImportCommand', function () {
         it('validates from argument is provided', function () {
             $commandTester = runCommand('import', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should handle missing from argument gracefully (might prompt for input)
@@ -110,7 +110,7 @@ describe('ImportCommand', function () {
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -123,7 +123,7 @@ describe('ImportCommand', function () {
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/quoted.env',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -136,7 +136,7 @@ describe('ImportCommand', function () {
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/nonexistent.env',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             expect($commandTester->getStatusCode())->toBe(1);
@@ -151,7 +151,7 @@ describe('ImportCommand', function () {
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/empty.env',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -167,7 +167,7 @@ describe('ImportCommand', function () {
                 'from' => '/tmp/keeper-test/basic.env',
                 '--dry-run' => true,
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -177,12 +177,12 @@ describe('ImportCommand', function () {
         });
     });
 
-    describe('stage and vault handling', function () {
+    describe('env and vault handling', function () {
         it('uses specified vault parameter', function () {
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -191,16 +191,16 @@ describe('ImportCommand', function () {
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
 
-        it('uses specified stage parameter', function () {
+        it('uses specified env parameter', function () {
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should handle stage parameter without error
+            // Should handle environment parameter without error
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
     });
@@ -210,7 +210,7 @@ describe('ImportCommand', function () {
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should handle import flow without error
@@ -221,7 +221,7 @@ describe('ImportCommand', function () {
             $commandTester = runCommand('import', [
                 'from' => '/tmp/keeper-test/basic.env',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should complete with appropriate status

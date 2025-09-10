@@ -12,14 +12,14 @@ class CopyCommand extends BaseCommand
 {
     public $signature = 'copy
         {key? : The secret key (omit when using --only or --except)}
-        {--from= : Source context in format "vault:stage" or just "stage"}
-        {--to= : Destination context in format "vault:stage" or just "stage"}
+        {--from= : Source context in format "vault:env" or just "env"}
+        {--to= : Destination context in format "vault:env" or just "env"}
         {--overwrite : Overwrite destination if it exists}
         {--dry-run : Preview the copy operation without executing it}
         {--only= : Only include keys matching this pattern (e.g. DB_*)} 
         {--except= : Exclude keys matching this pattern (e.g. MAIL_*)}';
 
-    public $description = 'Copy secrets between stages or vaults (supports patterns with --only/--except)';
+    public $description = 'Copy secrets between environments or vaults (supports patterns with --only/--except)';
 
     public function process()
     {

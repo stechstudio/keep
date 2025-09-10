@@ -88,7 +88,7 @@
 import { ref, computed, onMounted } from 'vue'
 
 const props = defineProps({
-  stage: {
+  env: {
     type: String,
     required: true
   }
@@ -120,7 +120,7 @@ onMounted(async () => {
 async function loadPlaceholders() {
   loading.value = true
   try {
-    const response = await window.$api.get(`/templates/placeholders?stage=${props.stage}`)
+    const response = await window.$api.get(`/templates/placeholders?env=${props.env}`)
     placeholders.value = response.placeholders || []
   } catch (error) {
     console.error('Failed to load placeholders:', error)

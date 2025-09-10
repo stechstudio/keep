@@ -4,30 +4,30 @@ use STS\Keep\Shell\ShellContext;
 
 describe('ShellContext', function () {
     describe('initialization', function () {
-        it('uses provided initial stage and vault', function () {
+        it('uses provided initial env and vault', function () {
             $context = new ShellContext('production', 'aws-vault');
             
-            expect($context->getStage())->toBe('production');
+            expect($context->getEnv())->toBe('production');
             expect($context->getVault())->toBe('aws-vault');
         });
     });
     
-    describe('stage management', function () {
+    describe('env management', function () {
         beforeEach(function () {
             $this->context = new ShellContext('development', 'test');
         });
         
-        it('can change stage', function () {
-            $this->context->setStage('production');
+        it('can change env', function () {
+            $this->context->setEnv('production');
             
-            expect($this->context->getStage())->toBe('production');
+            expect($this->context->getEnv())->toBe('production');
         });
         
-        it('invalidates cache when stage changes', function () {
+        it('invalidates cache when env changes', function () {
             // Get initial cached names (will be empty in test)
             $initial = $this->context->getCachedSecretNames();
             
-            $this->context->setStage('production');
+            $this->context->setEnv('production');
             
             // Cache should be invalidated (still empty, but mechanism works)
             $after = $this->context->getCachedSecretNames();

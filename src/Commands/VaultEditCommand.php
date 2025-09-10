@@ -6,7 +6,7 @@ use Exception;
 use STS\Keep\Commands\Concerns\ConfiguresVaults;
 use STS\Keep\Data\Collections\PermissionsCollection;
 use STS\Keep\Data\VaultConfig;
-use STS\Keep\Data\VaultStagePermissions;
+use STS\Keep\Data\VaultEnvPermissions;
 use STS\Keep\Facades\Keep;
 use STS\Keep\Services\LocalStorage;
 
@@ -119,7 +119,7 @@ class VaultEditCommand extends BaseCommand
             info("✅ Vault configuration updated and renamed from '{$slug}' to '{$newSlug}'");
             
             // Refresh permissions for new slug
-            $this->testVaultAcrossStages($newSlug);
+            $this->testVaultAcrossEnvs($newSlug);
         } else {
             // Save with same slug
             $updatedConfig['slug'] = $slug;
@@ -128,30 +128,30 @@ class VaultEditCommand extends BaseCommand
             info("✅ Vault '{$slug}' configuration updated successfully");
             
             // Refresh permissions
-            $this->testVaultAcrossStages($slug);
+            $this->testVaultAcrossEnvs($slug);
         }
 
         return self::SUCCESS;
     }
     
-    protected function testVaultAcrossStages(string $vaultName): void
+    protected function testVaultAcrossEnvs(string $vaultName): void
     {
-        $stages = Keep::getStages();
+        $envs = Keep::getEnvs();
         $collection = new PermissionsCollection();
         $localStorage = new LocalStorage();
         $vaultPermissions = [];
         
-        foreach ($stages as $stage) {
+        foreach ($envs as $env) {
             try {
-                $vault = Keep::vault($vaultName, $stage);
+                $vault = Keep::vault($vaultName, $env);
                 $results = $vault->testPermissions();
-                $permission = VaultStagePermissions::fromTestResults($vaultName, $stage, $results);
+                $permission = VaultEnvPermissions::fromTestResults($vaultName, $env, $results);
             } catch (Exception $e) {
-                $permission = VaultStagePermissions::fromError($vaultName, $stage, $e->getMessage());
+                $permission = VaultEnvPermissions::fromError($vaultName, $env, $e->getMessage());
             }
             
             $collection->addPermission($permission);
-            $vaultPermissions[$stage] = $permission->permissions();
+            $vaultPermissions[$env] = $permission->permissions();
         }
         
         // Persist permissions for this vault

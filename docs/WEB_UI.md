@@ -32,22 +32,22 @@ The main Secrets view provides:
 - **Quick actions** menu for each secret:
   - Edit value
   - Rename key
-  - Copy to different stage
+  - Copy to different env
   - View history
   - Delete with confirmation
-- **Vault/Stage selector** to switch contexts
+- **Vault/Environment selector** to switch contexts
 - **Import wizard** for bulk importing from .env files
 
 ### Diff View
 
-Compare secrets across stages and vaults:
+Compare secrets across envs and vaults:
 - **Matrix view** showing all secrets across selected environments
 - **Visual indicators**:
   - ✓ Present and matching
   - ⚠️ Present but different
   - ✗ Missing
 - **Inline editing** directly from diff cells
-- **Multi-select** for comparing specific vault/stage combinations
+- **Multi-select** for comparing specific vault/env combinations
 - **Export diff** to CSV for reporting
 
 ### Export
@@ -80,7 +80,7 @@ Manage Keep configuration:
 #### General Settings
 - Application name
 - Secret namespace prefix
-- Default vault and stage
+- Default vault and env
 
 #### Vaults Management
 - Add new vault configurations
@@ -88,10 +88,10 @@ Manage Keep configuration:
 - Test vault permissions
 - Delete unused vaults
 
-#### Stages Management
-- Add custom stages
-- Remove stages (except system defaults)
-- Reorder stage priority
+#### Environment Management
+- Add custom envs
+- Remove envs (except system defaults)
+- Reorder env priority
 
 ## Navigation
 
@@ -173,7 +173,7 @@ composer build
 
 ### Optimization Tips
 - Use search to filter large secret lists
-- Select specific vault/stage combinations in diff view
+- Select specific vault/env combinations in diff view
 - Export filtered results instead of all secrets
 - Close unused browser tabs (each maintains connection)
 

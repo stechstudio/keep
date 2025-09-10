@@ -20,7 +20,7 @@ const props = defineProps({
     type: String,
     default: ''
   },
-  stage: {
+  env: {
     type: String,
     default: ''
   }

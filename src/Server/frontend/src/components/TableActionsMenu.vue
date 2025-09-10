@@ -47,7 +47,7 @@
     <ImportWizard
       v-if="showImportWizard"
       :vault="vault"
-      :stage="stage"
+      :env="env"
       @imported="handleImported"
       @close="showImportWizard = false"
     />
@@ -56,7 +56,7 @@
     <ExportModal
       v-if="showExportModal"
       :vault="vault"
-      :stage="stage"
+      :env="env"
       :secrets="secrets"
       @close="showExportModal = false"
     />
@@ -70,7 +70,7 @@ import ExportModal from './ExportModal.vue'
 
 const props = defineProps({
   vault: String,
-  stage: String,
+  env: String,
   secrets: {
     type: Array,
     default: () => []

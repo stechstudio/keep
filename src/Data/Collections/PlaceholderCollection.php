@@ -9,13 +9,13 @@ use STS\Keep\Data\PlaceholderValidationResult;
 class PlaceholderCollection extends Collection
 {
     /**
-     * Validate all placeholders against the specified vault and stage
+     * Validate all placeholders against the specified vault and environment
      *
      * @return Collection<PlaceholderValidationResult>
      */
-    public function validate(?string $defaultVault, string $stage): Collection
+    public function validate(?string $defaultVault, string $env): Collection
     {
-        return $this->map->validate($defaultVault, $stage);
+        return $this->map->validate($defaultVault, $env);
     }
 
     /**

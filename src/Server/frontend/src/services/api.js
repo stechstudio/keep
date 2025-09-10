@@ -49,55 +49,55 @@ class ApiClient {
   }
 
   // Secrets
-  async listSecrets(vault, stage, unmask = false) {
-    return this.request(`/secrets?vault=${vault}&stage=${stage}&unmask=${unmask}`)
+  async listSecrets(vault, env, unmask = false) {
+    return this.request(`/secrets?vault=${vault}&env=${env}&unmask=${unmask}`)
   }
 
-  async getSecret(key, vault, stage, unmask = false) {
-    return this.request(`/secrets/${encodeURIComponent(key)}?vault=${vault}&stage=${stage}&unmask=${unmask}`)
+  async getSecret(key, vault, env, unmask = false) {
+    return this.request(`/secrets/${encodeURIComponent(key)}?vault=${vault}&env=${env}&unmask=${unmask}`)
   }
 
-  async createSecret(key, value, vault, stage) {
+  async createSecret(key, value, vault, env) {
     return this.request('/secrets', {
       method: 'POST',
-      body: JSON.stringify({ key, value, vault, stage })
+      body: JSON.stringify({ key, value, vault, env })
     })
   }
 
-  async updateSecret(key, value, vault, stage) {
+  async updateSecret(key, value, vault, env) {
     return this.request(`/secrets/${encodeURIComponent(key)}`, {
       method: 'PUT',
-      body: JSON.stringify({ value, vault, stage })
+      body: JSON.stringify({ value, vault, env })
     })
   }
 
-  async deleteSecret(key, vault, stage) {
+  async deleteSecret(key, vault, env) {
     return this.request(`/secrets/${encodeURIComponent(key)}`, {
       method: 'DELETE',
-      body: JSON.stringify({ vault, stage })
+      body: JSON.stringify({ vault, env })
     })
   }
 
-  async renameSecret(oldKey, newKey, vault, stage) {
+  async renameSecret(oldKey, newKey, vault, env) {
     return this.request(`/secrets/${encodeURIComponent(oldKey)}/rename`, {
       method: 'POST',
-      body: JSON.stringify({ newKey, vault, stage })
+      body: JSON.stringify({ newKey, vault, env })
     })
   }
 
-  async copySecretToStage(key, targetStage, targetVault, sourceStage, sourceVault) {
-    return this.request(`/secrets/${encodeURIComponent(key)}/copy-to-stage?vault=${sourceVault}&stage=${sourceStage}`, {
+  async copySecretToEnv(key, targetEnv, targetVault, sourceEnv, sourceVault) {
+    return this.request(`/secrets/${encodeURIComponent(key)}/copy-to-env?vault=${sourceVault}&env=${sourceEnv}`, {
       method: 'POST',
-      body: JSON.stringify({ targetStage, targetVault })
+      body: JSON.stringify({ targetEnv, targetVault })
     })
   }
 
-  async searchSecrets(query, vault, stage, unmask = false) {
-    return this.request(`/search?q=${encodeURIComponent(query)}&vault=${vault}&stage=${stage}&unmask=${unmask}`)
+  async searchSecrets(query, vault, env, unmask = false) {
+    return this.request(`/search?q=${encodeURIComponent(query)}&vault=${vault}&env=${env}&unmask=${unmask}`)
   }
 
-  async getSecretHistory(key, vault, stage, limit = 10, unmask = false) {
-    return this.request(`/secrets/${encodeURIComponent(key)}/history?vault=${vault}&stage=${stage}&limit=${limit}&unmask=${unmask}`)
+  async getSecretHistory(key, vault, env, limit = 10, unmask = false) {
+    return this.request(`/secrets/${encodeURIComponent(key)}/history?vault=${vault}&env=${env}&limit=${limit}&unmask=${unmask}`)
   }
 
   // Settings & Config
@@ -112,7 +112,7 @@ class ApiClient {
     })
   }
 
-  // Vaults & Stages
+  // Vaults & Envs
   async listVaults() {
     return this.request('/vaults')
   }
@@ -137,21 +137,21 @@ class ApiClient {
     })
   }
 
-  async listStages() {
-    return this.request('/stages')
+  async listEnvs() {
+    return this.request('/envs')
   }
 
-  async addStage(stage) {
-    return this.request('/stages', {
+  async addEnv(env) {
+    return this.request('/envs', {
       method: 'POST',
-      body: JSON.stringify({ stage })
+      body: JSON.stringify({ env })
     })
   }
 
-  async removeStage(stage) {
-    return this.request('/stages', {
+  async removeEnv(env) {
+    return this.request('/envs', {
       method: 'DELETE',
-      body: JSON.stringify({ stage })
+      body: JSON.stringify({ env })
     })
   }
 
@@ -160,32 +160,32 @@ class ApiClient {
   }
 
   // Diff & Export
-  async getDiff(stages = null, vaults = null) {
+  async getDiff(envs = null, vaults = null) {
     let query = '/diff?'
-    if (stages) query += `stages=${stages.join(',')}&`
+    if (envs) query += `envs=${envs.join(',')}&`
     if (vaults) query += `vaults=${vaults.join(',')}`
     return this.request(query)
   }
 
-  async exportSecrets(vault, stage, format = 'env') {
+  async exportSecrets(vault, env, format = 'env') {
     return this.request('/export', {
       method: 'POST',
-      body: JSON.stringify({ vault, stage, format })
+      body: JSON.stringify({ vault, env, format })
     })
   }
 
   // Import
-  async analyzeImport({ content, vault, stage, only = null, except = null }) {
+  async analyzeImport({ content, vault, env, only = null, except = null }) {
     return this.request('/import/analyze', {
       method: 'POST',
-      body: JSON.stringify({ content, vault, stage, only, except })
+      body: JSON.stringify({ content, vault, env, only, except })
     })
   }
 
-  async executeImport({ content, vault, stage, strategy, only = null, except = null, dry_run = false }) {
+  async executeImport({ content, vault, env, strategy, only = null, except = null, dry_run = false }) {
     return this.request('/import/execute', {
       method: 'POST',
-      body: JSON.stringify({ content, vault, stage, strategy, only, except, dry_run })
+      body: JSON.stringify({ content, vault, env, strategy, only, except, dry_run })
     })
   }
 
@@ -194,12 +194,12 @@ class ApiClient {
     return this.request('/workspace')
   }
 
-  async updateWorkspace(activeVaults, activeStages) {
+  async updateWorkspace(activeVaults, activeEnvs) {
     return this.request('/workspace', {
       method: 'PUT',
       body: JSON.stringify({ 
         active_vaults: activeVaults, 
-        active_stages: activeStages 
+        active_envs: activeEnvs 
       })
     })
   }

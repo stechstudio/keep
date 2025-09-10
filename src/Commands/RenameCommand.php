@@ -11,7 +11,7 @@ class RenameCommand extends BaseCommand
         {new : New secret key name}
         {--force : Skip confirmation prompt} 
         {--vault= : The vault to use}
-        {--stage= : The stage to use}';
+        {--env= : The environment to use}';
 
     public $description = 'Rename a secret while preserving its value and metadata';
 
@@ -27,7 +27,7 @@ class RenameCommand extends BaseCommand
         $this->line('Rename operation:');
         $this->line(sprintf('  From: <secret-name>%s</secret-name>', $oldKey));
         $this->line(sprintf('  To:   <secret-name>%s</secret-name>', $newKey));
-        $this->line(sprintf('  Context: <context>%s:%s</context>', $context->vault, $context->stage));
+        $this->line(sprintf('  Context: <context>%s:%s</context>', $context->vault, $context->env));
         $this->newLine();
 
         // Confirm unless forced
@@ -54,7 +54,7 @@ class RenameCommand extends BaseCommand
                 $oldKey,
                 $newKey,
                 $context->vault,
-                $context->stage
+                $context->env
             ));
 
             return self::SUCCESS;
@@ -62,7 +62,7 @@ class RenameCommand extends BaseCommand
             $this->error(sprintf('Secret [<secret-name>%s</secret-name>] not found in <context>%s:%s</context>',
                 $oldKey,
                 $context->vault,
-                $context->stage
+                $context->env
             ));
             return self::FAILURE;
         } catch (\Exception $e) {
@@ -70,7 +70,7 @@ class RenameCommand extends BaseCommand
                 $this->error(sprintf('Secret [<secret-name>%s</secret-name>] already exists in <context>%s:%s</context>',
                     $newKey,
                     $context->vault,
-                    $context->stage
+                    $context->env
                 ));
                 $this->neutral('Use a different name or delete the existing secret first.');
             } else {

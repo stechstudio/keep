@@ -45,14 +45,14 @@ Templates are your application's complete environment configuration - Keep handl
 Generate templates automatically from your vault:
 
 ```bash
-# Create template from all secrets in a stage
-keep template:add production.env --stage=production
+# Create template from all secrets in an env
+keep template:add production.env --env=production
 
 # From specific vault
-keep template:add api.env --stage=production --vault=ssm
+keep template:add api.env --env=production --vault=ssm
 
 # Overwrite existing template
-keep template:add config.env --stage=staging --overwrite
+keep template:add config.env --env=staging --overwrite
 ```
 
 ### Manual Creation
@@ -87,7 +87,7 @@ EOF
 
 ### Template Organization
 
-Organize templates by stage to match your deployment pipeline:
+Organize templates by env to match your deployment pipeline:
 
 ```
 env/
@@ -98,29 +98,29 @@ env/
 └── test.env           # Test environment
 ```
 
-Keep templates stage-specific rather than service-specific - each stage defines all the secrets your application needs for that environment.
+Keep templates environment-specific rather than service-specific - each environment defines all the secrets your application needs for that environment.
 
 ## Validating Templates
 
 Ensure templates can be resolved before deployment:
 
 ```bash
-# Validate for specific stage
-keep template:validate env/production.env --stage=production
+# Validate for specific env
+keep template:validate env/production.env --env=production
 
-# Check all placeholders without stage
+# Check all placeholders without env
 keep template:validate env/production.env
 
 # Validate multiple templates
 for template in env/*.env; do
-    keep template:validate "$template" --stage=production
+    keep template:validate "$template" --env=production
 done
 ```
 
 Validation checks:
 - Placeholder syntax is correct
 - Referenced vaults exist
-- Secrets are accessible (with stage specified)
+- Secrets are accessible (with env specified)
 - No circular references
 
 ## Using Templates
@@ -131,13 +131,13 @@ Export resolved templates to files:
 
 ```bash
 # Basic export
-keep export --template=env/production.env --stage=production --file=.env
+keep export --template=env/production.env --env=production --file=.env
 
 # Append non-template secrets
-keep export --template=env/production.env --stage=production --all --file=.env
+keep export --template=env/production.env --env=production --all --file=.env
 
 # Handle missing secrets
-keep export --template=env/production.env --stage=staging \
+keep export --template=env/production.env --env=staging \
   --missing=skip --file=.env
 ```
 
@@ -147,11 +147,11 @@ Inject only template-defined secrets at runtime:
 
 ```bash
 # Use specific template
-keep run --vault=ssm --stage=production \
+keep run --vault=ssm --env=production \
   --template=env/production.env -- npm start
 
-# Auto-discover template (env/{stage}.env)
-keep run --vault=ssm --stage=production --template -- npm start
+# Auto-discover template (env/{env}.env)
+keep run --vault=ssm --env=production --template -- npm start
 ```
 
 ## Template Strategies
@@ -185,29 +185,29 @@ STRIPE_KEY={ssm:dev/stripe/test-key}
 For special cases, you can layer templates using the append flag:
 
 ```bash
-# Start with stage template
-keep export --template=env/production.env --stage=production --file=.env
+# Start with env template
+keep export --template=env/production.env --env=production --file=.env
 
 # Add temporary overrides or hotfixes
-keep export --template=env/hotfix.env --stage=production --append --file=.env
+keep export --template=env/hotfix.env --env=production --append --file=.env
 ```
 
-This is rarely needed - a well-designed stage template should contain all necessary secrets for that environment.
+This is rarely needed - a well-designed env template should contain all necessary secrets for that environment.
 
 ## Missing Secret Handling
 
 ```bash
 # Fail on missing secrets (default)
-keep export --template=env/prod.env --stage=production --missing=fail
+keep export --template=env/prod.env --env=production --missing=fail
 
 # Skip - leaves placeholders unchanged
-keep export --template=env/prod.env --stage=production --missing=skip
+keep export --template=env/prod.env --env=production --missing=skip
 
 # Blank - sets to empty value
-keep export --template=env/prod.env --stage=production --missing=blank
+keep export --template=env/prod.env --env=production --missing=blank
 
 # Remove - removes entire line
-keep export --template=env/prod.env --stage=production --missing=remove
+keep export --template=env/prod.env --env=production --missing=remove
 ```
 
 ## Template Examples
@@ -242,7 +242,7 @@ MAIL_PASSWORD={ssm:MAIL_PASSWORD}
 **Laravel Tip**: When using `config:cache`, you only need to inject secrets once:
 ```bash
 # Inject secrets and cache configuration
-keep run --vault=ssm --stage=production --template=env/laravel.env -- php artisan config:cache
+keep run --vault=ssm --env=production --template=env/laravel.env -- php artisan config:cache
 
 # ALL subsequent Laravel processes use cached config (no injection needed)
 php artisan migrate --force
@@ -298,5 +298,5 @@ SECRET_KEY={ssm:SECRET_KEY}
 
 - **Version Control**: Commit templates (they contain no secrets, only placeholders)
 - **Comments**: Document what each secret/variable is for
-- **Validation**: Always validate before deployment: `keep template:validate env/prod.env --stage=production`
-- **Organization**: One template per stage, containing complete configuration
+- **Validation**: Always validate before deployment: `keep template:validate env/prod.env --env=production`
+- **Organization**: One template per env, containing complete configuration

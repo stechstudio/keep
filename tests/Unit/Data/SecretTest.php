@@ -133,7 +133,7 @@ describe('Secret', function () {
             value: 'plaintext',
             encryptedValue: 'encrypted',
             secure: false,
-            stage: 'production',
+            env: 'production',
             revision: 3,
             path: '/app/production/API_KEY',
             vault: $vault
@@ -143,7 +143,7 @@ describe('Secret', function () {
         expect($secret->value())->toBe('plaintext');
         expect($secret->encryptedValue())->toBe('encrypted');
         expect($secret->isSecure())->toBeFalse();
-        expect($secret->stage())->toBe('production');
+        expect($secret->env())->toBe('production');
         expect($secret->revision())->toBe(3);
         expect($secret->path())->toBe('/app/production/API_KEY');
         expect($secret->vault())->toBe($vault);
@@ -157,7 +157,7 @@ describe('Secret', function () {
             value: 'localhost',
             encryptedValue: 'encrypted_localhost',
             secure: true,
-            stage: 'staging',
+            env: 'staging',
             revision: 2,
             path: '/app/staging/DB_HOST',
             vault: $vault
@@ -170,7 +170,7 @@ describe('Secret', function () {
             'value' => 'localhost',
             'encryptedValue' => 'encrypted_localhost',
             'secure' => true,
-            'stage' => 'staging',
+            'env' => 'staging',
             'revision' => 2,
             'path' => '/app/staging/DB_HOST',
             'vault' => 'test-vault',
@@ -183,7 +183,7 @@ describe('Secret', function () {
             key: 'APP_KEY',
             value: 'base64_key',
             secure: true,
-            stage: 'production',
+            env: 'production',
             revision: 1
         );
 

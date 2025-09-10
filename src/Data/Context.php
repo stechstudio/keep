@@ -8,18 +8,18 @@ class Context
 {
     public function __construct(
         public readonly string $vault,
-        public readonly string $stage
+        public readonly string $env
     ) {}
 
     /**
-     * Parse context from input string in format "vault:stage" or just "stage"
+     * Parse context from input string in format "vault:env" or just "env"
      */
     public static function fromInput(string $input): self
     {
         if (str_contains($input, ':')) {
-            [$vault, $stage] = explode(':', $input, 2);
+            [$vault, $env] = explode(':', $input, 2);
 
-            return new self($vault, $stage);
+            return new self($vault, $env);
         }
 
         // No vault prefix, use default vault
@@ -31,7 +31,7 @@ class Context
      */
     public function toString(): string
     {
-        return "{$this->vault}:{$this->stage}";
+        return "{$this->vault}:{$this->env}";
     }
 
     /**
@@ -39,7 +39,7 @@ class Context
      */
     public function equals(Context $other): bool
     {
-        return $this->vault === $other->vault && $this->stage === $other->stage;
+        return $this->vault === $other->vault && $this->env === $other->env;
     }
 
     /**
@@ -47,6 +47,6 @@ class Context
      */
     public function createVault(): \STS\Keep\Vaults\AbstractVault
     {
-        return Keep::vault($this->vault, $this->stage);
+        return Keep::vault($this->vault, $this->env);
     }
 }

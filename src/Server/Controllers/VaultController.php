@@ -5,7 +5,7 @@ namespace STS\Keep\Server\Controllers;
 use Exception;
 use STS\Keep\Data\Collections\PermissionsCollection;
 use STS\Keep\Data\Settings;
-use STS\Keep\Data\VaultStagePermissions;
+use STS\Keep\Data\VaultEnvPermissions;
 use STS\Keep\KeepApplication;
 use STS\Keep\Services\LocalStorage;
 
@@ -56,12 +56,12 @@ class VaultController extends ApiController
         ]);
     }
 
-    public function listStages(): array
+    public function listEnvs(): array
     {
-        $stages = $this->manager->getStages();
+        $envs = $this->manager->getEnvs();
         
         return $this->success([
-            'stages' => $stages
+            'envs' => $envs
         ]);
     }
 
@@ -72,7 +72,7 @@ class VaultController extends ApiController
         return $this->success([
             'app_name' => $settings['app_name'] ?? 'Keep',
             'namespace' => $settings['namespace'] ?? '',
-            'stages' => $this->manager->getStages(),
+            'envs' => $this->manager->getEnvs(),
             'default_vault' => $this->manager->getDefaultVault(),
             'template_path' => $settings['template_path'] ?? 'env',
             'keep_version' => KeepApplication::VERSION
@@ -109,62 +109,62 @@ class VaultController extends ApiController
         }
     }
     
-    public function addStage(): array
+    public function addEnv(): array
     {
-        if ($error = $this->requireFields(['stage'])) {
+        if ($error = $this->requireFields(['env'])) {
             return $error;
         }
         
         try {
-            $stageName = $this->getParam('stage');
+            $envName = $this->getParam('env');
             $settings = $this->manager->getSettings();
-            $stages = $settings['stages'] ?? ['local', 'staging', 'production'];
+            $envs = $settings['envs'] ?? ['local', 'staging', 'production'];
             
-            if (in_array($stageName, $stages)) {
-                return $this->error('Stage already exists');
+            if (in_array($envName, $envs)) {
+                return $this->error('Environment already exists');
             }
             
-            $stages[] = $stageName;
-            $settings['stages'] = $stages;
+            $envs[] = $envName;
+            $settings['envs'] = $envs;
             
             // Save updated settings to disk
             // Skip saving in test environment when Settings doesn't have all required fields
             if (!empty($settings['app_name']) && !empty($settings['namespace'])) {
                 Settings::fromArray($settings)->save();
                 
-                // Verify and cache permissions for all vaults with the new stage
-                $this->testNewStageAcrossVaults($stageName);
+                // Verify and cache permissions for all vaults with the new env
+                $this->testNewEnvAcrossVaults($envName);
             }
             
             return $this->success([
-                'message' => 'Stage added successfully',
-                'stages' => $stages
+                'message' => 'Environment added successfully',
+                'envs' => $envs
             ]);
         } catch (\Exception $e) {
-            return $this->error('Failed to add stage: ' . $e->getMessage());
+            return $this->error('Failed to add environment: ' . $e->getMessage());
         }
     }
     
-    public function removeStage(): array
+    public function removeEnv(): array
     {
-        if ($error = $this->requireFields(['stage'])) {
+        if ($error = $this->requireFields(['env'])) {
             return $error;
         }
         
         try {
-            $stageName = $this->getParam('stage');
+            $envName = $this->getParam('env');
             
-            // Prevent removing system stages
-            $systemStages = ['local', 'staging', 'production'];
-            if (in_array($stageName, $systemStages)) {
-                return $this->error("Cannot remove system stage '{$stageName}'");
+            // Prevent removing system envs
+            $systemEnvs = ['local', 'staging', 'production'];
+            if (in_array($envName, $systemEnvs)) {
+                return $this->error("Cannot remove system environment '{$envName}'");
             }
             
             $settings = $this->manager->getSettings();
-            $stages = $settings['stages'] ?? ['local', 'staging', 'production'];
+            $envs = $settings['envs'] ?? ['local', 'staging', 'production'];
 
-            $settings['stages'] = array_values(
-                array_filter($stages, fn($s) => $s !== $stageName)
+            $settings['envs'] = array_values(
+                array_filter($envs, fn($s) => $s !== $envName)
             );
 
             // Save updated settings to disk (skip in tests)
@@ -173,11 +173,11 @@ class VaultController extends ApiController
             }
             
             return $this->success([
-                'message' => 'Stage removed successfully',
-                'stages' => $settings['stages']
+                'message' => 'Environment removed successfully',
+                'envs' => $settings['envs']
             ]);
         } catch (\Exception $e) {
-            return $this->error('Failed to remove stage: ' . $e->getMessage());
+            return $this->error('Failed to remove environment: ' . $e->getMessage());
         }
     }
     
@@ -369,17 +369,17 @@ class VaultController extends ApiController
     protected function testAllPermissions(): PermissionsCollection
     {
         $vaultNames = $this->manager->getConfiguredVaults()->keys()->toArray();
-        $stages = $this->manager->getStages();
-        return $this->testBulkPermissions($vaultNames, $stages);
+        $envs = $this->manager->getEnvs();
+        return $this->testBulkPermissions($vaultNames, $envs);
     }
     
-    protected function testNewStageAcrossVaults(string $stageName): PermissionsCollection
+    protected function testNewEnvAcrossVaults(string $envName): PermissionsCollection
     {
         $vaultNames = $this->manager->getConfiguredVaults()->keys()->toArray();
-        return $this->testBulkPermissions($vaultNames, [$stageName]);
+        return $this->testBulkPermissions($vaultNames, [$envName]);
     }
     
-    protected function testBulkPermissions(array $vaultNames, array $stages): PermissionsCollection
+    protected function testBulkPermissions(array $vaultNames, array $envs): PermissionsCollection
     {
         $collection = new PermissionsCollection();
         $localStorage = new LocalStorage();
@@ -387,17 +387,17 @@ class VaultController extends ApiController
         foreach ($vaultNames as $vaultName) {
             $vaultPermissions = [];
             
-            foreach ($stages as $stage) {
+            foreach ($envs as $env) {
                 try {
-                    $vault = $this->manager->vault($vaultName, $stage);
+                    $vault = $this->manager->vault($vaultName, $env);
                     $results = $vault->testPermissions();
-                    $permission = VaultStagePermissions::fromTestResults($vaultName, $stage, $results);
+                    $permission = VaultEnvPermissions::fromTestResults($vaultName, $env, $results);
                 } catch (Exception $e) {
-                    $permission = VaultStagePermissions::fromError($vaultName, $stage, $e->getMessage());
+                    $permission = VaultEnvPermissions::fromError($vaultName, $env, $e->getMessage());
                 }
                 
                 $collection->addPermission($permission);
-                $vaultPermissions[$stage] = $permission->permissions();
+                $vaultPermissions[$env] = $permission->permissions();
             }
             
             // Persist permissions for this vault
@@ -410,8 +410,8 @@ class VaultController extends ApiController
 
     public function diff(): array
     {
-        $stages = $this->hasParam('stages')
-            ? explode(',', $this->getParam('stages'))
+        $envs = $this->hasParam('envs')
+            ? explode(',', $this->getParam('envs'))
             : ['local', 'staging', 'production'];
             
         $vaults = $this->hasParam('vaults')
@@ -422,12 +422,12 @@ class VaultController extends ApiController
         
         foreach ($vaults as $vaultName) {
             try {
-                foreach ($stages as $stage) {
-                    $vault = $this->manager->vault($vaultName, $stage);
+                foreach ($envs as $env) {
+                    $vault = $this->manager->vault($vaultName, $env);
                     $secrets = $vault->list();
                     foreach ($secrets as $secret) {
                         // Return unmasked values so client can handle masking
-                        $matrix[$secret->key()][$vaultName][$stage] = $secret->value();
+                        $matrix[$secret->key()][$vaultName][$env] = $secret->value();
                     }
                 }
             } catch (Exception $e) {
@@ -437,7 +437,7 @@ class VaultController extends ApiController
         
         return $this->success([
             'diff' => $matrix,
-            'stages' => $stages,
+            'envs' => $envs,
             'vaults' => $vaults
         ]);
     }

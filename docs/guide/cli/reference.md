@@ -47,9 +47,9 @@ List all configured vaults.
 keep vault:list
 ```
 
-## `keep stage:add`
+## `keep env:add`
 
-Add a custom stage/environment beyond the standard ones (local, staging, production).
+Add a custom env/environment beyond the standard ones (local, staging, production).
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -61,18 +61,18 @@ Add a custom stage/environment beyond the standard ones (local, staging, product
 **Examples:**
 ```bash
 # Interactive mode
-keep stage:add
+keep env:add
 
-# Direct mode with stage name
-keep stage:add integration
+# Direct mode with env name
+keep env:add integration
 
-# Add multiple custom stages
-keep stage:add demo
-keep stage:add qa
-keep stage:add hotfix
+# Add multiple custom envs
+keep env:add demo
+keep env:add qa
+keep env:add hotfix
 
 # Non-interactive mode
-keep stage:add sandbox --no-interaction
+keep env:add sandbox --no-interaction
 ```
 
 **Stage Name Requirements:**
@@ -82,7 +82,7 @@ keep stage:add sandbox --no-interaction
 
 ## `keep workspace:configure`
 
-Personalize your workspace by filtering which vaults and stages appear in commands and UI.
+Personalize your workspace by filtering which vaults and envs appear in commands and UI.
 
 **Examples:**
 ```bash
@@ -91,10 +91,10 @@ keep workspace:configure
 
 **Interactive prompts:**
 - Select active vaults (from all configured vaults)
-- Select active stages (from all configured stages)
+- Select active envs (from all configured envs)
 
 **Notes:**
-- By default, all vaults and stages are shown (no filtering)
+- By default, all vaults and envs are shown (no filtering)
 - Workspace settings are personal and not committed to version control
 - Filtering is cosmetic only - doesn't affect permissions or access
 - Useful for focusing on specific environments or reducing clutter
@@ -113,7 +113,7 @@ keep verify
 - **Vault Configuration**: Validates that all configured vaults are properly set up
 - **Authentication**: Tests that Keep can authenticate with AWS using current credentials
 - **Permissions Matrix**: Runs through a complete test of read, write, and delete operations
-- **Stage Access**: Verifies access to all configured stages (local, staging, production, etc.)
+- **Env Access**: Verifies access to all configured envs (local, staging, production, etc.)
 
 **Output includes:**
 - Connection status for each vault
@@ -150,7 +150,7 @@ keep info
 - **Configuration Path**: Location of `.keep` directory
 - **Settings Path**: Location of `settings.json`
 - **Available Vaults**: List of configured vaults with their types
-- **Configured Stages**: All available stages (local, staging, production, custom)
+- **Configured Envs**: All available envs (local, staging, production, custom)
 - **Default Vault**: The vault used when no `--vault` is specified
 - **Cache Status**: Whether caching is enabled and cache location
 
@@ -173,7 +173,7 @@ Create or update secrets in vaults.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--stage` | string | *interactive* | Target stage (local, staging, production) |
+| `--env` | string | *interactive* | Target env (local, staging, production) |
 | `--vault` | string | *default vault* | Vault to store the secret in |
 | `--secure` | boolean | `true` | Whether to encrypt the secret |
 | `--force` | boolean | `false` | Overwrite existing secrets without confirmation |
@@ -188,13 +188,13 @@ Create or update secrets in vaults.
 keep set
 
 # Direct mode
-keep set API_KEY "abc123" --stage=local
+keep set API_KEY "abc123" --env=local
 
 # Force overwrite
-keep set API_KEY "new-value" --stage=production --force
+keep set API_KEY "new-value" --env=production --force
 
 # Specify vault
-keep set STRIPE_KEY "sk_live_..." --stage=production --vault=secretsmanager
+keep set STRIPE_KEY "sk_live_..." --env=production --vault=secretsmanager
 ```
 
 ## `keep get`
@@ -203,7 +203,7 @@ Retrieve a specific secret from a vault.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--stage` | string | *interactive* | Source stage to retrieve from |
+| `--env` | string | *interactive* | Source env to retrieve from |
 | `--vault` | string | *default vault* | Vault to retrieve the secret from |
 | `--format` | string | `table` | Output format: `table`, `json`, `raw` |
 
@@ -216,22 +216,22 @@ Retrieve a specific secret from a vault.
 keep get
 
 # Basic retrieval
-keep get API_KEY --stage=local
+keep get API_KEY --env=local
 
 # JSON output
-keep get STRIPE_KEY --stage=production --format=json
+keep get STRIPE_KEY --env=production --format=json
 
 # Raw format from specific vault
-keep get CONFIG_JSON --stage=staging --vault=ssm --format=raw
+keep get CONFIG_JSON --env=staging --vault=ssm --format=raw
 ```
 
 ## `keep show`
 
-Show all secrets from a vault and stage.
+Show all secrets from a vault and environment.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--stage` | string | *interactive* | Stage to list secrets from |
+| `--env` | string | *interactive* | Stage to list secrets from |
 | `--vault` | string | *default vault* | Vault to list secrets from |
 | `--unmask` | boolean | `false` | Show actual secret values instead of masked |
 | `--format` | string | `table` | Output format: `table`, `json`, `env` |
@@ -241,32 +241,32 @@ Show all secrets from a vault and stage.
 **Examples:**
 ```bash
 # Basic listing (masked values)
-keep show --stage=local
+keep show --env=local
 
 # Show actual values
-keep show --stage=production --unmask
+keep show --env=production --unmask
 
 # Include only specific keys
-keep show --stage=production --only="NIGHTWATCH_*,MAIL_*"
+keep show --env=production --only="NIGHTWATCH_*,MAIL_*"
 
 # Exclude certain keys
-keep show --stage=local --except="DB_*,STRIPE_*"
+keep show --env=local --except="DB_*,STRIPE_*"
 
 # JSON output
-keep show --stage=staging --format=json
+keep show --env=staging --format=json
 
 # From specific vault in env format
-keep show --stage=production --vault=secretsmanager --format=env
+keep show --env=production --vault=secretsmanager --format=env
 ```
 
 ## `keep template:add`
 
-Generate a template file from existing secrets in a stage.
+Generate a template file from existing secrets in a environment.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `filename` | string | *required* | Template filename to create |
-| `--stage` | string | *required* | Stage to generate template from |
+| `--env` | string | *required* | Stage to generate template from |
 | `--vault` | string | *all vaults* | Specific vault to use |
 | `--overwrite` | boolean | `false` | Overwrite existing template file |
 
@@ -274,13 +274,13 @@ Generate a template file from existing secrets in a stage.
 
 ```bash
 # Create template from production secrets
-keep template:add .env.template --stage=production
+keep template:add .env.template --env=production
 
 # Create from specific vault
-keep template:add api.template --stage=production --vault=ssm
+keep template:add api.template --env=production --vault=ssm
 
 # Overwrite existing template
-keep template:add config.env --stage=staging --overwrite
+keep template:add config.env --env=staging --overwrite
 ```
 
 ## `keep template:validate`
@@ -290,7 +290,7 @@ Validate template files for syntax and placeholder resolution.
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `filename` | string | *required* | Template file to validate |
-| `--stage` | string | *optional* | Stage to validate against |
+| `--env` | string | *optional* | Stage to validate against |
 
 ### Examples
 
@@ -298,8 +298,8 @@ Validate template files for syntax and placeholder resolution.
 # Validate template syntax and placeholders
 keep template:validate .env.template
 
-# Validate against specific stage
-keep template:validate .env.template --stage=production
+# Validate against specific env
+keep template:validate .env.template --env=production
 ```
 
 ## `keep shell`
@@ -308,22 +308,22 @@ Start an interactive shell for Keep commands with persistent context.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--stage` | string | *first configured stage* | Initial stage to use |
+| `--env` | string | *first configured env* | Initial env to use |
 | `--vault` | string | *default vault* | Initial vault to use |
 
 ### Shell Mode Features
 
 The interactive shell provides:
-- **Persistent context**: No need to specify --stage and --vault for each command
+- **Persistent context**: No need to specify --env and --vault for each command
 - **Command shortcuts**: Quick aliases for common commands
-- **Context switching**: Easy switching between stages and vaults
+- **Context switching**: Easy switching between environments and vaults
 - **Command history**: Access previous commands with arrow keys
 
 ### Shell Commands
 
 **Context Management:**
 ```bash
-keep> stage production    # Switch to production stage (alias: s)
+keep> env production      # Switch to production env (alias: e)
 keep> vault ssm          # Switch to ssm vault (alias: v)
 keep> use ssm:production # Switch both at once (alias: u)
 keep> context            # Show current context (alias: ctx)
@@ -350,12 +350,12 @@ keep> exit               # Exit shell (aliases: quit, q)
 
 ```bash
 # Start shell with initial context
-keep shell --stage=production --vault=ssm
+keep shell --env=production --vault=ssm
 
 # Interactive session
 keep (ssm:production)> show
-keep (ssm:production)> stage development
-✓ Switched to stage: development
+keep (ssm:production)> env development
+✓ Switched to env: development
 keep (ssm:development)> set API_KEY "dev-key"
 keep (ssm:development)> copy API_KEY --to=production
 keep (ssm:development)> exit
@@ -363,7 +363,7 @@ Goodbye!
 ```
 
 ### Tips
-- Use partial names for stages/vaults (e.g., `s prod` for `stage production`)
+- Use partial names for envs/vaults (e.g., `e prod` for `env production`)
 - All standard Keep commands work in the shell
 - Commands automatically use the current context
 - Use tab for basic command completion (if readline is available)
@@ -374,7 +374,7 @@ Remove secrets from vaults.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--stage` | string | *interactive* | Stage to delete secret from |
+| `--env` | string | *interactive* | Stage to delete secret from |
 | `--vault` | string | *default vault* | Vault to delete the secret from |
 | `--force` | boolean | `false` | Delete without confirmation prompt |
 
@@ -387,13 +387,13 @@ Remove secrets from vaults.
 keep delete
 
 # Basic deletion (with confirmation)
-keep delete OLD_CONFIG --stage=local
+keep delete OLD_CONFIG --env=local
 
 # Force deletion without prompt
-keep delete TEMP_KEY --stage=staging --force
+keep delete TEMP_KEY --env=staging --force
 
 # Delete from specific vault
-keep delete LEGACY_SECRET --stage=production --vault=ssm
+keep delete LEGACY_SECRET --env=production --vault=ssm
 ```
 
 ## `keep rename`
@@ -402,7 +402,7 @@ Rename a secret while preserving its value and metadata.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--stage` | string | *interactive* | Stage where the secret exists |
+| `--env` | string | *interactive* | Stage where the secret exists |
 | `--vault` | string | *default vault* | Vault containing the secret |
 | `--force` | boolean | `false` | Skip confirmation prompt |
 
@@ -413,13 +413,13 @@ Rename a secret while preserving its value and metadata.
 **Examples:**
 ```bash
 # Rename with confirmation
-keep rename DB_PASS DB_PASSWORD --stage=local
+keep rename DB_PASS DB_PASSWORD --env=local
 
 # Force rename without prompt
-keep rename OLD_API_KEY NEW_API_KEY --stage=production --force
+keep rename OLD_API_KEY NEW_API_KEY --env=production --force
 
 # Rename in specific vault
-keep rename LEGACY_NAME MODERN_NAME --stage=staging --vault=ssm
+keep rename LEGACY_NAME MODERN_NAME --env=staging --vault=ssm
 ```
 
 **Note:** Neither AWS SSM nor Secrets Manager support native rename operations. This command performs a copy + delete operation, which is the AWS-recommended approach.
@@ -430,7 +430,7 @@ Search for text within secret values.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--stage` | string | *interactive* | Stage to search in |
+| `--env` | string | *interactive* | Stage to search in |
 | `--vault` | string | *default vault* | Vault to search in |
 | `--unmask` | boolean | `false` | Show actual secret values in results |
 | `--case-sensitive` | boolean | `false` | Make the search case-sensitive |
@@ -444,19 +444,19 @@ Search for text within secret values.
 **Examples:**
 ```bash
 # Basic search (values masked)
-keep search "api.example.com" --stage=production
+keep search "api.example.com" --env=production
 
 # Search with actual values shown
-keep search "localhost" --stage=local --unmask
+keep search "localhost" --env=local --unmask
 
 # Case-sensitive search
-keep search "MySpecificValue" --stage=staging --case-sensitive
+keep search "MySpecificValue" --env=staging --case-sensitive
 
 # Search only in specific keys
-keep search "postgres" --stage=production --only="DB_*,DATABASE_*"
+keep search "postgres" --env=production --only="DB_*,DATABASE_*"
 
 # JSON output
-keep search "secret" --stage=local --format=json
+keep search "secret" --env=local --format=json
 ```
 
 **Search Results:**
@@ -466,12 +466,12 @@ keep search "secret" --stage=local --format=json
 
 ## `keep copy`
 
-Copy secrets between stages or vaults. Supports both single secret and bulk operations with pattern matching.
+Copy secrets between environments or vaults. Supports both single secret and bulk operations with pattern matching.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--from` | string | *required* | Source context (stage or vault:stage) |
-| `--to` | string | *required* | Destination context (stage or vault:stage) |
+| `--from` | string | *required* | Source context (env or vault:env) |
+| `--to` | string | *required* | Destination context (env or vault:env) |
 | `--overwrite` | boolean | `false` | Overwrite existing secrets without confirmation |
 | `--dry-run` | boolean | `false` | Show what would be copied without making changes |
 | `--only` | string | | Pattern for bulk copy - include only matching keys (e.g., `DB_*`) |
@@ -485,7 +485,7 @@ Copy secrets between stages or vaults. Supports both single secret and bulk oper
 Copy individual secrets by specifying the key:
 
 ```bash
-# Copy between stages
+# Copy between environments
 keep copy DB_PASSWORD --from=development --to=staging
 
 # Copy with overwrite
@@ -528,32 +528,32 @@ keep copy --only="DB_*" --except="*_PASSWORD" --from=dev --to=staging
 
 ## `keep diff`
 
-Show differences between stages and vaults.
+Show differences between environments and vaults.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `--vault` | string | *all vaults* | Comma-separated list of vaults to compare |
-| `--stage` | string | *all stages* | Comma-separated list of stages to compare |
+| `--env` | string | *all environments* | Comma-separated list of envs to compare |
 | `--unmask` | boolean | `false` | Show actual secret values (not masked) |
 | `--only` | string | | Comma-separated list of keys to include |
 | `--except` | string | | Comma-separated list of keys to exclude |
 
 **Examples:**
 ```bash
-# Compare all configured vaults and stages
+# Compare all configured vaults and envs
 keep diff
 
-# Compare specific stages
-keep diff --stage=staging,production
+# Compare specific envs
+keep diff --env=staging,production
 
 # Show actual values
-keep diff --stage=staging,production --unmask
+keep diff --env=staging,production --unmask
 
 # Compare specific keys only
-keep diff --stage=local,production --only="DB_*"
+keep diff --env=local,production --only="DB_*"
 
 # Exclude specific keys
-keep diff --stage=local,production --except="APP_DEBUG"
+keep diff --env=local,production --except="APP_DEBUG"
 ```
 
 ## `keep import`
@@ -562,7 +562,7 @@ Import secrets from `.env` files.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--stage` | string | *interactive* | Target stage to import secrets into |
+| `--env` | string | *interactive* | Target env to import secrets into |
 | `--vault` | string | *default vault* | Vault to import secrets into |
 | `--skip-existing` | boolean | `false` | Skip secrets that already exist |
 | `--overwrite` | boolean | `false` | Overwrite existing secrets without confirmation |
@@ -576,25 +576,25 @@ Import secrets from `.env` files.
 **Examples:**
 ```bash
 # Import from .env file
-keep import .env.development --stage=local
+keep import .env.development --env=local
 
 # Import with existing secret protection
-keep import production.env --stage=production --skip-existing
+keep import production.env --env=production --skip-existing
 
 # Force overwrite existing secrets
-keep import staging.env --stage=staging --overwrite
+keep import staging.env --env=staging --overwrite
 
 # Dry run to preview import
-keep import .env --stage=local --dry-run
+keep import .env --env=local --dry-run
 
 # Import only specific keys
-keep import secrets.json --stage=production --only="API_KEY,DB_PASSWORD"
+keep import secrets.json --env=production --only="API_KEY,DB_PASSWORD"
 
 # Import from stdin
-cat .env | keep import --stage=local
+cat .env | keep import --env=local
 
 # Exclude sensitive keys
-keep import .env --stage=local --except="PRIVATE_KEY"
+keep import .env --env=local --except="PRIVATE_KEY"
 ```
 
 ## `keep export`
@@ -603,7 +603,7 @@ Export secrets from vaults with optional template processing.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `--stage` | string | *interactive* | Stage to export secrets from |
+| `--env` | string | *interactive* | Stage to export secrets from |
 | `--vault` | string | *auto-discover* | Vault(s) to export from (comma-separated) |
 | `--format` | string | `env` | Output format: `env`, `json`, `csv` |
 | `--template` | string | | Optional template file with placeholders |
@@ -621,19 +621,19 @@ Export all secrets from specified vaults:
 
 ```bash
 # Basic .env export
-keep export --stage=production --file=.env
+keep export --env=production --file=.env
 
 # JSON export
-keep export --stage=production --format=json --file=config.json
+keep export --env=production --format=json --file=config.json
 
 # CSV export for spreadsheets
-keep export --stage=production --format=csv --file=secrets.csv
+keep export --env=production --format=csv --file=secrets.csv
 
 # Export from specific vaults
-keep export --stage=production --vault=ssm,secretsmanager --file=.env
+keep export --env=production --vault=ssm,secretsmanager --file=.env
 
 # Export with filtering
-keep export --stage=production --only="API_*,DB_*" --file=.env
+keep export --env=production --only="API_*,DB_*" --file=.env
 ```
 
 ### Template Mode (with template)
@@ -642,19 +642,19 @@ Use templates with placeholder syntax `{vault:key}`:
 
 ```bash
 # Basic template merge (preserves structure)
-keep export --stage=production --template=.env.template --file=.env
+keep export --env=production --template=.env.template --file=.env
 
 # Template with all additional secrets appended
-keep export --stage=production --template=.env.template --all --file=.env
+keep export --env=production --template=.env.template --all --file=.env
 
 # Template to JSON (parses and transforms)
-keep export --stage=production --template=.env.template --format=json --file=config.json
+keep export --env=production --template=.env.template --format=json --file=config.json
 
 # Multiple templates can be combined using standard tools
-cat .env.base .env.prod | keep export --template=/dev/stdin --stage=production --file=.env
+cat .env.base .env.prod | keep export --template=/dev/stdin --env=production --file=.env
 
 # Handle missing secrets gracefully
-keep export --stage=production --template=.env.template --missing=skip --file=.env
+keep export --env=production --template=.env.template --missing=skip --file=.env
 ```
 
 **Template Syntax:**
@@ -678,7 +678,7 @@ Execute subprocesses with secrets injected as environment variables (diskless).
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `--vault` | string | *interactive* | Vault to fetch secrets from |
-| `--stage` | string | *interactive* | Stage to use |
+| `--env` | string | *interactive* | Stage to use |
 | `--template` | string | | Template file path, or auto-discover if empty |
 | `--only` | string | | Include only matching keys (patterns) |
 | `--except` | string | | Exclude matching keys (patterns) |
@@ -690,22 +690,22 @@ Execute subprocesses with secrets injected as environment variables (diskless).
 **Examples:**
 ```bash
 # Run with all secrets from vault
-keep run --vault=ssm --stage=production -- npm start
+keep run --vault=ssm --env=production -- npm start
 
 # Use template for selective secrets + static config
-keep run --vault=ssm --stage=production --template=env/prod.env -- npm start
+keep run --vault=ssm --env=production --template=env/prod.env -- npm start
 
-# Auto-discover template (looks for env/{stage}.env)
-keep run --vault=ssm --stage=production --template -- npm start
+# Auto-discover template (looks for env/{env}.env)
+keep run --vault=ssm --env=production --template -- npm start
 
 # Filter secrets by pattern
-keep run --vault=ssm --stage=production --only='DB_*' -- npm run migrate
+keep run --vault=ssm --env=production --only='DB_*' -- npm run migrate
 
 # Clean environment (no inheritance)
-keep run --vault=ssm --stage=production --no-inherit -- node server.js
+keep run --vault=ssm --env=production --no-inherit -- node server.js
 
 # Laravel config cache (one-time injection)
-keep run --vault=ssm --stage=production -- php artisan config:cache
+keep run --vault=ssm --env=production -- php artisan config:cache
 ```
 
 **Key Features:**

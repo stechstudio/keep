@@ -3,13 +3,13 @@
 namespace STS\Keep\Data\Collections;
 
 use Illuminate\Support\Collection;
-use STS\Keep\Data\VaultStagePermissions;
+use STS\Keep\Data\VaultEnvPermissions;
 
 class PermissionsCollection extends Collection
 {
-    public function addPermission(VaultStagePermissions $permission): self
+    public function addPermission(VaultEnvPermissions $permission): self
     {
-        $key = $permission->vault() . ':' . $permission->stage();
+        $key = $permission->vault() . ':' . $permission->env();
         $this->put($key, $permission);
         
         return $this;
@@ -17,17 +17,17 @@ class PermissionsCollection extends Collection
     
     public function forVault(string $vault): self
     {
-        return $this->filter(fn(VaultStagePermissions $p) => $p->vault() === $vault);
+        return $this->filter(fn(VaultEnvPermissions $p) => $p->vault() === $vault);
     }
     
-    public function forStage(string $stage): self
+    public function forEnv(string $env): self
     {
-        return $this->filter(fn(VaultStagePermissions $p) => $p->stage() === $stage);
+        return $this->filter(fn(VaultEnvPermissions $p) => $p->env() === $env);
     }
     
-    public function forVaultStage(string $vault, string $stage): ?VaultStagePermissions
+    public function forVaultEnv(string $vault, string $env): ?VaultEnvPermissions
     {
-        $key = $vault . ':' . $stage;
+        $key = $vault . ':' . $env;
         return $this->get($key);
     }
     
@@ -40,22 +40,22 @@ class PermissionsCollection extends Collection
             if (!$grouped->has($vault)) {
                 $grouped->put($vault, new Collection());
             }
-            $grouped->get($vault)->put($permission->stage(), $permission);
+            $grouped->get($vault)->put($permission->env(), $permission);
         }
         
         return $grouped;
     }
     
-    public function groupByStage(): Collection
+    public function groupByEnv(): Collection
     {
         $grouped = new Collection();
         
         foreach ($this->items as $permission) {
-            $stage = $permission->stage();
-            if (!$grouped->has($stage)) {
-                $grouped->put($stage, new Collection());
+            $env = $permission->env();
+            if (!$grouped->has($env)) {
+                $grouped->put($env, new Collection());
             }
-            $grouped->get($stage)->put($permission->vault(), $permission);
+            $grouped->get($env)->put($permission->vault(), $permission);
         }
         
         return $grouped;
@@ -65,10 +65,10 @@ class PermissionsCollection extends Collection
     {
         $result = [];
         
-        foreach ($this->groupByVault() as $vault => $stagePermissions) {
+        foreach ($this->groupByVault() as $vault => $envPermissions) {
             $result[$vault] = [];
-            foreach ($stagePermissions as $stage => $permission) {
-                $result[$vault][$stage] = $permission->permissions();
+            foreach ($envPermissions as $env => $permission) {
+                $result[$vault][$env] = $permission->permissions();
             }
         }
         
@@ -79,10 +79,10 @@ class PermissionsCollection extends Collection
     {
         $result = [];
         
-        foreach ($this->groupByVault() as $vault => $stagePermissions) {
+        foreach ($this->groupByVault() as $vault => $envPermissions) {
             $result[$vault] = [];
-            foreach ($stagePermissions as $stage => $permission) {
-                $result[$vault][$stage] = [
+            foreach ($envPermissions as $env => $permission) {
+                $result[$vault][$env] = [
                     'success' => $permission->success(),
                     'permissions' => [
                         'List' => $permission->list(),
@@ -101,16 +101,16 @@ class PermissionsCollection extends Collection
     
     public function toDisplayArray(): array
     {
-        return $this->map(fn(VaultStagePermissions $p) => $p->toDisplayArray())->values()->toArray();
+        return $this->map(fn(VaultEnvPermissions $p) => $p->toDisplayArray())->values()->toArray();
     }
     
     public function failures(): self
     {
-        return $this->filter(fn(VaultStagePermissions $p) => !$p->success());
+        return $this->filter(fn(VaultEnvPermissions $p) => !$p->success());
     }
     
     public function successes(): self
     {
-        return $this->filter(fn(VaultStagePermissions $p) => $p->success());
+        return $this->filter(fn(VaultEnvPermissions $p) => $p->success());
     }
 }

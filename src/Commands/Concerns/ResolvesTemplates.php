@@ -7,18 +7,18 @@ use STS\Keep\Facades\Keep;
 trait ResolvesTemplates
 {
     /**
-     * Resolve template file path based on stage name.
+     * Resolve template file path based on environment name.
      */
-    protected function resolveTemplateForStage(string $stage): string
+    protected function resolveTemplateForEnv(string $env): string
     {
         $settings = Keep::getSettings();
         $templateDir = $settings['template_path'] ?? 'env';
-        $templateFile = getcwd() . '/' . $templateDir . '/' . $stage . '.env';
+        $templateFile = getcwd() . '/' . $templateDir . '/' . $env . '.env';
         
         if (! file_exists($templateFile)) {
             throw new \InvalidArgumentException(
-                "No template found for stage '{$stage}' at {$templateFile}.\n" .
-                "Create one with: keep template:add {$stage}.env --stage={$stage}"
+                "No template found for environment '{$env}' at {$templateFile}.\n" .
+                "Create one with: keep template:add {$env}.env --env={$env}"
             );
         }
 

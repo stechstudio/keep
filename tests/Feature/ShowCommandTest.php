@@ -13,7 +13,7 @@ describe('ShowCommand', function () {
             'app_name' => 'test-app',
             'namespace' => 'test-app',
             'default_vault' => 'test',
-            'stages' => ['testing', 'production'],
+            'envs' => ['testing', 'production'],
             'created_at' => date('c'),
             'version' => '1.0',
         ];
@@ -37,7 +37,7 @@ describe('ShowCommand', function () {
             foreach ($formats as $format) {
                 $commandTester = runCommand('show', [
                     '--vault' => 'test',
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--format' => $format,
                 ]);
 
@@ -50,7 +50,7 @@ describe('ShowCommand', function () {
         it('validates format option and shows error for invalid formats', function () {
             $commandTester = runCommand('show', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--format' => 'invalid',
             ]);
 
@@ -64,7 +64,7 @@ describe('ShowCommand', function () {
         it('accepts unmask flag option', function () {
             $commandTester = runCommand('show', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--unmask' => true,
             ]);
 
@@ -76,7 +76,7 @@ describe('ShowCommand', function () {
         it('accepts filtering options', function () {
             $commandTester = runCommand('show', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--only' => 'DB_*',
             ]);
 
@@ -86,7 +86,7 @@ describe('ShowCommand', function () {
 
             $commandTester = runCommand('show', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--except' => 'TEMP_*',
             ]);
 
@@ -97,23 +97,23 @@ describe('ShowCommand', function () {
     });
 
     describe('parameter validation', function () {
-        it('validates vault and stage parameters', function () {
+        it('validates vault and env parameters', function () {
             $commandTester = runCommand('show', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Command should accept valid parameters (might fail on AWS interaction)
             $output = stripAnsi($commandTester->getDisplay());
 
             // Should not show parameter validation errors
-            expect($output)->not->toMatch('/(invalid vault|invalid stage)/i');
+            expect($output)->not->toMatch('/(invalid vault|invalid env)/i');
         });
 
         it('handles vault parameter validation', function () {
             $commandTester = runCommand('show', [
                 '--vault' => 'test', // Valid vault from our config
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -127,7 +127,7 @@ describe('ShowCommand', function () {
         it('table format shows appropriate headers and structure', function () {
             $commandTester = runCommand('show', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--format' => 'table',
             ]);
 
@@ -142,7 +142,7 @@ describe('ShowCommand', function () {
         it('env format produces valid structure when successful', function () {
             $commandTester = runCommand('show', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--format' => 'env',
             ]);
 
@@ -166,7 +166,7 @@ describe('ShowCommand', function () {
         it('json format produces valid JSON structure when successful', function () {
             $commandTester = runCommand('show', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--format' => 'json',
             ]);
 
@@ -189,7 +189,7 @@ describe('ShowCommand', function () {
             foreach ($patterns as $pattern) {
                 $commandTester = runCommand('show', [
                     '--vault' => 'test',
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--format' => 'env',
                     '--only' => $pattern,
                 ]);
@@ -205,7 +205,7 @@ describe('ShowCommand', function () {
             foreach ($patterns as $pattern) {
                 $commandTester = runCommand('show', [
                     '--vault' => 'test',
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--format' => 'env',
                     '--except' => $pattern,
                 ]);
@@ -218,7 +218,7 @@ describe('ShowCommand', function () {
         it('handles combination of only and except patterns', function () {
             $commandTester = runCommand('show', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--format' => 'env',
                 '--only' => 'DB_*,MAIL_*',
                 '--except' => '*_PORT',
@@ -233,7 +233,7 @@ describe('ShowCommand', function () {
         it('handles vault connection issues gracefully', function () {
             $commandTester = runCommand('show', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--format' => 'env',
             ]);
 
@@ -248,7 +248,7 @@ describe('ShowCommand', function () {
             // Use a pattern that's unlikely to match anything
             $commandTester = runCommand('show', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--format' => 'env',
                 '--only' => 'NONEXISTENT_UNLIKELY_PATTERN_*',
             ]);
@@ -261,7 +261,7 @@ describe('ShowCommand', function () {
         it('handles auth errors gracefully', function () {
             $commandTester = runCommand('show', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // With TestVault, we shouldn't get auth errors, but command should complete gracefully
@@ -275,7 +275,7 @@ describe('ShowCommand', function () {
             // Test with unmask flag
             $commandTester = runCommand('show', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--format' => 'env',
                 '--unmask' => true,
             ]);
@@ -286,7 +286,7 @@ describe('ShowCommand', function () {
             // Test without unmask flag (default masked)
             $commandTester = runCommand('show', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--format' => 'env',
             ]);
 

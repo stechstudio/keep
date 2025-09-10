@@ -39,7 +39,7 @@ class KeepApplication extends Application
             Commands\VaultEditCommand::class,
             Commands\VaultListCommand::class,
 
-            Commands\StageAddCommand::class,
+            Commands\EnvAddCommand::class,
             
             Commands\WorkspaceConfigureCommand::class,
 

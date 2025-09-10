@@ -20,9 +20,9 @@ class ImportCommand extends BaseCommand
         {--only= : Only include keys matching this pattern (e.g. DB_*)} 
         {--except= : Exclude keys matching this pattern (e.g. MAIL_*)}
         {--vault= : The vault to use}
-        {--stage= : The stage to use}';
+        {--env= : The environment to use}';
 
-    public $description = 'Import a .env file and store as stage secrets in a specified vault';
+    public $description = 'Import a .env file and store secrets in a specified vault and environment';
 
     public function process()
     {

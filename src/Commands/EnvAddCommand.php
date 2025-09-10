@@ -3,10 +3,10 @@
 namespace STS\Keep\Commands;
 
 use Exception;
-use STS\Keep\Commands\Concerns\ValidatesStages;
+use STS\Keep\Commands\Concerns\ValidatesEnvs;
 use STS\Keep\Data\Collections\PermissionsCollection;
 use STS\Keep\Data\Settings;
-use STS\Keep\Data\VaultStagePermissions;
+use STS\Keep\Data\VaultEnvPermissions;
 use STS\Keep\Facades\Keep;
 use STS\Keep\Services\LocalStorage;
 
@@ -15,13 +15,13 @@ use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\text;
 
-class StageAddCommand extends BaseCommand
+class EnvAddCommand extends BaseCommand
 {
-    use ValidatesStages;
+    use ValidatesEnvs;
 
-    protected $signature = 'stage:add {name? : The name of the stage to add}';
+    protected $signature = 'env:add {name? : The name of the environment to add}';
 
-    protected $description = 'Add a custom stage/environment';
+    protected $description = 'Add a custom environment';
 
     protected function requiresInitialization(): bool
     {
@@ -31,30 +31,30 @@ class StageAddCommand extends BaseCommand
     public function process()
     {
         $settings = Settings::load();
-        $stageName = $this->getStageName($settings);
+        $envName = $this->getEnvName($settings);
 
-        if (! $stageName) {
+        if (! $envName) {
             return self::FAILURE;
         }
 
-        $this->line('Current stages: '.implode(', ', $settings->stages()));
+        $this->line('Current environments: '.implode(', ', $settings->envs()));
 
-        if (! confirm("Add '{$stageName}' as a new stage?")) {
-            info('Stage addition cancelled.');
+        if (! confirm("Add '{$envName}' as a new environment?")) {
+            info('Environment addition cancelled.');
 
             return self::SUCCESS;
         }
 
-        $this->addStage($settings, $stageName);
+        $this->addEnv($settings, $envName);
 
-        info("✅ Stage '{$stageName}' has been added successfully!");
-        $this->line('You can now use this stage with any Keep command using --stage='.$stageName);
+        info("✅ Environment '{$envName}' has been added successfully!");
+        $this->line('You can now use this environment with any Keep command using --env='.$envName);
         
-        // Verify and cache permissions for all vaults with the new stage
-        $collection = $this->testNewStageAcrossVaults($stageName);
+        // Verify and cache permissions for all vaults with the new environment
+        $collection = $this->testNewEnvAcrossVaults($envName);
         
         if (!$collection->isEmpty()) {
-            info('\nVerified vault permissions for the new stage:');
+            info('\nVerified vault permissions for the new environment:');
             foreach ($collection as $permission) {
                 $permString = empty($permission->permissions()) ? 'no permissions' : implode(', ', $permission->permissions());
                 info("  • {$permission->vault()}: {$permString}");
@@ -64,42 +64,42 @@ class StageAddCommand extends BaseCommand
         return self::SUCCESS;
     }
 
-    private function getStageName(Settings $settings): ?string
+    private function getEnvName(Settings $settings): ?string
     {
-        $stageName = $this->argument('name') ?: $this->promptForStageName($settings);
+        $envName = $this->argument('name') ?: $this->promptForEnvName($settings);
 
-        $error = $this->validateNewStageName($stageName, $settings->stages());
+        $error = $this->validateNewEnvName($envName, $settings->envs());
         if ($error) {
             error($error);
 
             return null;
         }
 
-        return $stageName;
+        return $envName;
     }
 
-    private function promptForStageName(Settings $settings): string
+    private function promptForEnvName(Settings $settings): string
     {
         return text(
-            label: 'Enter the name of the new stage',
+            label: 'Enter the name of the new environment',
             placeholder: 'e.g., qa, demo, sandbox, dev2',
             required: true,
-            validate: fn ($value) => $this->validateNewStageName($value, $settings->stages())
+            validate: fn ($value) => $this->validateNewEnvName($value, $settings->envs())
         );
     }
 
-    private function addStage(Settings $settings, string $stageName): void
+    private function addEnv(Settings $settings, string $envName): void
     {
         Settings::fromArray([
             'app_name' => $settings->appName(),
             'namespace' => $settings->namespace(),
-            'stages' => [...$settings->stages(), $stageName],
+            'envs' => [...$settings->envs(), $envName],
             'default_vault' => $settings->defaultVault(),
             'created_at' => $settings->createdAt(),
         ])->save();
     }
     
-    protected function testNewStageAcrossVaults(string $stageName): PermissionsCollection
+    protected function testNewEnvAcrossVaults(string $envName): PermissionsCollection
     {
         $vaultNames = Keep::getConfiguredVaults()->keys()->toArray();
         $collection = new PermissionsCollection();
@@ -107,18 +107,18 @@ class StageAddCommand extends BaseCommand
         
         foreach ($vaultNames as $vaultName) {
             try {
-                $vault = Keep::vault($vaultName, $stageName);
+                $vault = Keep::vault($vaultName, $envName);
                 $results = $vault->testPermissions();
-                $permission = VaultStagePermissions::fromTestResults($vaultName, $stageName, $results);
+                $permission = VaultEnvPermissions::fromTestResults($vaultName, $envName, $results);
             } catch (Exception $e) {
-                $permission = VaultStagePermissions::fromError($vaultName, $stageName, $e->getMessage());
+                $permission = VaultEnvPermissions::fromError($vaultName, $envName, $e->getMessage());
             }
             
             $collection->addPermission($permission);
             
             // Update stored permissions for this vault
             $existingPermissions = $localStorage->getVaultPermissions($vaultName) ?? [];
-            $existingPermissions[$stageName] = $permission->permissions();
+            $existingPermissions[$envName] = $permission->permissions();
             $localStorage->saveVaultPermissions($vaultName, $existingPermissions);
         }
         

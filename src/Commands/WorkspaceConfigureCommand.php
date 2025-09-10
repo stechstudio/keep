@@ -4,7 +4,7 @@ namespace STS\Keep\Commands;
 
 use Exception;
 use STS\Keep\Data\Collections\PermissionsCollection;
-use STS\Keep\Data\VaultStagePermissions;
+use STS\Keep\Data\VaultEnvPermissions;
 use STS\Keep\Data\Workspace;
 use STS\Keep\Facades\Keep;
 use STS\Keep\Services\LocalStorage;
@@ -19,27 +19,27 @@ class WorkspaceConfigureCommand extends BaseCommand
 {
     protected $signature = 'workspace:configure';
     
-    protected $description = 'Configure your personal workspace - select which vaults and stages you work with';
+    protected $description = 'Configure your personal workspace - select which vaults and environments you work with';
     
     protected function process(): int
     {
         info('🎯 Workspace Configuration');
-        note('Select which vaults and stages you want to work with. This personalizes your Keep experience.');
+        note('Select which vaults and environments you want to work with. This personalizes your Keep experience.');
         
         $localStorage = new LocalStorage();
         $currentWorkspace = $localStorage->getWorkspace();
         
-        // Get all available vaults and stages (not filtered by workspace)
+        // Get all available vaults and environments (not filtered by workspace)
         $availableVaults = Keep::getAllConfiguredVaults()->map(fn($v) => $v->slug())->toArray();
-        $availableStages = Keep::getAllStages();
+        $availableEnvs = Keep::getAllEnvs();
         
         if (empty($availableVaults)) {
             $this->error('No vaults are configured. Please add a vault first with: keep vault:add');
             return self::FAILURE;
         }
         
-        if (empty($availableStages)) {
-            $this->error('No stages are configured. This should not happen.');
+        if (empty($availableEnvs)) {
+            $this->error('No environments are configured. This should not happen.');
             return self::FAILURE;
         }
         
@@ -57,17 +57,17 @@ class WorkspaceConfigureCommand extends BaseCommand
             return self::FAILURE;
         }
         
-        // Select active stages
-        $activeStages = multiselect(
-            label: 'Select stages to include in your workspace',
-            options: array_combine($availableStages, $availableStages),
-            default: $currentWorkspace['active_stages'] ?? $availableStages,
+        // Select active environments
+        $activeEnvs = multiselect(
+            label: 'Select environments to include in your workspace',
+            options: array_combine($availableEnvs, $availableEnvs),
+            default: $currentWorkspace['active_envs'] ?? $availableEnvs,
             hint: 'Toggle with space bar, confirm with enter',
             required: true
         );
         
-        if (empty($activeStages)) {
-            $this->error('You must select at least one stage.');
+        if (empty($activeEnvs)) {
+            $this->error('You must select at least one environment.');
             return self::FAILURE;
         }
         
@@ -75,7 +75,7 @@ class WorkspaceConfigureCommand extends BaseCommand
         $this->info('');
         $this->info('Your workspace will include:');
         $this->line('  Vaults: ' . implode(', ', $activeVaults));
-        $this->line('  Stages: ' . implode(', ', $activeStages));
+        $this->line('  Envs: ' . implode(', ', $activeEnvs));
         $this->info('');
         
         if (!confirm('Save this workspace configuration?', true)) {
@@ -86,7 +86,7 @@ class WorkspaceConfigureCommand extends BaseCommand
         // Save workspace
         $workspace = [
             'active_vaults' => $activeVaults,
-            'active_stages' => $activeStages,
+            'active_envs' => $activeEnvs,
             'created_at' => $currentWorkspace['created_at'] ?? date('c')
         ];
         
@@ -98,7 +98,7 @@ class WorkspaceConfigureCommand extends BaseCommand
         info('Verifying permissions for your workspace...');
         
         $collection = spin(
-            fn() => $this->testBulkPermissions($activeVaults, $activeStages),
+            fn() => $this->testBulkPermissions($activeVaults, $activeEnvs),
             'Testing vault access permissions...'
         );
         
@@ -109,32 +109,32 @@ class WorkspaceConfigureCommand extends BaseCommand
         $summary = [];
         foreach ($collection as $permission) {
             $vault = $permission->vault();
-            $stage = $permission->stage();
+            $env = $permission->env();
             $perms = $permission->permissions();
             
             if (!isset($summary[$vault])) {
                 $summary[$vault] = [];
             }
             
-            $summary[$vault][$stage] = empty($perms) 
+            $summary[$vault][$env] = empty($perms) 
                 ? '<fg=red>no access</>' 
                 : '<fg=green>' . implode(', ', $perms) . '</>';
         }
         
-        foreach ($summary as $vault => $stages) {
+        foreach ($summary as $vault => $envs) {
             $this->line("  <info>{$vault}</info>:");
-            foreach ($stages as $stage => $perms) {
-                $this->line("    • {$stage}: {$perms}");
+            foreach ($envs as $env => $perms) {
+                $this->line("    • {$env}: {$perms}");
             }
         }
         
         $this->info('');
-        note('Your workspace is configured! The UI will now only show your selected vaults and stages.');
+        note('Your workspace is configured! The UI will now only show your selected vaults and environments.');
         
         return self::SUCCESS;
     }
     
-    protected function testBulkPermissions(array $vaultNames, array $stages): PermissionsCollection
+    protected function testBulkPermissions(array $vaultNames, array $envs): PermissionsCollection
     {
         $collection = new PermissionsCollection();
         $localStorage = new LocalStorage();
@@ -142,17 +142,17 @@ class WorkspaceConfigureCommand extends BaseCommand
         foreach ($vaultNames as $vaultName) {
             $vaultPermissions = [];
             
-            foreach ($stages as $stage) {
+            foreach ($envs as $env) {
                 try {
-                    $vault = Keep::vault($vaultName, $stage);
+                    $vault = Keep::vault($vaultName, $env);
                     $results = $vault->testPermissions();
-                    $permission = VaultStagePermissions::fromTestResults($vaultName, $stage, $results);
+                    $permission = VaultEnvPermissions::fromTestResults($vaultName, $env, $results);
                 } catch (Exception $e) {
-                    $permission = VaultStagePermissions::fromError($vaultName, $stage, $e->getMessage());
+                    $permission = VaultEnvPermissions::fromError($vaultName, $env, $e->getMessage());
                 }
                 
                 $collection->addPermission($permission);
-                $vaultPermissions[$stage] = $permission->permissions();
+                $vaultPermissions[$env] = $permission->permissions();
             }
             
             // Persist permissions for this vault

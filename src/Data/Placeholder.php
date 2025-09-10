@@ -48,7 +48,7 @@ class Placeholder
     /**
      * Validate this placeholder and return validation result
      */
-    public function validate(?string $defaultVault, string $stage): PlaceholderValidationResult
+    public function validate(?string $defaultVault, string $env): PlaceholderValidationResult
     {
         // If no vault specified in placeholder and no default vault, that's an error
         if (! $this->vault && ! $defaultVault) {
@@ -81,7 +81,7 @@ class Placeholder
             }
 
             // Try to get the secret
-            $vaultInstance = Keep::vault($vault, $stage);
+            $vaultInstance = Keep::vault($vault, $env);
             $secret = $vaultInstance->get($this->key);
 
             return PlaceholderValidationResult::valid($this, $vault, $secret);

@@ -3,14 +3,14 @@
     <!-- Controls -->
     <div class="mb-6 flex justify-between">
       <div class="flex items-center space-x-4">
-        <!-- Combined Vault/Stage Dropdown -->
+        <!-- Combined Vault/Env Dropdown -->
         <div class="relative">
           <button
               @click="showCombinationsDropdown = !showCombinationsDropdown"
               class="flex items-center space-x-2 px-3 py-2 bg-input border border-border rounded-md text-sm hover:bg-accent transition-colors"
           >
-            <span v-if="availableVaults.length > 1">Toggle Vaults / Stages ({{ selectedCombinations.length }}/{{ availableCombinations.length }})</span>
-            <span v-else>Toggle Stages ({{ selectedCombinations.length }}/{{ availableCombinations.length }})</span>
+            <span v-if="availableVaults.length > 1">Toggle Vaults / Envs ({{ selectedCombinations.length }}/{{ availableCombinations.length }})</span>
+            <span v-else>Toggle Envs ({{ selectedCombinations.length }}/{{ availableCombinations.length }})</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
             </svg>
@@ -32,7 +32,7 @@
                 <span class="text-sm">
                   <span v-if="availableVaults.length > 1">{{ combo.vaultDisplay }} ({{ combo.vault }})</span>
                   <span v-if="availableVaults.length > 1" class="mx-2 text-muted-foreground">/</span>
-                  <strong>{{ combo.stage }}</strong>
+                  <strong>{{ combo.env }}</strong>
                 </span>
               </label>
             </div>
@@ -130,7 +130,7 @@
           >
             <div class="flex flex-col">
               <span class="font-semibold">{{ column.vault }}</span>
-              <span class="text-[10px] opacity-75">{{ column.stage }}</span>
+              <span class="text-[10px] opacity-75">{{ column.env }}</span>
             </div>
           </th>
         </tr>
@@ -161,25 +161,25 @@
           </td>
           <td
               v-for="column in activeColumns"
-              :key="`${key}-${column.vault}-${column.stage}`"
+              :key="`${key}-${column.vault}-${column.env}`"
               class="px-4 py-3 text-left border-l border-border relative group"
-              :class="getCellClass(key, column.vault, column.stage)"
+              :class="getCellClass(key, column.vault, column.env)"
               :style="columnWidthStyle"
           >
-            <div v-if="getSecretValue(key, column.vault, column.stage)" class="flex items-center justify-between">
+            <div v-if="getSecretValue(key, column.vault, column.env)" class="flex items-center justify-between">
                 <span class="font-mono text-sm break-all">
-                  {{ getMaskedValue(key, column.vault, column.stage) }}
+                  {{ getMaskedValue(key, column.vault, column.env) }}
                 </span>
               <SecretActionsMenu
                 :secretKey="key"
-                :secretValue="getSecretValue(key, column.vault, column.stage)"
+                :secretValue="getSecretValue(key, column.vault, column.env)"
                 :vault="column.vault"
-                :stage="column.stage"
+                :env="column.env"
                 :showRename="false"
                 :buttonClass="'opacity-0 group-hover:opacity-100'"
                 @edit="editSecret"
                 @copyValue="handleCopyValue"
-                @copyTo="showCopyToStageDialog"
+                @copyTo="showCopyToEnvDialog"
                 @history="showHistoryDialog"
                 @delete="showDeleteDialog"
                 @refresh="loadDiff"
@@ -191,7 +191,7 @@
                 :secretKey="key"
                 :secretValue="null"
                 :vault="column.vault"
-                :stage="column.stage"
+                :env="column.env"
                 :showEdit="false"
                 :showRename="false"
                 :showCreate="true"
@@ -214,7 +214,7 @@
       <svg class="mx-auto h-12 w-12 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
       </svg>
-      <p>No secrets found in the selected vaults and stages</p>
+      <p>No secrets found in the selected vaults and envs</p>
     </div>
 
     <!-- No Selection State -->
@@ -223,8 +223,8 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
       </svg>
-      <p class="text-lg font-medium mb-2">Select Vault/Stage Combinations</p>
-      <p class="text-sm">Use the dropdown above to select at least one vault/stage combination</p>
+      <p class="text-lg font-medium mb-2">Select Vault/Env Combinations</p>
+      <p class="text-sm">Use the dropdown above to select at least one vault/env combination</p>
     </div>
 
     <!-- Edit Secret Dialog -->
@@ -232,13 +232,13 @@
       v-if="editingSecret"
       :secret="editingSecret.isNew ? null : editingSecret"
       :vault="editingSecret.vault"
-      :stage="editingSecret.stage"
+      :env="editingSecret.env"
       :initialKey="editingSecret.isNew ? editingSecret.key : undefined"
       @success="handleSecretSaveSuccess"
       @close="editingSecret = null"
     />
 
-    <!-- Copy To Stage Modal -->
+    <!-- Copy To Env Modal -->
     <div v-if="copyingSecret" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50" @click.self="copyingSecret = null">
       <div class="bg-card border border-border rounded-lg p-6 w-full max-w-md">
         <div class="flex items-center justify-between mb-4">
@@ -266,7 +266,7 @@
             <label class="block text-sm font-medium mb-1">From</label>
             <input
                 type="text"
-                :value="`${copyingSecret?.vault} / ${copyingSecret?.stage}`"
+                :value="`${copyingSecret?.vault} / ${copyingSecret?.env}`"
                 disabled
                 class="w-full px-3 py-2 bg-input border border-border rounded-md text-sm opacity-50"
             />
@@ -279,9 +279,9 @@
                   v-for="combo in availableCombinations"
                   :key="combo.key"
                   :value="combo.key"
-                  :disabled="combo.key === `${copyingSecret?.vault}:${copyingSecret?.stage}`"
+                  :disabled="combo.key === `${copyingSecret?.vault}:${copyingSecret?.env}`"
               >
-                {{ combo.vaultDisplay }} / {{ combo.stage }}
+                {{ combo.vaultDisplay }} / {{ combo.env }}
               </option>
             </select>
           </div>
@@ -309,21 +309,21 @@
       v-if="renamingSecret"
       :currentKey="renamingSecret.key"
       :vault="renamingSecret.vault"
-      :stage="renamingSecret.stage"
+      :env="renamingSecret.env"
       @success="handleRenameSuccess"
       @close="renamingSecret = null"
     />
     
-    <!-- Copy to Stage Dialog -->
-    <CopyToStageDialog
-      v-if="copyingSecretStage"
-      :secretKey="copyingSecretStage.key"
-      :currentVault="copyingSecretStage.vault"
-      :currentStage="copyingSecretStage.stage"
+    <!-- Copy to Env Dialog -->
+    <CopyToEnvDialog
+      v-if="copyingSecretEnv"
+      :secretKey="copyingSecretEnv.key"
+      :currentVault="copyingSecretEnv.vault"
+      :currentEnv="copyingSecretEnv.env"
       :vaults="availableVaults"
-      :stages="availableStages"
-      @copy="handleCopyToStage"
-      @close="copyingSecretStage = null"
+      :envs="availableEnvs"
+      @copy="handleCopyToEnv"
+      @close="copyingSecretEnv = null"
     />
     
     <!-- History Dialog -->
@@ -331,7 +331,7 @@
       v-if="historySecret"
       :secretKey="historySecret.key"
       :vault="historySecret.vault"
-      :stage="historySecret.stage"
+      :env="historySecret.env"
       @refresh="loadDiff"
       @close="historySecret = null"
     />
@@ -341,7 +341,7 @@
       v-if="deletingSecret"
       :secretKey="deletingSecret.key"
       :vault="deletingSecret.vault"
-      :stage="deletingSecret.stage"
+      :env="deletingSecret.env"
       @success="handleDeleteSuccess"
       @close="deletingSecret = null"
     />
@@ -358,13 +358,13 @@ import {maskValue} from '../utils/formatters'
 import SecretActionsMenu from './SecretActionsMenu.vue'
 import SecretDialog from './SecretDialog.vue'
 import RenameDialog from './RenameDialog.vue'
-import CopyToStageDialog from './CopyToStageDialog.vue'
+import CopyToEnvDialog from './CopyToEnvDialog.vue'
 import HistoryDialog from './HistoryDialog.vue'
 import DeleteConfirmDialog from './DeleteConfirmDialog.vue'
 
 const toast = useToast()
-const { vaults: availableVaults, stages: availableStages, loadAll: loadVaultData } = useVault()
-const { copySecretToStage } = useSecrets()
+const { vaults: availableVaults, envs: availableEnvs, loadAll: loadVaultData } = useVault()
+const { copySecretToEnv } = useSecrets()
 const { registerSearchHandler, registerModalCloseHandler, registerMaskToggleHandler } = useKeyboardShortcuts()
 
 // State
@@ -380,7 +380,7 @@ const menuPosition = ref(null)
 const activeMenuData = ref(null)
 const editingSecret = ref(null)
 const renamingSecret = ref(null)
-const copyingSecretStage = ref(null)
+const copyingSecretEnv = ref(null)
 const copyingSecret = ref(null)
 const copyTarget = ref('')
 const historySecret = ref(null)
@@ -417,11 +417,11 @@ const columnWidthStyle = computed(() => {
 // Computed columns based on selected combinations
 const activeColumns = computed(() => {
   return selectedCombinations.value.map(key => {
-    const [vault, stage] = key.split(':')
+    const [vault, env] = key.split(':')
     // Find the vault display name
     const vaultObj = availableVaults.value.find(v => (v.slug || v.name || v) === vault)
     const vaultDisplay = vaultObj?.name || vaultObj?.display || vault
-    return {vault, stage, vaultDisplay}
+    return {vault, env, vaultDisplay}
   })
 })
 
@@ -445,11 +445,11 @@ const diffMatrix = computed(() => {
     // Check if key matches search query
     let matchesSearch = !query || key.toLowerCase().includes(query)
 
-    for (const [vault, stageData] of Object.entries(vaultData)) {
-      const filteredStageData = {}
-      for (const [stage, value] of Object.entries(stageData)) {
-        if (selectedCombinations.value.includes(`${vault}:${stage}`)) {
-          filteredStageData[stage] = value
+    for (const [vault, envData] of Object.entries(vaultData)) {
+      const filteredEnvData = {}
+      for (const [env, value] of Object.entries(envData)) {
+        if (selectedCombinations.value.includes(`${vault}:${env}`)) {
+          filteredEnvData[env] = value
           hasSelectedCombination = true
           
           // Check if value matches search query (only for visible columns)
@@ -458,8 +458,8 @@ const diffMatrix = computed(() => {
           }
         }
       }
-      if (Object.keys(filteredStageData).length > 0) {
-        filteredVaultData[vault] = filteredStageData
+      if (Object.keys(filteredEnvData).length > 0) {
+        filteredVaultData[vault] = filteredEnvData
       }
     }
 
@@ -486,7 +486,7 @@ function getRowStatus(key) {
   let totalFound = 0
 
   for (const column of activeColumns.value) {
-    const value = getSecretValue(key, column.vault, column.stage)
+    const value = getSecretValue(key, column.vault, column.env)
     if (value !== null && value !== undefined) {
       values.push(value)
       totalFound++
@@ -581,13 +581,13 @@ async function loadInitialData() {
     // Build all combinations
     availableCombinations.value = []
     for (const vault of availableVaults.value) {
-      for (const stage of availableStages.value) {
+      for (const env of availableEnvs.value) {
         const vaultSlug = vault.slug || vault.name || vault
         availableCombinations.value.push({
-          key: `${vaultSlug}:${stage}`,
+          key: `${vaultSlug}:${env}`,
           vault: vaultSlug,
           vaultDisplay: vault.display || vault,
-          stage: stage
+          env: env
         })
       }
     }
@@ -619,14 +619,14 @@ async function loadInitialData() {
 }
 
 async function loadDiff() {
-  // Load ALL vaults and stages from the server once
+  // Load ALL vaults and envs from the server once
   const vaults = availableVaults.value.map(v => v.slug || v.name || v)
-  const stages = [...availableStages.value]
+  const envs = [...availableEnvs.value]
 
   loading.value = true
 
   try {
-    const data = await window.$api.getDiff(stages, vaults)
+    const data = await window.$api.getDiff(envs, vaults)
     fullDiffMatrix.value = data.diff || {}
   } catch (error) {
     console.error('Failed to load diff:', error)
@@ -637,14 +637,14 @@ async function loadDiff() {
   }
 }
 
-function getSecretValue(key, vault, stage) {
+function getSecretValue(key, vault, env) {
   if (!diffMatrix.value[key]) return null
   if (!diffMatrix.value[key][vault]) return null
-  return diffMatrix.value[key][vault][stage] || null
+  return diffMatrix.value[key][vault][env] || null
 }
 
-function getCellClass(key, vault, stage) {
-  const value = getSecretValue(key, vault, stage)
+function getCellClass(key, vault, env) {
+  const value = getSecretValue(key, vault, env)
   if (!value) return 'bg-muted/30'
   return ''
 }
@@ -657,8 +657,8 @@ function toggleRowMask(key) {
   }
 }
 
-function getMaskedValue(key, vault, stage) {
-  const value = getSecretValue(key, vault, stage)
+function getMaskedValue(key, vault, env) {
+  const value = getSecretValue(key, vault, env)
   if (!value) return ''
 
   // Check if row is unmasked or global unmask is on
@@ -672,23 +672,23 @@ function getMaskedValue(key, vault, stage) {
 // Cell menu functionality is now handled by SecretActionsMenu component
 
 function createSecret(data) {
-  editingSecret.value = {key: data.key, vault: data.vault, stage: data.stage, value: '', isNew: true}
+  editingSecret.value = {key: data.key, vault: data.vault, env: data.env, value: '', isNew: true}
 }
 
 function editSecret(data) {
-  editingSecret.value = {key: data.key, vault: data.vault, stage: data.stage, value: data.value}
+  editingSecret.value = {key: data.key, vault: data.vault, env: data.env, value: data.value}
 }
 
-function showCopyToStageDialog(data) {
-  copyingSecretStage.value = {key: data.key, vault: data.vault, stage: data.stage, value: data.value}
+function showCopyToEnvDialog(data) {
+  copyingSecretEnv.value = {key: data.key, vault: data.vault, env: data.env, value: data.value}
 }
 
 function showHistoryDialog(data) {
-  historySecret.value = {key: data.key, vault: data.vault, stage: data.stage}
+  historySecret.value = {key: data.key, vault: data.vault, env: data.env}
 }
 
 function showDeleteDialog(data) {
-  deletingSecret.value = {key: data.key, vault: data.vault, stage: data.stage}
+  deletingSecret.value = {key: data.key, vault: data.vault, env: data.env}
 }
 
 function handleCopyValue(data) {
@@ -700,8 +700,8 @@ async function handleDeleteSuccess() {
   deletingSecret.value = null
 }
 
-function copyToStage(key, vault, stage) {
-  copyingSecret.value = {key, vault, stage, value: getSecretValue(key, vault, stage)}
+function copyToEnv(key, vault, env) {
+  copyingSecret.value = {key, vault, env, value: getSecretValue(key, vault, env)}
 }
 
 // Delete secret is now handled by SecretActionsMenu component
@@ -714,17 +714,17 @@ async function handleSecretSaveSuccess() {
 async function executeCopy() {
   if (!copyingSecret.value || !copyTarget.value) return
 
-  const [targetVault, targetStage] = copyTarget.value.split(':')
+  const [targetVault, targetEnv] = copyTarget.value.split(':')
 
   try {
-    await copySecretToStage(
+    await copySecretToEnv(
         copyingSecret.value.key,
-        targetStage,
+        targetEnv,
         targetVault,
-        copyingSecret.value.stage,
+        copyingSecret.value.env,
         copyingSecret.value.vault
     )
-    toast.success('Secret copied', `Copied '${copyingSecret.value.key}' to ${targetVault}:${targetStage}`)
+    toast.success('Secret copied', `Copied '${copyingSecret.value.key}' to ${targetVault}:${targetEnv}`)
     copyingSecret.value = null
     copyTarget.value = ''
     await loadDiff()
@@ -741,17 +741,17 @@ function selectNone() {
   selectedCombinations.value = []
 }
 
-async function handleCopyToStage({ targetVault, targetStage }) {
+async function handleCopyToEnv({ targetVault, targetEnv }) {
   try {
-    await copySecretToStage(
-      copyingSecretStage.value.key, 
-      targetStage, 
+    await copySecretToEnv(
+      copyingSecretEnv.value.key, 
+      targetEnv, 
       targetVault, 
-      copyingSecretStage.value.stage,
-      copyingSecretStage.value.vault
+      copyingSecretEnv.value.env,
+      copyingSecretEnv.value.vault
     )
-    toast.success('Secret copied', `Secret '${copyingSecretStage.value.key}' copied to ${targetVault}:${targetStage}`)
-    copyingSecretStage.value = null
+    toast.success('Secret copied', `Secret '${copyingSecretEnv.value.key}' copied to ${targetVault}:${targetEnv}`)
+    copyingSecretEnv.value = null
     await loadDiff()
   } catch (error) {
     console.error('Failed to copy secret:', error)

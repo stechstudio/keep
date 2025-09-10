@@ -46,7 +46,7 @@ class InfoCommand extends BaseCommand
             rows: [
                 ['App Name', $settings['app_name']],
                 ['Namespace', $settings['namespace']],
-                ['Stages', implode(', ', $settings['stages'])],
+                ['Environments', implode(', ', $settings['envs'])],
                 ['Default Vault', $settings['default_vault'] ?? 'None'],
             ]
         );

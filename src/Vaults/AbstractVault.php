@@ -15,7 +15,7 @@ abstract class AbstractVault
 
     public const string NAME = '';
 
-    public function __construct(protected string $name, protected array $config, protected string $stage) {}
+    public function __construct(protected string $name, protected array $config, protected string $env) {}
 
     public function name(): string
     {
@@ -27,9 +27,9 @@ abstract class AbstractVault
         return Str::slug($this->name());
     }
 
-    public function stage(): string
+    public function env(): string
     {
-        return $this->stage;
+        return $this->env;
     }
 
     abstract public function list(): SecretCollection;

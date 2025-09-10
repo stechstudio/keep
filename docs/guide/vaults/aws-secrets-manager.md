@@ -38,7 +38,7 @@ You'll be prompted for:
 
 ## IAM Permission Scenarios
 
-Keep uses **tag-based permissions** for Secrets Manager to provide fine-grained access control. All secrets are tagged with `ManagedBy=Keep`, `Namespace={namespace}`, `Stage={stage}`, and `VaultSlug={vault}` for precise permission boundaries.
+Keep uses **tag-based permissions** for Secrets Manager to provide fine-grained access control. All secrets are tagged with `ManagedBy=Keep`, `Namespace={namespace}`, `Env={env}`, and `VaultSlug={vault}` for precise permission boundaries.
 
 ### Full Developer Access
 
@@ -251,7 +251,7 @@ Keep organizes secrets using simple path-style naming for duplicate avoidance, w
 **Tags for Organization:**
 - `ManagedBy: Keep`
 - `Namespace: myapp`
-- `Stage: local|staging|production`
+- `Environment: local|staging|production`
 - `VaultSlug: secretsmanager`
 
 ## Security Best Practices
@@ -285,13 +285,13 @@ Keep organizes secrets using simple path-style naming for duplicate avoidance, w
 ### Basic Secret Management
 ```bash
 # Set a production database password
-keep set DB_PASSWORD --stage=production
+keep set DB_PASSWORD --env=production
 
 # Retrieve for verification
-keep get DB_PASSWORD --stage=production
+keep get DB_PASSWORD --env=production
 
 # Export for deployment
-keep export --stage=production --output=.env
+keep export --env=production --output=.env
 ```
 
 ### Cross-Environment Workflows
@@ -300,13 +300,13 @@ keep export --stage=production --output=.env
 keep copy DB_PASSWORD --from=staging --to=production
 
 # Compare environments
-keep diff --stage=staging,production
+keep diff --env=staging,production
 ```
 
 ### Template-Based Deployment
 ```bash
 # Use secrets in templates
-keep export --template=env.template --stage=production --output=.env
+keep export --template=env.template --env=production --output=.env
 ```
 
 ## Advanced Features
@@ -316,7 +316,7 @@ Secrets Manager supports automatic cross-region replication for disaster recover
 
 ```bash
 # Secrets automatically replicated across regions when configured
-keep get DB_PASSWORD --stage=production
+keep get DB_PASSWORD --env=production
 ```
 
 ### Automatic Rotation

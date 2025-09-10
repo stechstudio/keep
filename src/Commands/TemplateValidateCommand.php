@@ -19,7 +19,7 @@ class TemplateValidateCommand extends BaseCommand
     use GathersInput;
 
     protected $signature = 'template:validate {template? : Path to template file} 
-        {--stage= : Stage to validate against} 
+        {--env= : Environment to validate against} 
         {--vault= : Vault to validate against}';
 
     protected $description = 'Validate template files for correct placeholder syntax and available secrets';
@@ -56,10 +56,10 @@ class TemplateValidateCommand extends BaseCommand
 
         // Get validation context
         $vaultName = $this->vaultName();
-        $stage = $this->stage();
+        $env = $this->env();
 
         info("Validating template: {$templatePath}");
-        info("Target environment: {$vaultName}:{$stage}");
+        info("Target environment: {$vaultName}:{$env}");
 
         // Parse template and extract placeholders
         $placeholders = $template->placeholders();
@@ -67,7 +67,7 @@ class TemplateValidateCommand extends BaseCommand
         if ($placeholders->isEmpty()) {
             info('✅ Template contains no placeholders to validate');
             // Still check for unused secrets even with no placeholders
-            $this->checkUnusedSecrets($placeholders, $vaultName, $stage);
+            $this->checkUnusedSecrets($placeholders, $vaultName, $env);
             info('✅ Template validation successful');
 
             return self::SUCCESS;
@@ -76,14 +76,14 @@ class TemplateValidateCommand extends BaseCommand
         info('Found '.$placeholders->count().' placeholder(s) to validate');
 
         // Validate all placeholders
-        $validationResults = $placeholders->validate($vaultName, $stage);
+        $validationResults = $placeholders->validate($vaultName, $env);
         $hasErrors = $validationResults->contains(fn (PlaceholderValidationResult $result) => ! $result->valid);
 
         // Display validation results
         $this->displayValidationResults($validationResults);
 
         // Check for unused secrets (secrets that exist but aren't referenced)
-        $this->checkUnusedSecrets($placeholders, $vaultName, $stage);
+        $this->checkUnusedSecrets($placeholders, $vaultName, $env);
 
         if ($hasErrors) {
             error('❌ Template validation failed');
@@ -128,10 +128,10 @@ class TemplateValidateCommand extends BaseCommand
     /**
      * Check for unused secrets (secrets that exist but aren't referenced in template)
      */
-    protected function checkUnusedSecrets(PlaceholderCollection $placeholders, string $vaultName, string $stage): void
+    protected function checkUnusedSecrets(PlaceholderCollection $placeholders, string $vaultName, string $env): void
     {
         try {
-            $vault = Keep::vault($vaultName, $stage);
+            $vault = Keep::vault($vaultName, $env);
             $allSecrets = $vault->list();
 
             // Extract referenced keys from placeholders for this vault
@@ -146,12 +146,12 @@ class TemplateValidateCommand extends BaseCommand
             }
 
             if (! empty($unusedSecrets)) {
-                warning('Found '.count($unusedSecrets)." unused secret(s) in {$vaultName}:{$stage}:");
+                warning('Found '.count($unusedSecrets)." unused secret(s) in {$vaultName}:{$env}:");
                 foreach ($unusedSecrets as $key) {
                     $this->line("  • {$key}");
                 }
             } else {
-                info("✅ All secrets in {$vaultName}:{$stage} are referenced in the template");
+                info("✅ All secrets in {$vaultName}:{$env} are referenced in the template");
             }
 
         } catch (\Exception $e) {

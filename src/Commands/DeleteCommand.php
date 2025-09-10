@@ -11,9 +11,9 @@ class DeleteCommand extends BaseCommand
         {key? : The secret key}
         {--force : Skip confirmation prompt} 
         {--vault= : The vault to use}
-        {--stage= : The stage to use}';
+        {--env= : The environment to use}';
 
-    public $description = 'Delete a stage secret from a specified vault';
+    public $description = 'Delete an environment secret from a specified vault';
 
     public function process()
     {
@@ -27,8 +27,8 @@ class DeleteCommand extends BaseCommand
         // Show secret details
         $this->newLine();
         $this->line('Secret to be deleted:');
-        table(['Key', 'Stage', 'Vault'], [
-            [$secret->key(), $context->stage, $context->vault],
+        table(['Key', 'Environment', 'Vault'], [
+            [$secret->key(), $context->env, $context->vault],
         ]);
 
         // Confirmation prompt (unless --force is used)
@@ -53,7 +53,7 @@ class DeleteCommand extends BaseCommand
         $this->success(sprintf('Secret [<secret-name>%s</secret-name>] has been permanently deleted from <context>%s:%s</context>.',
             $key,
             $context->vault,
-            $context->stage
+            $context->env
         ));
     }
 }

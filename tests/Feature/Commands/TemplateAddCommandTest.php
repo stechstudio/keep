@@ -21,7 +21,7 @@ beforeEach(function() {
         'app_name' => 'test-app',
         'namespace' => 'test-app',
         'default_vault' => 'test-vault',
-        'stages' => ['local', 'development', 'production'],
+        'envs' => ['local', 'development', 'production'],
         'created_at' => date('c'),
         'updated_at' => date('c'),
         'version' => '1.0',
@@ -36,7 +36,7 @@ beforeEach(function() {
         'app_name' => 'test-app',
         'namespace' => 'test-app',
         'default_vault' => 'test-vault',
-        'stages' => ['local', 'development', 'production'],
+        'envs' => ['local', 'development', 'production'],
     ], [
         'test-vault' => [
             'slug' => 'test-vault',
@@ -111,9 +111,9 @@ function deleteDirectory($dir) {
     rmdir($dir);
 }
 
-test('template:add creates template for stage', function() {
+test('template:add creates template for env', function() {
     $commandTester = runCommand('template:add', [
-        '--stage' => 'local',
+        '--env' => 'local',
         '--path' => $this->tempDir,
         '--no-interaction' => true,
     ]);
@@ -128,7 +128,7 @@ test('template:add creates template for stage', function() {
     $content = file_get_contents($this->tempDir . '/local.env');
     
     // Check for header
-    expect($content)->toContain('# Keep Template - Stage: local');
+    expect($content)->toContain('# Keep Template - Environment: local');
     
     // Check for test-vault secrets
     expect($content)->toContain('# ===== Vault: test-vault =====');
@@ -151,7 +151,7 @@ test('template:add fails if template already exists', function() {
     file_put_contents($this->tempDir . '/local.env', 'EXISTING=template');
     
     $commandTester = runCommand('template:add', [
-        '--stage' => 'local',
+        '--env' => 'local',
         '--path' => $this->tempDir,
         '--no-interaction' => true,
     ]);
@@ -160,7 +160,7 @@ test('template:add fails if template already exists', function() {
     expect($commandTester->getStatusCode())->toBe(1);
     
     // Check error message
-    expect($commandTester->getDisplay())->toContain("Template already exists for stage 'local': local.env");
+    expect($commandTester->getDisplay())->toContain("Template already exists for environment 'local': local.env");
 });
 
 test('template:add with no secrets', function() {
@@ -172,7 +172,7 @@ test('template:add with no secrets', function() {
     Keep::vault('second-vault', 'local')->delete('mail-password');
     
     $commandTester = runCommand('template:add', [
-        '--stage' => 'local',
+        '--env' => 'local',
         '--path' => $this->tempDir,
         '--no-interaction' => true,
     ]);
@@ -181,12 +181,12 @@ test('template:add with no secrets', function() {
     expect($commandTester->getStatusCode())->toBe(1);
     
     // Check error message
-    expect($commandTester->getDisplay())->toContain("No secrets found for stage 'local'");
+    expect($commandTester->getDisplay())->toContain("No secrets found for environment 'local'");
 });
 
 test('template:add shows preview and next steps', function() {
     $commandTester = runCommand('template:add', [
-        '--stage' => 'local',
+        '--env' => 'local',
         '--path' => $this->tempDir,
         '--no-interaction' => true,
     ]);
@@ -195,12 +195,12 @@ test('template:add shows preview and next steps', function() {
     
     // Check for preview
     expect($output)->toContain('Template preview:');
-    expect($output)->toContain('# Keep Template - Stage: local');
+    expect($output)->toContain('# Keep Template - Environment: local');
     expect($output)->toContain('DB_PASSWORD={test-vault:db-password}');
     
     // Check for next steps
     expect($output)->toContain('Next steps:');
     expect($output)->toContain('Review and customize the generated template');
-    expect($output)->toContain('Test with: keep template:validate local.env --stage=local');
-    expect($output)->toContain('Export with: keep export --template=local.env --stage=local');
+    expect($output)->toContain('Test with: keep template:validate local.env --env=local');
+    expect($output)->toContain('Export with: keep export --template=local.env --env=local');
 });

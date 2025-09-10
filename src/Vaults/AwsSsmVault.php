@@ -39,7 +39,7 @@ class AwsSsmVault extends AbstractVault
             'scope' => new TextPrompt(
                 label: 'Scope (optional)',
                 default: $existingSettings['scope'] ?? '',
-                hint: 'Optional scope to isolate secrets within namespace (e.g., "app2" for /namespace/app2/stage/key)'
+                hint: 'Optional scope to isolate secrets within namespace (e.g., "app2" for /namespace/app2/env/key)'
             ),
             'key' => new TextPrompt(
                 label: 'KMS Key ID (optional)',
@@ -54,7 +54,7 @@ class AwsSsmVault extends AbstractVault
         return Str::of('/')
             ->when(Keep::getNamespace(), fn($str) => $str->append(Keep::getNamespace().'/'))
             ->when(trim($this->config['scope'] ?? '', '/'), fn($str, $scope) => $str->append($scope.'/'))
-            ->append($this->stage.'/')
+            ->append($this->env.'/')
             ->append($key)
             ->rtrim('/')
             ->toString();
@@ -96,7 +96,7 @@ class AwsSsmVault extends AbstractVault
                         value: $parameter['Value'] ?? null,
                         encryptedValue: null,
                         secure: ($parameter['Type'] ?? 'String') === 'SecureString',
-                        stage: $this->stage,
+                        env: $this->env,
                         revision: $parameter['Version'] ?? 0,
                         path: $parameter['Name'],
                         vault: $this,
@@ -149,7 +149,7 @@ class AwsSsmVault extends AbstractVault
                 value: $parameter['Value'] ?? null,
                 encryptedValue: null,
                 secure: ($parameter['Type'] ?? 'String') === 'SecureString',
-                stage: $this->stage,
+                env: $this->env,
                 revision: $parameter['Version'] ?? 0,
                 path: $parameter['Name'],
                 vault: $this,

@@ -13,7 +13,7 @@ describe('DeleteCommand', function () {
             'app_name' => 'test-app',
             'namespace' => 'test-app',
             'default_vault' => 'test',
-            'stages' => ['testing', 'production'],
+            'envs' => ['testing', 'production'],
             'created_at' => date('c'),
             'version' => '1.0',
         ];
@@ -35,7 +35,7 @@ describe('DeleteCommand', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--force' => true,
             ]);
 
@@ -49,7 +49,7 @@ describe('DeleteCommand', function () {
             // Try to run delete command without key
             $commandTester = runCommand('delete', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--force' => true,
             ]);
 
@@ -65,14 +65,14 @@ describe('DeleteCommand', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--force' => true,
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
             // Should accept vault/stage parameters without validation error
-            expect($output)->not->toMatch('/(invalid.*vault|invalid.*stage)/i');
+            expect($output)->not->toMatch('/(invalid.*env)/i');
         });
     });
 
@@ -81,7 +81,7 @@ describe('DeleteCommand', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'NONEXISTENT_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--force' => true,
             ]);
 
@@ -95,7 +95,7 @@ describe('DeleteCommand', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'CONNECTION_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--force' => true,
             ]);
 
@@ -106,18 +106,18 @@ describe('DeleteCommand', function () {
             expect($output)->not->toMatch('/Fatal error|Uncaught/');
         });
 
-        it('validates stage parameters exist in configuration', function () {
+        it('validates environment parameters exist in configuration', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'STAGE_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing', // Valid stage from our config
+                '--env' => 'testing', // Valid env from our config
                 '--force' => true,
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should accept valid stages without validation error
-            expect($output)->not->toMatch('/invalid.*stage/i');
+            // Should accept valid environments without validation error
+            expect($output)->not->toMatch('/invalid.*env/i');
         });
     });
 
@@ -126,7 +126,7 @@ describe('DeleteCommand', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'FORCE_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--force' => true,
             ]);
 
@@ -140,7 +140,7 @@ describe('DeleteCommand', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'MESSAGE_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--force' => true,
             ]);
 
@@ -151,12 +151,12 @@ describe('DeleteCommand', function () {
         });
     });
 
-    describe('stage and vault handling', function () {
+    describe('env and vault handling', function () {
         it('uses specified vault parameter', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'VAULT_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--force' => true,
             ]);
 
@@ -166,32 +166,32 @@ describe('DeleteCommand', function () {
             expect($output)->not->toMatch('/invalid.*vault/i');
         });
 
-        it('uses specified stage parameter', function () {
+        it('uses specified env parameter', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'STAGE_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--force' => true,
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should handle stage parameter without error
-            expect($output)->not->toMatch('/invalid.*stage/i');
+            // Should handle environment parameter without error
+            expect($output)->not->toMatch('/invalid.*env/i');
         });
 
-        it('handles production stage parameter', function () {
+        it('handles production env parameter', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'PROD_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'production', // Valid stage from our config
+                '--env' => 'production', // Valid env from our config
                 '--force' => true,
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should handle production stage without error
-            expect($output)->not->toMatch('/invalid.*stage/i');
+            // Should handle production environment without error
+            expect($output)->not->toMatch('/invalid.*env/i');
         });
     });
 
@@ -200,7 +200,7 @@ describe('DeleteCommand', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'DETAILS_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--force' => true,
             ]);
 
@@ -214,7 +214,7 @@ describe('DeleteCommand', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'TABLE_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--force' => true,
             ]);
 
@@ -230,7 +230,7 @@ describe('DeleteCommand', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'KEY_WITH_SPECIAL-CHARS.123',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--force' => true,
             ]);
 
@@ -245,7 +245,7 @@ describe('DeleteCommand', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'CANCEL_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 // Note: no --force flag, so would normally prompt
             ]);
 
@@ -259,7 +259,7 @@ describe('DeleteCommand', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'CONTEXT_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--force' => true,
             ]);
 
@@ -275,7 +275,7 @@ describe('DeleteCommand', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'VERIFY_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--force' => true,
             ]);
 
@@ -288,7 +288,7 @@ describe('DeleteCommand', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'COMPLETION_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--force' => true,
             ]);
 

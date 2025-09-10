@@ -6,7 +6,7 @@ use Exception;
 use Illuminate\Support\Str;
 use STS\Keep\Data\Collections\PermissionsCollection;
 use STS\Keep\Data\Context;
-use STS\Keep\Data\VaultStagePermissions;
+use STS\Keep\Data\VaultEnvPermissions;
 use STS\Keep\Facades\Keep;
 
 use function Laravel\Prompts\spin;
@@ -15,9 +15,9 @@ use function Laravel\Prompts\table;
 class VerifyCommand extends BaseCommand
 {
     public $signature = 'verify 
-        {--context= : Comma-separated list of contexts to verify (e.g., "vault1:stage1,vault2:stage2")}
+        {--context= : Comma-separated list of contexts to verify (e.g., "vault1:env1,vault2:env2")}
         {--vault= : Test only this vault} 
-        {--stage= : Test only this stage}';
+        {--env= : Test only this environment}';
 
     public $description = 'Verify vault access permissions for reading, writing, listing, and deleting secrets';
 
@@ -29,9 +29,9 @@ class VerifyCommand extends BaseCommand
             if ($this->option('context')) {
                 $contexts = $this->parseContexts();
                 $vaults = array_unique(array_map(fn($c) => $c->vault, $contexts));
-                $stages = array_unique(array_map(fn($c) => $c->stage, $contexts));
+                $envs = array_unique(array_map(fn($c) => $c->env, $contexts));
                 
-                return $this->testBulkPermissions($vaults, $stages);
+                return $this->testBulkPermissions($vaults, $envs);
             }
 
             // Otherwise use existing logic
@@ -40,28 +40,28 @@ class VerifyCommand extends BaseCommand
                 ? [$this->option('vault')] 
                 : Keep::getAllConfiguredVaults()->keys()->toArray();
                 
-            $stages = $this->option('stage') 
-                ? [$this->option('stage')] 
-                : Keep::getAllStages();
+            $envs = $this->option('env') 
+                ? [$this->option('env')] 
+                : Keep::getAllEnvs();
             
-            return $this->testBulkPermissions($vaults, $stages);
+            return $this->testBulkPermissions($vaults, $envs);
         }, 'Checking vault access permissions...');
 
         $this->displayResults($collection->toDisplayArray());
     }
 
-    protected function testBulkPermissions(array $vaultNames, array $stages): PermissionsCollection
+    protected function testBulkPermissions(array $vaultNames, array $envs): PermissionsCollection
     {
         $collection = new PermissionsCollection();
         
         foreach ($vaultNames as $vaultName) {
-            foreach ($stages as $stage) {
+            foreach ($envs as $env) {
                 try {
-                    $vault = Keep::vault($vaultName, $stage);
+                    $vault = Keep::vault($vaultName, $env);
                     $results = $vault->testPermissions();
-                    $permission = VaultStagePermissions::fromTestResults($vaultName, $stage, $results);
+                    $permission = VaultEnvPermissions::fromTestResults($vaultName, $env, $results);
                 } catch (Exception $e) {
-                    $permission = VaultStagePermissions::fromError($vaultName, $stage, $e->getMessage());
+                    $permission = VaultEnvPermissions::fromError($vaultName, $env, $e->getMessage());
                 }
                 
                 $collection->addPermission($permission);
@@ -80,7 +80,7 @@ class VerifyCommand extends BaseCommand
         foreach ($results as $result) {
             $rows[] = [
                 $result['vault'],
-                $result['stage'],
+                $result['env'],
                 $this->formatResult($result['list']),
                 $this->formatResult($result['write']),
                 $this->formatResult($result['read']),
@@ -90,7 +90,7 @@ class VerifyCommand extends BaseCommand
         }
 
         table(
-            ['Vault', 'Stage', 'List', 'Write', 'Read', 'History', 'Delete'],
+            ['Vault', 'Environment', 'List', 'Write', 'Read', 'History', 'Delete'],
             $rows
         );
 
@@ -126,7 +126,7 @@ class VerifyCommand extends BaseCommand
         $cleanupIssues = collect($results)->filter(fn ($r) => $r['write'] && ! $r['cleanup'])->count();
 
         $this->info('Summary:');
-        $this->line("• Total vault/stage combinations tested: {$totalCombinations}");
+        $this->line("• Total vault/environment combinations tested: {$totalCombinations}");
         $this->line("• <fg=green>Full access</> (list + write + read + history): {$fullAccess}");
         $this->line("• <fg=blue>Read + History access</> (list + read + history): {$readHistoryOnly}");
         $this->line("• <fg=blue>Read-only access</> (list + read): {$readOnly}");
@@ -162,9 +162,9 @@ class VerifyCommand extends BaseCommand
                 continue;
             }
 
-            // Validate stage exists
-            if (! in_array($context->stage, Keep::getAllStages())) {
-                $this->warn("Warning: Unknown stage '{$context->stage}' - skipping context '{$input}'");
+            // Validate environment exists
+            if (! in_array($context->env, Keep::getAllEnvs())) {
+                $this->warn("Warning: Unknown environment '{$context->env}' - skipping context '{$input}'");
 
                 continue;
             }

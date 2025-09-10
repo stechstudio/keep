@@ -16,7 +16,7 @@ describe('TemplateValidateCommand', function () {
             'app_name' => 'test-app',
             'namespace' => 'test-app',
             'default_vault' => 'test',
-            'stages' => ['testing', 'production'],
+            'envs' => ['testing', 'production'],
             'created_at' => date('c'),
             'version' => '1.0',
         ];
@@ -42,7 +42,7 @@ describe('TemplateValidateCommand', function () {
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--vault' => 'test',
             ]);
 
@@ -54,13 +54,13 @@ describe('TemplateValidateCommand', function () {
             expect($output)->toContain($templatePath);
         });
 
-        it('accepts stage and vault options', function () {
+        it('accepts environment and vault options', function () {
             $templatePath = 'test-template.env';
             file_put_contents($templatePath, "DB_PASSWORD={test:DB_PASSWORD}\n");
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
-                '--stage' => 'production',
+                '--env' => 'production',
                 '--vault' => 'test',
             ]);
 
@@ -76,7 +76,7 @@ describe('TemplateValidateCommand', function () {
         it('shows error for non-existent template file', function () {
             $commandTester = runCommand('template:validate', [
                 'template' => 'non-existent-template.env',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--vault' => 'test',
             ]);
 
@@ -93,7 +93,7 @@ describe('TemplateValidateCommand', function () {
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--vault' => 'test',
             ]);
 
@@ -112,7 +112,7 @@ describe('TemplateValidateCommand', function () {
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--vault' => 'test',
             ]);
 
@@ -130,7 +130,7 @@ describe('TemplateValidateCommand', function () {
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--vault' => 'test',
             ]);
 
@@ -146,7 +146,7 @@ describe('TemplateValidateCommand', function () {
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--vault' => 'test',
             ]);
 
@@ -164,7 +164,7 @@ describe('TemplateValidateCommand', function () {
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--vault' => 'test',
             ]);
 
@@ -184,7 +184,7 @@ describe('TemplateValidateCommand', function () {
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--vault' => 'test',
             ]);
 
@@ -202,7 +202,7 @@ describe('TemplateValidateCommand', function () {
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--vault' => 'test',
             ]);
 
@@ -221,7 +221,7 @@ describe('TemplateValidateCommand', function () {
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--vault' => 'test',
             ]);
 
@@ -238,7 +238,7 @@ describe('TemplateValidateCommand', function () {
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--vault' => 'test',
             ]);
 
@@ -258,7 +258,7 @@ describe('TemplateValidateCommand', function () {
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--vault' => 'test',
             ]);
 
@@ -278,7 +278,7 @@ describe('TemplateValidateCommand', function () {
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--vault' => 'test',
             ]);
 
@@ -295,7 +295,7 @@ describe('TemplateValidateCommand', function () {
             $setCommand = runCommand('set', [
                 'key' => 'VALID_SECRET',
                 'value' => 'value1',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--vault' => 'test',
             ]);
             expect($setCommand->getStatusCode())->toBe(0);
@@ -306,7 +306,7 @@ describe('TemplateValidateCommand', function () {
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--vault' => 'test',
             ]);
 
@@ -326,7 +326,7 @@ describe('TemplateValidateCommand', function () {
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--vault' => 'test',
             ]);
 
@@ -349,7 +349,7 @@ describe('TemplateValidateCommand', function () {
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--vault' => 'test',
             ]);
 
@@ -386,7 +386,7 @@ EOT;
 
             $commandTester = runCommand('template:validate', [
                 'template' => $templatePath,
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--vault' => 'test',
             ]);
 

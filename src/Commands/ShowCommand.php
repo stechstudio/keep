@@ -12,9 +12,9 @@ class ShowCommand extends BaseCommand
         {--only= : Only include keys matching this pattern (e.g. DB_*)} 
         {--except= : Exclude keys matching this pattern (e.g. MAIL_*)}
         {--vault= : The vault to use}
-        {--stage= : The stage to use}';
+        {--env= : The environment to use}';
 
-    public $description = 'Show all secrets from a vault and stage';
+    public $description = 'Show all secrets from a vault and environment';
 
     public function process()
     {

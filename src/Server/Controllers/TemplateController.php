@@ -31,12 +31,12 @@ class TemplateController extends ApiController
     {
         $templates = $this->templateService->scanTemplates();
         
-        // Add friendly stage names
+        // Add friendly environment names
         $settings = Settings::load();
-        $stages = $settings ? $settings->stages() : [];
+        $envs = $settings ? $settings->envs() : [];
         
         foreach ($templates as &$template) {
-            $template['stageDisplay'] = $this->getStageDisplay($template['stage'], $stages);
+            $template['envDisplay'] = $this->getEnvDisplay($template['env'], $envs);
         }
         
         return $this->success([
@@ -59,13 +59,13 @@ class TemplateController extends ApiController
         $template = $this->templateService->loadTemplate($filename);
         $placeholders = $template->placeholders();
         
-        // Extract stage from filename
-        $stage = $this->extractStageFromFilename($filename);
+        // Extract env from filename
+        $env = $this->extractEnvFromFilename($filename);
         
         return $this->success([
             'filename' => $filename,
             'content' => $template->contents(),
-            'stage' => $stage,
+            'env' => $env,
             'placeholders' => $placeholders->toArray(),
         ]);
     }
@@ -86,15 +86,15 @@ class TemplateController extends ApiController
             return $this->error('Content is required');
         }
         
-        // Extract stage from filename
-        $stage = $this->extractStageFromFilename($filename);
+        // Extract env from filename
+        $env = $this->extractEnvFromFilename($filename);
         
-        if (!$stage) {
-            return $this->error('Could not determine stage from filename');
+        if (!$env) {
+            return $this->error('Could not determine environment from filename');
         }
         
         // Save the template
-        $filepath = $this->templateService->saveTemplate($stage, $content);
+        $filepath = $this->templateService->saveTemplate($env, $content);
         
         return $this->success([
             'message' => 'Template saved successfully',
@@ -108,20 +108,20 @@ class TemplateController extends ApiController
     public function generate(): array
     {
         $data = $this->body;
-        $stage = $data['stage'] ?? null;
+        $env = $data['env'] ?? null;
         $vaults = $data['vaults'] ?? [];
         $filename = $data['filename'] ?? null;
         
-        if (!$stage) {
-            return $this->error('Stage is required');
+        if (!$env) {
+            return $this->error('Environment is required');
         }
         
         // Generate template content
-        $content = $this->templateService->generateTemplate($stage, $vaults);
+        $content = $this->templateService->generateTemplate($env, $vaults);
         
         // If filename provided, save it
         if ($filename) {
-            $filepath = $this->templateService->saveTemplate($stage, $content);
+            $filepath = $this->templateService->saveTemplate($env, $content);
             
             return $this->success([
                 'content' => $content,
@@ -133,13 +133,13 @@ class TemplateController extends ApiController
         
         return $this->success([
             'content' => $content,
-            'filename' => $this->templateService->getTemplateFilename($stage),
+            'filename' => $this->templateService->getTemplateFilename($env),
             'message' => 'Template generated successfully',
         ]);
     }
     
     /**
-     * POST /api/templates/validate - Validate template against stage
+     * POST /api/templates/validate - Validate template against env
      */
     public function validate(): array
     {
@@ -150,11 +150,11 @@ class TemplateController extends ApiController
         }
         
         $template = $templateData['template'];
-        $stage = $templateData['stage'];
+        $env = $templateData['env'];
         
         // Extract placeholders and validate
         $placeholders = $template->placeholders();
-        $validationResults = $placeholders->validate(null, $stage);
+        $validationResults = $placeholders->validate(null, $env);
         
         // Process validation results
         $errors = [];
@@ -177,7 +177,7 @@ class TemplateController extends ApiController
         $allVaults = array_unique(array_filter($placeholders->map->vault->toArray()));
         foreach ($allVaults as $vaultName) {
             try {
-                $vault = Keep::vault($vaultName, $stage);
+                $vault = Keep::vault($vaultName, $env);
                 $allSecrets = $vault->list();
                 $referencedKeys = $placeholders->getReferencedKeysForVault($vaultName, $vaultName);
                 
@@ -218,7 +218,7 @@ class TemplateController extends ApiController
         }
         
         $template = $templateData['template'];
-        $stage = $templateData['stage'];
+        $env = $templateData['env'];
         $strategy = $this->body['strategy'] ?? 'skip';
         
         // Get missing secret strategy
@@ -227,13 +227,13 @@ class TemplateController extends ApiController
         // Discover vaults and load secrets
         $placeholders = $template->placeholders();
         $vaultNames = array_unique(array_filter($placeholders->map->vault->toArray()));
-        $allSecrets = SecretCollection::loadFromVaults($vaultNames, $stage);
+        $allSecrets = SecretCollection::loadFromVaults($vaultNames, $env);
         
         // Process the template
         $processedContent = $template->merge($allSecrets, $missingStrategy);
         
         // Also run validation to provide feedback
-        $validationResults = $placeholders->validate(null, $stage);
+        $validationResults = $placeholders->validate(null, $env);
         
         return $this->success([
             'output' => $processedContent,
@@ -250,10 +250,10 @@ class TemplateController extends ApiController
      */
     public function placeholders(): array
     {
-        $stage = $this->query['stage'] ?? null;
+        $env = $this->query['env'] ?? null;
         
-        if (!$stage) {
-            return $this->error('Stage is required');
+        if (!$env) {
+            return $this->error('Environment is required');
         }
         
         $placeholders = [];
@@ -263,7 +263,7 @@ class TemplateController extends ApiController
         
         foreach ($configuredVaults as $vaultName => $config) {
             try {
-                $vault = Keep::vault($vaultName, $stage);
+                $vault = Keep::vault($vaultName, $env);
                 $secrets = $vault->list();
                 
                 foreach ($secrets as $secret) {
@@ -292,23 +292,23 @@ class TemplateController extends ApiController
     public function create(): array
     {
         $data = $this->body;
-        $stage = $data['stage'] ?? null;
+        $env = $data['env'] ?? null;
         $vaults = $data['vaults'] ?? [];
         
-        if (!$stage) {
-            return $this->error('Stage is required');
+        if (!$env) {
+            return $this->error('Environment is required');
         }
         
         // Check if template already exists
-        if ($this->templateService->templateExists($stage)) {
-            $filename = $this->templateService->getTemplateFilename($stage);
-            return $this->error("Template already exists for stage '{$stage}': {$filename}");
+        if ($this->templateService->templateExists($env)) {
+            $filename = $this->templateService->getTemplateFilename($env);
+            return $this->error("Template already exists for environment '{$env}': {$filename}");
         }
         
         // Generate and save template
-        $content = $this->templateService->generateTemplate($stage, $vaults);
-        $filepath = $this->templateService->saveTemplate($stage, $content);
-        $filename = $this->templateService->getTemplateFilename($stage);
+        $content = $this->templateService->generateTemplate($env, $vaults);
+        $filepath = $this->templateService->saveTemplate($env, $content);
+        $filename = $this->templateService->getTemplateFilename($env);
         
         return $this->success([
             'content' => $content,
@@ -350,15 +350,15 @@ class TemplateController extends ApiController
     private function loadTemplateFromRequest(array $data): array
     {
         $content = $data['content'] ?? '';
-        $stage = $data['stage'] ?? null;
+        $env = $data['env'] ?? null;
         $filename = $data['filename'] ?? null;
         
         if (!$content && !$filename) {
             return ['error' => 'Either content or filename is required'];
         }
         
-        if (!$stage) {
-            return ['error' => 'Stage is required'];
+        if (!$env) {
+            return ['error' => 'Env is required'];
         }
         
         // Load template from file if filename provided
@@ -370,16 +370,16 @@ class TemplateController extends ApiController
         
         return [
             'template' => $template,
-            'stage' => $stage,
+            'env' => $env,
             'content' => $content,
             'filename' => $filename,
         ];
     }
     
     /**
-     * Extract stage from template filename
+     * Extract env from template filename
      */
-    private function extractStageFromFilename(string $filename): ?string
+    private function extractEnvFromFilename(string $filename): ?string
     {
         if (preg_match('/^([^.]+)\.env$/', $filename, $matches)) {
             return $matches[1];
@@ -389,13 +389,13 @@ class TemplateController extends ApiController
     }
     
     /**
-     * Get friendly display name for stage
+     * Get friendly display name for env
      */
-    private function getStageDisplay(string $stage, array $availableStages): string
+    private function getEnvDisplay(string $env, array $availableEnvs): string
     {
         // Direct match
-        if (in_array($stage, $availableStages)) {
-            return $stage;
+        if (in_array($env, $availableEnvs)) {
+            return $env;
         }
         
         // Common abbreviations
@@ -406,10 +406,10 @@ class TemplateController extends ApiController
             'stage' => 'staging',
         ];
         
-        if (isset($mappings[$stage]) && in_array($mappings[$stage], $availableStages)) {
-            return $mappings[$stage];
+        if (isset($mappings[$env]) && in_array($mappings[$env], $availableEnvs)) {
+            return $mappings[$env];
         }
         
-        return $stage;
+        return $env;
     }
 }

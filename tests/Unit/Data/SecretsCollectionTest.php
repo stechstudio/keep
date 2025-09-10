@@ -455,7 +455,7 @@ describe('SecretsCollection', function () {
             $first = $filtered->first();
             expect($first)->toHaveKeys(['key', 'value']);
             expect($first)->not->toHaveKey('secure');
-            expect($first)->not->toHaveKey('stage');
+            expect($first)->not->toHaveKey('env');
         });
 
         it('returns empty attributes when given empty array', function () {

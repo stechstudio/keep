@@ -46,7 +46,7 @@ class ArgumentProcessor
         'show' => [
             'flags' => ['unmask'],
         ],
-        'stage:add' => [
+        'env:add' => [
             'arguments' => ['name'],
         ],
     ];

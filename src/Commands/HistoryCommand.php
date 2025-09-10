@@ -20,7 +20,7 @@ class HistoryCommand extends BaseCommand
         {--since= : Filter entries since this date (e.g., "7 days ago", "2024-01-01")}
         {--before= : Filter entries before this date (e.g., "2024-12-31")} 
         {--vault= : The vault to use}
-        {--stage= : The stage to use}
+        {--env= : The environment to use}
         {--unmask : Show full secret values instead of masked values}';
 
     public $description = 'Display change history for a secret';

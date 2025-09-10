@@ -6,11 +6,11 @@ export function useSecrets() {
   const loading = ref(false)
   const error = ref(null)
 
-  async function loadSecrets(vault, stage, unmask = false) {
+  async function loadSecrets(vault, env, unmask = false) {
     loading.value = true
     error.value = null
     try {
-      const response = await api.listSecrets(vault, stage, unmask)
+      const response = await api.listSecrets(vault, env, unmask)
       secrets.value = response.secrets
       return secrets.value
     } catch (err) {
@@ -22,11 +22,11 @@ export function useSecrets() {
     }
   }
 
-  async function createSecret(key, value, vault, stage) {
+  async function createSecret(key, value, vault, env) {
     loading.value = true
     error.value = null
     try {
-      const response = await api.createSecret(key, value, vault, stage)
+      const response = await api.createSecret(key, value, vault, env)
       // Don't call loadSecrets here - let the component handle refresh
       return response
     } catch (err) {
@@ -37,11 +37,11 @@ export function useSecrets() {
     }
   }
 
-  async function updateSecret(key, value, vault, stage) {
+  async function updateSecret(key, value, vault, env) {
     loading.value = true
     error.value = null
     try {
-      const response = await api.updateSecret(key, value, vault, stage)
+      const response = await api.updateSecret(key, value, vault, env)
       // Don't call loadSecrets here - let the component handle refresh
       return response
     } catch (err) {
@@ -52,11 +52,11 @@ export function useSecrets() {
     }
   }
 
-  async function deleteSecret(key, vault, stage) {
+  async function deleteSecret(key, vault, env) {
     loading.value = true
     error.value = null
     try {
-      const response = await api.deleteSecret(key, vault, stage)
+      const response = await api.deleteSecret(key, vault, env)
       // Don't call loadSecrets here - let the component handle refresh
       return response
     } catch (err) {
@@ -67,11 +67,11 @@ export function useSecrets() {
     }
   }
 
-  async function renameSecret(oldKey, newKey, vault, stage) {
+  async function renameSecret(oldKey, newKey, vault, env) {
     loading.value = true
     error.value = null
     try {
-      const response = await api.renameSecret(oldKey, newKey, vault, stage)
+      const response = await api.renameSecret(oldKey, newKey, vault, env)
       // Don't call loadSecrets here - let the component handle refresh
       return response
     } catch (err) {
@@ -82,12 +82,12 @@ export function useSecrets() {
     }
   }
 
-  async function copySecretToStage(key, targetStage, targetVault, sourceStage, sourceVault) {
+  async function copySecretToEnv(key, targetEnv, targetVault, sourceEnv, sourceVault) {
     loading.value = true
     error.value = null
     try {
-      const response = await api.copySecretToStage(
-        key, targetStage, targetVault, sourceStage, sourceVault
+      const response = await api.copySecretToEnv(
+        key, targetEnv, targetVault, sourceEnv, sourceVault
       )
       return response
     } catch (err) {
@@ -98,11 +98,11 @@ export function useSecrets() {
     }
   }
 
-  async function searchSecrets(query, vault, stage, unmask = false) {
+  async function searchSecrets(query, vault, env, unmask = false) {
     loading.value = true
     error.value = null
     try {
-      const response = await api.searchSecrets(query, vault, stage, unmask)
+      const response = await api.searchSecrets(query, vault, env, unmask)
       secrets.value = response.secrets
       return secrets.value
     } catch (err) {
@@ -114,11 +114,11 @@ export function useSecrets() {
     }
   }
 
-  async function getSecretHistory(key, vault, stage, limit = 10, unmask = false) {
+  async function getSecretHistory(key, vault, env, limit = 10, unmask = false) {
     loading.value = true
     error.value = null
     try {
-      return await api.getSecretHistory(key, vault, stage, limit, unmask)
+      return await api.getSecretHistory(key, vault, env, limit, unmask)
     } catch (err) {
       error.value = err.message
       throw err
@@ -140,7 +140,7 @@ export function useSecrets() {
     updateSecret,
     deleteSecret,
     renameSecret,
-    copySecretToStage,
+    copySecretToEnv,
     searchSecrets,
     getSecretHistory,
     clearError

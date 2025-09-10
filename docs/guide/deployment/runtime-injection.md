@@ -14,7 +14,7 @@ The `keep run` command executes subprocesses with secrets injected as environmen
 ## How It Works
 
 ```bash
-keep run --vault=<vault> --stage=<stage> -- <command> [arguments]
+keep run --vault=<vault> --env=<env> -- <command> [arguments]
 ```
 
 Keep fetches secrets from your vault, injects them as environment variables, and executes your command. The secrets exist only in memory for the duration of the process.
@@ -28,7 +28,7 @@ Laravel requires secrets only once - during configuration caching. After that, a
 # deploy.sh
 
 # Inject secrets and cache configuration (only injection needed!)
-keep run --vault=ssm --stage=production -- php artisan config:cache
+keep run --vault=ssm --env=production -- php artisan config:cache
 
 # All subsequent commands use cached config - no injection required
 php artisan migrate --force
@@ -45,7 +45,7 @@ Symfony compiles environment variables into the container during cache warmup. A
 
 ```bash
 # Inject secrets during container compilation (only injection needed!)
-keep run --vault=ssm --stage=production -- php bin/console cache:warmup --env=prod
+keep run --vault=ssm --env=production -- php bin/console cache:warmup --env=prod
 
 # All subsequent commands use compiled container - no injection required
 php bin/console doctrine:migrations:migrate --no-interaction
@@ -58,16 +58,16 @@ Once compiled, Symfony reads configuration from `var/cache/prod/` and never acce
 
 ```bash
 # Build with API keys
-keep run --vault=ssm --stage=production --only='*_API_KEY,*_TOKEN' -- npm run build
+keep run --vault=ssm --env=production --only='*_API_KEY,*_TOKEN' -- npm run build
 
 # Start server with all secrets
-keep run --vault=ssm --stage=production -- node server.js
+keep run --vault=ssm --env=production -- node server.js
 
 # Use PM2 process manager
-keep run --vault=ssm --stage=production -- pm2 start app.js
+keep run --vault=ssm --env=production -- pm2 start app.js
 
 # Template for specific secrets
-keep run --vault=ssm --stage=production --template=env/prod.env -- npm start
+keep run --vault=ssm --env=production --template=env/prod.env -- npm start
 ```
 
 Your Node.js app reads from environment variables as usual:
@@ -84,31 +84,31 @@ const config = {
 
 ```bash
 # Django migrations
-keep run --vault=ssm --stage=production -- python manage.py migrate
+keep run --vault=ssm --env=production -- python manage.py migrate
 
 # Django with Gunicorn
-keep run --vault=ssm --stage=production -- gunicorn myapp.wsgi:application
+keep run --vault=ssm --env=production -- gunicorn myapp.wsgi:application
 
 # Flask development
-keep run --vault=ssm --stage=local -- flask run
+keep run --vault=ssm --env=local -- flask run
 
 # Flask production
-keep run --vault=ssm --stage=production -- gunicorn app:app --bind 0.0.0.0:8000
+keep run --vault=ssm --env=production -- gunicorn app:app --bind 0.0.0.0:8000
 ```
 
 ## Docker Integration
 
 ```bash
-# Build with secrets (multi-stage recommended)
-keep run --vault=ssm --stage=production -- docker build \
+# Build with secrets (multi-env recommended)
+keep run --vault=ssm --env=production -- docker build \
   --build-arg NPM_TOKEN=$NPM_TOKEN -t myapp:latest .
 
 # Run container
-keep run --vault=ssm --stage=production -- docker run \
+keep run --vault=ssm --env=production -- docker run \
   -e DATABASE_URL=$DATABASE_URL myapp:latest
 
 # Docker Compose
-keep run --vault=ssm --stage=production -- docker-compose up
+keep run --vault=ssm --env=production -- docker-compose up
 ```
 
 With Docker Compose, environment variables are automatically passed through when listed without values.
@@ -117,13 +117,13 @@ With Docker Compose, environment variables are automatically passed through when
 
 ```bash
 # Generate template from existing secrets in env/production.env
-keep template:add --stage=production
+keep template:add --env=production
 
-# Auto-discover template (looks for env/{stage}.env)
-keep run --vault=ssm --stage=production --template -- npm start
+# Auto-discover template (looks for env/{env}.env)
+keep run --vault=ssm --env=production --template -- npm start
 
 # Use specific template
-keep run --vault=ssm --stage=production --template=env/prod.env -- npm start
+keep run --vault=ssm --env=production --template=env/prod.env -- npm start
 ```
 
 See [Managing Templates](./templates.md) for detailed template documentation.
@@ -134,13 +134,13 @@ Control which secrets are injected using patterns:
 
 ```bash
 # Only database secrets
-keep run --vault=ssm --stage=production --only='DB_*,DATABASE_*' -- npm run migrate
+keep run --vault=ssm --env=production --only='DB_*,DATABASE_*' -- npm run migrate
 
 # Exclude sensitive keys
-keep run --vault=ssm --stage=production --except='*_PRIVATE_KEY,*_SECRET' -- npm run build
+keep run --vault=ssm --env=production --except='*_PRIVATE_KEY,*_SECRET' -- npm run build
 
 # Multiple patterns
-keep run --vault=ssm --stage=production --only='API_*,SERVICE_*' --except='*_TEST' -- npm start
+keep run --vault=ssm --env=production --only='API_*,SERVICE_*' --except='*_TEST' -- npm start
 ```
 
 ## CI/CD Integration
@@ -149,23 +149,23 @@ keep run --vault=ssm --stage=production --only='API_*,SERVICE_*' --except='*_TES
 # GitHub Actions
 - name: Build and Deploy
   run: |
-    keep run --vault=ssm --stage=production -- npm run build
-    keep run --vault=ssm --stage=production -- npm run deploy
+    keep run --vault=ssm --env=production -- npm run build
+    keep run --vault=ssm --env=production -- npm run deploy
 
 # GitLab CI
 deploy:
   script:
-    - keep run --vault=ssm --stage=$CI_ENVIRONMENT_NAME -- ./deploy.sh
+    - keep run --vault=ssm --env=$CI_ENVIRONMENT_NAME -- ./deploy.sh
 ```
 
 ## Additional Options
 
 ```bash
 # Clean environment (no inheritance)
-keep run --vault=ssm --stage=production --no-inherit -- node server.js
+keep run --vault=ssm --env=production --no-inherit -- node server.js
 
 # Exit codes are propagated for CI/CD
-keep run --vault=ssm --stage=production -- npm test || exit 1
+keep run --vault=ssm --env=production -- npm test || exit 1
 ```
 
 ## Security Notes
@@ -179,11 +179,11 @@ keep run --vault=ssm --stage=production -- npm test || exit 1
 
 ```bash
 # Development
-keep run --vault=ssm --stage=local --template -- npm run dev
+keep run --vault=ssm --env=local --template -- npm run dev
 
 # Production deployment
-keep run --vault=ssm --stage=production --template --no-inherit -- ./deploy.sh
+keep run --vault=ssm --env=production --template --no-inherit -- ./deploy.sh
 
 # Testing with filtered secrets
-keep run --vault=ssm --stage=test --only='TEST_*,DB_*' -- npm test
+keep run --vault=ssm --env=test --only='TEST_*,DB_*' -- npm test
 ```

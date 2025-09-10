@@ -29,7 +29,7 @@ class Secret implements Arrayable
         protected ?string $value = null,
         protected ?string $encryptedValue = null,
         protected bool $secure = true,
-        protected ?string $stage = null,
+        protected ?string $env = null,
         protected null|int|string $revision = 0,
         protected ?string $path = null,
         protected ?AbstractVault $vault = null,
@@ -87,7 +87,7 @@ class Secret implements Arrayable
         ?string $value = null,
         ?string $encryptedValue = null,
         bool $secure = true,
-        ?string $stage = null,
+        ?string $env = null,
         null|int|string $revision = 0,
         ?string $path = null,
         ?AbstractVault $vault = null,
@@ -98,7 +98,7 @@ class Secret implements Arrayable
             value: $value,
             encryptedValue: $encryptedValue,
             secure: $secure,
-            stage: $stage,
+            env: $env,
             revision: $revision,
             path: $path,
             vault: $vault,
@@ -116,7 +116,7 @@ class Secret implements Arrayable
         ?string $value = null,
         ?string $encryptedValue = null,
         bool $secure = true,
-        ?string $stage = null,
+        ?string $env = null,
         null|int|string $revision = 0,
         ?string $path = null,
         ?AbstractVault $vault = null,
@@ -127,7 +127,7 @@ class Secret implements Arrayable
             value: $value,
             encryptedValue: $encryptedValue,
             secure: $secure,
-            stage: $stage,
+            env: $env,
             revision: $revision,
             path: $path,
             vault: $vault,
@@ -184,9 +184,9 @@ class Secret implements Arrayable
         return $this->secure;
     }
 
-    public function stage(): ?string
+    public function env(): ?string
     {
-        return $this->stage;
+        return $this->env;
     }
 
     public function revision(): ?int
@@ -325,7 +325,7 @@ class Secret implements Arrayable
             'value' => $this->value,
             'encryptedValue' => $this->encryptedValue,
             'secure' => $this->secure,
-            'stage' => $this->stage,
+            'env' => $this->env,
             'revision' => $this->revision,
             'path' => $this->path,
             'vault' => $this->vault?->name(),

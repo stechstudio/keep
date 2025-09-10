@@ -39,7 +39,7 @@
         <!-- Info -->
         <div class="text-xs text-muted-foreground">
           <div>Vault: <span class="font-medium">{{ vault }}</span></div>
-          <div>Stage: <span class="font-medium">{{ stage }}</span></div>
+          <div>Env: <span class="font-medium">{{ env }}</span></div>
           <div>Secrets: <span class="font-medium">{{ secretCount }}</span></div>
         </div>
       </div>
@@ -72,7 +72,7 @@ import { formatDate } from '../utils/formatters'
 
 const props = defineProps({
   vault: String,
-  stage: String,
+  env: String,
   secrets: {
     type: Array,
     default: () => []
@@ -109,7 +109,7 @@ const secretCount = computed(() => props.secrets.length)
 
 const defaultFilename = computed(() => {
   const timestamp = new Date().toISOString().split('T')[0]
-  return `${props.vault}-${props.stage}-${timestamp}.${selectedFormat.value}`
+  return `${props.vault}-${props.env}-${timestamp}.${selectedFormat.value}`
 })
 
 async function downloadSecrets() {

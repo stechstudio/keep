@@ -39,9 +39,9 @@ class TabCompletion
                 // First argument: secret names
                 return $this->getSecretCompletions($prefix);
             } elseif ($argPosition === 1) {
-                // Second argument: destination (stage or vault:stage)
+                // Second argument: destination (env or vault:env)
                 return array_merge(
-                    $this->getStageCompletions($prefix),
+                    $this->getEnvCompletions($prefix),
                     $this->getContextCompletions($prefix)
                 );
             }
@@ -50,7 +50,7 @@ class TabCompletion
         
         return match ($command) {
             'get', 'set', 'delete', 'history' => $this->getSecretCompletions($prefix),
-            'stage', 'diff' => $this->getStageCompletions($prefix),
+            'env', 'diff' => $this->getEnvCompletions($prefix),
             'vault' => $this->getVaultCompletions($prefix),
             'use' => $this->getContextCompletions($prefix),
             'show' => $this->getShowCompletions($prefix),
@@ -64,10 +64,10 @@ class TabCompletion
         return $this->filterByPrefix($secrets, $prefix);
     }
     
-    protected function getStageCompletions(string $prefix): array
+    protected function getEnvCompletions(string $prefix): array
     {
-        $stages = $this->context->getAvailableStages();
-        return $this->filterByPrefix($stages, $prefix);
+        $envs = $this->context->getAvailableEnvs();
+        return $this->filterByPrefix($envs, $prefix);
     }
     
     protected function getVaultCompletions(string $prefix): array
@@ -80,11 +80,11 @@ class TabCompletion
     {
         $contexts = [];
         $vaults = $this->context->getAvailableVaults();
-        $stages = $this->context->getAvailableStages();
+        $envs = $this->context->getAvailableEnvs();
         
         foreach ($vaults as $vault) {
-            foreach ($stages as $stage) {
-                $contexts[] = "$vault:$stage";
+            foreach ($envs as $env) {
+                $contexts[] = "$vault:$env";
             }
         }
         

@@ -15,7 +15,7 @@ describe('RenameCommand', function () {
             'app_name' => 'test-app',
             'namespace' => 'test-app',
             'default_vault' => 'test',
-            'stages' => ['test', 'production'],
+            'envs' => ['test', 'production'],
             'created_at' => date('c'),
             'version' => '1.0',
         ];
@@ -37,14 +37,14 @@ describe('RenameCommand', function () {
         $tester = runCommand('set', [
             'key' => 'OLD_KEY',
             'value' => 'secret_value',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         // Run rename command
         $tester = runCommand('rename', [
             'old' => 'OLD_KEY',
             'new' => 'NEW_KEY',
-            '--stage' => 'test',
+            '--env' => 'test',
             '--force' => true,
         ]);
         
@@ -54,7 +54,7 @@ describe('RenameCommand', function () {
         // Verify new key exists
         $tester = runCommand('get', [
             'key' => 'NEW_KEY',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         expect($tester->getDisplay())->toContain('secret_value');
     });
@@ -63,7 +63,7 @@ describe('RenameCommand', function () {
         $tester = runCommand('rename', [
             'old' => 'NONEXISTENT',
             'new' => 'NEW_KEY',
-            '--stage' => 'test',
+            '--env' => 'test',
             '--force' => true,
         ]);
         
@@ -76,18 +76,18 @@ describe('RenameCommand', function () {
         runCommand('set', [
             'key' => 'OLD_KEY',
             'value' => 'old_value',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         runCommand('set', [
             'key' => 'NEW_KEY',
             'value' => 'existing_value',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         $tester = runCommand('rename', [
             'old' => 'OLD_KEY',
             'new' => 'NEW_KEY',
-            '--stage' => 'test',
+            '--env' => 'test',
             '--force' => true,
         ]);
         
@@ -97,7 +97,7 @@ describe('RenameCommand', function () {
         // Verify nothing changed
         $tester = runCommand('get', [
             'key' => 'OLD_KEY',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         expect($tester->getDisplay())->toContain('old_value');
     });
@@ -107,13 +107,13 @@ describe('RenameCommand', function () {
         runCommand('set', [
             'key' => 'OLD_KEY',
             'value' => 'secret_value',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         $tester = runCommand('rename', [
             'old' => 'OLD_KEY',
             'new' => 'NEW_KEY',
-            '--stage' => 'test',
+            '--env' => 'test',
             '--force' => true,
         ]);
         
@@ -129,7 +129,7 @@ describe('RenameCommand', function () {
         runCommand('set', [
             'key' => 'OLD_KEY',
             'value' => 'secret_value',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         // Note: Since we're always in non-interactive mode in tests,
@@ -138,7 +138,7 @@ describe('RenameCommand', function () {
         $tester = runCommand('rename', [
             'old' => 'OLD_KEY',
             'new' => 'NEW_KEY',
-            '--stage' => 'test',
+            '--env' => 'test',
         ]);
         
         expect($tester->getStatusCode())->toBe(0);

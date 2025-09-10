@@ -71,7 +71,7 @@ describe('Exception Handling Improvements', function () {
 
         it('allows combining details with other context', function () {
             $exception = ExceptionFactory::withDetails('Vault error', 'Connection failed')
-                ->withContext(['vault' => 'production-ssm', 'stage' => 'prod']);
+                ->withContext(['vault' => 'production-ssm', 'env' => 'prod']);
 
             expect($exception->getMessage())->toBe('Vault error');
         });

@@ -10,9 +10,9 @@ class GetCommand extends BaseCommand
         {key? : The secret key}
         {--format=table : table|json|raw} 
         {--vault= : The vault to use}
-        {--stage= : The stage to use}';
+        {--env= : The environment to use}';
 
-    public $description = 'Get the value of a stage secret in a specified vault';
+    public $description = 'Get the value of a secret in a specified vault and environment';
 
     public function process()
     {

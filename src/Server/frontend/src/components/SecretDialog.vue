@@ -36,7 +36,7 @@
           
           <div class="text-xs text-muted-foreground">
             Vault: <span class="font-medium">{{ vault }}</span> • 
-            Stage: <span class="font-medium">{{ stage }}</span>
+            Env: <span class="font-medium">{{ env }}</span>
           </div>
           
           <div v-if="saveError" class="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-md">
@@ -73,7 +73,7 @@ import { useToast } from '../composables/useToast'
 const props = defineProps({
   secret: Object,
   vault: String,
-  stage: String,
+  env: String,
   initialKey: String
 })
 
@@ -145,10 +145,10 @@ async function save() {
   
   try {
     if (props.secret) {
-      await updateSecret(form.key, form.value, props.vault, props.stage)
+      await updateSecret(form.key, form.value, props.vault, props.env)
       toast.success('Secret updated', `Secret '${form.key}' has been updated successfully`)
     } else {
-      await createSecret(form.key, form.value, props.vault, props.stage)
+      await createSecret(form.key, form.value, props.vault, props.env)
       toast.success('Secret created', `Secret '${form.key}' has been created successfully`)
     }
     emit('success')

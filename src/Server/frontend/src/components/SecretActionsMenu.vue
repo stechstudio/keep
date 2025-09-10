@@ -87,7 +87,7 @@ const props = defineProps({
     type: String,
     required: true
   },
-  stage: {
+  env: {
     type: String,
     required: true
   },
@@ -182,17 +182,17 @@ function toggleMenu(event) {
 }
 
 function handleEdit() {
-  emit('edit', { key: props.secretKey, value: props.secretValue, vault: props.vault, stage: props.stage })
+  emit('edit', { key: props.secretKey, value: props.secretValue, vault: props.vault, env: props.env })
   isOpen.value = false
 }
 
 function handleRename() {
-  emit('rename', { key: props.secretKey, value: props.secretValue, vault: props.vault, stage: props.stage })
+  emit('rename', { key: props.secretKey, value: props.secretValue, vault: props.vault, env: props.env })
   isOpen.value = false
 }
 
 function handleCreate() {
-  emit('create', { key: props.secretKey, vault: props.vault, stage: props.stage })
+  emit('create', { key: props.secretKey, vault: props.vault, env: props.env })
   isOpen.value = false
 }
 
@@ -200,22 +200,22 @@ function handleCopyValue() {
   if (props.secretValue) {
     navigator.clipboard.writeText(props.secretValue)
   }
-  emit('copyValue', { key: props.secretKey, vault: props.vault, stage: props.stage })
+  emit('copyValue', { key: props.secretKey, vault: props.vault, env: props.env })
   isOpen.value = false
 }
 
 function handleCopyTo() {
-  emit('copyTo', { key: props.secretKey, value: props.secretValue, vault: props.vault, stage: props.stage })
+  emit('copyTo', { key: props.secretKey, value: props.secretValue, vault: props.vault, env: props.env })
   isOpen.value = false
 }
 
 function handleHistory() {
-  emit('history', { key: props.secretKey, vault: props.vault, stage: props.stage })
+  emit('history', { key: props.secretKey, vault: props.vault, env: props.env })
   isOpen.value = false
 }
 
 function handleDelete() {
-  emit('delete', { key: props.secretKey, vault: props.vault, stage: props.stage })
+  emit('delete', { key: props.secretKey, vault: props.vault, env: props.env })
   isOpen.value = false
 }
 

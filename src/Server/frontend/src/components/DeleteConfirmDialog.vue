@@ -18,7 +18,7 @@
             <div class="text-sm">
               <div class="font-medium">{{ secretKey }}</div>
               <div class="text-xs text-muted-foreground mt-1">
-                {{ vault }} / {{ stage }}
+                {{ vault }} / {{ env }}
               </div>
             </div>
           </div>
@@ -64,7 +64,7 @@ const props = defineProps({
     type: String,
     required: true
   },
-  stage: {
+  env: {
     type: String,
     required: true
   }
@@ -85,7 +85,7 @@ async function handleDelete() {
   loading.value = true
   
   try {
-    await deleteSecret(props.secretKey, props.vault, props.stage)
+    await deleteSecret(props.secretKey, props.vault, props.env)
     toast.success('Secret deleted', `Secret '${props.secretKey}' has been deleted successfully`)
     emit('success')
     emit('close')

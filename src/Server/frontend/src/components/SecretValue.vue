@@ -21,7 +21,7 @@
 
       <Tooltip content="Copy Value" :delay-duration="200">
         <button
-            @click="handleCopyValue({ key: secret.key, value: secret.value, vault, stage })"
+            @click="handleCopyValue({ key: secret.key, value: secret.value, vault, env })"
             class="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

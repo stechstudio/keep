@@ -94,7 +94,7 @@ class CommandExecutor
         // Use the new ArgumentProcessor for clean argument handling
         ArgumentProcessor::process($parsed['command'], $parsed['positionals'], $input);
         
-        // Add context (vault/stage) if needed
+        // Add context (vault/env) if needed
         $this->addContextIfNeeded($parsed['command'], $input);
         
         return $input;
@@ -103,8 +103,8 @@ class CommandExecutor
     
     protected function addContextIfNeeded(string $command, array &$input): void
     {
-        if (CommandRegistry::requiresStage($command) && !isset($input['--stage'])) {
-            $input['--stage'] = $this->context->getStage();
+        if (CommandRegistry::requiresEnv($command) && !isset($input['--env'])) {
+            $input['--env'] = $this->context->getEnv();
         }
         
         if (CommandRegistry::requiresVault($command) && !isset($input['--vault'])) {
@@ -116,7 +116,7 @@ class CommandExecutor
             $input['--from'] = sprintf(
                 "%s:%s",
                 $this->context->getVault(),
-                $this->context->getStage()
+                $this->context->getEnv()
             );
         }
     }

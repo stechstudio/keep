@@ -3,7 +3,7 @@ import { api } from '../services/api'
 
 export function useVault() {
   const vaults = ref([])
-  const stages = ref([])
+  const envs = ref([])
   const settings = ref({})
   const loading = ref(false)
   const error = ref(null)
@@ -12,8 +12,8 @@ export function useVault() {
     vaults.value.find(v => v.isDefault)?.slug || vaults.value[0]?.slug || 'vault'
   )
 
-  const defaultStage = computed(() => 
-    settings.value.default_stage || 'prod'
+  const defaultEnv = computed(() => 
+    settings.value.default_env || 'prod'
   )
 
   async function loadVaults() {
@@ -30,12 +30,12 @@ export function useVault() {
     }
   }
 
-  async function loadStages() {
+  async function loadEnvs() {
     loading.value = true
     error.value = null
     try {
-      const response = await api.listStages()
-      stages.value = response.stages
+      const response = await api.listEnvs()
+      envs.value = response.envs
     } catch (err) {
       error.value = err.message
       throw err
@@ -61,13 +61,13 @@ export function useVault() {
     loading.value = true
     error.value = null
     try {
-      const [vaultsRes, stagesRes, settingsRes] = await Promise.all([
+      const [vaultsRes, envsRes, settingsRes] = await Promise.all([
         api.listVaults(),
-        api.listStages(),
+        api.listEnvs(),
         api.getSettings()
       ])
       vaults.value = vaultsRes.vaults
-      stages.value = stagesRes.stages
+      envs.value = envsRes.envs
       settings.value = settingsRes
     } catch (err) {
       error.value = err.message
@@ -92,14 +92,14 @@ export function useVault() {
 
   return {
     vaults,
-    stages,
+    envs,
     settings,
     loading,
     error,
     defaultVault,
-    defaultStage,
+    defaultEnv,
     loadVaults,
-    loadStages,
+    loadEnvs,
     loadSettings,
     loadAll,
     verifyVaults

@@ -10,33 +10,33 @@ Launch the interactive shell with the `shell` command:
 keep shell
 ```
 
-You can also start with a specific vault and stage:
+You can also start with a specific vault and env:
 
 ```bash
-keep shell --vault=ssm --stage=production
+keep shell --vault=ssm --env=production
 ```
 
 ## Key Features
 
 ### Context-Aware Prompt
 
-The shell prompt always displays your current vault and stage:
+The shell prompt always displays your current vault and env:
 
 ```bash
-ssm:local>           # Working in SSM vault, local stage
-aws:production>      # Working in AWS vault, production stage
+ssm:local>           # Working in SSM vault, local env
+aws:production>      # Working in AWS vault, production env
 ```
 
 ### Tab Completion
 
-Intelligent tab completion for commands, secret names, stages, and vaults:
+Intelligent tab completion for commands, secret names, envs, and vaults:
 
 ```bash
 ssm:local> get<TAB>                 # Shows all available secrets
 ssm:local> get DB_<TAB>             # Shows secrets starting with DB_
 DB_HOST     DB_PASSWORD     DB_PORT     DB_USERNAME
 
-ssm:local> stage <TAB>              # Shows all configured stages
+ssm:local> env <TAB>                # Shows all configured envs
 local     staging     production
 ```
 
@@ -50,7 +50,7 @@ Save keystrokes with built-in aliases:
 | `set KEY VALUE` | `s KEY VALUE` | Set a secret |
 | `delete KEY` | `d KEY` | Delete a secret |
 | `show` | `ls` | Show all secrets |
-| `use vault:stage` | `u vault:stage` | Switch context |
+| `use vault:env` | `u vault:env` | Switch context |
 | `context` | `ctx` | Show current context |
 | `exit` | `q` | Exit shell |
 
@@ -61,7 +61,7 @@ The shell uses a dash-free syntax for human-friendly interaction:
 ```bash
 ssm:local> show unmask              # Show secrets with actual values
 ssm:local> delete API_KEY force     # Delete without confirmation
-ssm:local> diff staging production  # Compare secrets between stages
+ssm:local> diff staging production  # Compare secrets between environments
 ```
 
 ## Common Workflows
@@ -69,13 +69,13 @@ ssm:local> diff staging production  # Compare secrets between stages
 ### Quick Context Switching
 
 ```bash
-# Switch stage
-ssm:local> stage production
-Switched to stage: production
+# Switch env
+ssm:local> env production
+Switched to env: production
 
-# Switch both vault and stage
+# Switch both vault and env
 ssm:production> use secretsmanager:staging
-Switched to vault: secretsmanager, stage: staging
+Switched to vault: secretsmanager, env: staging
 
 # Use shortcuts
 secretsmanager:staging> u ssm:local
@@ -114,19 +114,19 @@ ssm:local> show unmask
 The copy command uses your current context as the source:
 
 ```bash
-# Copy a single secret to another stage
+# Copy a single secret to another env
 ssm:local> copy API_KEY production
 Copying secret from ssm:local to ssm:production
 ✓ Copied API_KEY
 
-# Copy to a different vault and stage
+# Copy to a different vault and env
 ssm:local> copy DB_PASSWORD secretsmanager:staging
 ✓ Copied DB_PASSWORD
 
 # Copy with patterns
 ssm:local> copy only DB_*
 To (vault): ssm
-To (stage): production
+To (env): production
 ✓ Copied DB_HOST
 ✓ Copied DB_PASSWORD
 ✓ Copied DB_USERNAME
@@ -179,8 +179,8 @@ Secret Comparison Matrix
 Omit arguments for interactive prompts:
 
 ```bash
->>> stage
-Select a stage:
+>>> env
+Select an env:
 > local
   staging
   production
@@ -213,7 +213,7 @@ The shell uses colors for quick identification:
 - **Green** ✓ - Success messages
 - **Red** ✗ - Errors
 - **Yellow** ⚠ - Warnings
-- **Blue** - Context (vault:stage)
+- **Blue** - Context (vault:env)
 - **Magenta** - Secret names
 
 ### Quick Productivity Tips
@@ -245,7 +245,7 @@ The shell uses colors for quick identification:
 - Interactive exploration and browsing
 - Quick edits and context switching
 - Human-friendly formatted output
-- Working within a single vault/stage
+- Working within a single vault/env
 
 **Use the CLI for:**
 - Scripting and automation

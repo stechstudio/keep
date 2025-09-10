@@ -103,7 +103,7 @@ if (str_starts_with($path, '/api/')) {
     $router->put('/api/secrets/:key', [SecretController::class, 'update']);
     $router->delete('/api/secrets/:key', [SecretController::class, 'delete']);
     $router->post('/api/secrets/:key/rename', [SecretController::class, 'rename']);
-    $router->post('/api/secrets/:key/copy-to-stage', [SecretController::class, 'copyToStage']);
+    $router->post('/api/secrets/:key/copy-to-env', [SecretController::class, 'copyToEnv']);
     $router->get('/api/secrets/:key/history', [SecretController::class, 'history']);
     $router->get('/api/search', [SecretController::class, 'search']);
     
@@ -113,9 +113,9 @@ if (str_starts_with($path, '/api/')) {
     $router->put('/api/vaults/:slug', [VaultController::class, 'updateVault']);
     $router->delete('/api/vaults/:slug', [VaultController::class, 'deleteVault']);
     
-    $router->get('/api/stages', [VaultController::class, 'listStages']);
-    $router->post('/api/stages', [VaultController::class, 'addStage']);
-    $router->delete('/api/stages', [VaultController::class, 'removeStage']);
+    $router->get('/api/envs', [VaultController::class, 'listEnvs']);
+    $router->post('/api/envs', [VaultController::class, 'addEnv']);
+    $router->delete('/api/envs', [VaultController::class, 'removeEnv']);
     
     $router->get('/api/settings', [VaultController::class, 'getSettings']);
     $router->put('/api/settings', [VaultController::class, 'updateSettings']);

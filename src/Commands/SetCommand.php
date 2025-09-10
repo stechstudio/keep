@@ -8,10 +8,10 @@ class SetCommand extends BaseCommand
         {key? : The secret key}
         {value? : The secret value}
         {--vault= : The vault to use}
-        {--stage= : The stage to use}
+        {--env= : The environment to use}
         {--plain : Do not encrypt the value}';
 
-    public $description = 'Set the value of a stage secret in a specified vault';
+    public $description = 'Set the value of a secret in a specified vault and environment';
 
     public function process()
     {

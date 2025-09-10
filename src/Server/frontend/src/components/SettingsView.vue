@@ -174,23 +174,23 @@
         </div>
       </div>
 
-      <!-- Stages Settings -->
-      <div v-if="activeTab === 'stages'" class="space-y-6">
+      <!-- Envs Settings -->
+      <div v-if="activeTab === 'envs'" class="space-y-6">
         <div>
-          <h1 class="text-2xl font-semibold mb-2">Stage Configuration</h1>
-          <p class="text-sm text-muted-foreground">Manage your deployment stages and environments</p>
+          <h1 class="text-2xl font-semibold mb-2">Env Configuration</h1>
+          <p class="text-sm text-muted-foreground">Manage your deployment envs and environments</p>
         </div>
 
         <div class="border border-border rounded-lg p-4">
           <div class="space-y-2">
             <div 
-              v-for="stage in stages" 
-              :key="stage"
+              v-for="env in envs" 
+              :key="env"
               class="flex items-center justify-between py-3 border-b border-border last:border-0"
             >
-              <span class="font-medium">{{ stage }}</span>
+              <span class="font-medium">{{ env }}</span>
               <button
-                @click="removeStage(stage)"
+                @click="removeEnv(env)"
                 class="p-2 rounded-md hover:bg-muted transition-colors text-destructive"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,25 +202,25 @@
           
           <div class="flex items-center space-x-2 mt-4 pt-4 border-t border-border">
             <input
-              v-model="newStage"
-              @keyup.enter="addStage"
+              v-model="newEnv"
+              @keyup.enter="addEnv"
               type="text"
-              placeholder="Enter new stage name..."
+              placeholder="Enter new env name..."
               class="flex-1 px-3 py-2 bg-input border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <button
-              @click="addStage"
-              :disabled="!newStage"
+              @click="addEnv"
+              :disabled="!newEnv"
               class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50"
             >
-              Add Stage
+              Add Env
             </button>
           </div>
         </div>
 
         <div class="bg-muted/30 rounded-lg p-4 text-sm text-muted-foreground">
-          <p class="font-medium mb-1">About Stages</p>
-          <p>Stages represent different deployment environments for your secrets. Common stages include development, staging, and production. System stages (local, staging, production) cannot be removed.</p>
+          <p class="font-medium mb-1">About Envs</p>
+          <p>Envs represent different deployment environments for your secrets. Common envs include development, staging, and production. System envs (local, staging, production) cannot be removed.</p>
         </div>
       </div>
 
@@ -228,7 +228,7 @@
       <div v-if="activeTab === 'workspace'" class="space-y-6">
         <div>
           <h1 class="text-2xl font-semibold mb-2">Workspace Configuration</h1>
-          <p class="text-sm text-muted-foreground">Personalize your Keep experience by selecting which vaults and stages you work with</p>
+          <p class="text-sm text-muted-foreground">Personalize your Keep experience by selecting which vaults and envs you work with</p>
         </div>
 
         <div class="border border-border rounded-lg p-6 space-y-6">
@@ -255,24 +255,24 @@
             </div>
           </div>
 
-          <!-- Active Stages Selection -->
+          <!-- Active Envs Selection -->
           <div>
-            <label class="block text-sm font-medium mb-3">Active Stages</label>
-            <p class="text-xs text-muted-foreground mb-3">Select which stages to include in your workspace</p>
+            <label class="block text-sm font-medium mb-3">Active Envs</label>
+            <p class="text-xs text-muted-foreground mb-3">Select which envs to include in your workspace</p>
             <div class="space-y-2">
-              <div v-for="stage in availableStages" :key="stage" class="flex items-center space-x-2">
+              <div v-for="env in availableEnvs" :key="env" class="flex items-center space-x-2">
                 <input
-                  :id="`stage-${stage}`"
+                  :id="`env-${env}`"
                   type="checkbox"
-                  :value="stage"
-                  v-model="workspaceForm.activeStages"
+                  :value="env"
+                  v-model="workspaceForm.activeEnvs"
                   class="rounded border-border"
                 />
-                <label :for="`stage-${stage}`" class="text-sm cursor-pointer">{{ stage }}</label>
+                <label :for="`env-${env}`" class="text-sm cursor-pointer">{{ env }}</label>
               </div>
             </div>
-            <div v-if="workspaceForm.activeStages.length === 0" class="text-xs text-destructive mt-2">
-              At least one stage must be selected
+            <div v-if="workspaceForm.activeEnvs.length === 0" class="text-xs text-destructive mt-2">
+              At least one env must be selected
             </div>
           </div>
 
@@ -293,7 +293,7 @@
               </button>
               <button
                 @click="saveWorkspace"
-                :disabled="workspaceForm.activeVaults.length === 0 || workspaceForm.activeStages.length === 0"
+                :disabled="workspaceForm.activeVaults.length === 0 || workspaceForm.activeEnvs.length === 0"
                 class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50"
               >
                 Save Workspace
@@ -305,7 +305,7 @@
         <!-- Workspace Info -->
         <div class="bg-muted/30 rounded-lg p-4 text-sm text-muted-foreground">
           <p class="font-medium mb-1">About Workspace Configuration</p>
-          <p>Your workspace configuration is stored locally and not shared with your team. This allows each developer to customize their view to only show the vaults and stages they have access to and work with regularly.</p>
+          <p>Your workspace configuration is stored locally and not shared with your team. This allows each developer to customize their view to only show the vaults and envs they have access to and work with regularly.</p>
           <p class="mt-2">Changes to your workspace will immediately affect which secrets are visible throughout the Keep UI.</p>
         </div>
 
@@ -318,8 +318,8 @@
               <span>{{ workspaceForm.activeVaults.length }} of {{ availableVaults.length }}</span>
             </div>
             <div class="flex items-center justify-between">
-              <span class="text-muted-foreground">Active Stages</span>
-              <span>{{ workspaceForm.activeStages.length }} of {{ availableStages.length }}</span>
+              <span class="text-muted-foreground">Active Envs</span>
+              <span>{{ workspaceForm.activeEnvs.length }} of {{ availableEnvs.length }}</span>
             </div>
             <div class="flex items-center justify-between">
               <span class="text-muted-foreground">Created</span>
@@ -435,14 +435,14 @@
       </div>
 
       <div v-if="verificationResults" class="space-y-4">
-        <div v-for="(stageResults, vaultName) in verificationResults" :key="vaultName" 
+        <div v-for="(envResults, vaultName) in verificationResults" :key="vaultName" 
              class="border border-border rounded-lg p-4">
           <h3 class="font-medium mb-3">{{ getVaultDisplayName(vaultName) }}</h3>
           
-          <!-- Show results for each stage -->
-          <div v-for="(result, stageName) in stageResults" :key="stageName" class="mb-3 last:mb-0">
+          <!-- Show results for each env -->
+          <div v-for="(result, envName) in envResults" :key="envName" class="mb-3 last:mb-0">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-sm">{{ stageName }}</span>
+              <span class="text-sm">{{ envName }}</span>
               <span :class="[
                 'px-2 py-1 rounded text-xs font-medium',
                 result.success ? 'bg-green-500/10 text-green-500' : 'bg-destructive/10 text-destructive'
@@ -489,13 +489,13 @@
     </div>
   </div>
 
-  <!-- Delete Stage Confirmation Modal -->
+  <!-- Delete Env Confirmation Modal -->
   <DeleteConfirmationModal
-    ref="deleteStageModal"
-    title="Delete Stage"
-    :message="`Are you sure you want to remove the stage '${stageToDelete}'?`"
-    confirmText="Remove Stage"
-    @confirm="confirmDeleteStage"
+    ref="deleteEnvModal"
+    title="Delete Env"
+    :message="`Are you sure you want to remove the env '${envToDelete}'?`"
+    confirmText="Remove Env"
+    @confirm="confirmDeleteEnv"
   />
 
   <!-- Delete Vault Confirmation Modal -->
@@ -519,7 +519,7 @@ const toast = useToast()
 const tabs = [
   { id: 'general', label: 'General' },
   { id: 'vaults', label: 'Vaults' },
-  { id: 'stages', label: 'Stages' },
+  { id: 'envs', label: 'Envs' },
   { id: 'workspace', label: 'Workspace' }
 ]
 const activeTab = ref('general')
@@ -550,20 +550,20 @@ const verificationResults = ref(null)
 const vaultToDelete = ref(null)
 const deleteVaultModal = ref(null)
 
-// Stages
-const stages = ref([])
-const newStage = ref('')
-const stageToDelete = ref('')
-const deleteStageModal = ref(null)
+// Envs
+const envs = ref([])
+const newEnv = ref('')
+const envToDelete = ref('')
+const deleteEnvModal = ref(null)
 const serverUrl = computed(() => typeof window !== 'undefined' ? window.location.origin : '')
 
 // Workspace
 const workspaceForm = ref({
   activeVaults: [],
-  activeStages: []
+  activeEnvs: []
 })
 const availableVaults = ref([])
-const availableStages = ref([])
+const availableEnvs = ref([])
 const workspaceCreatedAt = ref(null)
 const workspaceUpdatedAt = ref(null)
 const verifyingWorkspace = ref(false)
@@ -599,7 +599,7 @@ function onDriverChange() {
 onMounted(async () => {
   await loadSettings()
   await loadVaults()
-  await loadStages()
+  await loadEnvs()
   await loadWorkspace()
 })
 
@@ -727,22 +727,22 @@ async function verifyAllVaults() {
     const data = await window.$api.verifyVaults()
     const results = data.results || {}
     
-    // Results now come with permissions from backend, organized by vault and stage
+    // Results now come with permissions from backend, organized by vault and env
     verificationResults.value = results
     
-    // Check if any vault/stage combination failed
+    // Check if any vault/env combination failed
     const failedVaults = []
-    for (const [vaultName, stageResults] of Object.entries(results)) {
-      for (const [stageName, result] of Object.entries(stageResults)) {
+    for (const [vaultName, envResults] of Object.entries(results)) {
+      for (const [envName, result] of Object.entries(envResults)) {
         if (!result.success) {
-          failedVaults.push(`${vaultName}:${stageName}`)
+          failedVaults.push(`${vaultName}:${envName}`)
         }
       }
     }
     if (failedVaults.length === 0) {
       toast.success('All vaults verified', 'All vaults are properly configured and accessible')
     } else {
-      toast.error('Verification failed', `${failedVaults.length} vault/stage combination(s) failed verification`)
+      toast.error('Verification failed', `${failedVaults.length} vault/env combination(s) failed verification`)
     }
     
     // Reload vaults to get updated permissions
@@ -755,57 +755,57 @@ async function verifyAllVaults() {
   }
 }
 
-// Stage Functions
-async function loadStages() {
+// Env Functions
+async function loadEnvs() {
   try {
-    const data = await window.$api.listStages()
-    stages.value = data.stages || []
+    const data = await window.$api.listEnvs()
+    envs.value = data.envs || []
   } catch (error) {
-    console.error('Failed to load stages:', error)
-    toast.error('Failed to load stages', error.message)
+    console.error('Failed to load envs:', error)
+    toast.error('Failed to load envs', error.message)
   }
 }
 
-async function addStage() {
-  if (!newStage.value) return
+async function addEnv() {
+  if (!newEnv.value) return
   
-  if (stages.value.includes(newStage.value)) {
-    toast.error('Stage exists', `Stage "${newStage.value}" already exists`)
+  if (envs.value.includes(newEnv.value)) {
+    toast.error('Env exists', `Env "${newEnv.value}" already exists`)
     return
   }
   
   try {
-    await window.$api.addStage(newStage.value)
-    stages.value.push(newStage.value)
-    toast.success('Stage added', `Stage "${newStage.value}" has been added`)
-    newStage.value = ''
+    await window.$api.addEnv(newEnv.value)
+    envs.value.push(newEnv.value)
+    toast.success('Env added', `Env "${newEnv.value}" has been added`)
+    newEnv.value = ''
     
-    // Reload vaults to get updated permissions for the new stage
+    // Reload vaults to get updated permissions for the new env
     await loadVaults()
   } catch (error) {
-    toast.error('Failed to add stage', error.message)
+    toast.error('Failed to add env', error.message)
   }
 }
 
-function removeStage(stage) {
-  stageToDelete.value = stage
-  deleteStageModal.value.open()
+function removeEnv(env) {
+  envToDelete.value = env
+  deleteEnvModal.value.open()
 }
 
-async function confirmDeleteStage() {
-  if (!stageToDelete.value) return
+async function confirmDeleteEnv() {
+  if (!envToDelete.value) return
   
   try {
-    await window.$api.removeStage(stageToDelete.value)
-    const index = stages.value.indexOf(stageToDelete.value)
+    await window.$api.removeEnv(envToDelete.value)
+    const index = envs.value.indexOf(envToDelete.value)
     if (index > -1) {
-      stages.value.splice(index, 1)
-      toast.success('Stage removed', `Stage "${stageToDelete.value}" has been removed`)
+      envs.value.splice(index, 1)
+      toast.success('Env removed', `Env "${envToDelete.value}" has been removed`)
     }
   } catch (error) {
-    toast.error('Failed to remove stage', error.message)
+    toast.error('Failed to remove env', error.message)
   } finally {
-    stageToDelete.value = ''
+    envToDelete.value = ''
   }
 }
 
@@ -814,9 +814,9 @@ async function loadWorkspace() {
   try {
     const data = await window.$api.getWorkspace()
     workspaceForm.value.activeVaults = data.active_vaults || []
-    workspaceForm.value.activeStages = data.active_stages || []
+    workspaceForm.value.activeEnvs = data.active_envs || []
     availableVaults.value = data.available_vaults || []
-    availableStages.value = data.available_stages || []
+    availableEnvs.value = data.available_envs || []
     workspaceCreatedAt.value = data.created_at
     workspaceUpdatedAt.value = data.updated_at
   } catch (error) {
@@ -831,24 +831,24 @@ async function saveWorkspace() {
     return
   }
   
-  if (workspaceForm.value.activeStages.length === 0) {
-    toast.error('Invalid workspace', 'At least one stage must be selected')
+  if (workspaceForm.value.activeEnvs.length === 0) {
+    toast.error('Invalid workspace', 'At least one env must be selected')
     return
   }
   
   try {
     const result = await window.$api.updateWorkspace(
       workspaceForm.value.activeVaults,
-      workspaceForm.value.activeStages
+      workspaceForm.value.activeEnvs
     )
     
     if (result.success) {
       workspaceUpdatedAt.value = result.workspace.updated_at
       toast.success('Workspace saved', 'Your workspace configuration has been updated')
       
-      // Reload vaults and stages to reflect the filtered workspace
+      // Reload vaults and envs to reflect the filtered workspace
       await loadVaults()
-      await loadStages()
+      await loadEnvs()
     }
   } catch (error) {
     toast.error('Failed to save workspace', error.message)
@@ -857,7 +857,7 @@ async function saveWorkspace() {
 
 function resetWorkspace() {
   workspaceForm.value.activeVaults = [...availableVaults.value]
-  workspaceForm.value.activeStages = [...availableStages.value]
+  workspaceForm.value.activeEnvs = [...availableEnvs.value]
 }
 
 async function verifyWorkspace() {
@@ -869,20 +869,20 @@ async function verifyWorkspace() {
     const data = await window.$api.verifyWorkspace()
     verificationResults.value = data.results || {}
     
-    // Check if any vault/stage combination failed
+    // Check if any vault/env combination failed
     const failedCombos = []
-    for (const [vaultName, stageResults] of Object.entries(data.results)) {
-      for (const [stageName, result] of Object.entries(stageResults)) {
+    for (const [vaultName, envResults] of Object.entries(data.results)) {
+      for (const [envName, result] of Object.entries(envResults)) {
         if (!result.success) {
-          failedCombos.push(`${vaultName}:${stageName}`)
+          failedCombos.push(`${vaultName}:${envName}`)
         }
       }
     }
     
     if (failedCombos.length === 0) {
-      toast.success('Workspace verified', 'All selected vault/stage combinations are accessible')
+      toast.success('Workspace verified', 'All selected vault/env combinations are accessible')
     } else {
-      toast.warning('Verification complete', `${failedCombos.length} vault/stage combination(s) are not accessible`)
+      toast.warning('Verification complete', `${failedCombos.length} vault/env combination(s) are not accessible`)
     }
   } catch (error) {
     toast.error('Failed to verify workspace', error.message)

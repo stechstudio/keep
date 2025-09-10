@@ -2,18 +2,18 @@
 
 ## Secret Management
 
-The Secrets page provides full CRUD operations with real-time search and filtering. Select your vault and stage from the dropdowns, then manage secrets through the table interface. Values are masked by default for security.
+The Secrets page provides full CRUD operations with real-time search and filtering. Select your vault and env from the dropdowns, then manage secrets through the table interface. Values are masked by default for security.
 
 **Key capabilities:**
 - Create, edit, rename, and delete secrets
-- Copy secrets between stages and vaults
+- Copy secrets between environments and vaults
 - View revision history
 - Bulk import from `.env` files
 - Export in ENV, JSON, YAML, or Shell format
 
 ## Diff Matrix
 
-The Diff view displays a comparison matrix of secrets across multiple vault/stage combinations. Use it to:
+The Diff view displays a comparison matrix of secrets across multiple vault/env combinations. Use it to:
 
 - Identify missing secrets (empty cells)
 - Spot value differences (highlighted cells)  
@@ -37,7 +37,7 @@ API_KEY={secretsmanager:API_KEY}
 **Features:**
 - Create templates from existing secrets
 - Syntax highlighting and validation
-- Process templates for any stage
+- Process templates for any env
 - Mix static values with secret placeholders
 
 ## Import & Export
@@ -59,8 +59,8 @@ Export supports filtering by patterns and selective inclusion.
 The Settings page provides visual configuration for:
 
 - **Vaults** - Add, edit, or remove vault configurations
-- **Stages** - Manage environment stages
-- **Workspace** - Filter which vaults/stages appear (personal preference)
+- **Envs** - Manage environment envs
+- **Workspace** - Filter which vaults/envs appear (personal preference)
 - **Permissions** - Test vault access and operations
 
 ## Keyboard Shortcuts
@@ -71,7 +71,7 @@ The Settings page provides visual configuration for:
 
 ## Best Practices
 
-- Always verify you're in the correct vault/stage before making changes
+- Always verify you're in the correct vault/env before making changes
 - Use the diff view before promoting between environments
 - Keep values masked unless actively needed
 - Export regularly for backup but never commit to version control

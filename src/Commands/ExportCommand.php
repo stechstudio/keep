@@ -17,13 +17,13 @@ class ExportCommand extends BaseCommand
 
     public $signature = 'export 
         {--format=env : Output format (env, json, or csv)} 
-        {--template= : Template file path, or auto-discover {stage}.env if no path given}
+        {--template= : Template file path, or auto-discover {env}.env if no path given}
         {--all : Include all vault secrets, not just template placeholders}
         {--missing=fail : How to handle missing secrets: fail|remove|blank|skip}
         {--file= : Output file path (default: stdout)} 
         {--overwrite : Overwrite existing output file} 
         {--append : Append to existing output file} 
-        {--stage= : Stage to export secrets from}
+        {--env= : Environment to export secrets from}
         {--vault= : Vault(s) to use (comma-separated, auto-detected from template if not specified)}
         {--only= : Only include keys matching this pattern (e.g. DB_*)} 
         {--except= : Exclude keys matching this pattern (e.g. MAIL_*)}';
@@ -55,9 +55,9 @@ class ExportCommand extends BaseCommand
 
     public function process()
     {
-        // Gather all options including stage
+        // Gather all options including environment
         $options = array_merge($this->options(), [
-            'stage' => $this->stage(),
+            'env' => $this->env(),
         ]);
 
         // Resolve template path if needed
@@ -65,8 +65,8 @@ class ExportCommand extends BaseCommand
             $templateOption = $this->option('template');
             
             if ($templateOption === null) {
-                // Template flag provided without value, auto-discover based on stage
-                $templatePath = $this->resolveTemplateForStage($options['stage']);
+                // Template flag provided without value, auto-discover based on environment
+                $templatePath = $this->resolveTemplateForEnv($options['env']);
                 $options['template'] = $templatePath;
             } elseif ($templateOption !== false) {
                 // Value provided, use as-is
@@ -134,11 +134,11 @@ class ExportCommand extends BaseCommand
         <comment>Operation Modes:</comment>
 
         1. <info>Direct Export</info> - Export all secrets from specified vaults
-           <comment>keep export --stage=production --format=json</comment>
+           <comment>keep export --env=production --format=json</comment>
 
         2. <info>Template Mode</info> - Use a template file with placeholders
-           <comment>keep export --stage=production --template=.env.template</comment>
-           <comment>keep export --stage=production --template</comment>  # Auto-uses env/production.env
+           <comment>keep export --env=production --template=.env.template</comment>
+           <comment>keep export --env=production --template</comment>  # Auto-uses env/production.env
 
         <comment>Template Placeholders:</comment>
         Templates use the syntax <info>{vault:key}</info> which will be replaced with actual values:
@@ -158,16 +158,16 @@ class ExportCommand extends BaseCommand
         <comment>Examples:</comment>
 
         # Export all secrets from all vaults to stdout
-        <comment>keep export --stage=production</comment>
+        <comment>keep export --env=production</comment>
 
         # Export specific vaults to JSON file
-        <comment>keep export --stage=production --vault=ssm,secrets --format=json --file=secrets.json</comment>
+        <comment>keep export --env=production --vault=ssm,secrets --format=json --file=secrets.json</comment>
 
         # Use template and include all additional secrets
-        <comment>keep export --stage=production --template=.env.template --all --file=.env</comment>
+        <comment>keep export --env=production --template=.env.template --all --file=.env</comment>
 
         # Filter exported secrets
-        <comment>keep export --stage=production --only="DB_*,API_*" --except="*_SECRET"</comment>
+        <comment>keep export --env=production --only="DB_*,API_*" --except="*_SECRET"</comment>
         HELP;
     }
 }

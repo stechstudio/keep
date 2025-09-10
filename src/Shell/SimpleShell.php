@@ -85,9 +85,9 @@ class SimpleShell
         $this->output->writeln("<neutral>Type 'help' for available commands or 'exit' to quit.</neutral>");
         $this->output->writeln('');
         $this->output->writeln(sprintf(
-            "Current vault: <alert>%s</alert>\nCurrent stage: <alert>%s</alert>",
+            "Current vault: <alert>%s</alert>\nCurrent environment: <alert>%s</alert>",
             $this->context->getVault(),
-            $this->context->getStage()
+            $this->context->getEnv()
         ));
         //$this->output->writeln('<comment>Tab completion is available for commands and secret names!</comment>');
         $this->output->writeln('');
@@ -126,7 +126,7 @@ class SimpleShell
         return sprintf(
             "\033[94m%s:%s\033[0m> ",
             $this->context->getVault(),
-            $this->context->getStage()
+            $this->context->getEnv()
         );
     }
     

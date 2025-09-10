@@ -89,7 +89,7 @@ aws configure sso
 aws sso login --profile myproject
 
 # Keep uses the SSO session automatically
-keep show --stage=local
+keep show --env=local
 ```
 
 ### Production Environment
@@ -103,7 +103,7 @@ When running on EC2, ECS, or Lambda, use IAM roles:
 # The AWS SDK automatically uses the instance role
 
 # In your deployment script:
-keep export --stage=production --output=.env
+keep export --env=production --output=.env
 php artisan config:cache
 ```
 
@@ -155,7 +155,7 @@ jobs:
           aws-region: us-east-1
       
       - run: |
-          vendor/bin/keep export --stage=production --output=.env
+          vendor/bin/keep export --env=production --output=.env
           # Deploy your application
 ```
 
@@ -166,7 +166,7 @@ jobs:
 deploy:
   script:
     # Using GitLab's AWS integration
-    - vendor/bin/keep export --stage=production --output=.env
+    - vendor/bin/keep export --env=production --output=.env
   id_tokens:
     AWS_TOKEN:
       aud: https://gitlab.com

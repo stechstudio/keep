@@ -15,29 +15,29 @@ class TemplateAddCommand extends BaseCommand
 {
 
     protected $signature = 'template:add 
-        {--stage= : Stage to generate template for}
+        {--env= : Environment to generate template for}
         {--path= : Custom template directory path}';
 
-    protected $description = 'Generate a new template file from existing secrets for a specific stage';
+    protected $description = 'Generate a new template file from existing secrets for a specific environment';
 
     protected function process(): int
     {
         info('📝 Generate Template from Secrets');
 
-        // Get stage
-        $stage = $this->option('stage') ?? $this->stage();
+        // Get environment
+        $env = $this->option('env') ?? $this->env();
         
         // Initialize template service
         $templateService = new TemplateService($this->option('path'));
         $templatePath = $templateService->getTemplatePath();
         
         info("Template directory: {$templatePath}");
-        info("Stage: {$stage}");
+        info("Environment: {$env}");
         
         // Check if template already exists
-        if ($templateService->templateExists($stage)) {
-            $filename = $templateService->getTemplateFilename($stage);
-            error("Template already exists for stage '{$stage}': {$filename}");
+        if ($templateService->templateExists($env)) {
+            $filename = $templateService->getTemplateFilename($env);
+            error("Template already exists for environment '{$env}': {$filename}");
             note('Use template:validate to work with existing templates');
             
             return self::FAILURE;
@@ -45,22 +45,22 @@ class TemplateAddCommand extends BaseCommand
         
         // Generate template
         $content = spin(
-            fn() => $templateService->generateTemplate($stage),
-            "Generating template from secrets for stage '{$stage}'..."
+            fn() => $templateService->generateTemplate($env),
+            "Generating template from secrets for environment '{$env}'..."
         );
         
         // Show preview
         $this->showTemplatePreview($content);
         
         // Confirm save
-        if (!confirm("Save this template as {$stage}.env?")) {
+        if (!confirm("Save this template as {$env}.env?")) {
             note('Template generation cancelled');
             return self::SUCCESS;
         }
         
         // Save template
         $filepath = spin(
-            fn() => $templateService->saveTemplate($stage, $content),
+            fn() => $templateService->saveTemplate($env, $content),
             "Saving template..."
         );
         
@@ -70,8 +70,8 @@ class TemplateAddCommand extends BaseCommand
         note("Next steps:");
         $this->line("  • Review and customize the generated template");
         $this->line("  • Add any non-secret configuration values");
-        $this->line("  • Test with: keep template:validate {$stage}.env --stage={$stage}");
-        $this->line("  • Export with: keep export --template={$stage}.env --stage={$stage}");
+        $this->line("  • Test with: keep template:validate {$env}.env --env={$env}");
+        $this->line("  • Export with: keep export --template={$env}.env --env={$env}");
         
         return self::SUCCESS;
     }

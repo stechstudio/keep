@@ -11,7 +11,7 @@ keep configure
 This interactive command will:
 1. Create a `.keep/` directory with your project configuration
 2. Optionally set up your first vault (with automatic permission testing)
-3. Initialize your workspace to show all vaults and stages by default
+3. Initialize your workspace to show all vaults and envs by default
 
 You'll be prompted for:
 - **Project name**: Display name for your project
@@ -38,7 +38,7 @@ The `settings.json` file contains shared project configuration:
 {
   "app_name": "My Application",
   "namespace": "myapp",
-  "stages": ["local", "staging", "production"],
+  "envs": ["local", "staging", "production"],
   "default_vault": "aws-ssm"
 }
 ```
@@ -50,23 +50,23 @@ The `local/workspace.json` file contains your personal workspace preferences:
 ```json
 {
   "active_vaults": ["ssm", "secretsmanager"],
-  "active_stages": ["local", "staging"]
+  "active_envs": ["local", "staging"]
 }
 ```
 
 These settings:
 - Are **personal to you** and not committed to version control
-- Filter which vaults and stages appear in commands and UI
+- Filter which vaults and envs appear in commands and UI
 - Help focus on the environments you actively work with
 - Don't affect other team members' configurations
 
 ## Managing Workspaces
 
-By default, Keep shows **all configured vaults and stages** - no filtering is applied. This ensures you have immediate access to everything in your project.
+By default, Keep shows **all configured vaults and envs** - no filtering is applied. This ensures you have immediate access to everything in your project.
 
 ### Configure Your Workspace (Optional)
 
-If you want to filter which vaults and stages appear in commands and the Web UI:
+If you want to filter which vaults and envs appear in commands and the Web UI:
 
 ```bash
 keep workspace:configure
@@ -83,28 +83,28 @@ This is useful when:
 
 In larger teams, you might have:
 - Multiple vaults (e.g., `payments`, `api`, `frontend`)
-- Many stages (e.g., `local`, `dev`, `qa`, `staging`, `production`)
+- Many envs (e.g., `local`, `dev`, `qa`, `staging`, `production`)
 - Different team members working with different subsets
 
 Workspace filtering lets each developer see only what's relevant to them, while the full configuration remains available to the team.
 
 ## Managing Stages
 
-The default stages are local, staging, and production. You can add custom stages as needed:
+The default envs are local, staging, and production. You can add custom envs as needed:
 
 ```bash
-# Add a custom stage
-keep stage:add integration
+# Add a custom env
+keep env:add integration
 
-# Common custom stages
-keep stage:add qa
-keep stage:add demo
-keep stage:add sandbox
+# Common custom envs
+keep env:add qa
+keep env:add demo
+keep env:add sandbox
 ```
 
-Custom stages can be used with all commands:
+Custom envs can be used with all commands:
 ```bash
-keep set API_KEY "integration-key" --stage=integration
+keep set API_KEY "integration-key" --env=integration
 keep copy --only="*" --from=local --to=integration
 ```
 
@@ -115,7 +115,7 @@ keep vault:add
 ```
 
 Follow the prompts to configure AWS SSM or Secrets Manager access. After adding a vault, Keep will:
-- Automatically test permissions across all stages
+- Automatically test permissions across all environments
 - Cache results locally for better performance
 - Display which operations (read/write/list) are available
 
@@ -132,7 +132,7 @@ keep verify
 This checks:
 - Vault connectivity
 - AWS credentials
-- IAM permissions for each vault/stage combination
+- IAM permissions for each vault/env combination
 - Which operations (read/write/list) are available
 
 ## Team Collaboration

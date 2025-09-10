@@ -13,7 +13,7 @@ describe('GetCommand', function () {
             'app_name' => 'test-app',
             'namespace' => 'test-app',
             'default_vault' => 'test',
-            'stages' => ['testing', 'production'],
+            'envs' => ['testing', 'production'],
             'created_at' => date('c'),
             'version' => '1.0',
         ];
@@ -38,7 +38,7 @@ describe('GetCommand', function () {
                 $commandTester = runCommand('get', [
                     'key' => 'TEST_KEY',
                     '--vault' => 'test',
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                     '--format' => $format,
                 ]);
 
@@ -52,7 +52,7 @@ describe('GetCommand', function () {
             $commandTester = runCommand('get', [
                 'key' => 'TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
                 '--format' => 'invalid',
             ]);
 
@@ -70,7 +70,7 @@ describe('GetCommand', function () {
             $commandTester = runCommand('get', [
                 'key' => 'NON_EXISTENT_KEY_THAT_SHOULD_NOT_EXIST',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should fail in some way - either auth error or not found
@@ -81,18 +81,18 @@ describe('GetCommand', function () {
             expect($output)->toMatch('/(not found|not authorized|error)/i');
         });
 
-        it('validates vault and stage parameters', function () {
+        it('validates vault and env parameters', function () {
             $commandTester = runCommand('get', [
                 'key' => 'ANY_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Command should run (might fail on secret retrieval, but parameters are valid)
             $output = stripAnsi($commandTester->getDisplay());
 
             // Should not show parameter validation errors
-            expect($output)->not->toMatch('/(invalid vault|invalid stage)/i');
+            expect($output)->not->toMatch('/(invalid vault|invalid env)/i');
         });
     });
 
@@ -101,7 +101,7 @@ describe('GetCommand', function () {
             // Try to run get command without a key
             $commandTester = runCommand('get', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should fail due to missing required key argument or prompting for key

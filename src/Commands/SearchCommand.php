@@ -15,7 +15,7 @@ class SearchCommand extends BaseCommand
         {--only= : Only include keys matching this pattern (e.g. DB_*)} 
         {--except= : Exclude keys matching this pattern (e.g. MAIL_*)}
         {--vault= : The vault to use}
-        {--stage= : The stage to use}';
+        {--env= : The environment to use}';
 
     public $description = 'Search for secrets containing specific text in their values';
 
@@ -56,7 +56,7 @@ class SearchCommand extends BaseCommand
             $this->info(sprintf('No secrets found containing "%s" in <context>%s:%s</context>',
                 $this->argument('query'),
                 $context->vault,
-                $context->stage
+                $context->env
             ));
             return self::SUCCESS;
         }
@@ -105,7 +105,7 @@ class SearchCommand extends BaseCommand
             $matches->count(),
             $this->argument('query'),
             $context->vault,
-            $context->stage
+            $context->env
         ));
         $this->newLine();
 

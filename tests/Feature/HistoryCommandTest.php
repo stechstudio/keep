@@ -13,7 +13,7 @@ describe('HistoryCommand', function () {
             'app_name' => 'test-app',
             'namespace' => 'test-app',
             'default_vault' => 'test',
-            'stages' => ['testing', 'production'],
+            'envs' => ['testing', 'production'],
             'created_at' => date('c'),
             'version' => '1.0',
         ];
@@ -36,7 +36,7 @@ describe('HistoryCommand', function () {
                 'key' => 'TEST_KEY',
                 '--limit' => '5',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -53,7 +53,7 @@ describe('HistoryCommand', function () {
                     'key' => 'TEST_KEY',
                     '--format' => $format,
                     '--vault' => 'test',
-                    '--stage' => 'testing',
+                    '--env' => 'testing',
                 ]);
 
                 $output = stripAnsi($commandTester->getDisplay());
@@ -68,7 +68,7 @@ describe('HistoryCommand', function () {
                 'key' => 'TEST_KEY',
                 '--user' => 'testuser',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -83,7 +83,7 @@ describe('HistoryCommand', function () {
                 '--since' => '1 day ago',
                 '--before' => '2024-12-31',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -97,7 +97,7 @@ describe('HistoryCommand', function () {
                 'key' => 'TEST_KEY',
                 '--unmask' => true,
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -110,7 +110,7 @@ describe('HistoryCommand', function () {
             // Try to run history command without key
             $commandTester = runCommand('history', [
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should fail due to missing key argument
@@ -127,7 +127,7 @@ describe('HistoryCommand', function () {
             $commandTester = runCommand('history', [
                 'key' => 'TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -141,7 +141,7 @@ describe('HistoryCommand', function () {
                 'key' => 'TEST_KEY',
                 '--format' => 'json',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -155,7 +155,7 @@ describe('HistoryCommand', function () {
                 'key' => 'TEST_KEY',
                 '--format' => 'invalid',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             expect($commandTester->getStatusCode())->toBe(1);
@@ -173,7 +173,7 @@ describe('HistoryCommand', function () {
                 'key' => 'TEST_KEY',
                 '--limit' => '10',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -187,7 +187,7 @@ describe('HistoryCommand', function () {
                 'key' => 'TEST_KEY',
                 '--user' => 'testuser',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -201,7 +201,7 @@ describe('HistoryCommand', function () {
                 'key' => 'TEST_KEY',
                 '--since' => '1 week ago',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -215,7 +215,7 @@ describe('HistoryCommand', function () {
                 'key' => 'TEST_KEY',
                 '--since' => 'invalid-date',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should handle invalid date format
@@ -229,7 +229,7 @@ describe('HistoryCommand', function () {
             $commandTester = runCommand('history', [
                 'key' => 'NONEXISTENT_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             expect($commandTester->getStatusCode())->toBe(1);
@@ -242,7 +242,7 @@ describe('HistoryCommand', function () {
             $commandTester = runCommand('history', [
                 'key' => 'CONNECTION_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Command should complete (success or controlled failure)
@@ -256,7 +256,7 @@ describe('HistoryCommand', function () {
             $commandTester = runCommand('history', [
                 'key' => 'EMPTY_HISTORY_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should handle empty history without error
@@ -270,7 +270,7 @@ describe('HistoryCommand', function () {
             $commandTester = runCommand('history', [
                 'key' => 'MASK_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -284,7 +284,7 @@ describe('HistoryCommand', function () {
                 'key' => 'UNMASK_TEST_KEY',
                 '--unmask' => true,
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -298,7 +298,7 @@ describe('HistoryCommand', function () {
                 'key' => 'TABLE_TEST_KEY',
                 '--format' => 'table',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -308,12 +308,12 @@ describe('HistoryCommand', function () {
         });
     });
 
-    describe('stage and vault handling', function () {
+    describe('env and vault handling', function () {
         it('uses specified vault parameter', function () {
             $commandTester = runCommand('history', [
                 'key' => 'VAULT_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -322,30 +322,30 @@ describe('HistoryCommand', function () {
             expect($output)->not->toMatch('/invalid.*vault/i');
         });
 
-        it('uses specified stage parameter', function () {
+        it('uses specified env parameter', function () {
             $commandTester = runCommand('history', [
                 'key' => 'STAGE_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should handle stage parameter without error
-            expect($output)->not->toMatch('/invalid.*stage/i');
+            // Should handle environment parameter without error
+            expect($output)->not->toMatch('/invalid.*env/i');
         });
 
-        it('handles production stage parameter', function () {
+        it('handles production env parameter', function () {
             $commandTester = runCommand('history', [
                 'key' => 'PROD_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'production',
+                '--env' => 'production',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
 
-            // Should handle production stage without error
-            expect($output)->not->toMatch('/invalid.*stage/i');
+            // Should handle production environment without error
+            expect($output)->not->toMatch('/invalid.*env/i');
         });
     });
 
@@ -354,7 +354,7 @@ describe('HistoryCommand', function () {
             $commandTester = runCommand('history', [
                 'key' => 'KEY_WITH_SPECIAL-CHARS.123',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -368,7 +368,7 @@ describe('HistoryCommand', function () {
                 'key' => 'ZERO_LIMIT_KEY',
                 '--limit' => '0',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -382,7 +382,7 @@ describe('HistoryCommand', function () {
                 'key' => 'LARGE_LIMIT_KEY',
                 '--limit' => '1000',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -395,7 +395,7 @@ describe('HistoryCommand', function () {
             $commandTester = runCommand('history', [
                 'key' => 'CONTEXT_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -412,7 +412,7 @@ describe('HistoryCommand', function () {
                 '--user' => 'testuser',
                 '--since' => '1 day ago',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -429,7 +429,7 @@ describe('HistoryCommand', function () {
                 '--before' => '2024-12-31',
                 '--limit' => '5',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             $output = stripAnsi($commandTester->getDisplay());
@@ -444,7 +444,7 @@ describe('HistoryCommand', function () {
             $commandTester = runCommand('history', [
                 'key' => 'HISTORY_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should handle history retrieval without error
@@ -455,7 +455,7 @@ describe('HistoryCommand', function () {
             $commandTester = runCommand('history', [
                 'key' => 'STATUS_TEST_KEY',
                 '--vault' => 'test',
-                '--stage' => 'testing',
+                '--env' => 'testing',
             ]);
 
             // Should complete with appropriate status

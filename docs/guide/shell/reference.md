@@ -15,16 +15,16 @@ Switched to vault: secretsmanager
 # Interactive selection menu appears
 ```
 
-**stage** - Switch stage context  
+**env** - Switch environment context  
 ```bash
->>> stage production
-Switched to stage: production
+>>> env production
+Switched to env: production
 
->>> stage
+>>> env
 # Interactive selection menu appears
 ```
 
-**use** - Switch both vault and stage at once
+**use** - Switch both vault and env at once
 ```bash
 >>> use ssm:production
 Switched to: ssm:production
@@ -38,14 +38,14 @@ Switched to: ssm:production
 Application: My App
 Namespace: MYAPP_
 Default Vault: ssm
-Default Stage: local
+Default Environment: local
 ```
 
 **context** / **ctx** - Show current context
 ```bash
 >>> context
 Vault: ssm
-Stage: production
+Environment: production
 
 >>> ctx  # Using alias
 ```
@@ -144,7 +144,7 @@ Found 3 secrets containing "postgres":
 
 ### Cross-Environment Operations
 
-**copy** - Copy secrets between stages
+**copy** - Copy secrets between environments
 ```bash
 >>> copy API_KEY production
 ✓ Copied API_KEY to production
@@ -171,9 +171,9 @@ Secret Comparison Matrix
 
 Summary:
 • Total secrets: 4
-• Identical across all stages: 1 (25%)
+• Identical across all environments: 1 (25%)
 • Different values: 2 (50%)
-• Missing in some stages: 1 (25%)
+• Missing in some envs: 1 (25%)
 • Stages compared: 2
 ```
 
@@ -213,7 +213,7 @@ Keep Vault Verification Results
 └────────────────┴────────────┴──────┴───────┴──────┴─────────┴────────┘
 
 Summary:
-• Total vault/stage combinations tested: 4
+• Total vault/env combinations tested: 4
 • Full access (list + write + read + history): 2
 • Read + History access (list + read + history): 1
 • Read-only access (list + read): 0
@@ -275,12 +275,12 @@ delete
 export
 ```
 
-### Vault/Stage Names
+### Vault/Env Names
 ```bash
 >>> vault s<TAB>
 secretsmanager  ssm
 
->>> stage prod<TAB>
+>>> env prod<TAB>
 production
 ```
 
@@ -309,12 +309,12 @@ Secret Management
   search <query>           Search for secrets containing text
   copy <key> [destination] Copy single secret
   copy only <pattern>      Copy secrets matching pattern
-  diff <stage1> <stage2>   Compare secrets between stages
+  diff <env1> <env2>       Compare secrets between environments
 
 Context Management
-  stage <name>             Switch to a different stage
+  env <name>               Switch to a different env
   vault <name>             Switch to a different vault
-  use <vault:stage>        Switch both vault and stage (alias: u)
+  use <vault:env>          Switch both vault and env (alias: u)
   context                  Show current context (alias: ctx)
 
 Analysis & Export
@@ -346,7 +346,7 @@ Other
 ⚠ Warning message - attention needed
 ✗ Error message - something went wrong
 
-ssm:production - Vault and stage context
+ssm:production - Vault and environment context
 DB_PASSWORD - Secret names
 get - Command names
 set - Command suggestions
@@ -395,8 +395,8 @@ The `copy` command supports pattern matching:
 Many commands become interactive when arguments are omitted:
 
 ```bash
->>> stage
-# Shows interactive stage selector
+>>> env
+# Shows interactive env selector
 
 >>> vault  
 # Shows interactive vault selector
@@ -411,7 +411,7 @@ Many commands become interactive when arguments are omitted:
 ## Important Notes
 
 ### Shell-Only Features
-- Interactive prompts for stage/vault selection
+- Interactive prompts for env/vault selection
 - Enhanced export wizard with guided prompts
 - Command aliases and shortcuts
 - Tab completion

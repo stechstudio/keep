@@ -17,7 +17,7 @@ features:
   - title: Multi-Vault Support
     details: Supports AWS SSM and Secrets Manager currently, with more providers planned.
     
-  - title: Stage Management  
+  - title: Environment Management  
     details: Organize secrets by environment with seamless promotion workflows.
 
   - title: Template System
@@ -43,19 +43,19 @@ keep configure
 keep vault:add
 
 # Set secrets
-keep set DB_PASSWORD "super-secret" --stage=production
+keep set DB_PASSWORD "super-secret" --env=production
 
 # List secrets
-keep list --stage=staging
+keep list --env=staging
 
 # Compare environments
-keep diff --stage=staging,production
+keep diff --env=staging,production
 
 # Export to .env
-keep export --stage=production --output=.env
+keep export --env=production --output=.env
 
 # Use templates  
-keep export --template=.env.template --stage=production --output=.env
+keep export --template=.env.template --env=production --output=.env
 ```
 
 ## Interactive Shell
@@ -67,7 +67,7 @@ Launch the Keep shell for faster secret management with tab completion:
 keep shell
 
 # In the shell, use shortcuts and tab completion
->>> stage production         # Switch to production stage
+>>> env production         # Switch to production environment
 >>> get DB_<TAB>            # Tab completes secret names
 >>> set NEW_SECRET "value"  # Set secrets instantly
 >>> diff staging production # Compare environments
@@ -87,7 +87,7 @@ keep server
 # - Drag-and-drop import with conflict resolution
 # - Real-time search and filtering
 # - Export in multiple formats with preview
-# - Settings management for vaults and stages
+# - Settings management for vaults and environments
 ```
 
 ## Runtime Injection
@@ -96,14 +96,14 @@ Execute processes with secrets injected as environment variables - no files writ
 
 ```bash
 # Laravel: inject secrets during config caching
-keep run --vault=ssm --stage=production -- php artisan config:cache
+keep run --vault=ssm --env=production -- php artisan config:cache
 
 # Node.js: run build or start with injected secrets
-keep run --vault=ssm --stage=production -- npm run build
-keep run --vault=ssm --stage=production -- npm start
+keep run --vault=ssm --env=production -- npm run build
+keep run --vault=ssm --env=production -- npm start
 
 # Any command with secrets available as env vars
-keep run --vault=ssm --stage=production -- ./deploy.sh
+keep run --vault=ssm --env=production -- ./deploy.sh
 ```
 
 Get started with our [installation guide](/guide/installation), explore the [interactive shell](/guide/shell), try the [Web UI](/WEB_UI), or see all [CLI commands](/guide/reference/cli-reference).

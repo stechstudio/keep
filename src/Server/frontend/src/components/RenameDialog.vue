@@ -61,7 +61,7 @@ const props = defineProps({
     type: String,
     required: true
   },
-  stage: {
+  env: {
     type: String,
     required: true
   }
@@ -124,7 +124,7 @@ async function handleRename() {
   loading.value = true
   
   try {
-    await renameSecret(props.currentKey, newKey.value.trim(), props.vault, props.stage)
+    await renameSecret(props.currentKey, newKey.value.trim(), props.vault, props.env)
     toast.success('Secret renamed', `Secret renamed from '${props.currentKey}' to '${newKey.value.trim()}'`)
     emit('success')
     emit('close')
