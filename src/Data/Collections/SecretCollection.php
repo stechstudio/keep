@@ -49,7 +49,6 @@ class SecretCollection extends Collection
 
     protected function escapeCsvField(string $field): string
     {
-        // If field contains comma, quotes, or newline, wrap in quotes and escape quotes
         if (preg_match('/[,"\n\r]/', $field)) {
             return '"' . str_replace('"', '""', $field) . '"';
         }
@@ -96,9 +95,6 @@ class SecretCollection extends Collection
         return $this->map->only($keys);
     }
 
-    /**
-     * Convert collection to array format suitable for API responses.
-     */
     public function toApiArray(bool $unmask = false): array
     {
         return $this->map(fn (Secret $secret) => $secret->toApiArray($unmask))
@@ -123,9 +119,6 @@ class SecretCollection extends Collection
         return $allSecrets;
     }
 
-    /**
-     * Build environment variables array from secrets.
-     */
     public function toEnvironment(bool $inheritCurrent = true): array
     {
         $env = $inheritCurrent ? getenv() : [];
@@ -138,9 +131,6 @@ class SecretCollection extends Collection
         return $env;
     }
 
-    /**
-     * Compare secrets across vault/stage combinations.
-     */
     public static function compare(array $vaults, array $stages, ?string $only = null, ?string $except = null): Collection
     {
         $allSecrets = static::gatherSecrets($vaults, $stages, $only, $except);
@@ -189,9 +179,6 @@ class SecretCollection extends Collection
         return $allKeys->unique()->sort()->values();
     }
 
-    /**
-     * Generate summary statistics for diff results.
-     */
     public static function generateDiffSummary(Collection $diffs, array $vaults, array $stages): array
     {
         $totalSecrets = $diffs->count();

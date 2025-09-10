@@ -15,31 +15,22 @@ class TemplateParseService
         protected OutputWriter $outputWriter
     ) {}
 
-    /**
-     * Handle template export with parsing (JSON format).
-     */
     public function handle(array $options, OutputInterface $output): int
     {
-        // Load template
         $template = $this->loadTemplate($options['template'], $output);
 
-        // Determine which vaults to load from
         $vaultNames = $this->determineVaults($options, $template);
 
-        // Load secrets
         $stage = $options['stage'];
         $allSecrets = SecretCollection::loadFromVaults($vaultNames, $stage);
 
-        // Apply filters
         $allSecrets = $allSecrets->filterByPatterns(
             only: $options['only'] ?? null,
             except: $options['except'] ?? null
         );
 
-        // Get missing secret strategy
         $missingStrategy = MissingSecretStrategy::from($options['missing'] ?? 'fail');
 
-        // Parse template and extract keys
         $templateData = $this->parseTemplate(
             $template,
             $allSecrets,
@@ -47,20 +38,16 @@ class TemplateParseService
             $options['all'] ?? false
         );
 
-        // Output info
         $format = strtoupper($options['format'] ?? 'json');
         $output->writeln("<info>Processing template [{$options['template']}] for stage '{$stage}' as {$format}...</info>");
         if ($options['all'] ?? false) {
             $output->writeln('<info>Including all additional secrets beyond template placeholders</info>');
         }
-
-        // Format output based on format option
         $formattedOutput = match ($options['format'] ?? 'json') {
             'csv' => $this->formatAsCsv($templateData, $allSecrets),
             default => json_encode($templateData, JSON_PRETTY_PRINT),
         };
 
-        // Write output
         if ($options['file']) {
             $this->outputWriter->write(
                 $options['file'],

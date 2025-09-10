@@ -13,27 +13,19 @@ class DirectExportService
         protected OutputWriter $outputWriter
     ) {}
 
-    /**
-     * Handle direct export (no template).
-     */
     public function handle(array $options, OutputInterface $output): int
     {
         $stage = $options['stage'];
         $vaultNames = $this->getVaultNames($options);
 
-        // Load secrets from vaults
         $allSecrets = SecretCollection::loadFromVaults($vaultNames, $stage);
 
-        // Apply filters
         $allSecrets = $allSecrets->filterByPatterns(
             only: $options['only'] ?? null,
             except: $options['except'] ?? null
         );
 
-        // Format output
         $formattedOutput = $this->formatOutput($allSecrets, $options['format']);
-
-        // Output info
         if (count($vaultNames) === 1) {
             $output->writeln("<info>Exporting secrets from vault '{$vaultNames[0]}' for stage '{$stage}'...</info>");
         } else {
@@ -41,7 +33,6 @@ class DirectExportService
         }
         $output->writeln('<info>Found '.$allSecrets->count().' total secrets to export</info>');
 
-        // Write output
         if ($options['file']) {
             $this->outputWriter->write(
                 $options['file'],

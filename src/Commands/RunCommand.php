@@ -43,9 +43,6 @@ class RunCommand extends BaseCommand
         $this->processRunner = new ProcessRunner();
     }
     
-    /**
-     * Override run to provide better error message for missing command
-     */
     public function run(InputInterface $input, OutputInterface $output): int
     {
         try {
@@ -65,34 +62,27 @@ class RunCommand extends BaseCommand
     
     protected function process(): int
     {
-        // Get command and arguments
         $commandArgs = $this->argument('cmd');
-        
-        // Validate command exists
         $command = $commandArgs[0];
         if (!$this->processRunner->commandExists($command) && !file_exists($command)) {
             error("Command not found: {$command}");
             return self::FAILURE;
         }
         
-        // Gather stage and vault
         $stage = $this->stage();
         $vault = $this->vaultName();
         
         info("🚀 Preparing environment for: " . implode(' ', $commandArgs));
         
         try {
-            // Build environment variables
             $environment = $this->buildEnvironment($stage, $vault);
             
-            // Determine if we should inherit current environment
             $inheritCurrent = !$this->option('no-inherit');
             
             if (!$inheritCurrent) {
                 note('Running with clean environment (secrets only)');
             }
             
-            // Execute the command
             info("📦 Executing command with injected secrets...\n");
             
             $result = $this->processRunner->run(
@@ -101,12 +91,9 @@ class RunCommand extends BaseCommand
                 getcwd()
             );
             
-            // Clear sensitive data from memory
             foreach ($environment as $key => $value) {
                 unset($environment[$key]);
             }
-            
-            // Return the exit code from the subprocess
             if (!$result->successful) {
                 error("\n❌ Command failed with exit code: {$result->exitCode}");
             } else {
@@ -124,41 +111,28 @@ class RunCommand extends BaseCommand
         }
     }
     
-    /**
-     * Build environment variables from secrets
-     */
     protected function buildEnvironment(string $stage, string $vaultSlug): array
     {
         $templateOption = $this->option('template');
         $inheritCurrent = !$this->option('no-inherit');
         
-        // Handle template-based injection
-        // Only use template if --template option is explicitly provided
-        // But only if no filters are specified (filters only work in direct mode)
         $hasFilters = $this->option('only') || $this->option('except');
         
         if (!$hasFilters && $templateOption !== null) {
-            // If template value is empty string, it means auto-discovery
             $templatePath = $templateOption === '' ? null : $templateOption;
             return $this->buildFromTemplate($templatePath, $stage, $vaultSlug, $inheritCurrent);
         }
         
-        // Direct secret injection (all secrets from vault)
         return $this->buildFromVault($stage, $vaultSlug, $inheritCurrent);
     }
     
-    /**
-     * Build environment from template
-     */
     protected function buildFromTemplate(?string $templatePath, string $stage, string $vaultSlug, bool $inheritCurrent): array
     {
-        // Resolve template path if empty
         if ($templatePath === null) {
             $templatePath = $this->resolveTemplateForStage($stage);
             note("Using template: {$templatePath}");
         }
         
-        // Load template
         if (!file_exists($templatePath)) {
             throw new \InvalidArgumentException("Template file not found: {$templatePath}");
         }
@@ -166,38 +140,27 @@ class RunCommand extends BaseCommand
         $templateContent = file_get_contents($templatePath);
         $template = new Template($templateContent);
         
-        // Get referenced vaults from template
         $referencedVaults = $template->allReferencedVaults();
         
-        // Load vaults
         $vaults = [];
         if (empty($referencedVaults)) {
-            // No vault references in template, use specified vault
             $vaults[$vaultSlug] = Keep::vault($vaultSlug, $stage);
         } else {
-            // Load all referenced vaults
             foreach ($referencedVaults as $vaultRef) {
                 $vaults[$vaultRef] = Keep::vault($vaultRef, $stage);
             }
         }
         
-        // Build environment from template
         return $template->toEnvironment($vaults, $inheritCurrent);
     }
     
-    /**
-     * Build environment from all vault secrets
-     */
     protected function buildFromVault(string $stage, string $vaultSlug, bool $inheritCurrent): array
     {
         $vault = Keep::vault($vaultSlug, $stage);
         
         info("Loading secrets from {$vaultSlug}:{$stage}");
         
-        // Fetch all secrets
         $secrets = $vault->list();
-        
-        // Apply filters if provided
         $only = $this->option('only');
         $except = $this->option('except');
         
@@ -215,7 +178,6 @@ class RunCommand extends BaseCommand
         
         note("Injecting {$secrets->count()} secret(s) as environment variables");
         
-        // Build environment
         return $secrets->toEnvironment($inheritCurrent);
     }
 }

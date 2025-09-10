@@ -74,11 +74,6 @@ class Template
         }, $this->contents);
     }
 
-    /**
-     * Extract all vault names referenced in this template's placeholders.
-     *
-     * @return array<string> Unique vault names found in placeholders
-     */
     public function allReferencedVaults(): array
     {
         if ($this->isEmpty()) {
@@ -91,13 +86,6 @@ class Template
         return array_unique($matches[1] ?? []);
     }
 
-    /**
-     * Build environment variables array from template.
-     *
-     * @param array<string, AbstractVault> $vaults Array of vaults keyed by slug
-     * @param bool $inheritCurrent Whether to inherit current environment
-     * @return array<string, string> Key-value pairs for environment
-     */
     public function toEnvironment(array $vaults, bool $inheritCurrent = true): array
     {
         $env = $inheritCurrent ? getenv() : [];
@@ -124,11 +112,6 @@ class Template
         return $env;
     }
 
-    /**
-     * Extract all placeholders from the template content.
-     *
-     * @return PlaceholderCollection Collection of Placeholder objects
-     */
     public function placeholders(): PlaceholderCollection
     {
         if ($this->isEmpty()) {

@@ -10,15 +10,11 @@ use STS\Keep\Services\LocalStorage;
 
 class WorkspaceController extends ApiController
 {
-    /**
-     * Get current workspace configuration
-     */
     public function get(): array
     {
         $localStorage = new LocalStorage();
         $workspace = $localStorage->getWorkspace();
         
-        // Get all available vaults and stages (unfiltered)
         $allVaults = $this->manager->getAllConfiguredVaults()->map(fn($v) => $v->slug())->values()->toArray();
         $allStages = $this->manager->getAllStages();
         
@@ -32,9 +28,6 @@ class WorkspaceController extends ApiController
         ];
     }
     
-    /**
-     * Update workspace configuration
-     */
     public function update(): array
     {
         if (!isset($this->body['active_vaults']) || !is_array($this->body['active_vaults'])) {

@@ -66,7 +66,6 @@ class DiffCommand extends BaseCommand
             return array_intersect($requestedVaults, $configuredVaultNames);
         }
 
-        // Default to all configured vaults
         return Keep::getConfiguredVaults()->keys()->toArray();
     }
 
@@ -75,7 +74,6 @@ class DiffCommand extends BaseCommand
         $stagesOption = $this->option('stage');
 
         if ($stagesOption) {
-            // Parse comma-separated stages and validate them
             $requestedStages = array_map('trim', explode(',', $stagesOption));
             $availableStages = Keep::getStages();
 
@@ -87,7 +85,6 @@ class DiffCommand extends BaseCommand
             return array_intersect($requestedStages, $availableStages);
         }
 
-        // Default to all configured stages
         return Keep::getStages();
     }
 
@@ -96,7 +93,6 @@ class DiffCommand extends BaseCommand
         $this->newLine();
         $this->info('Secret Comparison Matrix');
 
-        // Build column headers
         $headers = ['Key'];
         $vaultStageCombinations = [];
 
@@ -110,7 +106,6 @@ class DiffCommand extends BaseCommand
 
         $headers[] = 'Status';
 
-        // Build table rows
         $rows = $diffs->map(function (SecretDiff $diff) use ($vaultStageCombinations) {
             $row = [$diff->key()];
 
