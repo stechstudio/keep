@@ -1,6 +1,6 @@
 # Keep
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/stechstudio/keep.svg?style=flat-square)](https://packagist.org/packages/stechstudio/keep)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/stechstudio/keep.svg?style=flat-square&include_prereleases)](https://packagist.org/packages/stechstudio/keep)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
 [![Tests](https://img.shields.io/github/actions/workflow/status/stechstudio/keep/tests.yml?branch=main&style=flat-square)](https://github.com/stechstudio/keep/actions/workflows/tests.yml)
 
@@ -9,7 +9,7 @@
 ## Key Features
 
 - **🔐 Multi-Vault Support** - AWS SSM Parameter Store and AWS Secrets Manager
-- **🖥️ Web UI** - Modern browser-based interface for visual secret management
+- **🖥️ Web UI** - Local browser-based interface for visual secret management
 - **🚀 Interactive Shell** - Context-aware shell with tab completion for rapid secret management
 - **🌍 Environment Isolation** - Separate secrets by environment (local, staging, production)
 - **📝 Template Management** - Create, validate, and process templates with placeholders
@@ -37,7 +37,7 @@ composer require stechstudio/keep
 ./vendor/bin/keep export --env=production --file=.env
 
 # Create template from existing secrets
-./vendor/bin/keep template:add .env.template --env=production
+./vendor/bin/keep template:add --env=production
 
 # Use template with placeholders to generate .env file
 ./vendor/bin/keep export --env=production --template=env/production.env --file=.env
