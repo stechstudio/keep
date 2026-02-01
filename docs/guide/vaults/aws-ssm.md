@@ -233,4 +233,4 @@ keep export --template=env.template --env=production --vault=ssm --output=.env
 
 - [AWS Secrets Manager](./aws-secrets-manager) - For more advanced secret rotation features
 - [Deployment & Runtime](../deployment/) - Export secrets and runtime injection
-- [CLI Reference](../reference/cli-reference) - Complete command documentation
+- [CLI Reference](../cli/reference) - Complete command documentation

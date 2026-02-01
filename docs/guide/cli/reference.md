@@ -182,6 +182,25 @@ Create or update secrets in vaults.
 - `[key]` - Secret key name (prompted if not provided)
 - `[value]` - Secret value (prompted if not provided)
 
+### Secret Key Naming Rules
+
+Secret keys must follow these rules:
+- **Allowed characters**: Letters, numbers, underscores, and hyphens (`A-Za-z0-9_-`)
+- **Length**: 1-255 characters
+- **Cannot start with hyphen**: Keys like `-MY_KEY` are rejected (could be interpreted as command flags)
+
+**Valid examples:**
+- `DATABASE_PASSWORD`
+- `api-key`
+- `my_service_v2_token`
+- `AWS_ACCESS_KEY_ID`
+
+**Invalid examples:**
+- `-starts-with-hyphen` (starts with hyphen)
+- `has spaces` (contains spaces)
+- `path/with/slashes` (contains slashes)
+- `dotted.key.name` (contains dots)
+
 **Examples:**
 ```bash
 # Interactive mode

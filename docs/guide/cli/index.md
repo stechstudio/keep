@@ -143,7 +143,7 @@ For detailed command syntax and options, see the [CLI Command Reference](./refer
 | `keep run` | Runtime injection | Production deployment |
 | `keep delete` | Remove secrets | Cleanup |
 | `keep shell` | Interactive mode | Exploration |
-| `keep ui` | Web interface | Management |
+| `keep server` | Web interface | Management |
 
 ## Integration Examples
 

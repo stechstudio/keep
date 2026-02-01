@@ -203,17 +203,30 @@ class TemplateService
     
     public function loadTemplate(string $filename): Template
     {
+        $this->validateFilename($filename);
+
         $filepath = $this->templatePath . '/' . $filename;
-        
+
         if (!file_exists($filepath)) {
             throw new KeepException("Template file not found: {$filename}");
         }
-        
+
         $content = file_get_contents($filepath);
         if ($content === false) {
             throw new KeepException("Failed to read template file: {$filename}");
         }
-        
+
         return new Template($content);
+    }
+
+    protected function validateFilename(string $filename): void
+    {
+        if (str_contains($filename, '..') || str_contains($filename, "\0")) {
+            throw new KeepException("Invalid filename: path traversal not allowed");
+        }
+
+        if (str_starts_with($filename, '/')) {
+            throw new KeepException("Invalid filename: absolute paths not allowed");
+        }
     }
 }

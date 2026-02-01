@@ -53,7 +53,7 @@ Compare secrets across envs and vaults:
 ### Export
 
 Export secrets in multiple formats:
-- **Formats**: ENV, JSON, YAML, Shell script
+- **Formats**: ENV, JSON, CSV
 - **Live preview** before download
 - **Copy to clipboard** for quick use
 - **Template support** for custom formats
@@ -125,7 +125,7 @@ Manage Keep configuration:
 - Binds to 127.0.0.1 by default
 - No CORS headers (prevents external access)
 - HTTPS not required for localhost
-- Rate limiting on API endpoints
+- Token validation on all API endpoints
 
 ## Troubleshooting
 

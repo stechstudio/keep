@@ -9,7 +9,7 @@ The Secrets page provides full CRUD operations with real-time search and filteri
 - Copy secrets between environments and vaults
 - View revision history
 - Bulk import from `.env` files
-- Export in ENV, JSON, YAML, or Shell format
+- Export in ENV, JSON, or CSV format
 
 ## Diff Matrix
 
@@ -45,12 +45,11 @@ API_KEY={secretsmanager:API_KEY}
 ### Import
 Drop `.env` files or paste content to bulk import secrets. The preview shows what will be imported with conflict detection. Choose to skip existing secrets or overwrite them.
 
-### Export  
+### Export
 Generate configuration files in multiple formats:
 - **ENV** - Standard `.env` format
 - **JSON** - Structured object
-- **YAML** - Key-value pairs
-- **Shell** - Export statements
+- **CSV** - Spreadsheet-compatible format
 
 Export supports filtering by patterns and selective inclusion.
 

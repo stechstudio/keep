@@ -101,4 +101,4 @@ One template per env, containing both secrets (as placeholders) and static confi
 - Learn about [Runtime Secrets Injection](./runtime-injection.md)
 - Set up [Templates](./templates.md) for your applications
 - Understand [File Export](./exporting.md) options
-- Review [Security Best Practices](/guide/reference/security-architecture)
+- Review [AWS Authentication](/guide/aws-authentication) for security best practices

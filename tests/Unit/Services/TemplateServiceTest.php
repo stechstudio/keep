@@ -166,8 +166,40 @@ class TemplateServiceTest extends TestCase
     {
         $this->expectException(KeepException::class);
         $this->expectExceptionMessage('Template file not found: missing.env');
-        
+
         $this->service->loadTemplate('missing.env');
+    }
+
+    public function test_load_template_rejects_path_traversal(): void
+    {
+        $this->expectException(KeepException::class);
+        $this->expectExceptionMessage('path traversal not allowed');
+
+        $this->service->loadTemplate('../../../etc/passwd');
+    }
+
+    public function test_load_template_rejects_double_dot_sequences(): void
+    {
+        $this->expectException(KeepException::class);
+        $this->expectExceptionMessage('path traversal not allowed');
+
+        $this->service->loadTemplate('foo/../bar/../../../etc/passwd');
+    }
+
+    public function test_load_template_rejects_null_bytes(): void
+    {
+        $this->expectException(KeepException::class);
+        $this->expectExceptionMessage('path traversal not allowed');
+
+        $this->service->loadTemplate("valid.env\0.txt");
+    }
+
+    public function test_load_template_rejects_absolute_paths(): void
+    {
+        $this->expectException(KeepException::class);
+        $this->expectExceptionMessage('absolute paths not allowed');
+
+        $this->service->loadTemplate('/etc/passwd');
     }
     
     public function test_generate_template_section_formatting(): void

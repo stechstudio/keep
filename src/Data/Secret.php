@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Arr;
 use STS\Keep\Data\Concerns\MasksValues;
+use STS\Keep\Validation\SecretKeyValidator;
 use STS\Keep\Vaults\AbstractVault;
 
 class Secret implements Arrayable
@@ -41,8 +42,6 @@ class Secret implements Arrayable
 
     /**
      * Validate a secret key for safe vault operations.
-     * Allows common naming conventions (letters, digits, underscores, hyphens)
-     * while preventing characters that could break vault API calls.
      *
      * @param  string  $key  The raw key to validate
      * @return string The validated key
@@ -51,31 +50,7 @@ class Secret implements Arrayable
      */
     protected function validateKey(string $key): string
     {
-        $trimmed = trim($key);
-
-        // Allow letters, digits, underscores, and hyphens (common in cloud services)
-        if (! preg_match('/^[A-Za-z0-9_-]+$/', $trimmed)) {
-            throw new \InvalidArgumentException(
-                "Secret key '{$key}' contains invalid characters. ".
-                'Only letters, numbers, underscores, and hyphens are allowed.'
-            );
-        }
-
-        // Length validation (reasonable limits for secret names)
-        if (strlen($trimmed) < 1 || strlen($trimmed) > 255) {
-            throw new \InvalidArgumentException(
-                "Secret key '{$key}' must be 1-255 characters long."
-            );
-        }
-
-        // Cannot start with hyphen (could be interpreted as command flag)
-        if (str_starts_with($trimmed, '-')) {
-            throw new \InvalidArgumentException(
-                "Secret key '{$key}' cannot start with hyphen."
-            );
-        }
-
-        return $trimmed;
+        return (new SecretKeyValidator())->validate($key);
     }
 
     /**

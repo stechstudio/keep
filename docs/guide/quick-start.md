@@ -29,7 +29,7 @@ keep get DB_PASSWORD --env=local --unmask
 
 ```bash
 # Export secrets to a .env file
-keep export --env=local --output=.env
+keep export --env=local --file=.env
 ```
 
 This creates a `.env` file with your secrets:

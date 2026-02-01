@@ -214,8 +214,8 @@ describe('TemplateValidateCommand', function () {
         });
 
         it('validates key format', function () {
-            // Use valid env var names but with invalid secret keys (using vault:key syntax)
-            $templateContent = "VALID_ENV={test:INVALID-KEY}\nVALID_KEY={test:VALID_KEY}\n";
+            // Use valid env var names but with invalid secret keys (dots and slashes not allowed)
+            $templateContent = "VALID_ENV={test:invalid.key}\nVALID_KEY={test:VALID_KEY}\n";
             $templatePath = 'invalid-keys.env';
             file_put_contents($templatePath, $templateContent);
 
@@ -228,7 +228,7 @@ describe('TemplateValidateCommand', function () {
             expect($commandTester->getStatusCode())->toBe(1);
 
             $output = stripAnsi($commandTester->getDisplay());
-            expect($output)->toContain('Invalid key format');
+            expect($output)->toContain('invalid characters');
         });
 
         it('validates vault existence', function () {

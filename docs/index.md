@@ -46,13 +46,13 @@ keep vault:add
 keep set DB_PASSWORD "super-secret" --env=production
 
 # List secrets
-keep list --env=staging
+keep show --env=staging
 
 # Compare environments
 keep diff --env=staging,production
 
 # Export to .env
-keep export --env=production --output=.env
+keep export --env=production --file=.env
 
 # Use templates  
 keep export --template=.env.template --env=production --output=.env

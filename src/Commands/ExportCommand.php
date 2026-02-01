@@ -8,28 +8,24 @@ use STS\Keep\Commands\Concerns\ResolvesTemplates;
 use STS\Keep\Services\Export\DirectExportService;
 use STS\Keep\Services\Export\TemplateParseService;
 use STS\Keep\Services\Export\TemplatePreserveService;
-// use STS\Keep\Services\Export\CacheExportService; // Future enhancement
 use STS\Keep\Services\OutputWriter;
 
 class ExportCommand extends BaseCommand
 {
     use GathersInput, ResolvesTemplates;
 
-    public $signature = 'export 
-        {--format=env : Output format (env, json, or csv)} 
+    public $signature = 'export
+        {--format=env : Output format (env, json, or csv)}
         {--template= : Template file path, or auto-discover {env}.env if no path given}
         {--all : Include all vault secrets, not just template placeholders}
         {--missing=fail : How to handle missing secrets: fail|remove|blank|skip}
-        {--file= : Output file path (default: stdout)} 
-        {--overwrite : Overwrite existing output file} 
-        {--append : Append to existing output file} 
+        {--file= : Output file path (default: stdout)}
+        {--overwrite : Overwrite existing output file}
+        {--append : Append to existing output file}
         {--env= : Environment to export secrets from}
         {--vault= : Vault(s) to use (comma-separated, auto-detected from template if not specified)}
-        {--only= : Only include keys matching this pattern (e.g. DB_*)} 
+        {--only= : Only include keys matching this pattern (e.g. DB_*)}
         {--except= : Exclude keys matching this pattern (e.g. MAIL_*)}';
-
-    // Future enhancement: Cache export
-    // {--cache : Export to encrypted cache in .keep/cache/}
 
     public $description = 'Export secrets from vaults with flexible output options';
 
@@ -38,19 +34,16 @@ class ExportCommand extends BaseCommand
     protected TemplatePreserveService $templatePreserve;
 
     protected TemplateParseService $templateParse;
-    // protected CacheExportService $cacheExport; // Future enhancement
 
     public function __construct(Filesystem $filesystem)
     {
         parent::__construct($filesystem);
 
-        // Initialize services
         $outputWriter = new OutputWriter($filesystem);
 
         $this->directExport = new DirectExportService($outputWriter);
         $this->templatePreserve = new TemplatePreserveService($outputWriter);
         $this->templateParse = new TemplateParseService($outputWriter);
-        // $this->cacheExport = new CacheExportService($secretLoader, $filesystem); // Future enhancement
     }
 
     public function process()
@@ -75,13 +68,6 @@ class ExportCommand extends BaseCommand
         }
 
         // Route to appropriate service based on options
-
-        // Future enhancement: Cache export
-        // if ($this->option('cache')) {
-        //     // Cache export mode
-        //     return $this->cacheExport->handle($options, $this->output);
-        // }
-
         if (! isset($options['template'])) {
             // Direct export mode
             return $this->directExport->handle($options, $this->output);

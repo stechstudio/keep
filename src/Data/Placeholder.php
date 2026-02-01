@@ -3,6 +3,7 @@
 namespace STS\Keep\Data;
 
 use STS\Keep\Facades\Keep;
+use STS\Keep\Validation\SecretKeyValidator;
 
 class Placeholder
 {
@@ -63,11 +64,13 @@ class Placeholder
 
         try {
             // Validate key format
-            if (! $this->isValidKeyFormat()) {
+            $validator = new SecretKeyValidator();
+            $validationError = $validator->getValidationError($this->key);
+            if ($validationError !== null) {
                 return PlaceholderValidationResult::invalid(
                     $this,
                     $vault,
-                    'Invalid key format (only letters, numbers, and underscores allowed)'
+                    $validationError
                 );
             }
 
@@ -91,26 +94,9 @@ class Placeholder
         }
     }
 
-    /**
-     * Check if key format is valid according to Keep standards
-     */
     protected function isValidKeyFormat(): bool
     {
-        $trimmed = trim($this->key);
-
-        if (strlen($trimmed) < 1 || strlen($trimmed) > 255) {
-            return false;
-        }
-
-        if (! preg_match('/^[A-Za-z0-9_]+$/', $trimmed)) {
-            return false;
-        }
-
-        if (preg_match('/^[0-9_]/', $trimmed)) {
-            return false;
-        }
-
-        return true;
+        return (new SecretKeyValidator())->isValid($this->key);
     }
 
     /**

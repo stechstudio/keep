@@ -120,7 +120,6 @@ class Router
             } catch (Exception $e) {
                 return [
                     'error' => $e->getMessage(),
-                    'type' => get_class($e),
                     '_status' => 500
                 ];
             }

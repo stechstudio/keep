@@ -95,7 +95,7 @@ describe('Secret', function () {
 
         it('rejects keys starting with hyphen', function ($key) {
             expect(fn () => new Secret($key, 'value'))
-                ->toThrow(\InvalidArgumentException::class, 'cannot start with hyphen');
+                ->toThrow(\InvalidArgumentException::class, 'cannot start with a hyphen');
         })->with([
             'single hyphen' => ['-SECRET'],
             'multiple hyphens' => ['--PRIVATE'],

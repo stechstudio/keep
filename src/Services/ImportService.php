@@ -6,6 +6,7 @@ use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Data\Env;
 use STS\Keep\Data\Secret;
 use STS\Keep\Exceptions\KeepException;
+use STS\Keep\Validation\SecretKeyValidator;
 use STS\Keep\Vaults\AbstractVault;
 
 class ImportService
@@ -13,7 +14,9 @@ class ImportService
     const STRATEGY_OVERWRITE = 'overwrite';
     const STRATEGY_SKIP = 'skip';
     const STRATEGY_FAIL = 'fail';
-    
+
+    const IMPORT_DELAY_MICROSECONDS = 150000;
+
     protected array $results = [];
     protected array $errors = [];
     
@@ -169,9 +172,8 @@ class ImportService
                         'status' => 'imported',
                         'revision' => $importedSecret->revision()
                     ];
-                    
-                    // Small delay to avoid rate limits
-                    usleep(150000);
+
+                    usleep(self::IMPORT_DELAY_MICROSECONDS);
                 } catch (KeepException $e) {
                     $failed->push($secret);
                     $this->results[$key] = [
@@ -201,51 +203,14 @@ class ImportService
         ];
     }
     
-    /**
-     * Validate a key for safe vault operations
-     */
     protected function isValidKey(string $key): bool
     {
-        $trimmed = trim($key);
-        
-        // Allow letters, digits, underscores, and hyphens
-        if (!preg_match('/^[A-Za-z0-9_-]+$/', $trimmed)) {
-            return false;
-        }
-        
-        // Length validation
-        if (strlen($trimmed) < 1 || strlen($trimmed) > 255) {
-            return false;
-        }
-        
-        // Cannot start with hyphen
-        if (str_starts_with($trimmed, '-')) {
-            return false;
-        }
-        
-        return true;
+        return (new SecretKeyValidator())->isValid($key);
     }
-    
-    /**
-     * Get validation error message for a key
-     */
+
     protected function getKeyValidationError(string $key): string
     {
-        $trimmed = trim($key);
-        
-        if (!preg_match('/^[A-Za-z0-9_-]+$/', $trimmed)) {
-            return "Contains invalid characters. Only letters, numbers, underscores, and hyphens are allowed.";
-        }
-        
-        if (strlen($trimmed) < 1 || strlen($trimmed) > 255) {
-            return "Must be 1-255 characters long.";
-        }
-        
-        if (str_starts_with($trimmed, '-')) {
-            return "Cannot start with hyphen.";
-        }
-        
-        return "Invalid key";
+        return (new SecretKeyValidator())->getValidationError($key) ?? 'Invalid key';
     }
     
     /**

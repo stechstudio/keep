@@ -23,13 +23,10 @@ TIMEZONE=UTC
 REDIS_HOST=redis.internal
 QUEUE_CONNECTION=redis
 
-# Secrets from vaults
+# Secrets from vaults (format: {vault:key})
 DATABASE_URL={ssm:DATABASE_URL}
 REDIS_PASSWORD={ssm:REDIS_PASSWORD}
 API_KEY={ssm:API_KEY}
-
-# Path-based secrets
-STRIPE_KEY={ssm:payments/stripe/key}
 
 # Multiple vaults
 AWS_ACCESS_KEY={ssm:AWS_ACCESS_KEY}

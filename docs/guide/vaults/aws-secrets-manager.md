@@ -343,4 +343,4 @@ For supported services like RDS, enable automatic rotation:
 
 - [AWS SSM Parameter Store](./aws-ssm) - For cost-effective configuration and simple secrets
 - [Deployment & Runtime](../deployment/) - Export secrets and runtime injection
-- [CLI Reference](../reference/cli-reference) - Complete command documentation
+- [CLI Reference](../cli/reference) - Complete command documentation

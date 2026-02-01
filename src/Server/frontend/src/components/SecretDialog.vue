@@ -91,25 +91,33 @@ const keyError = ref('')
 const saveError = ref('')
 const loading = ref(false)
 
-// Validate key on input
+// Validate key on input - matches backend SecretKeyValidator
 const validateKey = computed(() => {
   if (!form.key) {
     keyError.value = ''
     return true
   }
-  
-  // Check for spaces
-  if (form.key.includes(' ')) {
-    keyError.value = 'No spaces allowed'
+
+  const trimmed = form.key.trim()
+
+  // Length validation
+  if (trimmed.length < 1 || trimmed.length > 255) {
+    keyError.value = 'Must be 1-255 characters'
     return false
   }
-  
-  // Check for other invalid characters (basic validation)
-  if (!/^[A-Za-z0-9_\-/.]+$/.test(form.key)) {
-    keyError.value = 'Only letters, numbers, _, -, /, . allowed'
+
+  // Pattern validation: only letters, numbers, underscores, hyphens
+  if (!/^[A-Za-z0-9_-]+$/.test(trimmed)) {
+    keyError.value = 'Only letters, numbers, underscores, and hyphens allowed'
     return false
   }
-  
+
+  // Cannot start with hyphen
+  if (trimmed.startsWith('-')) {
+    keyError.value = 'Cannot start with a hyphen'
+    return false
+  }
+
   keyError.value = ''
   return true
 })

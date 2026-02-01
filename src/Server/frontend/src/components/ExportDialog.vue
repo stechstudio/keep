@@ -21,7 +21,7 @@
             <select v-model="format" class="px-3 py-2 bg-input border border-border rounded-md text-sm">
               <option value="env">.env format</option>
               <option value="json">JSON</option>
-              <option value="yaml">YAML</option>
+              <option value="csv">CSV</option>
               <option value="shell">Shell export</option>
             </select>
           </div>
@@ -123,7 +123,7 @@ function copyToClipboard() {
 function downloadFile() {
   const extension = format.value === 'env' ? '.env' :
                    format.value === 'json' ? '.json' :
-                   format.value === 'yaml' ? '.yaml' :
+                   format.value === 'csv' ? '.csv' :
                    '.sh'
   
   const filename = `${props.vault}-${props.env}${extension}`

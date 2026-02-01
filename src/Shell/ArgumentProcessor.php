@@ -49,6 +49,22 @@ class ArgumentProcessor
         'env:add' => [
             'arguments' => ['name'],
         ],
+        'diff' => [
+            'options' => [
+                0 => '--from',
+                1 => '--to',
+            ],
+            'flags' => ['unmask'],
+        ],
+        'verify' => [
+            'flags' => ['verbose'],
+        ],
+        'export' => [
+            'flags' => ['all', 'unmask'],
+            'options' => [
+                0 => '--file',
+            ],
+        ],
     ];
     
     /**

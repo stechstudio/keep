@@ -4,6 +4,7 @@ namespace STS\Keep\Server\Controllers;
 
 use Exception;
 use STS\Keep\Data\Collections\FilterCollection;
+use STS\Keep\Validation\SecretKeyValidator;
 
 class SecretController extends ApiController
 {

@@ -77,33 +77,39 @@ const keyError = ref('')
 const error = ref('')
 const loading = ref(false)
 
-// Validate key on input
+// Validate key on input - matches backend SecretKeyValidator
 const validateKey = computed(() => {
   const key = newKey.value.trim()
-  
+
   if (!key) {
     keyError.value = ''
     return false
   }
-  
+
   // Check if unchanged
   if (key === props.currentKey) {
     keyError.value = ''
     return false
   }
-  
-  // Check for spaces
-  if (key.includes(' ')) {
-    keyError.value = 'No spaces allowed'
+
+  // Length validation
+  if (key.length < 1 || key.length > 255) {
+    keyError.value = 'Must be 1-255 characters'
     return false
   }
-  
-  // Check for other invalid characters (same validation as SecretDialog)
-  if (!/^[A-Za-z0-9_\-/.]+$/.test(key)) {
-    keyError.value = 'Only letters, numbers, _, -, /, . allowed'
+
+  // Pattern validation: only letters, numbers, underscores, hyphens
+  if (!/^[A-Za-z0-9_-]+$/.test(key)) {
+    keyError.value = 'Only letters, numbers, underscores, and hyphens allowed'
     return false
   }
-  
+
+  // Cannot start with hyphen
+  if (key.startsWith('-')) {
+    keyError.value = 'Cannot start with a hyphen'
+    return false
+  }
+
   keyError.value = ''
   return true
 })
