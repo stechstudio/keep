@@ -119,7 +119,9 @@ class AwsSsmVault extends AbstractVault
     public function has(string $key): bool
     {
         try {
-            return $this->get($key) instanceof Secret;
+            $this->get($key);
+
+            return true;
         } catch (SecretNotFoundException $e) {
             return false;
         }

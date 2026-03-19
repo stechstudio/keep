@@ -38,7 +38,7 @@ class SecretDiff implements Arrayable
 
     public function hasValue(string $vaultEnv): bool
     {
-        return isset($this->values[$vaultEnv]) && $this->values[$vaultEnv] !== null;
+        return isset($this->values[$vaultEnv]);
     }
 
     public function getValue(string $vaultEnv): ?Secret

@@ -67,8 +67,8 @@ class Secret implements Arrayable
         ?string $path = null,
         ?AbstractVault $vault = null,
         ?Carbon $lastModified = null,
-    ): static {
-        return new static(
+    ): self {
+        return new self(
             key: $key,
             value: $value,
             encryptedValue: $encryptedValue,
@@ -96,8 +96,8 @@ class Secret implements Arrayable
         ?string $path = null,
         ?AbstractVault $vault = null,
         ?Carbon $lastModified = null,
-    ): static {
-        return new static(
+    ): self {
+        return new self(
             key: $key,
             value: $value,
             encryptedValue: $encryptedValue,

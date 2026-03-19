@@ -72,6 +72,6 @@ class PlaceholderCollection extends Collection
      */
     public function toLegacyArray(): array
     {
-        return $this->map->toArray()->all();
+        return $this->map(fn(Placeholder $p) => $p->toArray())->all();
     }
 }

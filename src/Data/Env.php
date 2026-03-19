@@ -12,13 +12,13 @@ class Env
 
     public function __construct(protected string $contents) {}
 
-    public static function fromFile(string $filePath): static
+    public static function fromFile(string $filePath): self
     {
         if (! file_exists($filePath)) {
-            return new static('');
+            return new self('');
         }
 
-        return new static(file_get_contents($filePath) ?: '');
+        return new self(file_get_contents($filePath) ?: '');
     }
 
     public function contents(): string

@@ -83,16 +83,8 @@ class SecretHistoryCollection extends Collection
     public function sortByDateDesc(): static
     {
         return $this->sortByDesc(function (SecretHistory $entry) {
-            return $entry->lastModifiedDate()?->timestamp ?? 0;
+            return $entry->lastModifiedDate()->timestamp ?? 0;
         })->values();
-    }
-
-    /**
-     * Take a number of items from the collection while preserving type
-     */
-    public function take($limit): static
-    {
-        return new static(parent::take($limit));
     }
 
     /**

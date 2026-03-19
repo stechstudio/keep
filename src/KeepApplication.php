@@ -12,8 +12,6 @@ use Symfony\Component\Console\Input\InputDefinition;
 
 class KeepApplication extends Application
 {
-    protected KeepManager $manager;
-
     public const string VERSION = '1.0.0-beta';
 
     public function __construct(protected KeepInstall $install)

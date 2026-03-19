@@ -275,11 +275,15 @@ const secrets = computed(() => {
 // Get permissions for current vault and env
 const permissions = computed(() => {
   const currentVault = vaults.value.find(v => v.slug === vault.value)
-  if (!currentVault || !currentVault.permissions || !env.value) {
-    // If no permissions are cached, assume full permissions for backward compatibility
-    return { list: true, read: true, write: true, delete: true, history: true }
+  if (!currentVault || !env.value) {
+    return { list: false, read: false, write: false, delete: false, history: false }
   }
-  
+
+  // If permissions haven't been verified yet, allow read-only access
+  if (!currentVault.permissions || !currentVault.permissions_verified_at) {
+    return { list: true, read: true, write: false, delete: false, history: false }
+  }
+
   const envPerms = currentVault.permissions[env.value] || []
   return {
     list: envPerms.includes('list'),

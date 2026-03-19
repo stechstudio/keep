@@ -83,7 +83,7 @@ class Template
         $pattern = '/\{([A-Za-z0-9_-]+)(?::[^}]*)?\}/';
         preg_match_all($pattern, $this->contents, $matches);
 
-        return array_unique($matches[1] ?? []);
+        return array_unique($matches[1]);
     }
 
     public function toEnvironment(array $vaults, bool $inheritCurrent = true): array

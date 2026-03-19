@@ -117,7 +117,7 @@ class EnvAddCommand extends BaseCommand
             $collection->addPermission($permission);
             
             // Update stored permissions for this vault
-            $existingPermissions = $localStorage->getVaultPermissions($vaultName) ?? [];
+            $existingPermissions = $localStorage->getVaultPermissions($vaultName);
             $existingPermissions[$envName] = $permission->permissions();
             $localStorage->saveVaultPermissions($vaultName, $existingPermissions);
         }

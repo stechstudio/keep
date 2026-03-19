@@ -226,7 +226,7 @@ describe('DeleteCommand', function () {
     });
 
     describe('edge cases and special scenarios', function () {
-        it('handles special characters in key names', function () {
+        it('rejects keys with invalid characters', function () {
             $commandTester = runCommand('delete', [
                 'key' => 'KEY_WITH_SPECIAL-CHARS.123',
                 '--vault' => 'test',
@@ -234,10 +234,8 @@ describe('DeleteCommand', function () {
                 '--force' => true,
             ]);
 
-            $output = stripAnsi($commandTester->getDisplay());
-
-            // Should handle special characters in keys without error
-            expect($output)->not->toMatch('/invalid.*key/i');
+            expect($commandTester->getStatusCode())->toBe(1);
+            expect(stripAnsi($commandTester->getDisplay()))->toContain('invalid characters');
         });
 
         it('handles confirmation cancellation appropriately', function () {

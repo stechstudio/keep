@@ -34,30 +34,34 @@ class PermissionsCollection extends Collection
     public function groupByVault(): Collection
     {
         $grouped = new Collection();
-        
+
         foreach ($this->items as $permission) {
             $vault = $permission->vault();
             if (!$grouped->has($vault)) {
                 $grouped->put($vault, new Collection());
             }
-            $grouped->get($vault)->put($permission->env(), $permission);
+            /** @var Collection $vaultGroup */
+            $vaultGroup = $grouped->get($vault);
+            $vaultGroup->put($permission->env(), $permission);
         }
-        
+
         return $grouped;
     }
-    
+
     public function groupByEnv(): Collection
     {
         $grouped = new Collection();
-        
+
         foreach ($this->items as $permission) {
             $env = $permission->env();
             if (!$grouped->has($env)) {
                 $grouped->put($env, new Collection());
             }
-            $grouped->get($env)->put($permission->vault(), $permission);
+            /** @var Collection $envGroup */
+            $envGroup = $grouped->get($env);
+            $envGroup->put($permission->vault(), $permission);
         }
-        
+
         return $grouped;
     }
     

@@ -106,9 +106,9 @@ class SecretCollection extends Collection
      * Load secrets from multiple vaults and merge them.
      * Later vaults override earlier ones for duplicate keys.
      */
-    public static function loadFromVaults(array $vaultNames, string $env): static
+    public static function loadFromVaults(array $vaultNames, string $env): self
     {
-        $allSecrets = new static;
+        $allSecrets = new self;
 
         foreach ($vaultNames as $vaultName) {
             $vault = Keep::vault($vaultName, $env);
@@ -160,7 +160,7 @@ class SecretCollection extends Collection
                     $secrets = Keep::vault($vaultName, $env)->list();
                     $allSecrets[$vaultEnvKey] = $secrets->filterByPatterns(only: $only, except: $except);
                 } catch (\Exception $e) {
-                    $allSecrets[$vaultEnvKey] = new static([]);
+                    $allSecrets[$vaultEnvKey] = new self([]);
                 }
             }
         }

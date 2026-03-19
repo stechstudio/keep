@@ -7,12 +7,12 @@ use STS\Keep\Data\VaultConfig;
 
 class VaultConfigCollection extends Collection
 {
-    public static function load(): static
+    public static function load(): self
     {
         $vaultsDir = getcwd().'/.keep/vaults';
 
         if (! is_dir($vaultsDir)) {
-            return new static;
+            return new self;
         }
 
         $vaultFiles = glob($vaultsDir.'/*.json');
@@ -20,7 +20,7 @@ class VaultConfigCollection extends Collection
             throw new \RuntimeException("Cannot read vault directory: {$vaultsDir}");
         }
 
-        return (new static($vaultFiles))
+        return (new self($vaultFiles))
             ->mapWithKeys(function ($file) {
                 $vaultName = basename($file, '.json');
 

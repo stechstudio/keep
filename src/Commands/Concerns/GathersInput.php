@@ -3,7 +3,9 @@
 namespace STS\Keep\Commands\Concerns;
 
 use STS\Keep\Data\Context;
+use STS\Keep\Exceptions\KeepException;
 use STS\Keep\Facades\Keep;
+use STS\Keep\Validation\SecretKeyValidator;
 
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
@@ -32,12 +34,22 @@ trait GathersInput
 
     protected function key()
     {
-        // Check if the command even has a 'key' argument before trying to access it
         if (!$this->getDefinition()->hasArgument('key')) {
             return null;
         }
-        
-        return $this->key ??= $this->argument('key') ?? text('Key', 'DATABASE_PASSWORD', required: true);
+
+        if (isset($this->key)) {
+            return $this->key;
+        }
+
+        $key = $this->argument('key') ?? text('Key', 'DATABASE_PASSWORD', required: true);
+
+        $error = (new SecretKeyValidator())->getValidationError($key);
+        if ($error) {
+            throw new KeepException($error);
+        }
+
+        return $this->key = $key;
     }
 
     protected function value()

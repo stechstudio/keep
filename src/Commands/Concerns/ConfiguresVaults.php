@@ -184,7 +184,7 @@ trait ConfiguresVaults
             $updatedSettings = new \STS\Keep\Data\Settings(
                 appName: 'keep-app',
                 namespace: 'keep-app',
-                stages: ['local', 'staging', 'production'],
+                envs: ['local', 'staging', 'production'],
                 defaultVault: $vaultName
             );
         }

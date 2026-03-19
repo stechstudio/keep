@@ -9,9 +9,9 @@ trait InteractsWithJsonFiles
 {
     abstract public function toArray(): array;
 
-    abstract public static function fromArray(array $data): static;
+    abstract public static function fromArray(array $data): self;
 
-    public static function fromFile(string $path): static
+    public static function fromFile(string $path): self
     {
         $data = (new Filesystem)->json($path, JSON_THROW_ON_ERROR);
 

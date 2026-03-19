@@ -8,6 +8,7 @@ use STS\Keep\Data\Collections\FilterCollection;
 use STS\Keep\Data\Collections\SecretCollection;
 use STS\Keep\Data\Collections\SecretHistoryCollection;
 use STS\Keep\Data\Secret;
+use STS\Keep\Exceptions\SecretAlreadyExistsException;
 
 abstract class AbstractVault
 {
@@ -50,7 +51,7 @@ abstract class AbstractVault
     {
         $oldSecret = $this->get($oldKey);
         if ($this->has($newKey)) {
-            throw new \STS\Keep\Exceptions\KeepException(
+            throw new SecretAlreadyExistsException(
                 sprintf('Cannot rename: secret [%s] already exists', $newKey)
             );
         }

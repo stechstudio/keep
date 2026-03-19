@@ -40,6 +40,7 @@ class ShowCommand extends BaseCommand
             'table' => table(['Key', 'Value', 'Revision'], $secrets->map->forTable()),
             'env' => $this->line($secrets->toEnvString()),
             'json' => $this->line($secrets->map->only(['key', 'value', 'revision'])->toJson(JSON_PRETTY_PRINT)),
+            default => null,
         };
     }
 }

@@ -27,7 +27,9 @@ class ShellCommand extends BaseCommand
             $this->option('vault')
         );
 
-        $shell = new SimpleShell($context, $this->getApplication());
+        /** @var \Illuminate\Console\Application $app */
+        $app = $this->getApplication();
+        $shell = new SimpleShell($context, $app);
         
         try {
             $shell->run();

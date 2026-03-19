@@ -128,7 +128,7 @@ describe('SetCommand', function () {
     });
 
     describe('edge cases and special values', function () {
-        it('handles special characters in key names', function () {
+        it('rejects keys with invalid characters', function () {
             $commandTester = runCommand('set', [
                 'key' => 'KEY_WITH_SPECIAL-CHARS.123',
                 'value' => 'special-char-value',
@@ -136,10 +136,20 @@ describe('SetCommand', function () {
                 '--env' => 'testing',
             ]);
 
-            $output = stripAnsi($commandTester->getDisplay());
+            expect($commandTester->getStatusCode())->toBe(1);
+            expect(stripAnsi($commandTester->getDisplay()))->toContain('invalid characters');
+        });
 
-            // Should handle special characters in keys without error
-            expect($output)->not->toMatch('/invalid.*key/i');
+        it('accepts keys with hyphens and underscores', function () {
+            $commandTester = runCommand('set', [
+                'key' => 'KEY_WITH-SPECIAL_CHARS-123',
+                'value' => 'special-char-value',
+                '--vault' => 'test',
+                '--env' => 'testing',
+            ]);
+
+            $output = stripAnsi($commandTester->getDisplay());
+            expect($output)->not->toMatch('/invalid/i');
         });
 
         it('handles special characters in values', function () {

@@ -39,7 +39,7 @@ class ExceptionFactory
                 'key' => $key,
                 'path' => $path,
                 'lineNumber' => $lineNumber,
-                'suggestion' => "Check if this secret exists using 'show",
+                'suggestion' => "Check if this secret exists using 'show'",
             ], fn ($v) => $v !== null));
     }
 

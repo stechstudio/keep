@@ -3,7 +3,9 @@
 namespace STS\Keep\Commands;
 
 use STS\Keep\Data\Context;
+use STS\Keep\Exceptions\KeepException;
 use STS\Keep\Exceptions\SecretNotFoundException;
+use STS\Keep\Validation\SecretKeyValidator;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\table;
@@ -49,6 +51,14 @@ class CopyCommand extends BaseCommand
             $this->error('Source and destination are identical. Nothing to copy.');
 
             return self::FAILURE;
+        }
+
+        // Validate key format
+        if ($key) {
+            $error = (new SecretKeyValidator())->getValidationError($key);
+            if ($error) {
+                throw new KeepException($error);
+            }
         }
 
         // Route to appropriate handler

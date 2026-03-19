@@ -193,7 +193,11 @@ class VaultController extends ApiController
             $name = $this->getParam('name');
             $isDefault = $this->getParam('isDefault', false);
             $scope = $this->getParam('scope', '');
-            
+
+            if (!$this->validateSlug($slug)) {
+                return $this->error('Invalid vault slug');
+            }
+
             // Check if vault already exists
             $existingVaults = $this->manager->getConfiguredVaults();
             if ($existingVaults->has($slug)) {
@@ -237,6 +241,10 @@ class VaultController extends ApiController
     
     public function updateVault(string $slug): array
     {
+        if (!$this->validateSlug($slug)) {
+            return $this->error('Invalid vault slug');
+        }
+
         try {
             // Check if vault exists
             $existingVaults = $this->manager->getConfiguredVaults();
@@ -271,6 +279,10 @@ class VaultController extends ApiController
             // Handle slug change
             $newSlug = $this->getParam('slug', $slug);
             if ($newSlug !== $slug) {
+                if (!$this->validateSlug($newSlug)) {
+                    return $this->error('Invalid vault slug');
+                }
+
                 // Check if new slug already exists
                 if ($existingVaults->has($newSlug)) {
                     return $this->error('A vault with the new slug already exists');
@@ -330,6 +342,10 @@ class VaultController extends ApiController
     
     public function deleteVault(string $slug): array
     {
+        if (!$this->validateSlug($slug)) {
+            return $this->error('Invalid vault slug');
+        }
+
         try {
             // Prevent deleting the default vault
             if ($slug === $this->manager->getDefaultVault()) {

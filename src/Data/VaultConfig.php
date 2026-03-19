@@ -19,7 +19,7 @@ class VaultConfig
         $this->validate();
     }
 
-    public static function fromArray(array $data): static
+    public static function fromArray(array $data): self
     {
         // Validate required fields exist
         $required = ['slug', 'driver', 'name'];
@@ -46,7 +46,7 @@ class VaultConfig
             'permissions_verified_at' => null  // Ignore if present
         ]);
 
-        return new static(
+        return new self(
             slug: $slug,
             driver: $driver,
             name: $name,
@@ -185,9 +185,9 @@ class VaultConfig
     }
 
     // Mutation methods (return new instance for immutability)
-    public function withScope(string $scope): static
+    public function withScope(string $scope): self
     {
-        return new static(
+        return new self(
             slug: $this->slug,
             driver: $this->driver,
             name: $this->name,
@@ -196,9 +196,9 @@ class VaultConfig
         );
     }
 
-    public function withConfig(array $config): static
+    public function withConfig(array $config): self
     {
-        return new static(
+        return new self(
             slug: $this->slug,
             driver: $this->driver,
             name: $this->name,
@@ -207,12 +207,12 @@ class VaultConfig
         );
     }
 
-    public function withConfigValue(string $key, mixed $value): static
+    public function withConfigValue(string $key, mixed $value): self
     {
         $newConfig = $this->config;
         $newConfig[$key] = $value;
 
-        return new static(
+        return new self(
             slug: $this->slug,
             driver: $this->driver,
             name: $this->name,
@@ -221,12 +221,12 @@ class VaultConfig
         );
     }
 
-    public function withoutConfigValue(string $key): static
+    public function withoutConfigValue(string $key): self
     {
         $newConfig = $this->config;
         unset($newConfig[$key]);
 
-        return new static(
+        return new self(
             slug: $this->slug,
             driver: $this->driver,
             name: $this->name,

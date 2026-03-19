@@ -111,11 +111,11 @@ class TemplateValidateCommand extends BaseCommand
             $error = $result->error ?? '';
 
             $tableData[] = [
-                'Line' => $line,
-                'Vault' => $vault,
-                'Key' => $key,
-                'Status' => $status,
-                'Error' => $error,
+                (string) $line,
+                (string) $vault,
+                (string) $key,
+                $status,
+                (string) $error,
             ];
         }
 

@@ -83,8 +83,7 @@ class CommandExecutor
             $command->resetInput();
         }
         
-        $exitCode = $command->run(new ArrayInput($input), $output);
-        return $exitCode === null ? 0 : $exitCode;
+        return $command->run(new ArrayInput($input), $output);
     }
     
     protected function buildCommandInput(string $commandName, array $parsed): array

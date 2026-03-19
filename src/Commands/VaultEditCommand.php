@@ -134,13 +134,13 @@ class VaultEditCommand extends BaseCommand
         return self::SUCCESS;
     }
     
-    protected function testVaultAcrossEnvs(string $vaultName): void
+    protected function testVaultAcrossEnvs(string $vaultName): PermissionsCollection
     {
         $envs = Keep::getEnvs();
         $collection = new PermissionsCollection();
         $localStorage = new LocalStorage();
         $vaultPermissions = [];
-        
+
         foreach ($envs as $env) {
             try {
                 $vault = Keep::vault($vaultName, $env);
@@ -149,13 +149,15 @@ class VaultEditCommand extends BaseCommand
             } catch (Exception $e) {
                 $permission = VaultEnvPermissions::fromError($vaultName, $env, $e->getMessage());
             }
-            
+
             $collection->addPermission($permission);
             $vaultPermissions[$env] = $permission->permissions();
         }
-        
+
         // Persist permissions for this vault
         $localStorage->saveVaultPermissions($vaultName, $vaultPermissions);
+
+        return $collection;
     }
 
     private function findVaultClass(string $driver): ?string

@@ -29,9 +29,9 @@ class VaultEnvPermissions
         if ($this->history) $this->permissions[] = 'history';
     }
 
-    public static function fromTestResults(string $vault, string $env, array $results): static
+    public static function fromTestResults(string $vault, string $env, array $results): self
     {
-        return new static(
+        return new self(
             vault: $vault,
             env: $env,
             list: $results['List'] ?? false,
@@ -44,9 +44,9 @@ class VaultEnvPermissions
         );
     }
 
-    public static function fromError(string $vault, string $env, string $error): static
+    public static function fromError(string $vault, string $env, string $error): self
     {
-        return new static(
+        return new self(
             vault: $vault,
             env: $env,
             list: false,

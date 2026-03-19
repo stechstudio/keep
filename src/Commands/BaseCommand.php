@@ -69,31 +69,27 @@ abstract class BaseCommand extends Command
     {
         $existing = $exception->getContext();
 
-        // Build new context from command state, only if not already set
         $newContext = [];
 
-        if (! isset($existing['vault']) && method_exists($this, 'vaultName')) {
-            $vault = $this->vaultName();
-            if ($vault !== null) {
-                $newContext['vault'] = $vault;
+        $contextMethods = [
+            'vault' => 'vaultName',
+            'env' => 'env',
+            'key' => 'key',
+        ];
+
+        foreach ($contextMethods as $contextKey => $method) {
+            if (isset($existing[$contextKey]) || ! method_exists($this, $method)) {
+                continue;
+            }
+            try {
+                $value = $this->$method();
+                if ($value !== null) {
+                    $newContext[$contextKey] = $value;
+                }
+            } catch (\Throwable) {
             }
         }
 
-        if (! isset($existing['env']) && method_exists($this, 'env')) {
-            $env = $this->env();
-            if ($env !== null) {
-                $newContext['env'] = $env;
-            }
-        }
-
-        if (! isset($existing['key']) && method_exists($this, 'key')) {
-            $key = $this->key();
-            if ($key !== null) {
-                $newContext['key'] = $key;
-            }
-        }
-
-        // Apply any found context
         if (! empty($newContext)) {
             $exception->withContext($newContext);
         }
@@ -104,10 +100,6 @@ abstract class BaseCommand extends Command
      */
     protected function configureOutputStyles(): void
     {
-        if (!$this->output) {
-            return;
-        }
-        
         $formatter = $this->output->getFormatter();
         
         // Semantic styles matching the shell

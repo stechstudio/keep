@@ -171,8 +171,7 @@ class InteractiveExport
         $arrayInput = new ArrayInput($input);
         $output = new ConsoleOutput();
         
-        $exitCode = $command->run($arrayInput, $output);
-        return $exitCode === null ? 0 : $exitCode;
+        return $command->run($arrayInput, $output);
     }
     
     /**

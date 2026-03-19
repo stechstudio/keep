@@ -15,16 +15,12 @@ use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\note;
 
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
-use Illuminate\Console\OutputStyle;
-
 class RunCommand extends BaseCommand
 {
     use GathersInput, ResolvesTemplates;
     
     protected $signature = 'run 
-        {cmd* : Command and arguments to run}
+        {cmd?* : Command and arguments to run}
         {--vault= : Specific vault to use}
         {--env= : Environment to use (required)}
         {--template= : Template file path, or auto-discover {env}.env if no path given}
@@ -43,26 +39,18 @@ class RunCommand extends BaseCommand
         $this->processRunner = new ProcessRunner();
     }
     
-    public function run(InputInterface $input, OutputInterface $output): int
-    {
-        try {
-            return parent::run($input, $output);
-        } catch (\Symfony\Component\Console\Exception\RuntimeException $e) {
-            if (str_contains($e->getMessage(), 'Not enough arguments (missing: "cmd")')) {
-                $this->output = new OutputStyle($input, $output);
-                error('No command specified to run');
-                note('Usage: keep run [options] -- <command> [arguments]');
-                note('Example: keep run --vault=ssm --env=production -- npm start');
-                note('Example: keep run --vault=ssm --env=production -- php artisan serve');
-                return self::FAILURE;
-            }
-            throw $e;
-        }
-    }
-    
     protected function process(): int
     {
         $commandArgs = $this->argument('cmd');
+
+        if (empty($commandArgs)) {
+            error('No command specified to run');
+            note('Usage: keep run [options] -- <command> [arguments]');
+            note('Example: keep run --vault=ssm --env=production -- npm start');
+            note('Example: keep run --vault=ssm --env=production -- php artisan serve');
+            return self::FAILURE;
+        }
+
         $command = $commandArgs[0];
         if (!$this->processRunner->commandExists($command) && !file_exists($command)) {
             error("Command not found: {$command}");

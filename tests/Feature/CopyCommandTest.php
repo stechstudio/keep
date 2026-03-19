@@ -267,17 +267,15 @@ describe('CopyCommand', function () {
     });
 
     describe('edge cases and special values', function () {
-        it('handles special characters in key names', function () {
+        it('rejects keys with invalid characters', function () {
             $commandTester = runCommand('copy', [
                 'key' => 'KEY_WITH_SPECIAL-CHARS.123',
                 '--from' => 'testing',
                 '--to' => 'production',
             ]);
 
-            $output = stripAnsi($commandTester->getDisplay());
-
-            // Should handle special characters in keys without error
-            expect($output)->not->toMatch('/invalid.*key/i');
+            expect($commandTester->getStatusCode())->toBe(1);
+            expect(stripAnsi($commandTester->getDisplay()))->toContain('invalid characters');
         });
 
         it('handles vault:env syntax correctly', function () {

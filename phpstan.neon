@@ -7,4 +7,6 @@ parameters:
             - src/Laravel/SecretsServiceProvider.php.deferred (?)
             - src/Data/KeepRepository.php.deferred (?)
             - src/Contracts/KeepRepositoryInterface.php.deferred (?)
+            - src/Server/frontend/node_modules
+            - src/Services/Export/CacheExportService.php
     reportUnmatchedIgnoredErrors: false

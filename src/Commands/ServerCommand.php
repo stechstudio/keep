@@ -18,12 +18,11 @@ class ServerCommand extends BaseCommand
 
     protected function process(): int
     {
-        $port = $this->option('port');
-        $host = $this->option('host');
+        $host = (string) $this->option('host');
         $noBrowser = $this->option('no-browser');
-        
+
         // Find available port if default is taken
-        $port = $this->findAvailablePort($host, $port);
+        $port = $this->findAvailablePort($host, (int) $this->option('port'));
         
         // Build server command
         $phpBinary = (new PhpExecutableFinder)->find();

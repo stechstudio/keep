@@ -25,7 +25,7 @@ class Settings
         $this->templatePath ??= 'env';
     }
 
-    public static function load(): ?static
+    public static function load(): ?self
     {
         $settingsPath = getcwd().'/.keep/settings.json';
 
@@ -34,7 +34,7 @@ class Settings
             : null;
     }
 
-    public static function fromArray(array $data): static
+    public static function fromArray(array $data): self
     {
         // Validate required fields exist (check app_name and namespace first)
         $required = ['app_name', 'namespace'];
@@ -51,7 +51,7 @@ class Settings
             throw new InvalidArgumentException("Missing required setting: envs");
         }
 
-        return new static(
+        return new self(
             appName: $data['app_name'],
             namespace: $data['namespace'],
             envs: $envs,
@@ -190,9 +190,9 @@ class Settings
     }
 
     // Mutation methods (return new instance for immutability)
-    public function withDefaultVault(?string $defaultVault): static
+    public function withDefaultVault(?string $defaultVault): self
     {
-        return new static(
+        return new self(
             appName: $this->appName,
             namespace: $this->namespace,
             envs: $this->envs,
@@ -204,9 +204,9 @@ class Settings
         );
     }
 
-    public function withEnvs(array $envs): static
+    public function withEnvs(array $envs): self
     {
-        return new static(
+        return new self(
             appName: $this->appName,
             namespace: $this->namespace,
             envs: $envs,
@@ -218,9 +218,9 @@ class Settings
         );
     }
         
-    public function withTemplatePath(?string $templatePath): static
+    public function withTemplatePath(?string $templatePath): self
     {
-        return new static(
+        return new self(
             appName: $this->appName,
             namespace: $this->namespace,
             envs: $this->envs,

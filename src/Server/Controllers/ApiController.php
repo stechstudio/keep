@@ -65,4 +65,16 @@ abstract class ApiController
     {
         return isset($this->body[$key]) || isset($this->query[$key]);
     }
+
+    protected function validateSlug(string $value): bool
+    {
+        return (bool) preg_match('/^[a-z0-9_-]+$/i', $value) && !str_contains($value, '..');
+    }
+
+    protected function validateFilename(string $value): bool
+    {
+        return !str_contains($value, '..')
+            && !str_contains($value, "\0")
+            && !str_starts_with($value, '/');
+    }
 }

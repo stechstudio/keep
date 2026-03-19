@@ -84,7 +84,7 @@ class KeepManager
         if (!$this->isInitialized()) {
             return [];
         }
-        return $this->settings->envs() ?? [];
+        return $this->settings->envs();
     }
 
     public function vault(string $name, string $env): AbstractVault

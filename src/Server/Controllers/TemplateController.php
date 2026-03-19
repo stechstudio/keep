@@ -51,9 +51,9 @@ class TemplateController extends ApiController
     public function show(string $filename): array
     {
         $filename = urldecode($filename);
-        
-        if (!$filename) {
-            return $this->error('Filename is required');
+
+        if (!$filename || !$this->validateFilename($filename)) {
+            return $this->error('Invalid filename');
         }
         
         $template = $this->templateService->loadTemplate($filename);
@@ -77,9 +77,9 @@ class TemplateController extends ApiController
     {
         $filename = urldecode($filename);
         $content = $this->body['content'] ?? '';
-        
-        if (!$filename) {
-            return $this->error('Filename is required');
+
+        if (!$filename || !$this->validateFilename($filename)) {
+            return $this->error('Invalid filename');
         }
         
         if ($content === '') {
@@ -201,7 +201,7 @@ class TemplateController extends ApiController
             'valid' => $valid,
             'errors' => $errors,
             'warnings' => $warnings,
-            'unusedSecrets' => array_filter($warnings, fn($w) => $w['type'] === 'unused'),
+            'unusedSecrets' => $warnings,
             'placeholderCount' => count($placeholders),
         ]);
     }
@@ -324,9 +324,9 @@ class TemplateController extends ApiController
     public function delete(string $filename): array
     {
         $filename = urldecode($filename);
-        
-        if (!$filename) {
-            return $this->error('Filename is required');
+
+        if (!$filename || !$this->validateFilename($filename)) {
+            return $this->error('Invalid filename');
         }
         
         $filepath = $this->templateService->getTemplatePath() . '/' . $filename;

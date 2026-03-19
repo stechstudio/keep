@@ -65,24 +65,22 @@ class RenameCommand extends BaseCommand
                 $context->env
             ));
             return self::FAILURE;
+        } catch (\STS\Keep\Exceptions\SecretAlreadyExistsException $e) {
+            $this->error(sprintf('Secret [<secret-name>%s</secret-name>] already exists in <context>%s:%s</context>',
+                $newKey,
+                $context->vault,
+                $context->env
+            ));
+            $this->neutral('Use a different name or delete the existing secret first.');
+            return self::FAILURE;
         } catch (\Exception $e) {
-            if (str_contains($e->getMessage(), 'already exists')) {
-                $this->error(sprintf('Secret [<secret-name>%s</secret-name>] already exists in <context>%s:%s</context>',
-                    $newKey,
-                    $context->vault,
-                    $context->env
-                ));
-                $this->neutral('Use a different name or delete the existing secret first.');
-            } else {
-                $this->error('Failed to rename secret: ' . $e->getMessage());
-                
-                // Try to clean up if we created the new one but failed to delete old
-                if ($vault->has($newKey) && $vault->has($oldKey)) {
-                    $this->warn('Partial rename occurred. New secret was created but old one still exists.');
-                    $this->neutral('You may want to manually delete one of them.');
-                }
+            $this->error('Failed to rename secret: ' . $e->getMessage());
+
+            if ($vault->has($newKey) && $vault->has($oldKey)) {
+                $this->warn('Partial rename occurred. New secret was created but old one still exists.');
+                $this->neutral('You may want to manually delete one of them.');
             }
-            
+
             return self::FAILURE;
         }
     }

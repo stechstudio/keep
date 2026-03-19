@@ -114,12 +114,17 @@ class Router
             try {
                 [$class, $action] = $route['handler'];
                 $controller = new $class($this->manager, $query, $body);
-                
-                // Call method with extracted parameters
+
                 return call_user_func_array([$controller, $action], $params);
-            } catch (Exception $e) {
+            } catch (\STS\Keep\Exceptions\KeepException $e) {
                 return [
                     'error' => $e->getMessage(),
+                    '_status' => 500
+                ];
+            } catch (Exception $e) {
+                error_log('Keep API error: ' . $e->getMessage());
+                return [
+                    'error' => 'An internal error occurred',
                     '_status' => 500
                 ];
             }

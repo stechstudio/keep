@@ -3,7 +3,7 @@
 namespace STS\Keep\Services;
 
 use Illuminate\Filesystem\Filesystem;
-use STS\Keep\Exceptions\ExceptionFactory;
+use STS\Keep\Exceptions\KeepException;
 
 class OutputWriter
 {
@@ -20,7 +20,7 @@ class OutputWriter
         $this->filesystem->ensureDirectoryExists(dirname($path));
 
         if ($this->filesystem->exists($path) && ! $overwrite && ! $append) {
-            throw ExceptionFactory::fileExists($path);
+            throw new KeepException("File [{$path}] already exists. Use --overwrite or --append option.");
         }
 
         if ($append && $this->filesystem->exists($path)) {
