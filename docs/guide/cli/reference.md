@@ -47,6 +47,31 @@ List all configured vaults.
 keep vault:list
 ```
 
+## `keep vault:delete`
+
+Delete a vault configuration.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--force` | boolean | `false` | Delete without confirmation |
+
+**Arguments:**
+- `[vault]` - Vault slug to delete (prompted if not provided)
+
+**Examples:**
+```bash
+# Interactive deletion
+keep vault:delete
+
+# Delete specific vault
+keep vault:delete my-vault
+
+# Force delete without prompt
+keep vault:delete my-vault --force
+```
+
+**Note:** The default vault cannot be deleted. Change the default vault first with `keep init`. Deleting a vault only removes the local Keep configuration — secrets in the remote vault are not affected.
+
 ## `keep env:add`
 
 Add a custom env/environment beyond the standard ones (local, staging, production).
@@ -79,6 +104,31 @@ keep env:add sandbox --no-interaction
 - Must be lowercase
 - Can contain letters, numbers, hyphens, and underscores
 - Examples: `qa`, `demo`, `integration`, `sandbox`, `dev2`, `staging-eu`
+
+## `keep env:remove`
+
+Remove a custom environment.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--force` | boolean | `false` | Remove without confirmation |
+
+**Arguments:**
+- `[name]` - Environment name to remove (prompted if not provided)
+
+**Examples:**
+```bash
+# Interactive removal
+keep env:remove
+
+# Remove specific environment
+keep env:remove integration
+
+# Force remove without prompt
+keep env:remove qa --force
+```
+
+**Note:** System environments (local, staging, production) cannot be removed. Removing an environment only updates the local Keep settings — secrets in remote vaults are not affected.
 
 ## `keep workspace`
 

@@ -121,6 +121,8 @@ History for secret: API_KEY
 │ 2       │ sk_o****   │ String   │ 2024-01-10 14:22:00 │ admin        │
 │ 1       │ sk_t****   │ String   │ 2024-01-05 09:15:00 │ admin        │
 └─────────┴────────────┴──────────┴─────────────────────┴──────────────┘
+
+>>> history API_KEY unmask  # Show actual values
 ```
 
 **search** - Search for secrets by value
@@ -148,6 +150,9 @@ Found 3 secrets containing "postgres":
 ```bash
 >>> copy API_KEY production
 ✓ Copied API_KEY to production
+
+>>> copy API_KEY production overwrite  # Overwrite if exists
+>>> copy API_KEY production dry-run    # Preview without copying
 
 >>> copy only DB_* staging
 ✓ Copied 3 secrets matching DB_* to staging
@@ -194,7 +199,16 @@ Summary:
 # Quick env format export
 ```
 
-Note: The `import` command is only available in the CLI, not the shell.
+**import** - Import secrets from .env file
+```bash
+>>> import .env
+# Imports secrets from file
+
+>>> import .env overwrite      # Overwrite existing secrets
+>>> import .env skip-existing  # Skip existing secrets
+>>> import .env dry-run        # Preview without importing
+>>> import .env dry-run overwrite  # Flags can be combined in any order
+```
 
 ### Verification
 
@@ -304,7 +318,7 @@ Secret Management
   set <key> <value>        Set a secret (alias: s)
   delete <key> [force]     Delete a secret (alias: d)
   show [unmask]            Show all secrets (alias: ls)
-  history <key>            View secret history
+  history <key> [unmask]    View secret history
   rename <old> <new>       Rename a secret
   search <query>           Search for secrets containing text
   copy <key> [destination] Copy single secret
@@ -317,7 +331,8 @@ Context Management
   use <vault:env>          Switch both vault and env (alias: u)
   context                  Show current context (alias: ctx)
 
-Analysis & Export
+Import, Export & Analysis
+  import <file> [flags]    Import secrets from .env file
   export                   Export secrets interactively
   verify                   Verify vault setup and permissions
   info                     Show Keep information
@@ -419,9 +434,9 @@ Many commands become interactive when arguments are omitted:
 
 ### CLI-Only Commands
 These commands are not available in the shell:
-- `import` - Use the CLI: `keep import file.env`
-- `push` / `pull` - Use the CLI for bulk operations
 - `init` - Use the CLI: `keep init`
+- `vault:add` / `vault:edit` / `vault:delete` - Use the CLI for vault management
+- `env:add` / `env:remove` - Use the CLI for environment management
 
 ### Security Notes
 - The shell masks secret values by default using `****` or showing only first 4 characters

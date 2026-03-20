@@ -108,6 +108,17 @@ keep set API_KEY "integration-key" --env=integration
 keep copy --only="*" --from=local --to=integration
 ```
 
+### Remove Custom Environments
+
+You can remove custom environments you've added:
+
+```bash
+keep env:remove integration
+keep env:remove qa --force  # Skip confirmation
+```
+
+System environments (local, staging, production) cannot be removed.
+
 ## Add a Vault
 
 ```bash
@@ -120,6 +131,17 @@ Follow the prompts to configure AWS SSM or Secrets Manager access. After adding 
 - Display which operations (read/write/list) are available
 
 **Note:** AWS credentials must be configured separately from your application secrets. See [AWS Authentication](/guide/aws-authentication) for setup instructions.
+
+### Remove a Vault
+
+You can delete vault configurations if they're no longer needed:
+
+```bash
+keep vault:delete
+keep vault:delete my-vault --force  # Skip confirmation
+```
+
+This only removes the local Keep configuration — secrets in the remote vault are not affected. The default vault cannot be deleted.
 
 ## Verify Setup
 

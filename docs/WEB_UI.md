@@ -29,6 +29,7 @@ The server generates a secure token on startup and automatically injects it into
 The main Secrets view provides:
 - **Table view** of all secrets with key, value (masked), and modification date
 - **Search** with real-time filtering
+- **Encrypt toggle** when creating or editing secrets (on by default)
 - **Quick actions** menu for each secret:
   - Edit value
   - Rename key

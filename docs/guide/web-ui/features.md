@@ -6,6 +6,7 @@ The Secrets page provides full CRUD operations with real-time search and filteri
 
 **Key capabilities:**
 - Create, edit, rename, and delete secrets
+- Encryption toggle — choose whether to encrypt each secret (on by default)
 - Copy secrets between environments and vaults
 - View revision history
 - Bulk import from `.env` files
