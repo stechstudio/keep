@@ -21,21 +21,18 @@ keep init --no-interaction
 
 ## `keep vault:add`
 
-Add a new vault configuration.
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `--driver` | string | *interactive* | Vault driver type |
-| `--name` | string | *interactive* | Vault name |
+Add a new vault configuration. This is a fully interactive command that guides you through driver selection, naming, and AWS configuration.
 
 **Examples:**
 ```bash
-# Interactive vault addition
 keep vault:add
-
-# Specify driver and name
-keep vault:add --driver=ssm --name=production-ssm
 ```
+
+**Interactive prompts:**
+- Select vault driver (`ssm` or `secretsmanager`)
+- Choose a vault slug (short identifier for templates)
+- Configure driver-specific settings (region, KMS key, etc.)
+- Automatic permission testing after setup
 
 ## `keep vault:list`
 

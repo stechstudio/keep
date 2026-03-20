@@ -46,14 +46,12 @@ Premium AWS service with advanced secret management features.
 
 ## Multi-Vault Strategies
 
-Use multiple vaults to optimize for cost and features:
+Use multiple vaults to optimize for cost and features. Run `keep vault:add` for each vault — the interactive setup will guide you through driver selection and naming:
 
 ```bash
-# SSM for most secrets (free tier)
-keep vault:add --driver=ssm --name=primary
-
-# Secrets Manager for database credentials (rotation)
-keep vault:add --driver=secretsmanager --name=databases
+# Add vaults interactively
+keep vault:add  # Select "ssm", name it "primary"
+keep vault:add  # Select "secretsmanager", name it "databases"
 ```
 
 Then target specific vaults:
