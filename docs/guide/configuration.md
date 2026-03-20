@@ -39,7 +39,7 @@ The `settings.json` file contains shared project configuration:
   "app_name": "My Application",
   "namespace": "myapp",
   "envs": ["local", "staging", "production"],
-  "default_vault": "aws-ssm"
+  "default_vault": "ssm"
 }
 ```
 

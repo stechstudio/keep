@@ -50,10 +50,10 @@ Use multiple vaults to optimize for cost and features:
 
 ```bash
 # SSM for most secrets (free tier)
-keep vault:add --driver=aws-ssm --name=primary
+keep vault:add --driver=ssm --name=primary
 
 # Secrets Manager for database credentials (rotation)
-keep vault:add --driver=aws-secrets-manager --name=databases
+keep vault:add --driver=secretsmanager --name=databases
 ```
 
 Then target specific vaults:

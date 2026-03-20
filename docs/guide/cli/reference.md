@@ -34,7 +34,7 @@ Add a new vault configuration.
 keep vault:add
 
 # Specify driver and name
-keep vault:add --driver=aws-ssm --name=production-ssm
+keep vault:add --driver=ssm --name=production-ssm
 ```
 
 ## `keep vault:list`
