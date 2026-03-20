@@ -23,17 +23,16 @@ The server:
 
 ## Interface Overview
 
-The Web UI provides five main sections:
+The Web UI provides four main sections:
 
 - **Secrets** - Manage individual secrets with search, filtering, and inline editing
 - **Templates** - Create and manage configuration templates with placeholders
 - **Diff** - Compare secrets across envs and vaults in a matrix view
-- **Export** - Generate configuration files in various formats
 - **Settings** - Configure vaults, envs, workspace, and preferences
 
 ## Security
 
-- **Local only** - Server binds to 127.0.0.1, no external access
+- **Local only** - Server binds to localhost, no external access
 - **Token auth** - Unique token per session, expires on shutdown
 - **No persistence** - Direct vault operations, no local secret storage
 - **Value masking** - Secrets masked by default with on-demand reveal

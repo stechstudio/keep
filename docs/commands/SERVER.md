@@ -20,9 +20,9 @@ Launches a local web server that provides a browser-based interface for managing
 - **Example**: `keep server --port=8080`
 
 ### `--host=<host>`
-- **Default**: `127.0.0.1`
+- **Default**: `localhost`
 - **Description**: Network interface to bind to
-- **Security**: Use `127.0.0.1` for local-only access
+- **Security**: Use `localhost` for local-only access
 - **Example**: `keep server --host=0.0.0.0` (allows network access)
 
 ### `--no-browser`
@@ -72,7 +72,7 @@ The server generates a unique authentication token on each startup:
 - Token expires when server stops
 
 ### Network Security
-- **Default binding**: `127.0.0.1` (localhost only)
+- **Default binding**: `localhost` (localhost only)
 - **No HTTPS**: Not required for localhost connections
 - **No CORS**: Prevents cross-origin requests
 - **Token validation**: All API requests require valid token
@@ -109,29 +109,6 @@ Error: Permission denied binding to port 80
 2. Check firewall settings
 3. Ensure correct port and host
 
-## Environment Variables
-
-### `KEEP_SERVER_PORT`
-Override default port:
-```bash
-export KEEP_SERVER_PORT=8080
-keep server
-```
-
-### `KEEP_SERVER_HOST`
-Override default host:
-```bash
-export KEEP_SERVER_HOST=0.0.0.0
-keep server
-```
-
-### `KEEP_NO_BROWSER`
-Disable browser auto-open:
-```bash
-export KEEP_NO_BROWSER=1
-keep server
-```
-
 ## Files
 
 ### Server Files
@@ -144,9 +121,9 @@ The web UI does not create or modify any local files. All data is read from and 
 
 ## Related Commands
 
-- [`keep init`](INIT.md) - Set up vaults before using UI
-- [`keep list`](LIST.md) - CLI alternative to view secrets
-- [`keep export`](EXPORT.md) - CLI alternative for exporting
+- `keep init` - Set up vaults before using UI
+- `keep show` - CLI alternative to view secrets
+- `keep export` - CLI alternative for exporting
 
 ## Notes
 

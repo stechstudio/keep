@@ -62,8 +62,8 @@ fi
 keep copy --only="*" --from=template --to=$ENV
 
 # Set environment-specific values
-keep set DATABASE_URL "postgres://db-$ENV.internal/app" --env=$ENV --force
-keep set API_URL "https://api-$ENV.example.com" --env=$ENV --force
+keep set DATABASE_URL "postgres://db-$ENV.internal/app" --env=$ENV
+keep set API_URL "https://api-$ENV.example.com" --env=$ENV
 
 # Validate
 keep show --env=$ENV
@@ -76,14 +76,13 @@ keep show --env=$ENV
 #!/bin/bash
 set -euo pipefail
 
-keep set API_KEY "$NEW_KEY" --env=production --force
+keep set API_KEY "$NEW_KEY" --env=production
 keep run --env=production -- npm run deploy
 ```
 
 ### Use Force Flags for Automation
 ```bash
 # Avoid interactive prompts in scripts
-keep set KEY "value" --env=production --force
 keep delete OLD_KEY --env=staging --force
 keep export --env=production --file=.env --overwrite
 ```

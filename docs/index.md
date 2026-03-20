@@ -55,7 +55,7 @@ keep diff --env=staging,production
 keep export --env=production --file=.env
 
 # Use templates  
-keep export --template=.env.template --env=production --output=.env
+keep export --template=.env.template --env=production --file=.env
 ```
 
 ## Interactive Shell
@@ -67,11 +67,11 @@ Launch the Keep shell for faster secret management with tab completion:
 keep shell
 
 # In the shell, use shortcuts and tab completion
->>> env production         # Switch to production environment
->>> get DB_<TAB>            # Tab completes secret names
->>> set NEW_SECRET "value"  # Set secrets instantly
->>> diff staging production # Compare environments
->>> exit                    # Exit when done
+ssm:local> env production         # Switch to production environment
+ssm:local> get DB_<TAB>            # Tab completes secret names
+ssm:local> set NEW_SECRET "value"  # Set secrets instantly
+ssm:local> diff staging production # Compare environments
+ssm:local> exit                    # Exit when done
 ```
 
 ## Web UI
@@ -106,4 +106,4 @@ keep run --vault=ssm --env=production -- npm start
 keep run --vault=ssm --env=production -- ./deploy.sh
 ```
 
-Get started with our [installation guide](/guide/installation), explore the [interactive shell](/guide/shell), try the [Web UI](/WEB_UI), or see all [CLI commands](/guide/reference/cli-reference).
+Get started with our [installation guide](/guide/installation), explore the [interactive shell](/guide/shell), try the [Web UI](/WEB_UI), or see all [CLI commands](/guide/cli/reference).

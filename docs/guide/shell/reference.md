@@ -8,33 +8,33 @@ Complete reference for all interactive shell commands, shortcuts, and options.
 
 **vault** - Switch vault context
 ```bash
->>> vault secretsmanager
+ssm:local> vault secretsmanager
 Switched to vault: secretsmanager
 
->>> vault
+ssm:local> vault
 # Interactive selection menu appears
 ```
 
 **env** - Switch environment context  
 ```bash
->>> env production
+ssm:local> env production
 Switched to env: production
 
->>> env
+ssm:local> env
 # Interactive selection menu appears
 ```
 
 **use** - Switch both vault and env at once
 ```bash
->>> use ssm:production
+ssm:local> use ssm:production
 Switched to: ssm:production
 
->>> u secretsmanager:staging  # Using alias
+ssm:local> u secretsmanager:staging  # Using alias
 ```
 
 **info** - Show Keep configuration
 ```bash
->>> info
+ssm:local> info
 Application: My App
 Namespace: MYAPP_
 Default Vault: ssm
@@ -43,42 +43,42 @@ Default Environment: local
 
 **context** / **ctx** - Show current context
 ```bash
->>> context
+ssm:local> context
 Vault: ssm
 Environment: production
 
->>> ctx  # Using alias
+ssm:local> ctx  # Using alias
 ```
 
 ### Secret Management
 
 **set** - Create or update a secret
 ```bash
->>> set API_KEY
+ssm:local> set API_KEY
 Enter value (hidden): ********
 ✓ Set API_KEY
 
->>> set DB_URL postgresql://localhost/db
+ssm:local> set DB_URL postgresql://localhost/db
 ✓ Set DB_URL
 
->>> s DEBUG_MODE true  # Using alias
+ssm:local> s DEBUG_MODE true  # Using alias
 ```
 
 **get** - Retrieve a secret value
 ```bash
->>> get API_KEY
+ssm:local> get API_KEY
 ┌──────────┬────────────────┬─────┐
 │ Key      │ Value          │ Rev │
 ├──────────┼────────────────┼─────┤
 │ API_KEY  │ sk_l****       │ 3   │
 └──────────┴────────────────┴─────┘
 
->>> g DB_HOST  # Using alias
+ssm:local> g DB_HOST  # Using alias
 ```
 
 **show** / **ls** - List all secrets
 ```bash
->>> show
+ssm:local> show
 ┌─────────────────┬────────────────┬──────────┐
 │ Key             │ Value          │ Revision │
 ├─────────────────┼────────────────┼──────────┤
@@ -87,32 +87,32 @@ Enter value (hidden): ********
 │ DEBUG_MODE      │ ****           │ 2        │
 └─────────────────┴────────────────┴──────────┘
 
->>> show unmask  # Show actual values
->>> ls  # Using alias
+ssm:local> show unmask  # Show actual values
+ssm:local> ls  # Using alias
 ```
 
 **delete** - Remove a secret
 ```bash
->>> delete OLD_KEY
+ssm:local> delete OLD_KEY
 Delete OLD_KEY? (y/N): y
 ✓ Deleted OLD_KEY
 
->>> delete TEMP_KEY force  # Skip confirmation
->>> d UNUSED_VAR  # Using alias
+ssm:local> delete TEMP_KEY force  # Skip confirmation
+ssm:local> d UNUSED_VAR  # Using alias
 ```
 
 **rename** - Rename a secret
 ```bash
->>> rename OLD_NAME NEW_NAME
+ssm:local> rename OLD_NAME NEW_NAME
 Rename OLD_NAME to NEW_NAME? (y/N): y
 ✓ Renamed OLD_NAME to NEW_NAME
 
->>> rename API_V1 API_KEY force
+ssm:local> rename API_V1 API_KEY force
 ```
 
 **history** - View secret version history
 ```bash
->>> history API_KEY
+ssm:local> history API_KEY
 History for secret: API_KEY
 ┌─────────┬────────────┬──────────┬─────────────────────┬──────────────┐
 │ Version │ Value      │ Type     │ Modified Date       │ Modified By  │
@@ -122,12 +122,12 @@ History for secret: API_KEY
 │ 1       │ sk_t****   │ String   │ 2024-01-05 09:15:00 │ admin        │
 └─────────┴────────────┴──────────┴─────────────────────┴──────────────┘
 
->>> history API_KEY unmask  # Show actual values
+ssm:local> history API_KEY unmask  # Show actual values
 ```
 
 **search** - Search for secrets by value
 ```bash
->>> search postgres
+ssm:local> search postgres
 Found 3 secrets containing "postgres":
 ┌──────────────┬────────────────┬──────────┐
 │ Key          │ Value          │ Revision │
@@ -137,10 +137,10 @@ Found 3 secrets containing "postgres":
 │ TEST_DB_URL  │ post****       │ 1        │
 └──────────────┴────────────────┴──────────┘
 
->>> search api-key unmask
+ssm:local> search api-key unmask
 # Shows matches with unmasked values
 
->>> search Token case-sensitive
+ssm:local> search Token case-sensitive
 # Case-sensitive search
 ```
 
@@ -148,22 +148,22 @@ Found 3 secrets containing "postgres":
 
 **copy** - Copy secrets between environments
 ```bash
->>> copy API_KEY production
+ssm:local> copy API_KEY production
 ✓ Copied API_KEY to production
 
->>> copy API_KEY production overwrite  # Overwrite if exists
->>> copy API_KEY production dry-run    # Preview without copying
+ssm:local> copy API_KEY production overwrite  # Overwrite if exists
+ssm:local> copy API_KEY production dry-run    # Preview without copying
 
->>> copy only DB_* staging
+ssm:local> copy only DB_* staging
 ✓ Copied 3 secrets matching DB_* to staging
 
->>> copy SECRET_KEY
+ssm:local> copy SECRET_KEY
 # Prompts for destination interactively
 ```
 
 **diff** - Compare environments
 ```bash
->>> diff local production
+ssm:local> diff local production
 Secret Comparison Matrix
 ┌──────────┬───────────┬──────────────┬──────────────┐
 │ Key      │ local     │ production   │ Status       │
@@ -186,35 +186,35 @@ Summary:
 
 **export** - Interactive export to file or screen
 ```bash
->>> export
+ssm:local> export
 # Interactive prompts:
 # 1. Export mode (all/template/filtered)
 # 2. Format (env/json)
 # 3. Destination (screen/file)
 
->>> export json
+ssm:local> export json
 # Quick JSON export (still prompts for destination)
 
->>> export env
+ssm:local> export env
 # Quick env format export
 ```
 
 **import** - Import secrets from .env file
 ```bash
->>> import .env
+ssm:local> import .env
 # Imports secrets from file
 
->>> import .env overwrite      # Overwrite existing secrets
->>> import .env skip-existing  # Skip existing secrets
->>> import .env dry-run        # Preview without importing
->>> import .env dry-run overwrite  # Flags can be combined in any order
+ssm:local> import .env overwrite      # Overwrite existing secrets
+ssm:local> import .env skip-existing  # Skip existing secrets
+ssm:local> import .env dry-run        # Preview without importing
+ssm:local> import .env dry-run overwrite  # Flags can be combined in any order
 ```
 
 ### Verification
 
 **verify** - Test vault permissions
 ```bash
->>> verify
+ssm:local> verify
 Checking vault access permissions...
 Keep Vault Verification Results
 ┌────────────────┬────────────┬──────┬───────┬──────┬─────────┬────────┐
@@ -252,19 +252,19 @@ Legend:
 - `u` → `use`
 - `ctx` → `context`
 - `cls` → `clear`
-- `q` → `exit`
+- `q` → `quit`
 - `?` → `help`
 
 ### Examples
 ```bash
->>> g API_KEY           # get API_KEY
->>> s NEW_VAR value     # set NEW_VAR value
->>> d OLD_VAR force     # delete OLD_VAR force
->>> ls unmask           # show unmask
->>> u ssm:staging       # use ssm:staging
->>> ctx                 # context
->>> cls                 # clear
->>> q                   # exit
+ssm:local> g API_KEY           # get API_KEY
+ssm:local> s NEW_VAR value     # set NEW_VAR value
+ssm:local> d OLD_VAR force     # delete OLD_VAR force
+ssm:local> ls unmask           # show unmask
+ssm:local> u ssm:staging       # use ssm:staging
+ssm:local> ctx                 # context
+ssm:local> cls                 # clear
+ssm:local> q                   # exit
 ```
 
 ## Tab Completion
@@ -273,28 +273,28 @@ The shell provides intelligent tab completion:
 
 ### Secret Names
 ```bash
->>> get DB_<TAB>
+ssm:local> get DB_<TAB>
 DB_HOST  DB_NAME  DB_PASSWORD  DB_PORT  DB_USER
 
->>> get DB_P<TAB>
+ssm:local> get DB_P<TAB>
 DB_PASSWORD  DB_PORT
 ```
 
 ### Commands
 ```bash
->>> del<TAB>
+ssm:local> del<TAB>
 delete
 
->>> exp<TAB>
+ssm:local> exp<TAB>
 export
 ```
 
 ### Vault/Env Names
 ```bash
->>> vault s<TAB>
+ssm:local> vault s<TAB>
 secretsmanager  ssm
 
->>> env prod<TAB>
+ssm:local> env prod<TAB>
 production
 ```
 
@@ -304,13 +304,13 @@ production
 
 **clear** / **cls** - Clear the screen
 ```bash
->>> clear
->>> cls  # Alias
+ssm:local> clear
+ssm:local> cls  # Alias
 ```
 
 **help** / **?** - Show available commands
 ```bash
->>> help
+ssm:local> help
 Keep Shell Commands
 
 Secret Management
@@ -343,16 +343,16 @@ Other
   clear                    Clear the screen (alias: cls)
   colors                   Show color scheme
 
->>> help get
+ssm:local> help get
 # Shows detailed help for 'get' command
 
->>> ? set
+ssm:local> ? set
 # Shows help for 'set' using alias
 ```
 
 **colors** - Display color scheme
 ```bash
->>> colors
+ssm:local> colors
 
 === Shell Color Scheme ===
 
@@ -370,11 +370,11 @@ This is neutral descriptive text
 
 **exit** / **quit** / **q** - Leave the shell
 ```bash
->>> exit
+ssm:local> exit
 Goodbye!
 
->>> quit  # Alternative
->>> q     # Short alias
+ssm:local> quit  # Alternative
+ssm:local> q     # Short alias
 # Or press Ctrl+D
 ```
 
@@ -388,20 +388,20 @@ Most commands support additional options:
 
 ### Examples
 ```bash
->>> show unmask
->>> delete TEMP_KEY force
->>> rename OLD NEW force
->>> search text unmask
+ssm:local> show unmask
+ssm:local> delete TEMP_KEY force
+ssm:local> rename OLD NEW force
+ssm:local> search text unmask
 ```
 
 ## Pattern Matching
 
 The `copy` command supports pattern matching:
 ```bash
->>> copy only DB_* staging
+ssm:local> copy only DB_* staging
 # Copies all secrets starting with DB_
 
->>> copy only API_*,AUTH_* production
+ssm:local> copy only API_*,AUTH_* production
 # Copies multiple patterns
 ```
 
@@ -410,16 +410,16 @@ The `copy` command supports pattern matching:
 Many commands become interactive when arguments are omitted:
 
 ```bash
->>> env
+ssm:local> env
 # Shows interactive env selector
 
->>> vault  
+ssm:local> vault  
 # Shows interactive vault selector
 
->>> copy SECRET_KEY
+ssm:local> copy SECRET_KEY
 # Prompts for destination
 
->>> export
+ssm:local> export
 # Full interactive export wizard
 ```
 

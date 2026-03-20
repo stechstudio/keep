@@ -42,14 +42,11 @@ Templates are your application's complete environment configuration - Keep handl
 Generate templates automatically from your vault:
 
 ```bash
-# Create template from all secrets in an env
-keep template:add production.env --env=production
+# Create template from all secrets in an env (saves as production.env)
+keep template:add --env=production
 
-# From specific vault
-keep template:add api.env --env=production --vault=ssm
-
-# Overwrite existing template
-keep template:add config.env --env=staging --overwrite
+# Specify custom template directory
+keep template:add --env=staging --path=./config/templates
 ```
 
 ### Manual Creation

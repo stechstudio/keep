@@ -200,7 +200,7 @@ keep set DB_PASSWORD --env=production
 keep get DB_PASSWORD --env=production
 
 # Export for deployment
-keep export --env=production --output=.env
+keep export --env=production --file=.env
 ```
 
 ### Cross-Environment Workflows
@@ -215,7 +215,7 @@ keep diff --env=staging,production
 ### Template-Based Deployment
 ```bash
 # Use secrets in templates
-keep export --template=env.template --env=production --vault=ssm --output=.env
+keep export --template=env.template --env=production --vault=ssm --file=.env
 ```
 
 ## Troubleshooting

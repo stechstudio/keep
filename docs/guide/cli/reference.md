@@ -222,8 +222,7 @@ Create or update secrets in vaults.
 |--------|------|---------|-------------|
 | `--env` | string | *interactive* | Target env (local, staging, production) |
 | `--vault` | string | *default vault* | Vault to store the secret in |
-| `--secure` | boolean | `true` | Whether to encrypt the secret |
-| `--force` | boolean | `false` | Overwrite existing secrets without confirmation |
+| `--plain` | boolean | `false` | Do not encrypt the value |
 
 **Arguments:**
 - `[key]` - Secret key name (prompted if not provided)
@@ -256,8 +255,8 @@ keep set
 # Direct mode
 keep set API_KEY "abc123" --env=local
 
-# Force overwrite
-keep set API_KEY "new-value" --env=production --force
+# Store as plain text (not encrypted)
+keep set API_KEY "new-value" --env=production --plain
 
 # Specify vault
 keep set STRIPE_KEY "sk_live_..." --env=production --vault=secretsmanager
@@ -327,26 +326,21 @@ keep show --env=production --vault=secretsmanager --format=env
 
 ## `keep template:add`
 
-Generate a template file from existing secrets in a environment.
+Generate a template file from existing secrets in an environment. The template is saved as `{env}.env` in the template directory.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `filename` | string | *required* | Template filename to create |
-| `--env` | string | *required* | Environment to generate template from |
-| `--vault` | string | *all vaults* | Specific vault to use |
-| `--overwrite` | boolean | `false` | Overwrite existing template file |
+| `--env` | string | *interactive* | Environment to generate template from |
+| `--path` | string | *template directory* | Custom template directory path |
 
 ### Examples
 
 ```bash
-# Create template from production secrets
-keep template:add .env.template --env=production
+# Create template from production secrets (saves as production.env)
+keep template:add --env=production
 
-# Create from specific vault
-keep template:add api.template --env=production --vault=ssm
-
-# Overwrite existing template
-keep template:add config.env --env=staging --overwrite
+# Specify custom template directory
+keep template:add --env=staging --path=./config/templates
 ```
 
 ## `keep template:validate`
@@ -355,7 +349,7 @@ Validate template files for syntax and placeholder resolution.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `filename` | string | *required* | Template file to validate |
+| `[template]` | string | *optional* | Template file to validate (prompted if not provided) |
 | `--env` | string | *optional* | Environment to validate against |
 
 ### Examples
@@ -389,27 +383,27 @@ The interactive shell provides:
 
 **Context Management:**
 ```bash
-keep> env production      # Switch to production env (alias: e)
-keep> vault ssm          # Switch to ssm vault (alias: v)
-keep> use ssm:production # Switch both at once (alias: u)
-keep> context            # Show current context (alias: ctx)
+ssm:local> env production      # Switch to production env (alias: e)
+ssm:local> vault ssm          # Switch to ssm vault (alias: v)
+ssm:local> use ssm:production # Switch both at once (alias: u)
+ssm:local> context            # Show current context (alias: ctx)
 ```
 
 **Secret Operations:**
 ```bash
-keep> set API_KEY value  # Set a secret
-keep> get API_KEY        # Get a secret (alias: g)
-keep> delete API_KEY     # Delete a secret (alias: d)
-keep> show               # List all secrets (aliases: ls, list, l)
-keep> copy KEY --to=prod # Copy using current context as source
+ssm:local> set API_KEY value  # Set a secret
+ssm:local> get API_KEY        # Get a secret (alias: g)
+ssm:local> delete API_KEY     # Delete a secret (alias: d)
+ssm:local> show               # List all secrets (aliases: ls, l)
+ssm:local> copy KEY --to=prod # Copy using current context as source
 ```
 
 **Shell Control:**
 ```bash
-keep> help               # Show available commands (alias: ?)
-keep> history            # Show command history (alias: h)
-keep> clear              # Clear screen (alias: cls)
-keep> exit               # Exit shell (aliases: quit, q)
+ssm:local> help               # Show available commands (alias: ?)
+ssm:local> history            # Show command history (alias: h)
+ssm:local> clear              # Clear screen (alias: cls)
+ssm:local> exit               # Exit shell (aliases: quit, q)
 ```
 
 ### Examples
@@ -419,12 +413,12 @@ keep> exit               # Exit shell (aliases: quit, q)
 keep shell --env=production --vault=ssm
 
 # Interactive session
-keep (ssm:production)> show
-keep (ssm:production)> env development
+ssm:production> show
+ssm:production> env development
 ✓ Switched to env: development
-keep (ssm:development)> set API_KEY "dev-key"
-keep (ssm:development)> copy API_KEY --to=production
-keep (ssm:development)> exit
+ssm:development> set API_KEY "dev-key"
+ssm:development> copy API_KEY --to=production
+ssm:development> exit
 Goodbye!
 ```
 

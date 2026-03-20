@@ -91,7 +91,7 @@ For developers who need complete access to manage secrets across all environment
           "aws:TagKeys": [
             "ManagedBy",
             "Namespace",
-            "Environment",
+            "Env",
             "VaultSlug"
           ]
         }
@@ -141,7 +141,7 @@ For developers who should only access development and staging environments:
           "secretsmanager:ResourceTag/Namespace": "myapp"
         },
         "ForAnyValue:StringEquals": {
-          "secretsmanager:ResourceTag/Environment": [
+          "secretsmanager:ResourceTag/Env": [
             "staging",
             "production"
           ]
@@ -168,7 +168,7 @@ For developers who should only access development and staging environments:
           "aws:RequestTag/Namespace": "myapp"
         },
         "ForAnyValue:StringEquals": {
-          "aws:RequestTag/Environment": [
+          "aws:RequestTag/Env": [
             "staging",
             "production"
           ]
@@ -177,7 +177,7 @@ For developers who should only access development and staging environments:
           "aws:TagKeys": [
             "ManagedBy",
             "Namespace",
-            "Environment",
+            "Env",
             "VaultSlug"
           ]
         }
@@ -216,7 +216,7 @@ For production deployment processes that only need to read production secrets:
       "Condition": {
         "StringEquals": {
           "secretsmanager:ResourceTag/Namespace": "myapp",
-          "secretsmanager:ResourceTag/Environment": "production"
+          "secretsmanager:ResourceTag/Env": "production"
         }
       }
     },
@@ -251,12 +251,12 @@ Keep organizes secrets using simple path-style naming for duplicate avoidance, w
 **Tags for Organization:**
 - `ManagedBy: Keep`
 - `Namespace: myapp`
-- `Environment: local|staging|production`
+- `Env: local|staging|production`
 - `VaultSlug: secretsmanager`
 
 ## Security Best Practices
 
-**Tag-Based Access Control**: Keep uses tags (`ManagedBy`, `Namespace`, `Environment`, `VaultSlug`) for precise IAM permissions instead of resource ARNs.
+**Tag-Based Access Control**: Keep uses tags (`ManagedBy`, `Namespace`, `Env`, `VaultSlug`) for precise IAM permissions instead of resource ARNs.
 
 **Automatic Encryption**: All secrets are automatically encrypted at rest using AWS KMS.
 
@@ -291,7 +291,7 @@ keep set DB_PASSWORD --env=production
 keep get DB_PASSWORD --env=production
 
 # Export for deployment
-keep export --env=production --output=.env
+keep export --env=production --file=.env
 ```
 
 ### Cross-Environment Workflows
@@ -306,7 +306,7 @@ keep diff --env=staging,production
 ### Template-Based Deployment
 ```bash
 # Use secrets in templates
-keep export --template=env.template --env=production --output=.env
+keep export --template=env.template --env=production --file=.env
 ```
 
 ## Advanced Features

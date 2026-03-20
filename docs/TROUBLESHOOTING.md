@@ -68,7 +68,7 @@ location.reload()
 **Debug**:
 ```bash
 # Test vault access via CLI
-keep list --vault=aws --env=production
+keep show --env=production
 
 # Check AWS credentials
 aws sts get-caller-identity
@@ -96,7 +96,7 @@ aws sts get-caller-identity
 **Debug**:
 ```bash
 # Verify via CLI
-keep get MY_SECRET --vault=aws --env=prod
+keep get MY_SECRET --env=local
 ```
 
 #### Masked Values Won't Unmask
@@ -153,12 +153,6 @@ npm run dev
 ```
 
 ## Debug Mode
-
-### Enable Verbose Logging
-```bash
-# Set debug environment variable
-DEBUG=1 keep server
-```
 
 ### Check Browser Console
 1. Open DevTools (F12)
@@ -267,9 +261,9 @@ keep server
 If UI is completely broken:
 ```bash
 # Use CLI instead
-keep list
-keep get SECRET_NAME
-keep set SECRET_NAME value
+keep show --env=local
+keep get SECRET_NAME --env=local
+keep set SECRET_NAME value --env=local
 
 # Or use AWS CLI directly
 aws ssm get-parameter --name /myapp/SECRET_NAME

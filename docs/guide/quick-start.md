@@ -16,13 +16,13 @@ keep set DB_PASSWORD "super-secret-password" --env=local
 
 ```bash
 # List all secrets (values are masked by default)
-keep list --env=local
+keep show --env=local
 
 # Get a specific secret
 keep get DB_PASSWORD --env=local
 
 # Show the actual value (unmasked)
-keep get DB_PASSWORD --env=local --unmask
+keep get DB_PASSWORD --env=local --format=raw
 ```
 
 ## Export to .env File

@@ -16,7 +16,7 @@ keep server --port=8080
 # Without auto-opening browser
 keep server --no-browser
 
-# Specific network interface (default: 127.0.0.1)
+# Specific network interface (default: localhost)
 keep server --host=0.0.0.0
 ```
 
@@ -49,7 +49,7 @@ Compare secrets across envs and vaults:
   - ✗ Missing
 - **Inline editing** directly from diff cells
 - **Multi-select** for comparing specific vault/env combinations
-- **Export diff** to CSV for reporting
+- **Export** comparison data for reporting
 
 ### Export
 
@@ -97,9 +97,9 @@ Manage Keep configuration:
 ## Navigation
 
 ### URL Routes
-- `/` - Secrets table (default)
+- `/secrets` - Secrets table (default, `/` redirects here)
+- `/templates` - Template management
 - `/diff` - Diff matrix view
-- `/export` - Export interface
 - `/settings` - Configuration
 
 ### Keyboard Shortcuts
@@ -123,7 +123,7 @@ Manage Keep configuration:
 - All operations go directly to vault
 
 ### Network Security
-- Binds to 127.0.0.1 by default
+- Binds to localhost by default
 - No CORS headers (prevents external access)
 - HTTPS not required for localhost
 - Token validation on all API endpoints
@@ -216,13 +216,6 @@ npm run dev
 ```bash
 # PHP tests
 composer test
-
-# JavaScript tests
-cd src/Server/frontend
-npm test
-
-# With coverage
-npm run test:coverage
 ```
 
 ### Project Structure
@@ -241,10 +234,6 @@ src/Server/
 └── BUILD.md            # Build documentation
 ```
 
-## Contributing
-
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for development guidelines.
-
 ## FAQ
 
 **Q: Can I access the UI remotely?**
@@ -262,6 +251,3 @@ A: Currently uses a dark theme. Light theme support planned for future release.
 **Q: Can I export the UI settings?**
 A: Settings are stored in Keep's configuration files, not the UI. Use `keep init` to manage.
 
-## Changelog
-
-See [CHANGELOG.md](../CHANGELOG.md) for version history and updates.

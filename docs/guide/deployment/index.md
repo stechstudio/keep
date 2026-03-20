@@ -15,7 +15,7 @@ Templates provide:
 
 ```bash
 # Create template from existing secrets
-keep template:add production.env --env=production
+keep template:add --env=production
 ```
 
 ### 2. [Runtime Secrets Injection](./runtime-injection.md)

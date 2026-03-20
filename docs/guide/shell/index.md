@@ -179,13 +179,13 @@ Secret Comparison Matrix
 Omit arguments for interactive prompts:
 
 ```bash
->>> env
+ssm:local> env
 Select an env:
 > local
   staging
   production
 
->>> vault
+ssm:local> vault
 Select a vault:
 > ssm
   secretsmanager
@@ -220,22 +220,22 @@ The shell uses colors for quick identification:
 
 ```bash
 # Use aliases for speed
->>> g API_KEY         # get
->>> s NEW_KEY value   # set
->>> ls                # show all
->>> ctx               # context
->>> q                 # exit
+ssm:local> g API_KEY         # get
+ssm:local> s NEW_KEY value   # set
+ssm:local> ls                # show all
+ssm:local> ctx               # context
+ssm:local> q                 # exit
 
 # Tab complete partial names
->>> g A<TAB>          # Shows all secrets starting with A
->>> get API_<TAB>     # Shows all API_ secrets
+ssm:local> g A<TAB>          # Shows all secrets starting with A
+ssm:local> get API_<TAB>     # Shows all API_ secrets
 
 # Review before bulk operations
->>> diff local staging
->>> copy only * staging
+ssm:local> diff local staging
+ssm:local> copy only * staging
 
 # Quick backup
->>> export
+ssm:local> export
 # Choose: all secrets → env format → file
 ```
 
