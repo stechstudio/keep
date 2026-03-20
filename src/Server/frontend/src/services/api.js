@@ -57,17 +57,17 @@ class ApiClient {
     return this.request(`/secrets/${encodeURIComponent(key)}?vault=${vault}&env=${env}&unmask=${unmask}`)
   }
 
-  async createSecret(key, value, vault, env) {
+  async createSecret(key, value, vault, env, secure = true) {
     return this.request('/secrets', {
       method: 'POST',
-      body: JSON.stringify({ key, value, vault, env })
+      body: JSON.stringify({ key, value, vault, env, secure })
     })
   }
 
-  async updateSecret(key, value, vault, env) {
+  async updateSecret(key, value, vault, env, secure = true) {
     return this.request(`/secrets/${encodeURIComponent(key)}`, {
       method: 'PUT',
-      body: JSON.stringify({ value, vault, env })
+      body: JSON.stringify({ value, vault, env, secure })
     })
   }
 

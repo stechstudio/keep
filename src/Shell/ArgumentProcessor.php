@@ -21,6 +21,7 @@ class ArgumentProcessor
         ],
         'history' => [
             'arguments' => ['key'],
+            'flags' => ['unmask'],
         ],
         'delete' => [
             'arguments' => ['key'],
@@ -31,9 +32,11 @@ class ArgumentProcessor
             'options' => [
                 1 => '--to', // Second positional becomes --to option
             ],
+            'flags' => ['overwrite', 'dry-run'],
         ],
         'import' => [
             'arguments' => ['from'],
+            'flags' => ['overwrite', 'skip-existing', 'dry-run'],
         ],
         'rename' => [
             'arguments' => ['old', 'new'],
@@ -50,10 +53,7 @@ class ArgumentProcessor
             'arguments' => ['name'],
         ],
         'diff' => [
-            'options' => [
-                0 => '--from',
-                1 => '--to',
-            ],
+            'collect' => '--env',
             'flags' => ['unmask'],
         ],
         'verify' => [
@@ -92,6 +92,11 @@ class ArgumentProcessor
         if (isset($config['options'])) {
             self::processOptions($positionals, $config['options'], $input);
         }
+
+        // Collect remaining positionals into a single comma-separated option
+        if (isset($config['collect'])) {
+            self::processCollect($positionals, $config['collect'], $config['flags'] ?? [], $input);
+        }
     }
     
     /**
@@ -127,6 +132,18 @@ class ArgumentProcessor
             if (isset($positionals[$index])) {
                 $input[$option] = $positionals[$index];
             }
+        }
+    }
+
+    /**
+     * Collect all non-flag positionals into a single comma-separated option
+     */
+    private static function processCollect(array $positionals, string $option, array $flags, array &$input): void
+    {
+        $values = array_filter($positionals, fn ($p) => !in_array($p, $flags));
+
+        if (!empty($values)) {
+            $input[$option] = implode(',', $values);
         }
     }
 }

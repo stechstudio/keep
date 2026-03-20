@@ -34,9 +34,19 @@
             />
           </div>
           
-          <div class="text-xs text-muted-foreground">
-            Vault: <span class="font-medium">{{ vault }}</span> • 
-            Env: <span class="font-medium">{{ env }}</span>
+          <div class="flex items-center justify-between">
+            <div class="text-xs text-muted-foreground">
+              Vault: <span class="font-medium">{{ vault }}</span> •
+              Env: <span class="font-medium">{{ env }}</span>
+            </div>
+            <label class="flex items-center space-x-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                v-model="form.secure"
+                class="rounded border-border"
+              />
+              <span class="text-muted-foreground">Encrypt</span>
+            </label>
           </div>
           
           <div v-if="saveError" class="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-md">
@@ -84,7 +94,8 @@ const { createSecret, updateSecret } = useSecrets()
 
 const form = reactive({
   key: '',
-  value: ''
+  value: '',
+  secure: true
 })
 
 const keyError = ref('')
@@ -153,10 +164,10 @@ async function save() {
   
   try {
     if (props.secret) {
-      await updateSecret(form.key, form.value, props.vault, props.env)
+      await updateSecret(form.key, form.value, props.vault, props.env, form.secure)
       toast.success('Secret updated', `Secret '${form.key}' has been updated successfully`)
     } else {
-      await createSecret(form.key, form.value, props.vault, props.env)
+      await createSecret(form.key, form.value, props.vault, props.env, form.secure)
       toast.success('Secret created', `Secret '${form.key}' has been created successfully`)
     }
     emit('success')

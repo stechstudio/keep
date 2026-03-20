@@ -40,7 +40,8 @@ class SecretController extends ApiController
         
         try {
             $vault = $this->getVault();
-            $vault->set($this->body['key'], $this->body['value']);
+            $secure = ($this->body['secure'] ?? true) !== false;
+            $vault->set($this->body['key'], $this->body['value'], $secure);
         } catch (\InvalidArgumentException $e) {
             return $this->error($e->getMessage());
         }
@@ -58,8 +59,9 @@ class SecretController extends ApiController
         }
         
         $vault = $this->getVault();
-        $vault->set(urldecode($key), $this->body['value']);
-        
+        $secure = ($this->body['secure'] ?? true) !== false;
+        $vault->set(urldecode($key), $this->body['value'], $secure);
+
         return $this->success([
             'success' => true,
             'message' => "Secret '{$key}' updated in vault '{$this->body['vault']}' environment '{$this->body['env']}'"

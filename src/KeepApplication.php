@@ -35,9 +35,11 @@ class KeepApplication extends Application
 
             Commands\VaultAddCommand::class,
             Commands\VaultEditCommand::class,
+            Commands\VaultDeleteCommand::class,
             Commands\VaultListCommand::class,
 
             Commands\EnvAddCommand::class,
+            Commands\EnvRemoveCommand::class,
             
             Commands\WorkspaceCommand::class,
 

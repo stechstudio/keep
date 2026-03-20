@@ -22,11 +22,11 @@ export function useSecrets() {
     }
   }
 
-  async function createSecret(key, value, vault, env) {
+  async function createSecret(key, value, vault, env, secure = true) {
     loading.value = true
     error.value = null
     try {
-      const response = await api.createSecret(key, value, vault, env)
+      const response = await api.createSecret(key, value, vault, env, secure)
       // Don't call loadSecrets here - let the component handle refresh
       return response
     } catch (err) {
@@ -37,11 +37,11 @@ export function useSecrets() {
     }
   }
 
-  async function updateSecret(key, value, vault, env) {
+  async function updateSecret(key, value, vault, env, secure = true) {
     loading.value = true
     error.value = null
     try {
-      const response = await api.updateSecret(key, value, vault, env)
+      const response = await api.updateSecret(key, value, vault, env, secure)
       // Don't call loadSecrets here - let the component handle refresh
       return response
     } catch (err) {
