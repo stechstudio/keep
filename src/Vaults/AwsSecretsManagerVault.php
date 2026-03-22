@@ -26,6 +26,11 @@ class AwsSecretsManagerVault extends AbstractVault
 
     protected SecretsManagerClient $client;
 
+    public static function isAvailable(): bool
+    {
+        return class_exists(SecretsManagerClient::class);
+    }
+
     public static function configure(array $existingSettings = []): array
     {
         return [

@@ -16,6 +16,11 @@ abstract class AbstractVault
 
     public const string NAME = '';
 
+    public static function isAvailable(): bool
+    {
+        return true;
+    }
+
     public function __construct(protected string $name, protected array $config, protected string $env) {}
 
     public function name(): string

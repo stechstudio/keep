@@ -18,16 +18,25 @@ trait ConfiguresVaults
 {
     protected function configureNewVault(): ?array
     {
-        // Get available vault classes and build options
         $availableVaults = Keep::getAvailableVaults();
         $driverOptions = [];
         $vaultClassMap = [];
 
         foreach ($availableVaults as $vaultClass) {
+            if (!$vaultClass::isAvailable()) {
+                continue;
+            }
             $driver = $vaultClass::DRIVER;
             $name = $vaultClass::NAME;
             $driverOptions[$driver] = $name;
             $vaultClassMap[$driver] = $vaultClass;
+        }
+
+        if (empty($driverOptions)) {
+            error('No vault drivers are available. The AWS SDK is required.');
+            info('Install it with: composer require aws/aws-sdk-php');
+
+            return null;
         }
 
         $selectedDriver = select(
@@ -79,7 +88,6 @@ trait ConfiguresVaults
         info("✅ {$friendlyName} vault '{$slug}' configured successfully");
         
         // Reload vault configurations to include the newly saved vault
-        // This ensures the permission tester can find and update the vault
         $container = \STS\Keep\KeepContainer::getInstance();
         $container->instance(
             \STS\Keep\KeepManager::class,
@@ -88,12 +96,24 @@ trait ConfiguresVaults
                 \STS\Keep\Data\Collections\VaultConfigCollection::load()
             )
         );
-        
-        // Run verify to check and cache permissions for all environments
+
+        $region = $vaultConfig['region'] ?? 'us-east-1';
+        if (!$this->checkAwsCredentials($region)) {
+            info('');
+            error('AWS credentials not found or invalid.');
+            info('Configure credentials via:');
+            info('  - AWS CLI: aws configure');
+            info('  - Environment variables: AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY');
+            info('  - Instance profile (on EC2/ECS/Lambda)');
+            info('');
+            info('Skipping permission verification. Run "keep verify" once credentials are configured.');
+
+            return ['slug' => $slug, 'config' => $vaultConfig];
+        }
+
         info("\nVerifying vault permissions...");
         $collection = $this->testVaultAcrossEnvs($slug);
-        
-        // Display summary of permissions
+
         foreach ($collection->groupByEnv() as $env => $permissions) {
             $permission = $permissions->first();
             $permString = empty($permission->permissions()) ? 'no permissions' : implode(', ', $permission->permissions());
@@ -127,6 +147,26 @@ trait ConfiguresVaults
         $localStorage->saveVaultPermissions($vaultName, $vaultPermissions);
         
         return $collection;
+    }
+
+    protected function checkAwsCredentials(string $region): bool
+    {
+        if (!class_exists(\Aws\Sts\StsClient::class)) {
+            return false;
+        }
+
+        try {
+            $sts = new \Aws\Sts\StsClient([
+                'version' => 'latest',
+                'region' => $region,
+                'use_aws_shared_config_files' => true,
+            ]);
+            $sts->getCallerIdentity();
+
+            return true;
+        } catch (\Exception) {
+            return false;
+        }
     }
 
     private function generateUniqueSlug(string $driver): string

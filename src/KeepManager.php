@@ -110,6 +110,12 @@ class KeepManager
             throw new \InvalidArgumentException("Vault driver '{$driver}' for '{$name}' is not available.");
         }
 
+        if (!$driverClass::isAvailable()) {
+            throw new \RuntimeException(
+                "Vault driver '{$driver}' requires the AWS SDK. Install it with: composer require aws/aws-sdk-php"
+            );
+        }
+
         $vault = new $driverClass($name, $config->toArray(), $env);
         $this->loadedVaults[$cacheKey] = $vault;
 

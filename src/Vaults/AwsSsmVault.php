@@ -28,6 +28,11 @@ class AwsSsmVault extends AbstractVault
 
     protected SsmClient $client;
 
+    public static function isAvailable(): bool
+    {
+        return class_exists(SsmClient::class);
+    }
+
     public static function configure(array $existingSettings = []): array
     {
         return [
