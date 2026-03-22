@@ -4,6 +4,7 @@ namespace STS\Keep\Commands;
 
 use STS\Keep\Commands\Concerns\ConfiguresVaults;
 
+use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\note;
 
@@ -24,6 +25,10 @@ class VaultAddCommand extends BaseCommand
 
         if (! $result) {
             return self::FAILURE;
+        }
+
+        if (! $this->option('no-interaction') && confirm('Would you like to generate the IAM policy JSON for this vault?', false)) {
+            $this->call('iam', ['--vault' => $result['slug']]);
         }
 
         return self::SUCCESS;

@@ -92,6 +92,9 @@ class InitCommand extends BaseCommand
                 $result = $this->configureNewVault();
 
                 if ($result) {
+                    $this->offerWorkspaceSetup();
+                    $this->offerIamPolicy();
+
                     note('🎉 All set! Your Keep configuration is ready to use.');
                     note('Next step: Set your first secret with: keep set MY_SECRET');
                 } else {
@@ -106,6 +109,38 @@ class InitCommand extends BaseCommand
                 note('• Add your first vault: keep vault:add');
                 note('• Set your first secret: keep set MY_SECRET');
             }
+        }
+    }
+
+    private function offerWorkspaceSetup(): void
+    {
+        if ($this->option('no-interaction')) {
+            return;
+        }
+
+        info('');
+        info('🎯 Workspace Setup');
+        note('A workspace lets you select which vaults and environments you personally work with.');
+
+        if (confirm('Would you like to configure your workspace now?', true)) {
+            $this->call('workspace');
+        } else {
+            note('You can configure your workspace later with: keep workspace');
+        }
+    }
+
+    private function offerIamPolicy(): void
+    {
+        if ($this->option('no-interaction')) {
+            return;
+        }
+
+        info('');
+
+        if (confirm('Would you like to generate the IAM policy JSON for your setup?', false)) {
+            $this->call('iam');
+        } else {
+            note('You can generate it anytime with: keep iam');
         }
     }
 

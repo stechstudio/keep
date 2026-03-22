@@ -9,6 +9,7 @@ use STS\Keep\Data\VaultEnvPermissions;
 use STS\Keep\Facades\Keep;
 use STS\Keep\Services\LocalStorage;
 
+use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\error;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\select;
@@ -107,6 +108,7 @@ trait ConfiguresVaults
             info('  - Instance profile (on EC2/ECS/Lambda)');
             info('');
             info('Skipping permission verification. Run "keep verify" once credentials are configured.');
+            info('Run "keep iam" to generate the IAM policy for this vault.');
 
             return ['slug' => $slug, 'config' => $vaultConfig];
         }
