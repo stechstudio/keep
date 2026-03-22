@@ -40,6 +40,8 @@ You'll be prompted for:
 
 ## IAM Permission Scenarios
 
+> **Quick start:** Run `keep iam` to generate a ready-to-use IAM policy based on your actual configuration. The examples below are for reference and custom setups.
+
 Let's look at how to set up IAM permissions for different roles in your organization when using AWS SSM Parameter Store with Keep. These examples assume a namespace of "myapp" and use the default KMS key for SSM.
 
 ### Full Developer Access

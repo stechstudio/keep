@@ -4,11 +4,20 @@ Complete reference for all Keep CLI commands with their options and usage exampl
 
 ## `keep init`
 
-Initialize Keep settings and vault connections.
+Initialize Keep settings and vault connections. Walks you through the complete setup process.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `--no-interaction` | boolean | `false` | Run without prompts using defaults |
+
+**Setup flow:**
+1. Application name and namespace
+2. Environment selection (local, staging, production, custom)
+3. First vault configuration (driver, region, KMS key)
+4. Workspace setup (select your active vaults and environments)
+5. IAM policy generation (ready-to-use JSON for AWS)
+
+Each step after vault setup is optional — you can skip and configure later with `keep vault:add`, `keep workspace`, or `keep iam`.
 
 **Examples:**
 ```bash
@@ -32,7 +41,8 @@ keep vault:add
 - Select vault driver (`ssm` or `secretsmanager`)
 - Choose a vault slug (short identifier for templates)
 - Configure driver-specific settings (region, KMS key, etc.)
-- Automatic permission testing after setup
+- Automatic credential check and permission testing
+- Option to generate IAM policy JSON for the new vault
 
 ## `keep vault:list`
 
@@ -145,6 +155,43 @@ keep workspace
 - Workspace settings are personal and not committed to version control
 - Filtering is cosmetic only - doesn't affect permissions or access
 - Useful for focusing on specific environments or reducing clutter
+
+## `keep iam`
+
+Generate a ready-to-use IAM policy JSON based on your configured vaults, namespace, and workspace.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `--vault` | string | *all workspace vaults* | Generate policy for a specific vault only |
+| `--all` | boolean | `false` | Include all vaults and environments, ignoring workspace |
+| `--browser` | boolean | `false` | Open the AWS IAM console to create a policy |
+
+**Examples:**
+```bash
+# Generate policy scoped to your workspace
+keep iam
+
+# Generate policy for all vaults and environments
+keep iam --all
+
+# Generate for a specific vault
+keep iam --vault=ssm
+
+# Generate and open the IAM console
+keep iam --browser
+```
+
+**Output:**
+- Shows a summary of namespace, environments, and vaults included
+- Outputs a complete IAM policy JSON document ready to paste into the AWS console
+- Policy is scoped to your workspace by default (active vaults and environments)
+
+**Notes:**
+- The generated policy includes all permissions needed for Keep operations (read, write, list, delete, history)
+- SSM policies use resource ARN scoping per environment
+- Secrets Manager policies use tag-based access control with environment conditions
+- Use `--all` when generating a policy for an admin or CI/CD role that needs access to everything
+- This command is offered during `keep init` and `keep vault:add` setup flows
 
 ## `keep verify`
 
@@ -370,6 +417,8 @@ Start an interactive shell for Keep commands with persistent context.
 |--------|------|---------|-------------|
 | `--env` | string | *first configured env* | Initial env to use |
 | `--vault` | string | *default vault* | Initial vault to use |
+
+**First Run:** If Keep hasn't been initialized yet, running `keep shell` (or just `keep`) will automatically launch the setup wizard (`keep init`).
 
 ### Shell Mode Features
 

@@ -204,7 +204,28 @@ deploy:
 
 ## IAM Permissions
 
-After setting up authentication, you need to configure IAM permissions for the AWS services Keep will access:
+After setting up authentication, you need to configure IAM permissions for the AWS services Keep will access.
+
+### Generate a Policy with `keep iam`
+
+The easiest way to get the right IAM policy is to let Keep generate it for you:
+
+```bash
+# Generate policy scoped to your workspace (active vaults and environments)
+keep iam
+
+# Generate policy for all vaults and environments
+keep iam --all
+
+# Generate and open the AWS IAM console
+keep iam --browser
+```
+
+The generated policy is scoped to your namespace, vault driver, region, and workspace environments — no manual editing needed.
+
+### Manual Policy Setup
+
+For manual configuration or custom policies, see the detailed IAM examples:
 
 - **For AWS SSM Parameter Store**: See [SSM IAM Permissions](/guide/vaults/aws-ssm#iam-permissions)
 - **For AWS Secrets Manager**: See [Secrets Manager IAM Permissions](/guide/vaults/aws-secrets-manager#iam-permissions)

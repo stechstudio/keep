@@ -10,6 +10,8 @@ Launch the interactive shell with the `shell` command:
 keep shell
 ```
 
+If Keep hasn't been initialized yet, running `keep shell` (or just `keep` with no arguments) will automatically walk you through the setup process first.
+
 You can also start with a specific vault and env:
 
 ```bash

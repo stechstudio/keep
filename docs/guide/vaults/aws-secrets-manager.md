@@ -38,6 +38,8 @@ You'll be prompted for:
 
 ## IAM Permission Scenarios
 
+> **Quick start:** Run `keep iam` to generate a ready-to-use IAM policy based on your actual configuration. The examples below are for reference and custom setups.
+
 Keep uses **tag-based permissions** for Secrets Manager to provide fine-grained access control. All secrets are tagged with `ManagedBy=Keep`, `Namespace={namespace}`, `Env={env}`, and `VaultSlug={vault}` for precise permission boundaries.
 
 ### Full Developer Access
