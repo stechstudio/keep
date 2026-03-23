@@ -74,7 +74,7 @@ if (str_starts_with($path, '/api/')) {
     $headers = getallheaders();
     $token = $headers['X-Auth-Token'] ?? $headers['x-auth-token'] ?? '';
     
-    if ($token !== $AUTH_TOKEN) {
+    if (!hash_equals($AUTH_TOKEN, $token)) {
         jsonResponse(['error' => 'Unauthorized'], 401);
     }
     
@@ -195,6 +195,7 @@ function serveIndexWithToken(string $path, string $token): void
     header('Cache-Control: no-cache, no-store, must-revalidate');
     header('Pragma: no-cache');
     header('Expires: 0');
+    header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; frame-ancestors 'none'");
     echo $html;
     exit;
 }

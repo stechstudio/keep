@@ -60,10 +60,22 @@ abstract class AbstractVault
                 sprintf('Cannot rename: secret [%s] already exists', $newKey)
             );
         }
-        
+
         $newSecret = $this->set($newKey, $oldSecret->value(), $oldSecret->isSecure());
-        $this->delete($oldKey);
-        
+
+        try {
+            $this->delete($oldKey);
+        } catch (Exception $e) {
+            try {
+                $this->delete($newKey);
+            } catch (Exception) {
+            }
+
+            throw new \STS\Keep\Exceptions\KeepException(
+                sprintf('Rename failed: could not delete original secret [%s] after creating [%s]. Rolled back.', $oldKey, $newKey),
+            );
+        }
+
         return $newSecret;
     }
 
