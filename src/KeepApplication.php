@@ -12,7 +12,7 @@ use Symfony\Component\Console\Input\InputDefinition;
 
 class KeepApplication extends Application
 {
-    public const string VERSION = '1.0.0-beta.7';
+    public const string VERSION = '1.0.0-beta.8';
 
     public function __construct(protected KeepInstall $install)
     {
