@@ -50,7 +50,7 @@ class Crypt
 
     public function encrypt(array $secrets): string
     {
-        $data = serialize($secrets);
+        $data = json_encode($secrets, JSON_THROW_ON_ERROR);
 
         $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
         $encrypted = sodium_crypto_secretbox($data, $nonce, $this->key);
@@ -75,6 +75,6 @@ class Crypt
             throw new \RuntimeException('Failed to decrypt secrets cache. Invalid key or corrupted data.');
         }
 
-        return unserialize($decrypted);
+        return json_decode($decrypted, true, 512, JSON_THROW_ON_ERROR);
     }
 }

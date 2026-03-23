@@ -123,36 +123,22 @@ class SecretController extends ApiController
         if ($error = $this->requireFields(['newKey', 'vault', 'env'])) {
             return $error;
         }
-        
+
         $newKey = $this->body['newKey'];
         if ($oldKey === $newKey) {
             return $this->error('New key must be different from old key');
         }
-        
-        // Validate the new secret key
+
         $validator = new SecretKeyValidator();
         try {
             $validator->validate($newKey);
         } catch (\InvalidArgumentException $e) {
             return $this->error($e->getMessage());
         }
-        
+
         $vault = $this->getVault();
-        
-        // Check if old key exists
-        if(!$vault->has(urldecode($oldKey))) {
-            return $this->error('Secret not found', 404);
-        }
-        
-        // Check if new key already exists
-        if($vault->has($newKey)) {
-            return $this->error('A secret with the new key already exists');
-        }
+        $vault->rename(urldecode($oldKey), $newKey);
 
-
-        $vault->set($newKey, $vault->get(urldecode($oldKey))->value());
-        $vault->delete(urldecode($oldKey));
-        
         return $this->success([
             'success' => true,
             'message' => "Secret renamed from '{$oldKey}' to '{$newKey}'"
